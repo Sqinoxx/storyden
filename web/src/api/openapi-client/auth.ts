@@ -32,6 +32,7 @@ import type {
   AuthProviderLogoutParams,
   AuthSuccessOKResponse,
   BadRequestResponse,
+  ConflictResponse,
   ForbiddenResponse,
   InternalServerErrorResponse,
   NoContentResponse,
@@ -128,10 +129,11 @@ export type AuthPasswordSignupMutationResult = NonNullable<
 >;
 export type AuthPasswordSignupMutationError =
   | BadRequestResponse
+  | ConflictResponse
   | InternalServerErrorResponse;
 
 export const useAuthPasswordSignup = <
-  TError = BadRequestResponse | InternalServerErrorResponse,
+  TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse,
 >(
   params?: AuthPasswordSignupParams,
   options?: {
@@ -184,12 +186,14 @@ export type AuthPasswordSigninMutationResult = NonNullable<
 >;
 export type AuthPasswordSigninMutationError =
   | UnauthorisedResponse
+  | ForbiddenResponse
   | NotFoundResponse
   | InternalServerErrorResponse;
 
 export const useAuthPasswordSignin = <
   TError =
     | UnauthorisedResponse
+    | ForbiddenResponse
     | NotFoundResponse
     | InternalServerErrorResponse,
 >(options?: {
@@ -367,12 +371,14 @@ export type AuthPasswordResetMutationResult = NonNullable<
 >;
 export type AuthPasswordResetMutationError =
   | UnauthorisedResponse
+  | ForbiddenResponse
   | NotFoundResponse
   | InternalServerErrorResponse;
 
 export const useAuthPasswordReset = <
   TError =
     | UnauthorisedResponse
+    | ForbiddenResponse
     | NotFoundResponse
     | InternalServerErrorResponse,
 >(options?: {
@@ -431,10 +437,11 @@ export type AuthEmailPasswordSignupMutationResult = NonNullable<
 >;
 export type AuthEmailPasswordSignupMutationError =
   | BadRequestResponse
+  | ConflictResponse
   | InternalServerErrorResponse;
 
 export const useAuthEmailPasswordSignup = <
-  TError = BadRequestResponse | InternalServerErrorResponse,
+  TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse,
 >(
   params?: AuthEmailPasswordSignupParams,
   options?: {
@@ -490,12 +497,14 @@ export type AuthEmailPasswordSigninMutationResult = NonNullable<
 >;
 export type AuthEmailPasswordSigninMutationError =
   | UnauthorisedResponse
+  | ForbiddenResponse
   | NotFoundResponse
   | InternalServerErrorResponse;
 
 export const useAuthEmailPasswordSignin = <
   TError =
     | UnauthorisedResponse
+    | ForbiddenResponse
     | NotFoundResponse
     | InternalServerErrorResponse,
 >(options?: {
@@ -694,12 +703,14 @@ export type AuthEmailSigninMutationResult = NonNullable<
 >;
 export type AuthEmailSigninMutationError =
   | UnauthorisedResponse
+  | ForbiddenResponse
   | NotFoundResponse
   | InternalServerErrorResponse;
 
 export const useAuthEmailSignin = <
   TError =
     | UnauthorisedResponse
+    | ForbiddenResponse
     | NotFoundResponse
     | InternalServerErrorResponse,
 >(options?: {
@@ -753,12 +764,14 @@ export type AuthEmailVerifyMutationResult = NonNullable<
 >;
 export type AuthEmailVerifyMutationError =
   | UnauthorisedResponse
+  | ForbiddenResponse
   | NotFoundResponse
   | InternalServerErrorResponse;
 
 export const useAuthEmailVerify = <
   TError =
     | UnauthorisedResponse
+    | ForbiddenResponse
     | NotFoundResponse
     | InternalServerErrorResponse,
 >(options?: {
@@ -815,12 +828,14 @@ export type OAuthProviderCallbackMutationResult = NonNullable<
 >;
 export type OAuthProviderCallbackMutationError =
   | UnauthorisedResponse
+  | ForbiddenResponse
   | NotFoundResponse
   | InternalServerErrorResponse;
 
 export const useOAuthProviderCallback = <
   TError =
     | UnauthorisedResponse
+    | ForbiddenResponse
     | NotFoundResponse
     | InternalServerErrorResponse,
 >(
@@ -934,10 +949,11 @@ export type WebAuthnMakeCredentialMutationResult = NonNullable<
 >;
 export type WebAuthnMakeCredentialMutationError =
   | BadRequestResponse
+  | ConflictResponse
   | InternalServerErrorResponse;
 
 export const useWebAuthnMakeCredential = <
-  TError = BadRequestResponse | InternalServerErrorResponse,
+  TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse,
 >(
   params?: WebAuthnMakeCredentialParams,
   options?: {
@@ -1114,10 +1130,11 @@ export type PhoneRequestCodeMutationResult = NonNullable<
 >;
 export type PhoneRequestCodeMutationError =
   | BadRequestResponse
+  | ConflictResponse
   | InternalServerErrorResponse;
 
 export const usePhoneRequestCode = <
-  TError = BadRequestResponse | InternalServerErrorResponse,
+  TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse,
 >(
   params?: PhoneRequestCodeParams,
   options?: {

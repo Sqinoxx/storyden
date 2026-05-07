@@ -730,6 +730,7 @@ paths:
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
         "200": { $ref: "#/components/responses/AuthSuccessOK" }
 
   /auth/password/signin:
@@ -742,6 +743,7 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "200": { $ref: "#/components/responses/AuthSuccessOK" }
 
   /auth/password:
@@ -784,6 +786,7 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "200": { $ref: "#/components/responses/AuthSuccessOK" }
 
   /auth/email-password/signup:
@@ -796,6 +799,7 @@ paths:
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
         "200": { $ref: "#/components/responses/AuthSuccessOK" }
 
   /auth/email-password/signin:
@@ -808,6 +812,7 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "200": { $ref: "#/components/responses/AuthSuccessOK" }
 
   /auth/email-password/reset:
@@ -872,6 +877,7 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "200": { $ref: "#/components/responses/AuthSuccessOK" }
 
   /auth/email/verify:
@@ -886,6 +892,7 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "200": { $ref: "#/components/responses/AuthSuccessOK" }
 
   /auth/oauth/{oauth_provider}/callback:
@@ -899,6 +906,7 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "401": { $ref: "#/components/responses/Unauthorised" }
         "404": { $ref: "#/components/responses/NotFound" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "200": { $ref: "#/components/responses/AuthSuccessOK" }
 
   /auth/webauthn/make/{account_handle}:
@@ -924,6 +932,7 @@ paths:
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
         "200": { $ref: "#/components/responses/AuthSuccessOK" }
 
   /auth/webauthn/assert/{account_handle}:
@@ -965,6 +974,7 @@ paths:
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
         "200": { $ref: "#/components/responses/AuthSuccessOK" }
 
   /auth/phone/{account_handle}:

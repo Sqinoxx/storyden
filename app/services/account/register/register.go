@@ -8,8 +8,10 @@ import (
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/fault/fmsg"
+	"github.com/Southclaws/fault/ftag"
 	"github.com/Southclaws/opt"
 	petname "github.com/dustinkirkland/golang-petname"
+	"github.com/rs/xid"
 	"github.com/samber/lo"
 
 	"github.com/Southclaws/storyden/app/resources/account"
@@ -17,7 +19,9 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
 	"github.com/Southclaws/storyden/app/resources/account/email"
+	"github.com/Southclaws/storyden/app/resources/account/invitation/invitation_querier"
 	"github.com/Southclaws/storyden/app/resources/mark"
+	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/services/authentication/email_verify"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/onboarding"
@@ -31,15 +35,19 @@ var (
 	errAccountMismatch         = fault.New("account mismatch")
 	errEmailNotVerified        = fault.New("email not verified")
 	errAuthMethodAlreadyLinked = fault.New("authentication method already linked to another account")
+	errInviteRequired          = fault.New("invitation required", ftag.With(ftag.PermissionDenied))
+	errRegistrationClosed      = fault.New("registration closed", ftag.With(ftag.PermissionDenied))
 )
 
 type Registrar struct {
 	logger         *slog.Logger
 	accountWriter  *account_writer.Writer
 	accountQuerier *account_querier.Querier
+	invQuerier     *invitation_querier.Querier
 	emailRepo      *email.Repository
 	emailVerify    *email_verify.Verifier
 	authRepo       authentication.Repository
+	settings       *settings.SettingsRepository
 	onboarding     onboarding.Service
 	bus            *pubsub.Bus
 }
@@ -48,9 +56,11 @@ func New(
 	logger *slog.Logger,
 	writer *account_writer.Writer,
 	accountQuerier *account_querier.Querier,
+	invQuerier *invitation_querier.Querier,
 	emailRepo *email.Repository,
 	emailVerify *email_verify.Verifier,
 	authRepo authentication.Repository,
+	settings *settings.SettingsRepository,
 	onboarding onboarding.Service,
 	bus *pubsub.Bus,
 ) *Registrar {
@@ -58,15 +68,17 @@ func New(
 		logger:         logger,
 		accountWriter:  writer,
 		accountQuerier: accountQuerier,
+		invQuerier:     invQuerier,
 		emailRepo:      emailRepo,
 		emailVerify:    emailVerify,
 		authRepo:       authRepo,
+		settings:       settings,
 		onboarding:     onboarding,
 		bus:            bus,
 	}
 }
 
-func (s *Registrar) Create(ctx context.Context, handle opt.Optional[string], opts ...account_writer.Option) (*account.Account, error) {
+func (s *Registrar) Provision(ctx context.Context, handle opt.Optional[string], opts ...account_writer.Option) (*account.Account, error) {
 	status, err := s.onboarding.GetOnboardingStatus(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err,
@@ -79,6 +91,119 @@ func (s *Registrar) Create(ctx context.Context, handle opt.Optional[string], opt
 		opts = append(opts, account_writer.WithAdmin(true))
 	}
 
+	return s.create(ctx, handle, opts...)
+}
+
+func (s *Registrar) Register(ctx context.Context, handle opt.Optional[string], inviteCode opt.Optional[xid.ID], opts ...account_writer.Option) (*account.Account, error) {
+	status, err := s.onboarding.GetOnboardingStatus(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err,
+			fctx.With(ctx),
+			fmsg.WithDesc("failed to check onboarding status", "Unable to verify system setup. Please try again or contact site administration."))
+	}
+
+	if status == &onboarding.StatusRequiresFirstAccount {
+		opts = append(opts,
+			account_writer.WithAdmin(true),
+		)
+
+		return s.create(ctx, handle, opts...)
+	}
+
+	set, err := s.settings.Get(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	mode := set.RegistrationMode.Or(settings.RegistrationModePublic)
+
+	switch mode {
+	case settings.RegistrationModePublic:
+		if id, ok := inviteCode.Get(); ok {
+			if err := s.validateInvite(ctx, id); err != nil {
+				return nil, fault.Wrap(err, fctx.With(ctx))
+			}
+			opts = append(opts, account_writer.WithInvitedBy(id))
+		}
+
+	case settings.RegistrationModeInvitation:
+		id, ok := inviteCode.Get()
+		if !ok {
+			return nil, fault.Wrap(errInviteRequired,
+				fctx.With(ctx),
+				fmsg.WithDesc("invitation required", "This community is invite-only. You need a valid invitation to register."))
+		}
+		if err := s.validateInvite(ctx, id); err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+		opts = append(opts, account_writer.WithInvitedBy(id))
+
+	case settings.RegistrationModeDisabled:
+		return nil, fault.Wrap(errRegistrationClosed,
+			fctx.With(ctx),
+			fmsg.WithDesc("registration unavailable", "Registration is not currently available."))
+	default:
+		return nil, fault.Wrap(errRegistrationClosed,
+			fctx.With(ctx),
+			fmsg.WithDesc("registration unavailable", "Registration is not currently available."))
+	}
+
+	acc, err := s.create(ctx, handle, opts...)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return acc, nil
+}
+
+func (s *Registrar) validateInvite(ctx context.Context, id xid.ID) error {
+	inv, err := s.invQuerier.GetByID(ctx, id)
+	if err != nil {
+		if ftag.Get(err) == ftag.NotFound {
+			return fault.Wrap(errInviteRequired,
+				fctx.With(ctx),
+				fmsg.WithDesc("invalid invitation", "The invitation could not be found or is no longer valid."))
+		}
+
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if inv.DeletedAt.Ok() {
+		return fault.Wrap(errInviteRequired,
+			fctx.With(ctx),
+			fmsg.WithDesc("invalid invitation", "The invitation could not be found or is no longer valid."))
+	}
+
+	return nil
+}
+
+func (s *Registrar) ensureOAuthRegistrationAllowed(ctx context.Context) error {
+	status, err := s.onboarding.GetOnboardingStatus(ctx)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+	if status == &onboarding.StatusRequiresFirstAccount {
+		return nil
+	}
+
+	set, err := s.settings.Get(ctx)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	// OAuth does not currently carry invitation state through the provider round
+	// trip. Until that flow exists, only public registration may create OAuth
+	// accounts; existing OAuth-linked accounts can still sign in normally.
+	if set.RegistrationMode.Or(settings.RegistrationModePublic) != settings.RegistrationModePublic {
+		return fault.Wrap(errRegistrationClosed,
+			fctx.With(ctx),
+			fmsg.WithDesc("registration unavailable", "Registration is not currently available for this sign-in method."))
+	}
+
+	return nil
+}
+
+func (s *Registrar) create(ctx context.Context, handle opt.Optional[string], opts ...account_writer.Option) (*account.Account, error) {
 	// If no handle was given, generate one using adjective-animal.
 	handleOrGenerated := handle.Or(petname.Generate(2, "-"))
 
@@ -243,7 +368,7 @@ func (s *Registrar) GetOrCreateViaEmail(
 	case !authMethodExists && !emailExists:
 		// Nothing exists for this member yet, create a new account.
 
-		newAccount, err := s.CreateWithHandle(ctx, service, authName, identifier, token, name, handle)
+		newAccount, err := s.ProvisionWithHandle(ctx, service, authName, identifier, token, name, handle)
 		if err != nil {
 			return nil, fault.Wrap(err, fmsg.With("failed to create new account"), fctx.With(ctx))
 		}
@@ -354,7 +479,7 @@ func (s *Registrar) GetOrCreateViaHandle(
 
 		logger.Info("get or create: no auth record, handle already points to existing account, creating new account with random handle")
 
-		return s.CreateWithRandomHandle(ctx, service, authName, identifier, token, name)
+		return s.ProvisionWithRandomHandle(ctx, service, authName, identifier, token, name)
 
 	case !authMethodExists && !handleExists:
 		// Nothing exists for this member yet, create a new account.
@@ -374,7 +499,7 @@ func (s *Registrar) GetOrCreateViaHandle(
 			return &sessionAccount, nil
 		}
 
-		return s.CreateWithHandle(ctx, service, authName, identifier, token, name, handle)
+		return s.ProvisionWithHandle(ctx, service, authName, identifier, token, name, handle)
 
 	default:
 		// switch block covers all cases.
@@ -382,7 +507,7 @@ func (s *Registrar) GetOrCreateViaHandle(
 	}
 }
 
-func (s *Registrar) CreateWithRandomHandle(
+func (s *Registrar) ProvisionWithRandomHandle(
 	ctx context.Context,
 	service authentication.Service,
 	authName string,
@@ -390,6 +515,10 @@ func (s *Registrar) CreateWithRandomHandle(
 	token string,
 	name string,
 ) (*account.Account, error) {
+	if err := s.ensureOAuthRegistrationAllowed(ctx); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	_, authMethodExists, err := s.authRepo.LookupByIdentifier(ctx, service, identifier)
 	if err != nil {
 		return nil, fault.Wrap(err, fmsg.With("failed to lookup existing account"), fctx.With(ctx))
@@ -405,7 +534,7 @@ func (s *Registrar) CreateWithRandomHandle(
 
 	randomHandle := petname.Generate(3, "-")
 
-	newAccount, err := s.Create(ctx, opt.New(randomHandle),
+	newAccount, err := s.Provision(ctx, opt.New(randomHandle),
 		account_writer.WithName(name))
 	if err != nil {
 		return nil, fault.Wrap(err, fmsg.With("failed to create new account"), fctx.With(ctx))
@@ -419,7 +548,7 @@ func (s *Registrar) CreateWithRandomHandle(
 	return newAccount, nil
 }
 
-func (s *Registrar) CreateWithHandle(
+func (s *Registrar) ProvisionWithHandle(
 	ctx context.Context,
 	service authentication.Service,
 	authName string,
@@ -428,6 +557,10 @@ func (s *Registrar) CreateWithHandle(
 	name string,
 	handle string,
 ) (*account.Account, error) {
+	if err := s.ensureOAuthRegistrationAllowed(ctx); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	_, authMethodExists, err := s.authRepo.LookupByIdentifier(ctx, service, identifier)
 	if err != nil {
 		return nil, fault.Wrap(err, fmsg.With("failed to lookup existing account"), fctx.With(ctx))
@@ -441,7 +574,7 @@ func (s *Registrar) CreateWithHandle(
 		)
 	}
 
-	newAccount, err := s.Create(ctx, opt.New(handle),
+	newAccount, err := s.Provision(ctx, opt.New(handle),
 		account_writer.WithName(name))
 	if err != nil {
 		return nil, fault.Wrap(err, fmsg.With("failed to create new account"), fctx.With(ctx))

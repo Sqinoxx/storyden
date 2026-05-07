@@ -15,7 +15,6 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
-	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
 	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/services/account/register"
@@ -99,11 +98,10 @@ func (p *Provider) Register(ctx context.Context, handle string, phone string, in
 
 	var acc *account.Account
 	if exists {
+		acc = &authrecord.Account
 		if err := acc.RejectSuspended(); err != nil {
 			return nil, fault.Wrap(err, fctx.With(ctx))
 		}
-
-		acc = &authrecord.Account
 		if acc.Handle != handle {
 			return nil, fault.Wrap(errHandleMismatch,
 				fctx.With(ctx),
@@ -144,10 +142,7 @@ func (p *Provider) Register(ctx context.Context, handle string, phone string, in
 		// a new one using the @handle specified in the request.
 		//
 
-		opts := []account_writer.Option{}
-		inviteCode.Call(func(id xid.ID) { opts = append(opts, account_writer.WithInvitedBy(id)) })
-
-		acc, err = p.register.Create(ctx, opt.New(handle), opts...)
+		acc, err = p.register.Register(ctx, opt.New(handle), inviteCode)
 		if err != nil {
 			if ftag.Get(err) == ftag.AlreadyExists {
 				return nil, fault.Wrap(err,

@@ -12,6 +12,7 @@ import type { AuthMode } from "./authMode";
 import type { MessageOfTheDayMutableProps } from "./messageOfTheDayMutableProps";
 import type { Metadata } from "./metadata";
 import type { PostContent } from "./postContent";
+import type { RegistrationMode } from "./registrationMode";
 
 export interface AdminSettingsMutableProps {
   accent_colour?: string;
@@ -23,6 +24,7 @@ vendor-specific configuration data specific to the frontend itself.
  */
   metadata?: Metadata;
   motd?: MessageOfTheDayMutableProps;
+  registration_mode?: RegistrationMode;
   services?: AdminSettingsServiceProps;
   title?: string;
 }

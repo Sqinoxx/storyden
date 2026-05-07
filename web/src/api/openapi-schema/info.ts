@@ -13,6 +13,7 @@ import type { MessageOfTheDay } from "./messageOfTheDay";
 import type { Metadata } from "./metadata";
 import type { OnboardingStatus } from "./onboardingStatus";
 import type { PostContent } from "./postContent";
+import type { RegistrationMode } from "./registrationMode";
 
 /**
  * Basic public information about the Storyden installation.
@@ -26,5 +27,6 @@ export interface Info {
   metadata?: Metadata;
   motd?: MessageOfTheDay;
   onboarding_status: OnboardingStatus;
+  registration_mode: RegistrationMode;
   title: string;
 }

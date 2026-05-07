@@ -15,6 +15,7 @@ import { deriveError } from "@/utils/error";
 
 export type Props = {
   webauthn: boolean;
+  invitationID?: string;
 };
 
 const KindSchema = z.enum(["password", "webauthn"]);
@@ -30,7 +31,7 @@ const FormPasswordSchema = z.object({
 });
 type Form = z.infer<typeof FormSchema>;
 
-export function useRegisterHandleForm() {
+export function useRegisterHandleForm({ invitationID }: Props) {
   const {
     register,
     handleSubmit,
@@ -73,7 +74,7 @@ export function useRegisterHandleForm() {
       return;
     }
 
-    await authPasswordSignup(parsed.data)
+    await authPasswordSignup(parsed.data, { invitation_id: invitationID })
       .then(() => {
         push("/");
         mutate();

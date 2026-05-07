@@ -40,6 +40,7 @@ export default async function Page(props: Props) {
       initialPage={page}
       slug={slug}
       thread={data}
+      initialSettings={settings}
       initialSignatureConfig={settings.metadata.signatures}
     />
   );

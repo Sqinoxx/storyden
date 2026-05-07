@@ -576,6 +576,7 @@ export * from "./reactEmoji";
 export * from "./reactInitialProps";
 export * from "./reactList";
 export * from "./readStatus";
+export * from "./registrationMode";
 export * from "./relevanceScore";
 export * from "./reply";
 export * from "./replyCreateBody";

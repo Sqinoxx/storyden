@@ -1,10 +1,12 @@
-import { redirect } from "next/navigation";
-
 import { getServerSession } from "@/auth/server-session";
+import { getSettings } from "@/lib/settings/settings-server";
 import { AskScreen } from "@/screens/ask/AskScreen";
 
 export default async function Page() {
-  const session = await getServerSession();
+  const [session, settings] = await Promise.all([
+    getServerSession(),
+    getSettings(),
+  ]);
 
-  return <AskScreen session={session} />;
+  return <AskScreen session={session} initialSettings={settings} />;
 }

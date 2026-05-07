@@ -28,6 +28,7 @@ var DefaultSettings = Settings{
 	Content:            opt.New(defaultContent),
 	AccentColour:       opt.New(DefaultColour),
 	AuthenticationMode: opt.New(authentication.ModeHandle),
+	RegistrationMode:   opt.New(RegistrationModePublic),
 	Services: opt.New(ServiceSettings{
 		Moderation: opt.New(ModerationServiceSettings{
 			ThreadBodyLengthMax: opt.New(60000),

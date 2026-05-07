@@ -13,8 +13,8 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/account/account_writer"
-	"github.com/Southclaws/storyden/app/resources/account/email"
 	"github.com/Southclaws/storyden/app/resources/rbac"
+	"github.com/Southclaws/storyden/app/services/account/account_email"
 	"github.com/Southclaws/storyden/app/services/account/account_update"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 )
@@ -22,20 +22,20 @@ import (
 type Manager struct {
 	accountQuery *account_querier.Querier
 	accountWrite *account_writer.Writer
-	emailRepo    *email.Repository
+	accountEmail *account_email.Manager
 	updater      *account_update.Updater
 }
 
 func New(
 	accountQuery *account_querier.Querier,
 	accountWrite *account_writer.Writer,
-	emailRepo *email.Repository,
+	accountEmail *account_email.Manager,
 	updater *account_update.Updater,
 ) *Manager {
 	return &Manager{
 		accountQuery: accountQuery,
 		accountWrite: accountWrite,
-		emailRepo:    emailRepo,
+		accountEmail: accountEmail,
 		updater:      updater,
 	}
 }
@@ -66,7 +66,7 @@ func (m *Manager) Create(ctx context.Context, props InitialProps) (*account.Acco
 	}
 
 	if address, ok := props.EmailAddress.Get(); ok {
-		if _, err := m.emailRepo.Add(ctx, acc.ID, address, ""); err != nil {
+		if _, err := m.accountEmail.AddUnverified(ctx, acc.ID, address); err != nil {
 			return nil, fault.Wrap(err, fctx.With(ctx))
 		}
 

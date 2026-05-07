@@ -117,6 +117,11 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	registrationMode, err := opt.MapErr(opt.NewPtr(request.Body.RegistrationMode), deserialiseRegistrationMode)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	var motd opt.Optional[settings.MessageOfTheDay]
 	if request.Body.Motd != nil {
 		// An explicitly empty MOTD object is interpreted as a clear request.
@@ -225,6 +230,7 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 		Content:            content,
 		AccentColour:       opt.NewPtr(request.Body.AccentColour),
 		AuthenticationMode: authMode,
+		RegistrationMode:   registrationMode,
 		Services:           services,
 		Metadata:           opt.NewPtr((*map[string]any)(request.Body.Metadata)),
 		Motd:               motd,
@@ -497,6 +503,7 @@ func serialiseSettings(in *settings.Settings, headers *openapi.NetworkHeadersSam
 		Content:            in.Content.OrZero().HTML(),
 		Title:              in.Title.OrZero(),
 		AuthenticationMode: openapi.AuthMode(in.AuthenticationMode.Or(authentication.ModeHandle).String()),
+		RegistrationMode:   openapi.RegistrationMode(in.RegistrationMode.Or(settings.RegistrationModePublic).String()),
 		Services:           opt.Map(in.Services, serialiseServiceSettings).Ptr(),
 		Metadata:           (*openapi.Metadata)(in.Metadata.Ptr()),
 		Motd:               opt.Map(in.Motd, serialiseMOTD).Ptr(),

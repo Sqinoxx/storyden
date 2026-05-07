@@ -17,6 +17,10 @@ import {
   AuthenticationModeList,
   AuthenticationModeSchema,
 } from "@/lib/auth/mode";
+import {
+  RegistrationModeList,
+  RegistrationModeSchema,
+} from "@/lib/auth/registration-mode";
 import { Settings } from "@/lib/settings/settings";
 import { CardBox, WStack, styled } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
@@ -27,6 +31,7 @@ export type Props = {
 
 export const FormSchema = z.object({
   authentication_mode: AuthenticationModeSchema,
+  registration_mode: RegistrationModeSchema,
 });
 export type Form = z.infer<typeof FormSchema>;
 
@@ -39,6 +44,7 @@ export function useAuthenticationSettingsForm(props: Props) {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       authentication_mode: props.settings.authentication_mode,
+      registration_mode: props.settings.registration_mode,
     },
   });
 
@@ -47,6 +53,7 @@ export function useAuthenticationSettingsForm(props: Props) {
       async () => {
         await adminSettingsUpdate({
           authentication_mode: data.authentication_mode,
+          registration_mode: data.registration_mode,
         });
         mutate(getGetInfoKey());
       },
@@ -112,6 +119,22 @@ export function AuthenticationSettingsForm(props: Props) {
           />
           <FormErrorText>
             {form.formState.errors["authentication_mode"]?.message}{" "}
+          </FormErrorText>
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>Registration mode</FormLabel>
+          <CardGroupRadio
+            control={form.control}
+            name="registration_mode"
+            items={RegistrationModeList.map((m) => ({
+              value: m.value,
+              label: m.name,
+              description: m.description,
+            }))}
+          />
+          <FormErrorText>
+            {form.formState.errors["registration_mode"]?.message}{" "}
           </FormErrorText>
         </FormControl>
 

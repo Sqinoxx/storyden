@@ -13,7 +13,6 @@ import (
 	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/account"
-	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/app/services/authentication/provider/password/password_reset"
 )
 
@@ -58,19 +57,16 @@ func (p *Provider) RegisterWithEmail(ctx context.Context, email mail.Address, pa
 			fmsg.WithDesc("exists", "The specified email has already been registered."))
 	}
 
-	opts := []account_writer.Option{}
-	inviteCode.Call(func(id xid.ID) { opts = append(opts, account_writer.WithInvitedBy(id)) })
-
-	account, err := p.register.Create(ctx, handle, opts...)
+	acc, err := p.register.Register(ctx, handle, inviteCode)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to create account"))
 	}
 
-	if err := p.addPasswordAuthWithEmail(ctx, account.ID, email, password); err != nil {
+	if err := p.addPasswordAuthWithEmail(ctx, acc.ID, email, password); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	return account, nil
+	return acc, nil
 }
 
 func (p *Provider) LoginWithEmail(ctx context.Context, emailAddress mail.Address, password string) (*account.Account, error) {

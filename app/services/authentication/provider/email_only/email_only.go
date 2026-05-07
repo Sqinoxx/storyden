@@ -14,7 +14,6 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
-	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
 	"github.com/Southclaws/storyden/app/resources/account/email"
 	"github.com/Southclaws/storyden/app/resources/settings"
@@ -118,19 +117,16 @@ func (p *Provider) Register(ctx context.Context, email mail.Address, handle opt.
 			fmsg.WithDesc("exists", "The specified email address has already been registered."))
 	}
 
-	opts := []account_writer.Option{}
-	inviteCode.Call(func(id xid.ID) { opts = append(opts, account_writer.WithInvitedBy(id)) })
-
-	account, err := p.register.Create(ctx, handle, opts...)
+	acc, err := p.register.Register(ctx, handle, inviteCode)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to create account"))
 	}
 
-	if err := p.addEmailAuth(ctx, account.ID, email); err != nil {
+	if err := p.addEmailAuth(ctx, acc.ID, email); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	return account, nil
+	return acc, nil
 }
 
 func (p *Provider) Login(ctx context.Context, email mail.Address) error {

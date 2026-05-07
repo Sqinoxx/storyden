@@ -64,3 +64,61 @@ func NewClientIPMode(__iNpUt__ string) (ClientIPMode, error) {
 		return ClientIPMode{}, fmt.Errorf("invalid value for type 'ClientIPMode': '%s'", __iNpUt__)
 	}
 }
+
+type RegistrationMode struct {
+	v registrationModeEnum
+}
+
+var (
+	RegistrationModePublic     = RegistrationMode{registrationModePublic}
+	RegistrationModeInvitation = RegistrationMode{registrationModeInvitation}
+	RegistrationModeDisabled   = RegistrationMode{registrationModeDisabled}
+)
+
+func (r RegistrationMode) Format(f fmt.State, verb rune) {
+	switch verb {
+	case 's':
+		fmt.Fprint(f, r.v)
+	case 'q':
+		fmt.Fprintf(f, "%q", r.String())
+	default:
+		fmt.Fprint(f, r.v)
+	}
+}
+func (r RegistrationMode) String() string {
+	return string(r.v)
+}
+func (r RegistrationMode) MarshalText() ([]byte, error) {
+	return []byte(r.v), nil
+}
+func (r *RegistrationMode) UnmarshalText(__iNpUt__ []byte) error {
+	s, err := NewRegistrationMode(string(__iNpUt__))
+	if err != nil {
+		return err
+	}
+	*r = s
+	return nil
+}
+func (r RegistrationMode) Value() (driver.Value, error) {
+	return r.v, nil
+}
+func (r *RegistrationMode) Scan(__iNpUt__ any) error {
+	s, err := NewRegistrationMode(fmt.Sprint(__iNpUt__))
+	if err != nil {
+		return err
+	}
+	*r = s
+	return nil
+}
+func NewRegistrationMode(__iNpUt__ string) (RegistrationMode, error) {
+	switch __iNpUt__ {
+	case string(registrationModePublic):
+		return RegistrationModePublic, nil
+	case string(registrationModeInvitation):
+		return RegistrationModeInvitation, nil
+	case string(registrationModeDisabled):
+		return RegistrationModeDisabled, nil
+	default:
+		return RegistrationMode{}, fmt.Errorf("invalid value for type 'RegistrationMode': '%s'", __iNpUt__)
+	}
+}

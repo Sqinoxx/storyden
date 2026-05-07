@@ -19,7 +19,11 @@ const FormSchema = z.object({
 });
 type Form = z.infer<typeof FormSchema>;
 
-export function useRegisterEmailForm() {
+type Props = {
+  invitationID?: string;
+};
+
+export function useRegisterEmailForm({ invitationID }: Props) {
   const router = useRouter();
 
   const form = useForm<Form>({
@@ -30,7 +34,10 @@ export function useRegisterEmailForm() {
   const handleSubmit = form.handleSubmit(async (payload: Form) => {
     await handle(
       async () => {
-        await authEmailPasswordSignup(payload);
+        await authEmailPasswordSignup(payload, {
+          invitation_id: invitationID,
+        });
+
         mutate();
         refreshFeed();
         router.push("/");

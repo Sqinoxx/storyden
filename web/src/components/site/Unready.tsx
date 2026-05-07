@@ -8,6 +8,8 @@ import {
   LStack,
   styled,
 } from "@/styled-system/jsx";
+import { usePublicRegistration } from "@/lib/settings/registration";
+import type { Settings } from "@/lib/settings/settings";
 import { deriveError } from "@/utils/error";
 
 import { Spinner } from "../ui/Spinner";
@@ -99,13 +101,21 @@ export function UnreadyBanner({ error, children }: PropsWithChildren<Props>) {
   );
 }
 
-export function UnauthenticatedBanner() {
+export function UnauthenticatedBanner({
+  initialSettings,
+}: {
+  initialSettings?: Settings;
+}) {
+  const canRegister = usePublicRegistration(initialSettings);
+
   return (
     <UnreadyBanner error="Please log in to see this page.">
       <HStack w="full">
-        <LinkButton w="full" size="xs" href="/register">
-          Register
-        </LinkButton>
+        {canRegister && (
+          <LinkButton w="full" size="xs" href="/register">
+            Register
+          </LinkButton>
+        )}
         <LinkButton w="full" size="xs" variant="outline" href="/login">
           Login
         </LinkButton>

@@ -112,9 +112,9 @@ func errorKindFromStatus(s int) ftag.Kind {
 	case http.StatusConflict:
 		return ftag.AlreadyExists
 	case http.StatusForbidden:
-		return ftag.Unauthenticated
-	case http.StatusUnauthorized:
 		return ftag.PermissionDenied
+	case http.StatusUnauthorized:
+		return ftag.Unauthenticated
 	case http.StatusBadGateway:
 		return ftag.Cancelled
 	default:

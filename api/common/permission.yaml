@@ -25,6 +25,7 @@ oneOf:
   - $ref: "#/$defs/COLLECTION_SUBMIT"
   - $ref: "#/$defs/USE_PERSONAL_ACCESS_KEYS"
   - $ref: "#/$defs/MANAGE_SETTINGS"
+  - $ref: "#/$defs/MANAGE_ACCOUNTS"
   - $ref: "#/$defs/MANAGE_WARNINGS"
   - $ref: "#/$defs/MANAGE_SUSPENSIONS"
   - $ref: "#/$defs/MANAGE_ROLES"
@@ -154,6 +155,12 @@ $defs:
     const: MANAGE_SETTINGS
     title: Manage settings
     description: Manage the administrative settings for the Storyden installation.
+
+  MANAGE_ACCOUNTS:
+    type: string
+    const: MANAGE_ACCOUNTS
+    title: Manage accounts
+    description: Provision accounts and update staff-managed account lifecycle fields.
 
   MANAGE_WARNINGS:
     type: string

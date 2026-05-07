@@ -250,12 +250,20 @@ func (m *Mapping) AccountGet() (bool, *rbac.Permission) {
 	return true, nil
 }
 
+func (m *Mapping) AccountManageCreate() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccounts
+}
+
 func (m *Mapping) AccountView() (bool, *rbac.Permission) {
 	return true, nil // See NOTE.
 }
 
 func (m *Mapping) AccountUpdate() (bool, *rbac.Permission) {
 	return true, nil
+}
+
+func (m *Mapping) AccountManageUpdate() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccounts
 }
 
 func (m *Mapping) AccountAuthProviderList() (bool, *rbac.Permission) {

@@ -13,6 +13,8 @@ import type {
   AccountEmailUpdateOKResponse,
   AccountGetAvatarResponse,
   AccountGetOKResponse,
+  AccountManageCreateBody,
+  AccountManageUpdateBody,
   AccountModerationNoteCreateBody,
   AccountModerationNoteCreateOKResponse,
   AccountModerationNoteListOKResponse,
@@ -27,6 +29,35 @@ import type {
   NoContentResponse,
 } from "../openapi-schema";
 import { fetcher } from "../server";
+
+/**
+ * Create a human account without creating an authentication method. This
+is intended for admin and integration driven account provisioning.
+
+ */
+export type accountManageCreateResponse = {
+  data: AccountGetOKResponse;
+  status: number;
+};
+
+export const getAccountManageCreateUrl = () => {
+  return `/accounts`;
+};
+
+export const accountManageCreate = async (
+  accountManageCreateBody: AccountManageCreateBody,
+  options?: RequestInit,
+): Promise<accountManageCreateResponse> => {
+  return fetcher<Promise<accountManageCreateResponse>>(
+    getAccountManageCreateUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(accountManageCreateBody),
+    },
+  );
+};
 
 /**
  * Get the information for the currently authenticated account.
@@ -97,6 +128,34 @@ export const accountView = async (
     ...options,
     method: "GET",
   });
+};
+
+/**
+ * Update staff-managed account lifecycle fields.
+ */
+export type accountManageUpdateResponse = {
+  data: AccountGetOKResponse;
+  status: number;
+};
+
+export const getAccountManageUpdateUrl = (accountId: string) => {
+  return `/accounts/${accountId}`;
+};
+
+export const accountManageUpdate = async (
+  accountId: string,
+  accountManageUpdateBody: AccountManageUpdateBody,
+  options?: RequestInit,
+): Promise<accountManageUpdateResponse> => {
+  return fetcher<Promise<accountManageUpdateResponse>>(
+    getAccountManageUpdateUrl(accountId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(accountManageUpdateBody),
+    },
+  );
 };
 
 /**

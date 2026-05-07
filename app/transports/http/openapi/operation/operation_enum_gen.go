@@ -72,9 +72,11 @@ var (
 	OperationIDAccessKeyCreate                  = OperationID{`AccessKeyCreate`}
 	OperationIDAccessKeyDelete                  = OperationID{`AccessKeyDelete`}
 	OperationIDAuthProviderLogout               = OperationID{`AuthProviderLogout`}
+	OperationIDAccountManageCreate              = OperationID{`AccountManageCreate`}
 	OperationIDAccountGet                       = OperationID{`AccountGet`}
 	OperationIDAccountUpdate                    = OperationID{`AccountUpdate`}
 	OperationIDAccountView                      = OperationID{`AccountView`}
+	OperationIDAccountManageUpdate              = OperationID{`AccountManageUpdate`}
 	OperationIDAccountWarningList               = OperationID{`AccountWarningList`}
 	OperationIDAccountWarningCreate             = OperationID{`AccountWarningCreate`}
 	OperationIDAccountWarningUpdate             = OperationID{`AccountWarningUpdate`}
@@ -332,12 +334,16 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAccessKeyDelete, nil
 	case string(`AuthProviderLogout`):
 		return OperationIDAuthProviderLogout, nil
+	case string(`AccountManageCreate`):
+		return OperationIDAccountManageCreate, nil
 	case string(`AccountGet`):
 		return OperationIDAccountGet, nil
 	case string(`AccountUpdate`):
 		return OperationIDAccountUpdate, nil
 	case string(`AccountView`):
 		return OperationIDAccountView, nil
+	case string(`AccountManageUpdate`):
+		return OperationIDAccountManageUpdate, nil
 	case string(`AccountWarningList`):
 		return OperationIDAccountWarningList, nil
 	case string(`AccountWarningCreate`):

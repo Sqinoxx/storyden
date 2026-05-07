@@ -1085,6 +1085,21 @@ paths:
   #
 
   /accounts:
+    post:
+      operationId: AccountManageCreate
+      description: |
+        Create a human account without creating an authentication method. This
+        is intended for admin and integration driven account provisioning.
+      tags: [accounts]
+      requestBody: { $ref: "#/components/requestBodies/AccountManageCreate" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "200": { $ref: "#/components/responses/AccountGetOK" }
+
     get:
       operationId: AccountGet
       description: Get the information for the currently authenticated account.
@@ -1120,6 +1135,19 @@ paths:
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AccountGetOK" }
+
+    patch:
+      operationId: AccountManageUpdate
+      description: Update staff-managed account lifecycle fields.
+      tags: [accounts]
+      parameters: [{ $ref: "#/components/parameters/AccountIDParam" }]
+      requestBody: { $ref: "#/components/requestBodies/AccountManageUpdate" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorised" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "200": { $ref: "#/components/responses/AccountGetOK" }
@@ -3481,6 +3509,16 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/AccountMutableProps" }
 
+    AccountManageCreate:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AccountManageInitialProps" }
+
+    AccountManageUpdate:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AccountManageMutableProps" }
+
     AccountEmailAdd:
       content:
         application/json:
@@ -5709,6 +5747,7 @@ components:
         - "USE_PERSONAL_ACCESS_KEYS"
         # Administrative (Settings, bans, etc)
         - "MANAGE_SETTINGS"
+        - "MANAGE_ACCOUNTS"
         - "MANAGE_WARNINGS"
         - "MANAGE_SUSPENSIONS"
         - "MANAGE_ROLES"
@@ -6286,6 +6325,28 @@ components:
           $ref: "#/components/schemas/ProfileExternalLinkList"
         meta:
           $ref: "#/components/schemas/Metadata"
+
+    AccountManageInitialProps:
+      type: object
+      required: [handle]
+      properties:
+        handle:
+          $ref: "#/components/schemas/AccountHandle"
+        name:
+          $ref: "#/components/schemas/AccountName"
+        email_address:
+          $ref: "#/components/schemas/EmailAddress"
+
+    AccountManageMutableProps:
+      allOf:
+        - $ref: "#/components/schemas/AccountMutableProps"
+        - $ref: "#/components/schemas/AccountMutablePropsAsAdmin"
+
+    AccountMutablePropsAsAdmin:
+      type: object
+      properties:
+        admin:
+          type: boolean
 
     AccountAuthMethods:
       type: object

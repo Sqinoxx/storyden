@@ -2,26 +2,95 @@ package account_manage
 
 import (
 	"context"
+	"net/mail"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/fault/fmsg"
 	"github.com/Southclaws/fault/ftag"
+	"github.com/Southclaws/opt"
 
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
+	"github.com/Southclaws/storyden/app/resources/account/account_writer"
+	"github.com/Southclaws/storyden/app/resources/account/email"
 	"github.com/Southclaws/storyden/app/resources/rbac"
+	"github.com/Southclaws/storyden/app/services/account/account_update"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 )
 
 type Manager struct {
 	accountQuery *account_querier.Querier
+	accountWrite *account_writer.Writer
+	emailRepo    *email.Repository
+	updater      *account_update.Updater
 }
 
-func New(accountQuery *account_querier.Querier) *Manager {
+func New(
+	accountQuery *account_querier.Querier,
+	accountWrite *account_writer.Writer,
+	emailRepo *email.Repository,
+	updater *account_update.Updater,
+) *Manager {
 	return &Manager{
 		accountQuery: accountQuery,
+		accountWrite: accountWrite,
+		emailRepo:    emailRepo,
+		updater:      updater,
 	}
+}
+
+type InitialProps struct {
+	Handle       string
+	Name         opt.Optional[string]
+	EmailAddress opt.Optional[mail.Address]
+}
+
+func (m *Manager) Create(ctx context.Context, props InitialProps) (*account.AccountWithEdges, error) {
+	if err := session.Authorise(ctx, nil, rbac.PermissionManageAccounts); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.PermissionDenied))
+	}
+
+	if err := account.ValidateHandle(ctx, props.Handle); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	options := []account_writer.Option{}
+	if name, ok := props.Name.Get(); ok {
+		options = append(options, account_writer.WithName(name))
+	}
+
+	acc, err := m.accountWrite.Create(ctx, props.Handle, options...)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if address, ok := props.EmailAddress.Get(); ok {
+		if _, err := m.emailRepo.Add(ctx, acc.ID, address, ""); err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+
+		acc, err = m.accountQuery.GetByID(ctx, acc.ID)
+		if err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+	}
+
+	return acc, nil
+}
+
+func (m *Manager) Update(ctx context.Context, targetID account.AccountID, params account_update.Partial) (*account.AccountWithEdges, error) {
+	if err := session.Authorise(ctx, nil, rbac.PermissionManageAccounts); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.PermissionDenied))
+	}
+
+	if params.Admin.Ok() {
+		if err := session.Authorise(ctx, nil, rbac.PermissionAdministrator); err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.PermissionDenied))
+		}
+	}
+
+	return m.updater.Update(ctx, targetID, params)
 }
 
 // GetByID retrieves an account by ID with proper authorization checks.

@@ -19,6 +19,8 @@ import type {
   AccountEmailUpdateOKResponse,
   AccountGetAvatarResponse,
   AccountGetOKResponse,
+  AccountManageCreateBody,
+  AccountManageUpdateBody,
   AccountModerationNoteCreateBody,
   AccountModerationNoteCreateOKResponse,
   AccountModerationNoteListOKResponse,
@@ -40,6 +42,70 @@ import type {
   UnauthorisedResponse,
 } from "../openapi-schema";
 
+/**
+ * Create a human account without creating an authentication method. This
+is intended for admin and integration driven account provisioning.
+
+ */
+export const accountManageCreate = (
+  accountManageCreateBody: AccountManageCreateBody,
+) => {
+  return fetcher<AccountGetOKResponse>({
+    url: `/accounts`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: accountManageCreateBody,
+  });
+};
+
+export const getAccountManageCreateMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: AccountManageCreateBody },
+  ): Promise<AccountGetOKResponse> => {
+    return accountManageCreate(arg);
+  };
+};
+export const getAccountManageCreateMutationKey = () => [`/accounts`] as const;
+
+export type AccountManageCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof accountManageCreate>>
+>;
+export type AccountManageCreateMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | ConflictResponse
+  | InternalServerErrorResponse;
+
+export const useAccountManageCreate = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | ConflictResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof accountManageCreate>>,
+    TError,
+    Key,
+    AccountManageCreateBody,
+    Awaited<ReturnType<typeof accountManageCreate>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAccountManageCreateMutationKey();
+  const swrFn = getAccountManageCreateMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
 /**
  * Get the information for the currently authenticated account.
  */
@@ -198,6 +264,72 @@ export const useAccountView = <
     swrFn,
     swrOptions,
   );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Update staff-managed account lifecycle fields.
+ */
+export const accountManageUpdate = (
+  accountId: string,
+  accountManageUpdateBody: AccountManageUpdateBody,
+) => {
+  return fetcher<AccountGetOKResponse>({
+    url: `/accounts/${accountId}`,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    data: accountManageUpdateBody,
+  });
+};
+
+export const getAccountManageUpdateMutationFetcher = (accountId: string) => {
+  return (
+    _: Key,
+    { arg }: { arg: AccountManageUpdateBody },
+  ): Promise<AccountGetOKResponse> => {
+    return accountManageUpdate(accountId, arg);
+  };
+};
+export const getAccountManageUpdateMutationKey = (accountId: string) =>
+  [`/accounts/${accountId}`] as const;
+
+export type AccountManageUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof accountManageUpdate>>
+>;
+export type AccountManageUpdateMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useAccountManageUpdate = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(
+  accountId: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof accountManageUpdate>>,
+      TError,
+      Key,
+      AccountManageUpdateBody,
+      Awaited<ReturnType<typeof accountManageUpdate>>
+    > & { swrKey?: string };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey =
+    swrOptions?.swrKey ?? getAccountManageUpdateMutationKey(accountId);
+  const swrFn = getAccountManageUpdateMutationFetcher(accountId);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,

@@ -2,6 +2,7 @@ package bindings
 
 import (
 	"context"
+	"net/mail"
 	"net/url"
 	"time"
 
@@ -149,6 +150,78 @@ func (i *Accounts) AccountView(ctx context.Context, request openapi.AccountViewR
 	}
 
 	return openapi.AccountView200JSONResponse{
+		AccountGetOKJSONResponse: openapi.AccountGetOKJSONResponse{
+			Body: serialiseAccount(acc),
+			Headers: openapi.AccountGetOKResponseHeaders{
+				CacheControl: "private, no-cache",
+				LastModified: acc.UpdatedAt.Format(time.RFC1123),
+			},
+		},
+	}, nil
+}
+
+func (i *Accounts) AccountManageCreate(ctx context.Context, request openapi.AccountManageCreateRequestObject) (openapi.AccountManageCreateResponseObject, error) {
+	var emailAddress opt.Optional[mail.Address]
+	if request.Body.EmailAddress != nil {
+		address, err := mail.ParseAddress(string(*request.Body.EmailAddress))
+		if err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument), fmsg.WithDesc("invalid email address", "The email address provided is invalid."))
+		}
+
+		emailAddress = opt.New(*address)
+	}
+
+	acc, err := i.accountManage.Create(ctx, account_manage.InitialProps{
+		Handle:       string(request.Body.Handle),
+		Name:         opt.NewPtr(request.Body.Name),
+		EmailAddress: emailAddress,
+	})
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AccountManageCreate200JSONResponse{
+		AccountGetOKJSONResponse: openapi.AccountGetOKJSONResponse{
+			Body: serialiseAccount(acc),
+			Headers: openapi.AccountGetOKResponseHeaders{
+				CacheControl: "private, no-cache",
+				LastModified: acc.UpdatedAt.Format(time.RFC1123),
+			},
+		},
+	}, nil
+}
+
+func (i *Accounts) AccountManageUpdate(ctx context.Context, request openapi.AccountManageUpdateRequestObject) (openapi.AccountManageUpdateResponseObject, error) {
+	targetID, err := xid.FromString(request.AccountId)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument), fmsg.WithDesc("invalid account ID", "The account ID provided is invalid."))
+	}
+
+	links, err := opt.MapErr(opt.NewPtr(request.Body.Links), deserialiseExternalLinkList)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	signature, err := i.deserialiseAccountSignature(ctx, request.Body.Signature)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	acc, err := i.accountManage.Update(ctx, account.AccountID(targetID), account_update.Partial{
+		Handle:    opt.NewPtrMap(request.Body.Handle, func(i openapi.AccountHandle) string { return string(i) }),
+		Name:      opt.NewPtr(request.Body.Name),
+		Bio:       opt.NewPtr(request.Body.Bio),
+		Signature: signature,
+		Links:     links,
+		Interests: opt.NewPtrMap(request.Body.Interests, tagsIDs),
+		Admin:     opt.NewPtr(request.Body.Admin),
+		Meta:      opt.NewPtr((*map[string]any)(request.Body.Meta)),
+	})
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AccountManageUpdate200JSONResponse{
 		AccountGetOKJSONResponse: openapi.AccountGetOKJSONResponse{
 			Body: serialiseAccount(acc),
 			Headers: openapi.AccountGetOKResponseHeaders{
@@ -340,33 +413,9 @@ func (i *Accounts) AccountUpdate(ctx context.Context, request openapi.AccountUpd
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	var signature opt.Optional[string]
-	if request.Body.Signature != nil {
-		signatureContent, err := datagraph.NewRichText(*request.Body.Signature)
-		if err != nil {
-			return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
-		}
-
-		settingsData, err := i.settingsRepo.Get(ctx)
-		if err != nil {
-			return nil, fault.Wrap(err, fctx.With(ctx))
-		}
-
-		maxChars := settingsData.Services.
-			OrZero().
-			Moderation.OrZero().
-			SignatureLengthMax.Or(500)
-
-		if len([]rune(signatureContent.Plaintext())) > maxChars {
-			return nil, fault.Wrap(
-				fault.New("signature character limit exceeded"),
-				fctx.With(ctx),
-				ftag.With(ftag.InvalidArgument),
-				fmsg.WithDesc("signature", "Your signature is too long."),
-			)
-		}
-
-		signature = opt.New(signatureContent.HTML())
+	signature, err := i.deserialiseAccountSignature(ctx, request.Body.Signature)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	acc, err := i.accountUpdate.Update(ctx, accountID, account_update.Partial{
@@ -385,6 +434,42 @@ func (i *Accounts) AccountUpdate(ctx context.Context, request openapi.AccountUpd
 	return openapi.AccountUpdate200JSONResponse{
 		AccountUpdateOKJSONResponse: openapi.AccountUpdateOKJSONResponse(serialiseAccount(acc)),
 	}, nil
+}
+
+func (i *Accounts) deserialiseAccountSignature(ctx context.Context, value *openapi.AccountSignature) (opt.Optional[string], error) {
+	if value == nil {
+		var empty opt.Optional[string]
+		return empty, nil
+	}
+
+	signatureContent, err := datagraph.NewRichText(*value)
+	if err != nil {
+		var empty opt.Optional[string]
+		return empty, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	settingsData, err := i.settingsRepo.Get(ctx)
+	if err != nil {
+		var empty opt.Optional[string]
+		return empty, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	maxChars := settingsData.Services.
+		OrZero().
+		Moderation.OrZero().
+		SignatureLengthMax.Or(500)
+
+	if len([]rune(signatureContent.Plaintext())) > maxChars {
+		var empty opt.Optional[string]
+		return empty, fault.Wrap(
+			fault.New("signature character limit exceeded"),
+			fctx.With(ctx),
+			ftag.With(ftag.InvalidArgument),
+			fmsg.WithDesc("signature", "Your signature is too long."),
+		)
+	}
+
+	return opt.New(signatureContent.HTML()), nil
 }
 
 func deserialiseExternalLinkList(i openapi.ProfileExternalLinkList) ([]account.ExternalLink, error) {

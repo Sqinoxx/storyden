@@ -42,6 +42,11 @@ func TestAccountView(t *testing.T) {
 			// Grant VIEW_ACCOUNTS permission to support account
 			grant(t, cl, adminSession, support.Handle, openapi.PermissionList{openapi.VIEWACCOUNTS})
 
+			// A manager account with MANAGE_ACCOUNTS permission, but not ADMINISTRATOR.
+			managerCtx, manager := e2e.WithAccount(root, aw, seed.Account_006_Freyja)
+			managerSession := sh.WithSession(managerCtx)
+			grant(t, cl, adminSession, manager.Handle, openapi.PermissionList{openapi.MANAGEACCOUNTS})
+
 			// A regular member account
 			memberCtx, member := e2e.WithAccount(root, aw, seed.Account_004_Loki)
 			memberSession := sh.WithSession(memberCtx)
@@ -149,6 +154,52 @@ func TestAccountView(t *testing.T) {
 				tests.AssertRequest(
 					cl.AccountViewWithResponse(root, nonexistentID, adminSession),
 				)(t, http.StatusNotFound)
+			})
+
+			t.Run("manage_accounts_can_update_profile_fields", func(t *testing.T) {
+				name := "Managed Name " + xid.New().String()
+
+				acc := tests.AssertRequest(
+					cl.AccountManageUpdateWithResponse(root, member.ID.String(), openapi.AccountManageUpdateJSONRequestBody{
+						Name: &name,
+					}, managerSession),
+				)(t, http.StatusOK)
+
+				require.NotNil(t, acc.JSON200)
+				assert.Equal(t, name, acc.JSON200.Name)
+			})
+
+			t.Run("manage_accounts_cannot_update_admin_field_without_administrator", func(t *testing.T) {
+				admin := true
+
+				tests.AssertRequest(
+					cl.AccountManageUpdateWithResponse(root, member.ID.String(), openapi.AccountManageUpdateJSONRequestBody{
+						Admin: &admin,
+					}, managerSession),
+				)(t, http.StatusForbidden)
+			})
+
+			t.Run("administrator_can_update_admin_field", func(t *testing.T) {
+				admin := true
+
+				updated := tests.AssertRequest(
+					cl.AccountManageUpdateWithResponse(root, member.ID.String(), openapi.AccountManageUpdateJSONRequestBody{
+						Admin: &admin,
+					}, adminSession),
+				)(t, http.StatusOK)
+
+				require.NotNil(t, updated.JSON200)
+				assert.True(t, updated.JSON200.Admin)
+
+				admin = false
+				updated = tests.AssertRequest(
+					cl.AccountManageUpdateWithResponse(root, member.ID.String(), openapi.AccountManageUpdateJSONRequestBody{
+						Admin: &admin,
+					}, adminSession),
+				)(t, http.StatusOK)
+
+				require.NotNil(t, updated.JSON200)
+				assert.False(t, updated.JSON200.Admin)
 			})
 		}))
 	}))

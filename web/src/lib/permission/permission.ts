@@ -117,6 +117,12 @@ export const PermissionDetails: Record<Permission, PermissionDetail> = {
     description:
       "Manage the administrative settings for the Storyden installation.",
   },
+  [Permission.MANAGE_ACCOUNTS]: {
+    value: Permission.MANAGE_ACCOUNTS,
+    name: "Manage accounts",
+    description:
+      "Provision accounts and update staff-managed account lifecycle fields.",
+  },
   [Permission.MANAGE_WARNINGS]: {
     value: Permission.MANAGE_WARNINGS,
     name: "Manage warnings",

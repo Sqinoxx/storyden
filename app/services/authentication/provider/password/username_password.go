@@ -12,7 +12,6 @@ import (
 	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/account"
-	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
 	"github.com/Southclaws/storyden/app/services/authentication/provider"
 )
@@ -41,19 +40,16 @@ func (p *Provider) RegisterWithHandle(ctx context.Context, handle string, passwo
 			fmsg.WithDesc("exists", "The specified handle has already been registered."))
 	}
 
-	opts := []account_writer.Option{}
-	inviteCode.Call(func(id xid.ID) { opts = append(opts, account_writer.WithInvitedBy(id)) })
-
-	account, err := p.register.Create(ctx, opt.New(handle), opts...)
+	acc, err := p.register.Register(ctx, opt.New(handle), inviteCode)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to create account"))
 	}
 
-	if _, err := p.addPasswordAuth(ctx, account.ID, password); err != nil {
+	if _, err := p.addPasswordAuth(ctx, acc.ID, password); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	return account, nil
+	return acc, nil
 }
 
 func (b *Provider) LoginWithHandle(ctx context.Context, handle string, password string) (*account.Account, error) {

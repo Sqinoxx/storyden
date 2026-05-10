@@ -15,7 +15,6 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
-	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
 	"github.com/Southclaws/storyden/app/services/account/register"
 	"github.com/Southclaws/storyden/app/services/reqinfo"
@@ -89,10 +88,7 @@ func (p *Provider) register(ctx context.Context, handle string, credential *weba
 		)
 	}
 
-	opts := []account_writer.Option{}
-	inviteCode.Call(func(id xid.ID) { opts = append(opts, account_writer.WithInvitedBy(id)) })
-
-	acc, err := p.reg.Create(ctx, opt.New(handle), opts...)
+	acc, err := p.reg.Register(ctx, opt.New(handle), inviteCode)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

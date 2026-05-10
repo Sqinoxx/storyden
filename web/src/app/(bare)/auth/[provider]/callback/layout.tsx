@@ -1,9 +1,14 @@
 import { PropsWithChildren } from "react";
 
 import { LinkButton } from "@/components/ui/link-button";
+import { allowsPublicRegistration } from "@/lib/settings/registration";
+import { getSettings } from "@/lib/settings/settings-server";
 import { HStack, VStack } from "@/styled-system/jsx";
 
 export default async function Layout({ children }: PropsWithChildren) {
+  const { registration_mode } = await getSettings();
+  const canRegister = allowsPublicRegistration(registration_mode);
+
   return (
     <VStack w="full">
       {children}
@@ -13,9 +18,11 @@ export default async function Layout({ children }: PropsWithChildren) {
           Forgot password
         </LinkButton>
 
-        <LinkButton size="xs" variant="subtle" href="/register">
-          Register
-        </LinkButton>
+        {canRegister && (
+          <LinkButton size="xs" variant="subtle" href="/register">
+            Register
+          </LinkButton>
+        )}
       </HStack>
     </VStack>
   );

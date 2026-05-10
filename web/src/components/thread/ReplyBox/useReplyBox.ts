@@ -10,12 +10,14 @@ import { Account, DatagraphItemKind, Thread } from "src/api/openapi-schema";
 import { handle } from "@/api/client";
 import { useSession } from "@/auth";
 import { sendBeacon } from "@/lib/beacon/beacon";
+import type { Settings } from "@/lib/settings/settings";
 import { useThreadMutations } from "@/lib/thread/mutation";
 
 import { useReplyContext } from "../ReplyContext";
 
 export type Props = {
   initialSession?: Account;
+  initialSettings?: Settings;
   thread: Thread;
 };
 
@@ -30,8 +32,8 @@ export const FormSchema = z.object({
 });
 export type Form = z.infer<typeof FormSchema>;
 
-export function useReplyBox({ initialSession, thread }: Props) {
-  const session = useSession(initialSession);
+export function useReplyBox({ initialSession, initialSettings, thread }: Props) {
+  const session = useSession(initialSession, initialSettings);
   const { replyTo, clearReplyTo } = useReplyContext();
   const { createReply, revalidate } = useThreadMutations(
     thread,

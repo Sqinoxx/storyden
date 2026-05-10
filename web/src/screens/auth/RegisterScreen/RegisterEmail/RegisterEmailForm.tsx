@@ -9,8 +9,12 @@ import { vstack } from "@/styled-system/patterns";
 
 import { useRegisterEmailForm } from "./useRegisterEmailForm";
 
-export function RegisterEmailForm() {
-  const { form, handlers } = useRegisterEmailForm();
+type Props = {
+  invitationID?: string;
+};
+
+export function RegisterEmailForm(props: Props) {
+  const { form, handlers } = useRegisterEmailForm(props);
 
   return (
     <styled.form

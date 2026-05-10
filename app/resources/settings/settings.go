@@ -37,6 +37,10 @@ type Settings struct {
 	// are exposed to members during the frontend registration and login flows.
 	AuthenticationMode opt.Optional[authentication.Mode]
 
+	// The registration mode controls whether unauthenticated visitors may create
+	// accounts publicly, only via invitation, or not at all.
+	RegistrationMode opt.Optional[RegistrationMode]
+
 	Services opt.Optional[ServiceSettings]
 
 	// Metadata is an arbitrary object which can be used by frontends/clients to

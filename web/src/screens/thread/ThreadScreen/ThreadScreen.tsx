@@ -193,7 +193,11 @@ export function ThreadScreen(props: Props) {
           )}
         </VStack>
 
-        <ReplyBox initialSession={props.initialSession} thread={thread} />
+        <ReplyBox
+          initialSession={props.initialSession}
+          initialSettings={props.initialSettings}
+          thread={thread}
+        />
       </LStack>
     </ReplyProvider>
   );

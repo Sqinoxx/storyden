@@ -240,6 +240,14 @@ func deserialiseAuthMode(in openapi.AuthMode) (authentication.Mode, error) {
 	return mode, nil
 }
 
+func deserialiseRegistrationMode(in openapi.RegistrationMode) (settings.RegistrationMode, error) {
+	mode, err := settings.NewRegistrationMode(string(in))
+	if err != nil {
+		return settings.RegistrationMode{}, fault.Wrap(err, ftag.With(ftag.InvalidArgument))
+	}
+	return mode, nil
+}
+
 func serialiseAccessKey(k *authentication.Authentication) openapi.AccessKey {
 	return openapi.AccessKey{
 		Id:        k.ID.String(),

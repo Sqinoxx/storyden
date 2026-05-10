@@ -14,6 +14,7 @@ import type { MessageOfTheDay } from "./messageOfTheDay";
 import type { Metadata } from "./metadata";
 import type { NetworkHeadersSample } from "./networkHeadersSample";
 import type { PostContent } from "./postContent";
+import type { RegistrationMode } from "./registrationMode";
 
 /**
  * Storyden installation and administration settings.
@@ -27,6 +28,7 @@ export interface AdminSettingsProps {
   headers?: NetworkHeadersSample;
   metadata?: Metadata;
   motd?: MessageOfTheDay;
+  registration_mode: RegistrationMode;
   services?: AdminSettingsServiceProps;
   title: string;
 }

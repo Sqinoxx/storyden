@@ -6,7 +6,7 @@ import type {
   Info,
   MessageOfTheDay,
 } from "@/api/openapi-schema";
-import { AuthMode } from "@/api/openapi-schema";
+import { AuthMode, RegistrationMode } from "@/api/openapi-schema";
 
 import {
   DefaultFrontendConfig,
@@ -22,6 +22,7 @@ function baseInfo(overrides: Partial<Info> = {}): Info {
     accent_colour: "#123456",
     onboarding_status: "complete",
     authentication_mode: AuthMode.handle,
+    registration_mode: RegistrationMode.public,
     capabilities: [],
     metadata: DefaultFrontendConfig,
     ...overrides,
@@ -37,6 +38,7 @@ function baseAdminSettings(
     content: "",
     accent_colour: "#123456",
     authentication_mode: AuthMode.handle,
+    registration_mode: RegistrationMode.public,
     capabilities: [],
     metadata: DefaultFrontendConfig,
     ...overrides,

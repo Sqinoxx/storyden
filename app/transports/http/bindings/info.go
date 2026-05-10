@@ -10,6 +10,7 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
+	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/branding/banner"
 	"github.com/Southclaws/storyden/app/services/branding/icon"
@@ -143,6 +144,7 @@ func serialiseInfo(info *instance_info.Info) openapi.Info {
 		AccentColour:       info.Settings.AccentColour.OrZero(),
 		OnboardingStatus:   openapi.OnboardingStatus(info.OnboardingStatus.String()),
 		AuthenticationMode: openapi.AuthMode(info.Settings.AuthenticationMode.Or(authentication.ModeHandle).String()),
+		RegistrationMode:   openapi.RegistrationMode(info.Settings.RegistrationMode.Or(settings.RegistrationModePublic).String()),
 		Capabilities:       serialiseCapabilitiesList(info.Capabilities),
 		Metadata:           (*openapi.Metadata)(info.Settings.Metadata.Ptr()),
 		Motd:               opt.Map(info.Settings.Motd, serialiseMOTD).Ptr(),

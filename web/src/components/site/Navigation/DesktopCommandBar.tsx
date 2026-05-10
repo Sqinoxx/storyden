@@ -1,5 +1,6 @@
 import { getServerSession } from "@/auth/server-session";
 import { hasCapability } from "@/lib/settings/capabilities";
+import { allowsPublicRegistration } from "@/lib/settings/registration";
 import { getSettings } from "@/lib/settings/settings-server";
 import { cx } from "@/styled-system/css";
 import { HStack } from "@/styled-system/jsx";
@@ -15,12 +16,13 @@ import { getServerSidebarState } from "./NavigationPane/server";
 import { Title } from "./Title";
 
 export async function DesktopCommandBar() {
-  const { title, capabilities } = await getSettings();
+  const { title, capabilities, registration_mode } = await getSettings();
   const initialSidebarState = await getServerSidebarState();
 
   const session = await getServerSession();
 
   const isSemdexEnabled = hasCapability("semdex", capabilities);
+  const canRegister = allowsPublicRegistration(registration_mode);
 
   return (
     <HStack
@@ -41,7 +43,7 @@ export async function DesktopCommandBar() {
       </HStack>
 
       <HStack className={styles["topbar-right"]}>
-        <MemberActions session={session} />
+        <MemberActions session={session} canRegister={canRegister} />
       </HStack>
     </HStack>
   );

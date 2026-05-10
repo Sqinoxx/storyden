@@ -5,6 +5,7 @@ import {
   AuthMode,
   Info,
   MessageOfTheDay,
+  RegistrationMode,
 } from "@/api/openapi-schema";
 import { FALLBACK_COLOUR } from "@/utils/colour";
 
@@ -47,6 +48,7 @@ export const DefaultSettings = {
   accent_colour: FALLBACK_COLOUR,
   onboarding_status: "complete",
   authentication_mode: AuthMode.handle,
+  registration_mode: RegistrationMode.public,
   capabilities: [],
   metadata: DefaultFrontendConfig,
 } satisfies Settings;

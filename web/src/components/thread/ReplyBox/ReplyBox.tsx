@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { CloseIcon } from "@/components/ui/icons/Close";
 import { DiscussionIcon } from "@/components/ui/icons/Discussion";
+import { usePublicRegistration } from "@/lib/settings/registration";
 import { css } from "@/styled-system/css";
 import { HStack, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
 import { CardBox } from "@/styled-system/patterns";
@@ -32,7 +33,7 @@ export function ReplyBox(props: Props) {
   } = useReplyBox(props);
 
   if (!isLoggedIn) {
-    return <LoginToReply />;
+    return <LoginToReply initialSettings={props.initialSettings} />;
   }
 
   return (
@@ -148,7 +149,14 @@ function ReplyBodyInput({
   );
 }
 
-function LoginToReply() {
+function LoginToReply({
+  initialSettings,
+}: {
+  initialSettings?: Props["initialSettings"];
+}) {
+  const canRegister = usePublicRegistration(initialSettings);
+  const action = canRegister ? "sign up or log in" : "log in";
+
   return (
     <HStack
       w="full"
@@ -160,7 +168,8 @@ function LoginToReply() {
       <DiscussionIcon width="4" />
 
       <p>
-        Please <Anchor href="/register">sign up or log in</Anchor> to reply
+        Please <Anchor href={canRegister ? "/register" : "/login"}>{action}</Anchor>{" "}
+        to reply
       </p>
     </HStack>
   );

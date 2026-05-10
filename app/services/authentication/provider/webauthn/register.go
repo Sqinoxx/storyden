@@ -13,7 +13,6 @@ import (
 	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/account"
-	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 )
 
@@ -122,9 +121,6 @@ func (p *Provider) createOrUpdateAccount(ctx context.Context,
 
 		return acc.ID, nil
 	}
-
-	opts := []account_writer.Option{}
-	inviteCode.Call(func(id xid.ID) { opts = append(opts, account_writer.WithInvitedBy(id)) })
 
 	acc, err := p.register(ctx, handle, credential, inviteCode)
 	if err != nil {

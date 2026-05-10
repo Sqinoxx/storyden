@@ -63,11 +63,11 @@ func TestOAuthGitHubDuplicateAuthMethod(t *testing.T) {
 			t.Run("duplicate_auth_method_via_random_handle", func(t *testing.T) {
 				identifier3 := "99999"
 
-				acc1, err := registrar.CreateWithRandomHandle(root, service, "GitHub (@randomuser)", identifier3, token, "Random User")
+				acc1, err := registrar.ProvisionWithRandomHandle(root, service, "GitHub (@randomuser)", identifier3, token, "Random User")
 				r.NoError(err)
 				r.NotNil(acc1)
 
-				acc2, err := registrar.CreateWithRandomHandle(root, service, "GitHub (@randomuser)", identifier3, token, "Random User")
+				acc2, err := registrar.ProvisionWithRandomHandle(root, service, "GitHub (@randomuser)", identifier3, token, "Random User")
 				r.Error(err)
 				r.Nil(acc2)
 				a.Contains(err.Error(), "authentication method already linked to another account")
@@ -77,11 +77,11 @@ func TestOAuthGitHubDuplicateAuthMethod(t *testing.T) {
 				identifier4 := "88888"
 				handle4 := "specifichandle"
 
-				acc1, err := registrar.CreateWithHandle(root, service, "GitHub (@specific)", identifier4, token, "Specific User", handle4)
+				acc1, err := registrar.ProvisionWithHandle(root, service, "GitHub (@specific)", identifier4, token, "Specific User", handle4)
 				r.NoError(err)
 				r.NotNil(acc1)
 
-				acc2, err := registrar.CreateWithHandle(root, service, "GitHub (@specific)", identifier4, token, "Specific User", "differenthandle")
+				acc2, err := registrar.ProvisionWithHandle(root, service, "GitHub (@specific)", identifier4, token, "Specific User", "differenthandle")
 				r.Error(err)
 				r.Nil(acc2)
 				a.Contains(err.Error(), "authentication method already linked to another account")

@@ -4524,6 +4524,7 @@ components:
         - content
         - accent_colour
         - authentication_mode
+        - registration_mode
         - capabilities
         - onboarding_status
       properties:
@@ -4539,6 +4540,8 @@ components:
           $ref: "#/components/schemas/OnboardingStatus"
         authentication_mode:
           $ref: "#/components/schemas/AuthMode"
+        registration_mode:
+          $ref: "#/components/schemas/RegistrationMode"
         capabilities:
           $ref: "#/components/schemas/InstanceCapabilityList"
         metadata:
@@ -4802,6 +4805,7 @@ components:
         - content
         - accent_colour
         - authentication_mode
+        - registration_mode
       properties:
         title:
           type: string
@@ -4813,6 +4817,8 @@ components:
           type: string
         authentication_mode:
           $ref: "#/components/schemas/AuthMode"
+        registration_mode:
+          $ref: "#/components/schemas/RegistrationMode"
         capabilities:
           $ref: "#/components/schemas/InstanceCapabilityList"
         services:
@@ -4837,6 +4843,8 @@ components:
           type: string
         authentication_mode:
           $ref: "#/components/schemas/AuthMode"
+        registration_mode:
+          $ref: "#/components/schemas/RegistrationMode"
         services:
           $ref: "#/components/schemas/AdminSettingsServiceProps"
         metadata:
@@ -5785,6 +5793,25 @@ components:
         - handle
         - email
         - phone
+
+    RegistrationMode:
+      description: |
+        The mode of registration for the instance, which determines how new
+        accounts can be created. This is a global setting that affects the whole
+        instance and is used to control whether new users can register on their
+        own, need an invitation, or if registration is completely disabled.
+
+        When set to "public", anyone can register for a new account without any
+        special prerequisites. When set to "invitation", new accounts can only
+        be created if they have a valid invitation code, which can be generated
+        by existing users with the required permission. When set to "disabled",
+        new account registration is completely disabled and accounts can only be
+        provisioned using the API.
+      type: string
+      enum:
+        - public
+        - invitation
+        - disabled
 
     AuthProvider:
       type: object

@@ -3,6 +3,8 @@ import { useEffect } from "react";
 
 import { useAccountGet } from "src/api/openapi-client/accounts";
 
+import { usePublicRegistration } from "@/lib/settings/registration";
+
 const PRIVATE_PAGES = ["/settings", "/new", "/admin"];
 
 function privatePage(pathName: string): boolean {
@@ -13,6 +15,7 @@ export function useAuthProvider() {
   const { isLoading, data, error } = useAccountGet();
   const { push } = useRouter();
   const pathname = usePathname();
+  const canRegister = usePublicRegistration();
 
   const loggedIn = Boolean(data) && !error;
   const isPrivate = pathname && privatePage(pathname);
@@ -21,12 +24,12 @@ export function useAuthProvider() {
     if (isLoading) return;
 
     if (!loggedIn && isPrivate) {
-      push("/register");
+      push(canRegister ? "/register" : "/login");
     }
     if (loggedIn && (pathname === "/register" || pathname === "/login")) {
       push("/");
     }
-  }, [isLoading, loggedIn, isPrivate, pathname, push]);
+  }, [canRegister, isLoading, loggedIn, isPrivate, pathname, push]);
 
   return;
 }

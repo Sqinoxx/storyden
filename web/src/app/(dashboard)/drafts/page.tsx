@@ -8,13 +8,17 @@ import {
   UnauthenticatedBanner,
   UnreadyBanner,
 } from "@/components/site/Unready";
+import { getSettings } from "@/lib/settings/settings-server";
 
 export default async function Page() {
   try {
-    const session = await getServerSession();
+    const [session, settings] = await Promise.all([
+      getServerSession(),
+      getSettings(),
+    ]);
 
     if (!session) {
-      return <UnauthenticatedBanner />;
+      return <UnauthenticatedBanner initialSettings={settings} />;
     }
 
     const [threads, nodes] = await Promise.all([

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -64,9 +65,6 @@ func TestPasswordReset(t *testing.T) {
 				signup, err := cl.AuthEmailPasswordSignupWithResponse(root, nil, openapi.AuthEmailPasswordSignupJSONRequestBody{Email: email, Password: password})
 				tests.Ok(t, err, signup)
 
-				// HACK: because I haven't set up proper queue tooling for tests
-				time.Sleep(time.Millisecond * 100)
-
 				// oh no! I forgot my password :( let's reset it
 				request, err := cl.AuthPasswordResetRequestEmailWithResponse(root, openapi.AuthEmailPasswordReset{
 					Email: email,
@@ -80,11 +78,16 @@ func TestPasswordReset(t *testing.T) {
 				})
 				tests.Ok(t, err, request)
 
-				// HACK: because I haven't set up proper queue tooling for tests
-				time.Sleep(time.Millisecond * 100)
-
-				resetEmail := inbox.GetLast()
-				token := regexp.MustCompile(`\?token=(.+)`).FindStringSubmatch(resetEmail.Plain)[1]
+				resetToken := regexp.MustCompile(`\?token=(.+)`)
+				var resetEmail mailer.MockEmail
+				r.Eventually(func() bool {
+					var ok bool
+					resetEmail, ok = inbox.GetLastWhere(func(emailMessage mailer.MockEmail) bool {
+						return strings.EqualFold(emailMessage.Address.Address, email) && resetToken.MatchString(emailMessage.Plain)
+					})
+					return ok
+				}, 5*time.Second, 20*time.Millisecond)
+				token := resetToken.FindStringSubmatch(resetEmail.Plain)[1]
 
 				reset, err := cl.AuthPasswordResetWithResponse(root, openapi.AuthPasswordResetJSONRequestBody{
 					Token: token,

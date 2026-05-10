@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/Southclaws/opt"
 	"github.com/google/uuid"
@@ -91,7 +92,12 @@ func TestUnverifiedUserPermissions(t *testing.T) {
 				a.Equal(http.StatusForbidden, threadCreate.StatusCode(), "unverified user should not be able to create threads")
 
 				// Verify email
-				verification := inbox.GetLast()
+				var verification mailer.MockEmail
+				r.Eventually(func() bool {
+					var ok bool
+					verification, ok = inbox.GetLastTo(address)
+					return ok
+				}, 5*time.Second, 20*time.Millisecond)
 				match := regexp.MustCompile(`verify your account: ([0-9]{6})`).FindStringSubmatch(verification.Plain)
 				r.NotNil(match, "verification email should contain a 6-digit code")
 				r.GreaterOrEqual(len(match), 2, "regex match should have at least 2 elements (full match and capture group)")
@@ -207,7 +213,12 @@ func TestUnverifiedUserPermissions(t *testing.T) {
 				a.Equal(http.StatusForbidden, reactCreate.StatusCode(), "unverified user should not be able to add reactions")
 
 				// Verify email
-				verification := inbox.GetLast()
+				var verification mailer.MockEmail
+				r.Eventually(func() bool {
+					var ok bool
+					verification, ok = inbox.GetLastTo(address)
+					return ok
+				}, 5*time.Second, 20*time.Millisecond)
 				match := regexp.MustCompile(`verify your account: ([0-9]{6})`).FindStringSubmatch(verification.Plain)
 				r.NotNil(match, "verification email should contain a 6-digit code")
 				r.GreaterOrEqual(len(match), 2, "regex match should have at least 2 elements (full match and capture group)")

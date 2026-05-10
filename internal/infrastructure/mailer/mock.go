@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/mail"
+	"strings"
 	"sync"
 )
 
@@ -52,4 +53,23 @@ func (m *Mock) GetLast() MockEmail {
 	defer m.mu.Unlock()
 
 	return m.sent[len(m.sent)-1]
+}
+
+func (m *Mock) GetLastTo(address string) (MockEmail, bool) {
+	return m.GetLastWhere(func(email MockEmail) bool {
+		return strings.EqualFold(email.Address.Address, address)
+	})
+}
+
+func (m *Mock) GetLastWhere(match func(MockEmail) bool) (MockEmail, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for i := len(m.sent) - 1; i >= 0; i-- {
+		if match(m.sent[i]) {
+			return m.sent[i], true
+		}
+	}
+
+	return MockEmail{}, false
 }

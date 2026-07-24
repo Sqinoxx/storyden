@@ -7,7 +7,7 @@ export const DiscussionID = "discussion";
 export const DiscussionRoute = "/d";
 export const DiscussionLabel = "Discussion";
 
-export function HomeAnchor(props: AnchorProps & LinkButtonStyleProps) {
+export function DiscussionAnchor(props: AnchorProps & LinkButtonStyleProps) {
   return (
     <Anchor
       id={DiscussionID}

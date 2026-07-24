@@ -188,7 +188,7 @@ function CommandPaletteContentCommands() {
             <Command.Item
               value="/home"
               keywords={["home"]}
-              onSelect={() => handleNavigate("/")}
+              onSelect={() => handleNavigate("/d")}
             >
               <HStack gap="2">
                 <HomeIcon />

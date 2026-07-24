@@ -16,6 +16,7 @@ const routeLabels: Record<RouteName, string> = {
 
 const mapping: Record<string, RouteName> = {
   "/": "index",
+  "/d": "index",
   "/l": "library",
   "/admin": "admin",
   "/settings": "settings",

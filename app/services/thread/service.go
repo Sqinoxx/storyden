@@ -12,6 +12,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/Southclaws/storyden/app/resources/account"
+	"github.com/Southclaws/storyden/app/resources/asset" //NEU
 	"github.com/Southclaws/storyden/app/resources/datagraph"
 	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/post"
@@ -68,6 +69,7 @@ type Partial struct {
 	URL        opt.Optional[url.URL]
 	Meta       opt.Optional[map[string]any]
 	Pinned     opt.Optional[int]
+	Assets     opt.Optional[[]asset.AssetID] // NEU
 }
 
 func (p Partial) Opts() (opts []thread_writer.Option) {
@@ -77,6 +79,7 @@ func (p Partial) Opts() (opts []thread_writer.Option) {
 	p.Visibility.Call(func(v visibility.Visibility) { opts = append(opts, thread_writer.WithVisibility(v)) })
 	p.Meta.Call(func(v map[string]any) { opts = append(opts, thread_writer.WithMeta(v)) })
 	p.Pinned.Call(func(v int) { opts = append(opts, thread_writer.WithPinned(v)) })
+	p.Assets.Call(func(v []asset.AssetID) { opts = append(opts, thread_writer.WithAssets(v)) }) // NEU
 	return
 }
 

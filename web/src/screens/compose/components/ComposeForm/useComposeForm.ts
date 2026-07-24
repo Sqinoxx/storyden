@@ -5,7 +5,12 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { threadCreate, threadUpdate } from "@/api/openapi-client/threads";
-import { Thread, ThreadInitialProps, Visibility } from "@/api/openapi-schema";
+import {
+  Asset,
+  Thread,
+  ThreadInitialProps,
+  Visibility,
+} from "@/api/openapi-schema";
 
 import { handle } from "@/api/client";
 import { NO_CATEGORY_VALUE } from "@/components/category/CategorySelect/useCategorySelect";
@@ -26,6 +31,9 @@ export function useComposeForm({ initialDraft, editing }: Props) {
 
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [attachments, setAttachments] = useState<Asset[]>(
+  initialDraft?.assets?.filter((a) => !a.mime_type.startsWith("image/")) ?? [],
+);
 
   const form = useForm<FormShape>({
     resolver: zodResolver(FormShapeSchema),
@@ -50,6 +58,8 @@ export function useComposeForm({ initialDraft, editing }: Props) {
       url: data.url ?? "",
       tags: data.tags ?? [],
       category: data.category === NO_CATEGORY_VALUE ? undefined : data.category,
+
+      asset_ids: attachments.map((a) => a.id),
 
       visibility: Visibility.draft,
     };
@@ -78,6 +88,7 @@ export function useComposeForm({ initialDraft, editing }: Props) {
         visibility: Visibility.published,
         tags,
         url,
+        asset_ids: attachments.map((a) => a.id),
       });
       router.push(`/t/${slug}`);
     } else {
@@ -88,6 +99,7 @@ export function useComposeForm({ initialDraft, editing }: Props) {
         visibility: Visibility.published,
         tags,
         url,
+        asset_ids: attachments.map((a) => a.id),
       });
       router.push(`/t/${slug}`);
     }
@@ -148,23 +160,14 @@ export function useComposeForm({ initialDraft, editing }: Props) {
     );
   };
 
-  const handleAssetDelete = async () => {
-    await handle(
-      async () => {
-        setIsSavingDraft(true);
-        const state = form.getValues();
-        await saveDraft(state);
-      },
-      {
-        promiseToast: {
-          loading: "Saving draft...",
-          success: "Draft saved!",
-        },
-        cleanup: async () => {
-          setIsSavingDraft(false);
-        },
-      },
-    );
+  const handleAttach = async (a: Asset) => {
+    setAttachments((prev) => [...prev, a]);
+    await handleAssetUpload();
+  };
+
+  const handleDetach = async (a: Asset) => {
+    setAttachments((prev) => prev.filter((x) => x.id !== a.id));
+    await handleAssetUpload();
   };
 
   function handleBack() {
@@ -176,12 +179,14 @@ export function useComposeForm({ initialDraft, editing }: Props) {
     state: {
       isPublishing,
       isSavingDraft,
+      attachments,
     },
     handlers: {
       handleSaveDraft,
       handlePublish,
-      handleAssetDelete,
       handleAssetUpload,
+      handleAttach,
+      handleDetach,
       handleBack,
     },
   };

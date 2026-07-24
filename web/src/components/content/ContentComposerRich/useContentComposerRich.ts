@@ -18,12 +18,13 @@ import { getAssetURL } from "@/utils/asset";
 
 import { ContentComposerProps } from "../composer-props";
 import {
-  hasImageFile,
-  isSupportedImage,
+  hasAssetFile,
+  isSupportedAsset,
   useImageUpload,
 } from "../useImageUpload";
 
 import { ImageExtended, uploadPositionsKey } from "./plugins/ImagePlugin";
+import { FileAttachmentExtended } from "./plugins/FileAttachmentPlugin";
 import { LinkPasteMenuPlugin } from "./plugins/LinkPasteMenuPlugin";
 import { LinkPreview } from "./plugins/LinkPreviewPlugin";
 
@@ -63,14 +64,14 @@ export function useContentComposer(props: ContentComposerProps) {
           appendTransaction(_transactions, oldState, newState) {
             const oldUploadingIds = new Set<string>();
             oldState.doc.descendants((node) => {
-              if (node.type.name === "image" && node.attrs["data-upload-id"]) {
+              if ((node.type.name === "image" || node.type.name === "fileAttachment") && node.attrs["data-upload-id"]) {
                 oldUploadingIds.add(node.attrs["data-upload-id"]);
               }
             });
 
             const newUploadingIds = new Set<string>();
             newState.doc.descendants((node) => {
-              if (node.type.name === "image" && node.attrs["data-upload-id"]) {
+              if ((node.type.name === "image" || node.type.name === "fileAttachment") && node.attrs["data-upload-id"]) {
                 newUploadingIds.add(node.attrs["data-upload-id"]);
               }
             });
@@ -164,16 +165,16 @@ export function useContentComposer(props: ContentComposerProps) {
     onUpdate: ({ editor }) => {
       let html = editor.getHTML();
 
-      // Filter out images that are still uploading or failed
+      // Filter out elements that are still uploading or failed
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");
-      const uploadingImages = doc.querySelectorAll(
-        'img[data-uploading="true"]',
+      const uploadingElements = doc.querySelectorAll(
+        '[data-uploading="true"]',
       );
-      const failedImages = doc.querySelectorAll("img[data-upload-error]");
+      const failedElements = doc.querySelectorAll("[data-upload-error]");
 
-      uploadingImages.forEach((img) => img.remove());
-      failedImages.forEach((img) => img.remove());
+      uploadingElements.forEach((el) => el.remove());
+      failedElements.forEach((el) => el.remove());
 
       html = doc.body.innerHTML;
 
@@ -326,14 +327,26 @@ export function useContentComposer(props: ContentComposerProps) {
           return;
         }
 
-        const updateTransaction = view.state.tr.setNodeMarkup(pos, undefined, {
-          src: getAssetURL(asset.path),
-          alt: upload.file.name,
-          "data-upload-id": null,
-          "data-uploading": null,
-          "data-upload-error": null,
-          "data-upload-progress": null,
-        });
+        const isPdfNode = view.state.doc.nodeAt(pos)?.type.name === "fileAttachment";
+        const updateAttrs = isPdfNode
+          ? {
+              href: getAssetURL(asset.path),
+              fileName: upload.file.name,
+              "data-upload-id": null,
+              "data-uploading": null,
+              "data-upload-error": null,
+              "data-upload-progress": null,
+            }
+          : {
+              src: getAssetURL(asset.path),
+              alt: upload.file.name,
+              "data-upload-id": null,
+              "data-uploading": null,
+              "data-upload-error": null,
+              "data-upload-progress": null,
+            };
+
+        const updateTransaction = view.state.tr.setNodeMarkup(pos, undefined, updateAttrs);
 
         view.dispatch(updateTransaction);
 
@@ -399,8 +412,9 @@ export function useContentComposer(props: ContentComposerProps) {
     const { selection } = state;
     const { schema } = view.state;
     const imageNode = schema.nodes?.["image"];
+    const fileAttachmentNode = schema.nodes?.["fileAttachment"];
 
-    if (!imageNode) {
+    if (!imageNode || !fileAttachmentNode) {
       return [];
     }
 
@@ -410,6 +424,8 @@ export function useContentComposer(props: ContentComposerProps) {
     for (const f of files) {
       uploadCounterRef.current += 1;
       const uploadId = `upload-${Date.now()}-${uploadCounterRef.current}`;
+      const isPdf = f.type === "application/pdf";
+      const nodeType = isPdf ? fileAttachmentNode : imageNode;
 
       // Create blob URL for immediate preview
       const blobUrl = URL.createObjectURL(f);
@@ -425,13 +441,22 @@ export function useContentComposer(props: ContentComposerProps) {
         status: "uploading",
       });
 
-      // Insert placeholder image immediately
-      const placeholderNode = imageNode.create({
-        src: blobUrl,
-        alt: f.name,
-        "data-upload-id": uploadId,
-        "data-uploading": "true",
-      });
+      // Insert placeholder immediately
+      const attrs = isPdf
+        ? {
+            href: blobUrl,
+            fileName: f.name,
+            "data-upload-id": uploadId,
+            "data-uploading": "true",
+          }
+        : {
+            src: blobUrl,
+            alt: f.name,
+            "data-upload-id": uploadId,
+            "data-uploading": "true",
+          };
+
+      const placeholderNode = nodeType.create(attrs);
 
       const insertTransaction = view.state.tr.insert(
         insertPos,
@@ -456,7 +481,7 @@ export function useContentComposer(props: ContentComposerProps) {
 
           currentState.doc.descendants((node, pos) => {
             if (
-              node.type.name === "image" &&
+              (node.type.name === "image" || node.type.name === "fileAttachment") &&
               node.attrs["data-upload-id"] === uploadId
             ) {
               nodePos = pos;
@@ -466,18 +491,29 @@ export function useContentComposer(props: ContentComposerProps) {
           });
 
           if (nodePos !== null) {
+            const isPdfNode = currentState.doc.nodeAt(nodePos)?.type.name === "fileAttachment";
+            const newAttrs = isPdfNode
+              ? {
+                  href: getAssetURL(asset.path),
+                  fileName: f.name,
+                  "data-upload-id": null,
+                  "data-uploading": null,
+                  "data-upload-error": null,
+                  "data-upload-progress": null,
+                }
+              : {
+                  src: getAssetURL(asset.path),
+                  alt: f.name,
+                  "data-upload-id": null,
+                  "data-uploading": null,
+                  "data-upload-error": null,
+                  "data-upload-progress": null,
+                };
             // Update the node with the real URL and remove upload attrs
             const updateTransaction = currentState.tr.setNodeMarkup(
               nodePos,
               undefined,
-              {
-                src: getAssetURL(asset.path),
-                alt: f.name,
-                "data-upload-id": null,
-                "data-uploading": null,
-                "data-upload-error": null,
-                "data-upload-progress": null,
-              },
+              newAttrs,
             );
 
             view.dispatch(updateTransaction);
@@ -512,11 +548,11 @@ export function useContentComposer(props: ContentComposerProps) {
       return;
     }
 
-    const images = Array.from(e.currentTarget.files).filter((file) =>
-      /image/i.test(file.type),
+    const files = Array.from(e.currentTarget.files).filter((file) =>
+      isSupportedAsset(file.type),
     );
 
-    await handleFiles(editor.view, images);
+    await handleFiles(editor.view, files);
   }
 
   // -
@@ -590,12 +626,12 @@ export function useContentComposer(props: ContentComposerProps) {
     dragCounterRef.current += 1;
     setIsDragging(true);
 
-    const hasImage = hasImageFile(e.dataTransfer.items);
-    const imageCount = items.filter((item) =>
-      isSupportedImage(item.type),
+    const hasAsset = hasAssetFile(e.dataTransfer.items);
+    const assetCount = items.filter((item) =>
+      isSupportedAsset(item.type),
     ).length;
 
-    if (!hasImage) {
+    if (!hasAsset) {
       setIsDragError(true);
       setDragErrorMessage(ERROR_UNSUPPORTED_FILE_TYPE);
     } else {
@@ -603,7 +639,7 @@ export function useContentComposer(props: ContentComposerProps) {
       setDragErrorMessage("");
     }
 
-    setDragFileCount(imageCount);
+    setDragFileCount(assetCount);
   }
 
   function handleDragLeave() {
@@ -630,10 +666,10 @@ export function useContentComposer(props: ContentComposerProps) {
     }
 
     const files = Array.from(e.dataTransfer.files);
-    const images = files.filter((file) => /image/i.test(file.type));
+    const assets = files.filter((file) => isSupportedAsset(file.type));
 
-    if (images.length > 0) {
-      await handleFiles(editor.view, images);
+    if (assets.length > 0) {
+      await handleFiles(editor.view, assets);
     }
   }
 

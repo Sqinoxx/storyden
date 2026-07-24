@@ -19,6 +19,7 @@ import {
 } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { CreatePageAction } from "@/components/library/CreatePage";
+import { CreatePageFromFileAction } from "@/components/library/CreatePageFromFile/CreatePageFromFile";
 import { CreatePageFromURLAction } from "@/components/library/CreatePageFromURL/CreatePageFromURL";
 import { LibraryPageMenu } from "@/components/library/LibraryPageMenu/LibraryPageMenu";
 import { LinkRefButton } from "@/components/library/links/LinkCard";
@@ -30,8 +31,11 @@ import * as Tooltip from "@/components/ui/tooltip";
 import { DragItemNode } from "@/lib/dragdrop/provider";
 import { visibilityColour } from "@/lib/library/visibilityColours";
 import { isValidLinkLike } from "@/lib/link/validation";
+import { Download } from "lucide-react";
+
 import { css, cx } from "@/styled-system/css";
 import { Box, HStack, styled } from "@/styled-system/jsx";
+import { getAssetURL } from "@/utils/asset";
 import { hasPermission } from "@/utils/permissions";
 
 import { useLibraryPageContext } from "../../Context";
@@ -189,6 +193,12 @@ export function LibraryPageDirectoryBlockTable({
                     size="xs"
                     parentSlug={nodeID}
                     disableRedirect
+                    onComplete={handleCreatePageComplete}
+                  />
+                  <CreatePageFromFileAction
+                    variant="ghost"
+                    size="xs"
+                    parentSlug={nodeID}
                     onComplete={handleCreatePageComplete}
                   />
                   <CreatePageFromURLAction
@@ -435,13 +445,51 @@ function Row({
             ) : (
               <Box minH="4">
                 {match(column.fid)
-                  .with("fixed:name", () => (
-                    <Link href={column.href ?? "#"}>
-                      {column.value || (
-                        <styled.em color="fg.muted">(untitled page)</styled.em>
-                      )}
-                    </Link>
-                  ))
+                  .with("fixed:name", () => {
+                    const fileAsset =
+                      child.assets && child.assets.length > 0
+                        ? child.assets[0]
+                        : child.primary_image;
+                    const downloadUrl = fileAsset
+                      ? getAssetURL(fileAsset.path)
+                      : null;
+
+                    if (downloadUrl) {
+                      return (
+                        <HStack gap="1.5" display="inline-flex" alignItems="center">
+                          <styled.a
+                            href={downloadUrl}
+                            download={fileAsset?.filename || child.name}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            display="inline-flex"
+                            alignItems="center"
+                            gap="1.5"
+                            fontWeight="medium"
+                            color="accent.default"
+                            _hover={{ textDecoration: "underline" }}
+                          >
+                            <span>
+                              {column.value || (
+                                <styled.em color="fg.muted">
+                                  (untitled page)
+                                </styled.em>
+                              )}
+                            </span>
+                            <Download size={14} style={{ flexShrink: 0 }} />
+                          </styled.a>
+                        </HStack>
+                      );
+                    }
+
+                    return (
+                      <Link href={column.href ?? "#"}>
+                        {column.value || (
+                          <styled.em color="fg.muted">(untitled page)</styled.em>
+                        )}
+                      </Link>
+                    );
+                  })
                   .with("fixed:link", () =>
                     child.link ? (
                       <LinkRefButton link={child.link} variant="link" />

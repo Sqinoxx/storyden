@@ -26,6 +26,8 @@ export function CategoryCard({ category, showChildren }: CategoryCardProps) {
   const plural =
     category.children.length === 1 ? "subcategory" : "subcategories";
 
+  const coverImageURL = getAssetURL(category.cover_image?.path);
+
   return (
     <CardBox
       position="relative"
@@ -39,11 +41,13 @@ export function CategoryCard({ category, showChildren }: CategoryCardProps) {
       p="0"
       overflow="hidden"
     >
-      <img
-        src={getAssetURL(category.cover_image?.path)}
-        alt="" // No alt image, decorative
-        aria-hidden="true"
-      />
+      {coverImageURL && (
+        <img
+          src={coverImageURL}
+          alt="" // No alt image, decorative
+          aria-hidden="true"
+        />
+      )}
 
       <LStack p="1">
         <LStack h="full" gap="1" justifyContent="space-between">

@@ -11,6 +11,7 @@ import { useDisclosure } from "@/utils/useDisclosure";
 
 import { AdminMenuItem } from "../Anchors/Admin";
 import { DraftsMenuItem } from "../Anchors/Drafts";
+import { LanguageMenuItem } from "../Anchors/Language";
 import { LogoutMenuItem } from "../Anchors/Logout";
 import { ProfileMenuItem } from "../Anchors/Profile";
 import { QueueMenuItem } from "../Anchors/Queue";
@@ -87,6 +88,12 @@ export function AccountMenu({ account, size = "md" }: Props) {
                 <DraftsMenuItem />
                 <QueueMenuItem />
                 <ReportsMenuItem />
+              </Menu.ItemGroup>
+
+              <Menu.Separator />
+
+              <Menu.ItemGroup id="language">
+                <LanguageMenuItem />
               </Menu.ItemGroup>
 
               <Menu.Separator />

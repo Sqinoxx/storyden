@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { LinkButton } from "@/components/ui/link-button";
 import { LibraryPath, joinLibraryPath } from "@/screens/library/library-path";
 import { Box, HStack } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 import { BreadcrumbIcon } from "../ui/icons/Breadcrumb";
 
@@ -38,6 +39,7 @@ export const Breadcrumbs_ = (
   ref: ForwardedRef<HTMLInputElement>,
 ) => {
   const session = useSession();
+  const t = useTranslation();
   const isEditing = session && create == "edit" && onChange !== undefined;
 
   // Sometimes, due to bugs, the path can contain duplicate slug entries.
@@ -62,7 +64,7 @@ export const Breadcrumbs_ = (
         minW="min"
         href="/l"
       >
-        Library
+        {t.nav.library}
       </LinkButton>
       {paths.map((p) => {
         const isCurrent = p === current && create === "show";
@@ -130,9 +132,8 @@ export const Breadcrumbs_ = (
             size="xs"
             height="6" // TODO: Make this default for size="xs"
             borderRadius="sm"
-            placeholder="URL slug"
-            defaultValue={defaultValue}
-            value={value}
+            placeholder={t.library.slugPlaceholder}
+            value={value ?? defaultValue ?? ""}
             {...(invalid ? { "aria-invalid": "true" } : {})}
             onChange={onChange}
             {...rest}

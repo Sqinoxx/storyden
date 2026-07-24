@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import React, { memo } from "react";
 import { FileIcon, Download } from "lucide-react";
@@ -17,6 +19,7 @@ import { Box, HStack, LStack, styled } from "@/styled-system/jsx";
 import { getAssetURL } from "@/utils/asset";
 import { timestamp } from "@/utils/date";
 import { hasPermission } from "@/utils/permissions";
+import { useLanguage } from "@/lib/i18n";
 
 import { CategoryBadge } from "../category/CategoryBadge";
 import { PostReviewBadge } from "../thread/PostReviewBadge";
@@ -214,23 +217,24 @@ export const ThreadReferenceCard = memo(
     );
 
     const { isConfirmingDelete, handlers } = useThreadCardModeration(thread);
+    const { t } = useLanguage();
 
-    const title = thread.title || thread.link?.title || "Untitled post";
+    const title = thread.title || thread.link?.title || t.thread.untitled;
 
     const hasReplied = thread.reply_status.replied > 0;
     const replyCount = thread.reply_status.replies;
     const replyCountLabel =
-      replyCount === 1 ? `1 reply` : `${replyCount} replies`;
+      replyCount === 1 ? `1 ${t.thread.reply}` : `${replyCount} ${t.thread.replies}`;
 
     const replyStatusLabel = hasReplied
-      ? `${replyCountLabel} (including you!)`
+      ? `${replyCountLabel} ${t.thread.includingYou}`
       : replyCountLabel;
 
     const newRepliesCount = thread.read_status?.replies_since ?? 0;
     const lastReadAt = thread.read_status?.last_read_at;
     const newRepliesLabel =
       newRepliesCount > 0 && lastReadAt
-        ? `${newRepliesCount} ${newRepliesCount === 1 ? "reply" : "replies"} since you last visited ${timestamp(lastReadAt, false)} ago`
+        ? `${newRepliesCount} ${newRepliesCount === 1 ? t.thread.reply : t.thread.replies} ${t.thread.sinceLastVisit} ${timestamp(lastReadAt, false)} ${t.thread.ago}`
         : undefined;
 
     const isInReview = thread.visibility === Visibility.review;

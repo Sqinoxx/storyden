@@ -11,6 +11,7 @@ import * as Menu from "@/components/ui/menu";
 import { WEB_ADDRESS } from "@/config";
 import { hasPermission } from "@/utils/permissions";
 import { useCopyToClipboard } from "@/utils/useCopyToClipboard";
+import { useTranslation } from "@/lib/i18n";
 
 import { MemberIdent } from "../MemberBadge/MemberIdent";
 import { MemberPasswordResetTrigger } from "../MemberPasswordReset/MemberPasswordResetTrigger";
@@ -30,6 +31,7 @@ export function MemberOptionsMenu({
 }: PropsWithChildren<Props>) {
   const session = useSession();
   const [_, copy] = useCopyToClipboard();
+  const t = useTranslation();
 
   const permalink = `${WEB_ADDRESS}/m/${profile.handle}`;
 
@@ -76,11 +78,11 @@ export function MemberOptionsMenu({
 
               <Menu.ItemGroup>
                 <Link href={permalink}>
-                  <Menu.Item value="view">View profile</Menu.Item>
+                  <Menu.Item value="view">{t.actions.viewProfile}</Menu.Item>
                 </Link>
               </Menu.ItemGroup>
 
-              <Menu.Item value="copy-link">Copy link</Menu.Item>
+              <Menu.Item value="copy-link">{t.actions.copyLink}</Menu.Item>
 
               <ReportMemberMenuItem profile={profile} />
 
@@ -88,7 +90,7 @@ export function MemberOptionsMenu({
 
               {canResetPassword && (
                 <MemberPasswordResetTrigger profile={profile}>
-                  <Menu.Item value="reset-password">Reset password</Menu.Item>
+                  <Menu.Item value="reset-password">{t.actions.resetPassword}</Menu.Item>
                 </MemberPasswordResetTrigger>
               )}
 
@@ -99,7 +101,7 @@ export function MemberOptionsMenu({
                     color="fg.warning"
                     _hover={{ color: "fg.warning", background: "bg.warning" }}
                   >
-                    Warn member
+                    {t.actions.warnMember}
                   </Menu.Item>
                 </MemberWarningTrigger>
               )}
@@ -114,7 +116,7 @@ export function MemberOptionsMenu({
                       background: "bg.destructive",
                     }}
                   >
-                    {profile.suspended ? "Reinstate" : "Suspend"}
+                    {profile.suspended ? t.actions.unsuspend : t.actions.suspend}
                   </Menu.Item>
                 </MemberSuspensionTrigger>
               )}

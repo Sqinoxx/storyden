@@ -1,3 +1,5 @@
+"use client";
+
 import { PaginationControls } from "@/components/site/PaginationControls/PaginationControls";
 import { Unready } from "@/components/site/Unready";
 
@@ -8,9 +10,11 @@ import { Input } from "@/components/ui/input";
 import { LStack, styled } from "@/styled-system/jsx";
 
 import { Props, useThreadIndexView } from "./useThreadIndexView";
+import { useTranslation } from "@/lib/i18n";
 
 export function ThreadIndexView(props: Props) {
   const { form, data, handlers } = useThreadIndexView(props);
+  const t = useTranslation();
 
   if (form.formState.isLoading) return <Unready />;
 
@@ -27,7 +31,7 @@ export function ThreadIndexView(props: Props) {
           borderRight="none"
           borderRightRadius="none"
           type="search"
-          placeholder="Search discussions"
+          placeholder={t.search.searchDiscussions}
           defaultValue={props.query}
           {...form.register("q")}
         />
@@ -49,7 +53,7 @@ export function ThreadIndexView(props: Props) {
           type="submit"
           width="min"
         >
-          Search
+          {t.search.searchButton}
         </Button>
       </styled.form>
 

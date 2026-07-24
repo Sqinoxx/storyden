@@ -1,9 +1,12 @@
+"use client";
+
 import { handle } from "@/api/client";
 import { ButtonProps } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { CreateIcon } from "@/components/ui/icons/Create";
 import { Item } from "@/components/ui/menu";
 import { useLibraryMutation } from "@/lib/library/library";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = ButtonProps & {
   parentSlug?: string;
@@ -24,6 +27,7 @@ export function CreatePageAction({
   ...props
 }: Props) {
   const { createNode, revalidate } = useLibraryMutation();
+  const t = useTranslation();
 
   async function handleCreate() {
     await handle(
@@ -32,8 +36,8 @@ export function CreatePageAction({
       },
       {
         promiseToast: {
-          loading: "Creating page...",
-          success: "Page created!",
+          loading: t.library.creatingPage,
+          success: t.library.pageCreated,
         },
         cleanup: async () => {
           await revalidate();
@@ -55,7 +59,7 @@ export function CreatePageAction({
       {CreatePageIcon}
       {!hideLabel && (
         <>
-          <span>{CreatePageLabel}</span>
+          <span>{t.actions.create}</span>
         </>
       )}
     </IconButton>
@@ -63,12 +67,13 @@ export function CreatePageAction({
 }
 
 export function CreatePageMenuItem({ hideLabel }: Props) {
+  const t = useTranslation();
   return (
     <Item value={CreatePageID}>
       {CreatePageIcon}
       {!hideLabel && (
         <>
-          &nbsp;<span>{CreatePageLabel}</span>
+          &nbsp;<span>{t.actions.create}</span>
         </>
       )}
     </Item>

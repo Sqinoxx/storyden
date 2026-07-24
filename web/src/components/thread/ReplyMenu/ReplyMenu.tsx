@@ -17,11 +17,14 @@ import { ShareIcon } from "@/components/ui/icons/Share";
 import * as Menu from "@/components/ui/menu";
 import { HStack, styled } from "@/styled-system/jsx";
 
+import { useTranslation } from "@/lib/i18n";
+
 import { Props, useReplyMenu } from "./useReplyMenu";
 
 export function ReplyMenu(props: Props) {
   const { isSharingEnabled, isEditingEnabled, isDeletingEnabled, handlers } =
     useReplyMenu(props);
+  const t = useTranslation();
 
   return (
     <Menu.Root lazyMount>
@@ -38,7 +41,7 @@ export function ReplyMenu(props: Props) {
                 flexDir="column"
                 userSelect="none"
               >
-                <styled.span>{`Post by ${props.reply.author.name}`}</styled.span>
+                <styled.span>{t.thread.postBy.replace("{name}", props.reply.author.name)}</styled.span>
 
                 <styled.time fontWeight="normal">
                   {format(new Date(props.reply.createdAt), "yyyy-MM-dd")}
@@ -49,20 +52,20 @@ export function ReplyMenu(props: Props) {
 
               <Menu.Item value="copy-link" onClick={handlers.handleCopyURL}>
                 <HStack gap="1">
-                  <LinkIcon /> Copy link
+                  <LinkIcon /> {t.actions.copyLink}
                 </HStack>
               </Menu.Item>
 
               {isSharingEnabled && (
                 <Menu.Item value="share" onClick={handlers.handleShare}>
                   <HStack gap="1">
-                    <ShareIcon /> Share
+                    <ShareIcon /> {t.actions.share}
                   </HStack>
                 </Menu.Item>
               )}
 
               <ReportPostMenuItem
-                menuLabel="Report reply"
+                menuLabel={t.actions.report}
                 targetKind={DatagraphItemKind.reply}
                 targetId={props.reply.id}
                 author={props.reply.author}
@@ -73,7 +76,7 @@ export function ReplyMenu(props: Props) {
               {isEditingEnabled && (
                 <Menu.Item value="edit" onClick={handlers.handleSetEditing}>
                   <HStack gap="1">
-                    <EditIcon /> Edit
+                    <EditIcon /> {t.actions.edit}
                   </HStack>
                 </Menu.Item>
               )}
@@ -81,7 +84,7 @@ export function ReplyMenu(props: Props) {
               {isDeletingEnabled && (
                 <Menu.Item value="delete" onClick={handlers.handleDelete}>
                   <HStack gap="1">
-                    <DeleteIcon /> Delete
+                    <DeleteIcon /> {t.actions.delete}
                   </HStack>
                 </Menu.Item>
               )}

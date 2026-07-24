@@ -7,6 +7,7 @@ import { CheckIcon } from "@/components/ui/icons/Check";
 import { SortIcon } from "@/components/ui/icons/Sort";
 import * as Menu from "@/components/ui/menu";
 import { HStack } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 const SORT_OPTIONS = [
   { value: "name", label: "Display name (A-Z)" },
@@ -18,14 +19,24 @@ const SORT_OPTIONS = [
 ] as const;
 
 export function SortMenu() {
+  const t = useTranslation();
   const [sort, setSort] = useQueryState("sort", parseAsString);
+
+  const sortOptions = [
+    { value: "name", label: t.members.sortNameAsc },
+    { value: "-name", label: t.members.sortNameDesc },
+    { value: "handle", label: t.members.sortHandleAsc },
+    { value: "-handle", label: t.members.sortHandleDesc },
+    { value: "created_at", label: t.members.sortJoinedAsc },
+    { value: "-created_at", label: t.members.sortJoinedDesc },
+  ];
 
   const handleSortChange = async (value: string) => {
     await setSort(value);
   };
 
   const currentLabel =
-    SORT_OPTIONS.find((opt) => opt.value === sort)?.label || "Sort by...";
+    sortOptions.find((opt) => opt.value === sort)?.label || t.members.sortBy;
 
   return (
     <Menu.Root positioning={{ placement: "bottom-start" }} lazyMount>
@@ -41,7 +52,7 @@ export function SortMenu() {
       <Menu.Positioner>
         <Menu.Content minW="56">
           <Menu.ItemGroup id="sort-options">
-            {SORT_OPTIONS.map((option) => (
+            {sortOptions.map((option) => (
               <Menu.Item
                 key={option.value}
                 value={option.value}

@@ -32,6 +32,7 @@ import { SaveIcon } from "@/components/ui/icons/Save";
 import * as Table from "@/components/ui/table";
 import { css } from "@/styled-system/css";
 import { Box, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 import { hasPermission } from "@/utils/permissions";
 import { useIsTextWrapping } from "@/utils/useIsTextWrapping";
 
@@ -44,6 +45,7 @@ export function LibraryPageVersionReview({
   versionID: string;
   onApplied?: () => Promise<void> | void;
 }) {
+  const t = useTranslation();
   const [, setReviewVersionID] = useQueryState("version", {
     ...parseAsString,
     clearOnDefault: true,
@@ -62,8 +64,8 @@ export function LibraryPageVersionReview({
     return (
       <ReviewShell>
         <ReviewHeader
-          title="Version unavailable"
-          subtitle="This edit may have been removed or you may not have access."
+          title={t.library.versionUnavailable}
+          subtitle={t.library.versionUnavailableSub}
           onClose={handleClose}
         />
       </ReviewShell>
@@ -74,8 +76,8 @@ export function LibraryPageVersionReview({
     return (
       <ReviewShell>
         <ReviewHeader
-          title="Loading version"
-          subtitle="Fetching the checkpoint snapshot."
+          title={t.library.loadingVersion}
+          subtitle={t.library.fetchingCheckpoint}
           onClose={handleClose}
         />
       </ReviewShell>
@@ -107,6 +109,7 @@ function VersionReviewPanel({
   onApplied?: () => Promise<void> | void;
 }) {
   const session = useSession();
+  const t = useTranslation();
   const isLibraryManager = hasPermission(session, Permission.MANAGE_LIBRARY);
   const [applying, setApplying] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -136,8 +139,8 @@ function VersionReviewPanel({
           }),
         {
           promiseToast: {
-            loading: "Applying draft...",
-            success: "Draft applied",
+            loading: t.library.applyingDraft,
+            success: t.library.draftApplied,
           },
         },
       );
@@ -154,8 +157,8 @@ function VersionReviewPanel({
     try {
       await handle(() => nodeVersionDelete(node.id, version.id), {
         promiseToast: {
-          loading: "Deleting draft...",
-          success: "Draft deleted",
+          loading: t.library.deletingDraft,
+          success: t.library.draftDeleted,
         },
       });
       await onClose();
@@ -170,14 +173,14 @@ function VersionReviewPanel({
         title={
           isDraft ? (
             <styled.span color="fg.subtle">
-              Reviewing draft for{" "}
+              {t.library.reviewingDraftFor.replace("{name}", "")}{" "}
               <styled.span color="fg.default" fontWeight="semibold">
                 {node.name}
               </styled.span>
             </styled.span>
           ) : (
             <styled.span color="fg.subtle">
-              Viewing checkpoint for{" "}
+              {t.library.viewingCheckpointFor.replace("{name}", "")}{" "}
               <styled.span color="fg.default" fontWeight="semibold">
                 {node.name}
               </styled.span>
@@ -197,7 +200,7 @@ function VersionReviewPanel({
                 onClick={handleDelete}
               >
                 <DeleteIcon width="4" height="4" />
-                Delete
+                {t.actions.delete}
               </Button>
             )}
 
@@ -210,7 +213,7 @@ function VersionReviewPanel({
                 onClick={handleApply}
               >
                 <SaveIcon width="4" height="4" />
-                Apply
+                {t.library.apply}
               </Button>
             )}
           </HStack>
@@ -265,6 +268,7 @@ function VersionComparisonContext({
   error?: unknown;
   loading?: boolean;
 }) {
+  const t = useTranslation();
   if (loading || error || !previous) {
     return <Unready error={error} />;
   }
@@ -283,7 +287,7 @@ function VersionComparisonContext({
     >
       <HStack w="full" flexWrap="wrap" gap="1">
         <InfoIcon width="4" height="4" />
-        <span>Comparing with previous version by</span>
+        <span>{t.library.comparingWithPrevious}</span>
         <Box display="inline-block">
           <MemberIdent
             profile={previous.author}
@@ -293,7 +297,7 @@ function VersionComparisonContext({
           />
         </Box>
         <span>
-          from <Timestamp created={previous.updated_at} /> ago
+          <Timestamp created={previous.updated_at} /> {t.thread.ago}
         </span>
       </HStack>
     </LStack>
@@ -301,15 +305,16 @@ function VersionComparisonContext({
 }
 
 function NoPreviousVersionAlert() {
+  const t = useTranslation();
   return (
     <Alert.Root>
       <Alert.Icon asChild>
         <InfoIcon />
       </Alert.Icon>
       <Alert.Content>
-        <Alert.Title>Earlier page state is unavailable</Alert.Title>
+        <Alert.Title>{t.library.earlierStateUnavailable}</Alert.Title>
         <Alert.Description>
-          This is the first tracked version of the page.
+          {t.library.firstTrackedVersion}
         </Alert.Description>
       </Alert.Content>
     </Alert.Root>
@@ -337,6 +342,7 @@ function ReviewHeader({
   onClose: () => Promise<void> | void;
   controls?: ReactNode;
 }) {
+  const t = useTranslation();
   return (
     <LStack
       borderWidth="thin"
@@ -360,7 +366,7 @@ function ReviewHeader({
         <HStack gap="1">
           {controls}
           <Button type="button" size="xs" variant="ghost" onClick={onClose}>
-            Close
+            {t.actions.close}
           </Button>
         </HStack>
       </WStack>

@@ -8,6 +8,7 @@ import { DeleteIcon } from "@/components/ui/icons/Delete";
 import { LinkIcon } from "@/components/ui/icons/Typography";
 import { Input } from "@/components/ui/input";
 import * as Popover from "@/components/ui/popover";
+import { useTranslation } from "@/lib/i18n";
 import { isValidLinkLike, normalizeLink } from "@/lib/link/validation";
 import { HStack } from "@/styled-system/jsx";
 
@@ -16,6 +17,7 @@ type LinkButtonProps = {
 };
 
 export function LinkButton({ editor }: LinkButtonProps) {
+  const t = useTranslation();
   const [url, setUrl] = useState("");
   const [open, setOpen] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
@@ -107,7 +109,7 @@ export function LinkButton({ editor }: LinkButtonProps) {
               size="xs"
               value={url}
               onChange={handleChangeURL}
-              placeholder="Enter or paste URL"
+              placeholder={t.link.enterOrPasteUrl}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();

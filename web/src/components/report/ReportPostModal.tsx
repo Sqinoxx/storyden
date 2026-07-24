@@ -1,8 +1,11 @@
+"use client";
+
 import { DatagraphItemKind, ProfileReference } from "@/api/openapi-schema";
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import { VStack, styled } from "@/styled-system/jsx";
 
 import { ReportModal, ReportModalProps } from "./ReportModal";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = Omit<
   ReportModalProps,
@@ -30,21 +33,27 @@ export function ReportPostModal({
   body,
   ...disclosure
 }: Props) {
+  const t = useTranslation();
+
   const modalTitle =
-    targetKind === DatagraphItemKind.reply ? "Report reply" : "Report thread";
+    targetKind === DatagraphItemKind.reply
+      ? t.report.reportReply
+      : t.report.reportThread;
 
   const modalDescription =
     targetKind === DatagraphItemKind.reply
-      ? "Let moderators know about this reply."
-      : "Let moderators know about this thread.";
+      ? t.report.letModeratorsKnowReply
+      : t.report.letModeratorsKnowThread;
 
   const submitLabel =
-    targetKind === DatagraphItemKind.reply ? "Report reply" : "Report thread";
+    targetKind === DatagraphItemKind.reply
+      ? t.report.reportReply
+      : t.report.reportThread;
 
   const successMessage =
     targetKind === DatagraphItemKind.reply
-      ? "Your reply report has been submitted."
-      : "Your thread report has been submitted.";
+      ? t.report.replySubmitted
+      : t.report.threadSubmitted;
 
   return (
     <ReportModal

@@ -9,8 +9,10 @@ import { DateRangePicker } from "@/components/ui/date-picker";
 import { IconButton } from "@/components/ui/icon-button";
 import { css } from "@/styled-system/css";
 import { HStack } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 export function JoinedDateFilter() {
+  const t = useTranslation();
   const [joined, setJoined] = useQueryState("joined", parseAsString);
 
   const handleValueChange = async (details: { value: DateValue[] }) => {
@@ -49,7 +51,7 @@ export function JoinedDateFilter() {
         defaultValue={parseInitialValue()}
         onValueChange={handleValueChange}
         active={!!joined}
-        triggerLabel="Joined"
+        triggerLabel={t.members.joined}
         hideInputs={true}
         triggerClassName={css({
           borderRightRadius: "none",

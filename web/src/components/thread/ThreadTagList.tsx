@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Controller, ControllerProps, FieldValues } from "react-hook-form";
 
@@ -9,6 +11,7 @@ import {
   MultiSelectPicker,
   MultiSelectPickerItem,
 } from "@/components/ui/MultiSelectPicker";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   editing: boolean;
@@ -20,6 +23,7 @@ export function ThreadTagList(props: Props) {
   const [queryResults, setQueryResults] = useState<MultiSelectPickerItem[]>(
     [],
   );
+  const t = useTranslation();
 
   const currentTags: MultiSelectPickerItem[] =
     props.initialTags?.map((t) => ({
@@ -55,7 +59,7 @@ export function ThreadTagList(props: Props) {
         onQuery={handleQuery}
         queryResults={queryResults}
         allowNewValues={true}
-        inputPlaceholder="Add tags..."
+        inputPlaceholder={t.editor.addTags}
         autoColour={true}
         size="sm"
       />

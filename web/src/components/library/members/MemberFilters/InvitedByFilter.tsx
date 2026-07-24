@@ -10,8 +10,10 @@ import {
   MultiSelectPickerItem,
 } from "@/components/ui/MultiSelectPicker";
 import { deriveError } from "@/utils/error";
+import { useTranslation } from "@/lib/i18n";
 
 export function InvitedByFilter() {
+  const t = useTranslation();
   const [invitedBy, setInvitedBy] = useQueryState(
     "invited_by",
     parseAsArrayOf(parseAsString).withDefault([]),
@@ -70,7 +72,7 @@ export function InvitedByFilter() {
 
   return (
     <MultiSelectPicker
-      inputPlaceholder="Invited by"
+      inputPlaceholder={t.members.invitedBy}
       value={value}
       size="sm"
       triggerProps={{

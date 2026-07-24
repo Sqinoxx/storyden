@@ -46,7 +46,8 @@ export const menu = defineSlotRecipe({
     content: {
       maxHeight: "var(--available-height)",
       maxW: "20rem",
-      overflowY: "scroll",
+      overflowY: "auto",
+      overflowX: "hidden",
       background: "bg.opaque",
       backdropBlur: "frosted",
       backdropFilter: "auto",

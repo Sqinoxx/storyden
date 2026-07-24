@@ -9,9 +9,11 @@ import { LibraryLabel, LibraryRoute } from "../Anchors/Library";
 import { NavigationHeader } from "../ContentNavigationList/NavigationHeader";
 
 import { Props, useLibraryNavigationTree } from "./useLibraryNavigationTree";
+import { useTranslation } from "@/lib/i18n";
 
 export function LibraryNavigationTree(props: Props) {
   const { ready, data, canManageLibrary } = useLibraryNavigationTree(props);
+  const t = useTranslation();
   if (!ready) {
     // TODO: Render a small version of <Unready /> that's more suitable for this
     return null;
@@ -29,7 +31,7 @@ export function LibraryNavigationTree(props: Props) {
       >
         <HStack gap="1">
           <LibraryIcon />
-          {LibraryLabel}
+          {t.nav.library}
         </HStack>
       </NavigationHeader>
 

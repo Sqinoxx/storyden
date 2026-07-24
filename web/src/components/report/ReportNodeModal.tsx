@@ -1,8 +1,11 @@
+"use client";
+
 import { DatagraphItemKind, Node } from "@/api/openapi-schema";
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import { styled, VStack } from "@/styled-system/jsx";
 
 import { ReportModal, ReportModalProps } from "./ReportModal";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = Omit<
   ReportModalProps,
@@ -19,10 +22,11 @@ type Props = Omit<
 };
 
 export function ReportNodeModal({ node, ...disclosure }: Props) {
+  const t = useTranslation();
   return (
     <ReportModal
-      title="Report page"
-      description="Flag this page for moderator review. Use this if it contains incorrect, unsafe or inappropriate content."
+      title={t.report.reportPageTitle}
+      description={t.report.reportPageDesc}
       subject={
         <VStack alignItems="start" gap="2">
           <styled.span
@@ -49,9 +53,9 @@ export function ReportNodeModal({ node, ...disclosure }: Props) {
       }
       targetId={node.id}
       targetKind={DatagraphItemKind.node}
-      submitLabel="Report page"
-      successMessage="Thanks for the report. We'll review this page."
-      loadingMessage="Sending report..."
+      submitLabel={t.report.reportPageSubmit}
+      successMessage={t.report.reportPageSuccess}
+      loadingMessage={t.report.sendingReport}
       {...disclosure}
     />
   );

@@ -9,6 +9,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { CreateIcon } from "@/components/ui/icons/Create";
 import { Item } from "@/components/ui/menu";
 import { hasPermission } from "@/utils/permissions";
+import { useTranslation } from "@/lib/i18n";
 
 import { CategoryCreateModal } from "./CategoryCreateModal";
 
@@ -28,6 +29,7 @@ export function CategoryCreateTrigger({
 }: Props) {
   const session = useSession();
   const useDisclosureProps = useDisclosure();
+  const t = useTranslation();
 
   if (!hasPermission(session, Permission.MANAGE_CATEGORIES)) {
     return null;
@@ -46,7 +48,7 @@ export function CategoryCreateTrigger({
         {CreateCategoryIcon}
         {!hideLabel && (
           <>
-            <span>{CreateCategoryLabel}</span>
+            <span>{t.actions.create}</span>
           </>
         )}
       </IconButton>
@@ -58,13 +60,14 @@ export function CategoryCreateTrigger({
 
 export function CreateCategoryMenuItem({ hideLabel }: Props) {
   const useDisclosureProps = useDisclosure();
+  const t = useTranslation();
 
   return (
     <Item value={CreateCategoryID} onClick={useDisclosureProps.onOpen}>
       {CreateCategoryIcon}
       {!hideLabel && (
         <>
-          &nbsp;<span>{CreateCategoryLabel}</span>
+          &nbsp;<span>{t.actions.create}</span>
         </>
       )}
 

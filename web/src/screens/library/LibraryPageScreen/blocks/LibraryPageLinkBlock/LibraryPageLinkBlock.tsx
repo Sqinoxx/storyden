@@ -1,4 +1,7 @@
+"use client";
+
 import { match } from "ts-pattern";
+import { useTranslation } from "@/lib/i18n";
 
 import { LinkCard } from "@/components/library/links/LinkCard";
 import { InfoTip } from "@/components/site/InfoTip";
@@ -30,6 +33,7 @@ export function LibraryPageLinkBlock() {
 
 function LibraryPageLinkBlockEditing() {
   const { data, handlers } = useLibraryPageLinkBlock();
+  const t = useTranslation();
 
   return (
     <LStack gap="0">
@@ -39,15 +43,15 @@ function LibraryPageLinkBlockEditing() {
           size="sm"
           variant="ghost"
           color="fg.muted"
-          placeholder="External URL..."
+          placeholder={t.library.externalUrlPlaceholder}
           onChange={handlers.handleInputValueChange}
           value={data.inputValue}
           defaultValue={data.defaultLinkURL}
         />
 
         <HStack>
-          <InfoTip title="Generating a page from a URL">
-            Importing a URL will fetch the content and store it in this page.
+          <InfoTip title={t.library.importTitle}>
+            {t.library.importDescription}
           </InfoTip>
           <Button
             type="button"
@@ -57,7 +61,7 @@ function LibraryPageLinkBlockEditing() {
             loading={data.isImporting}
             onClick={handlers.handleImport}
           >
-            Import
+            {t.library.import}
           </Button>
         </HStack>
       </WStack>

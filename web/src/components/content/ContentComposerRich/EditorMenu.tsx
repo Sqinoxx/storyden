@@ -1,3 +1,5 @@
+"use client";
+
 import { Portal } from "@ark-ui/react";
 import { Editor } from "@tiptap/core";
 import { match } from "ts-pattern";
@@ -26,6 +28,7 @@ import { HStack, styled } from "@/styled-system/jsx";
 import { button } from "@/styled-system/recipes";
 
 import { LinkButton } from "./LinkButton";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   editor: Editor;
@@ -35,6 +38,8 @@ export type Props = {
 };
 
 export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
+  const t = useTranslation();
+  
   return (
     <HStack gap="1">
       <Menu.Root
@@ -46,7 +51,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
             type="button"
             size="xs"
             variant="ghost"
-            title="Change the kind of text"
+            title={t.editor.changeTextKind}
           >
             {match(format.text.active)
               .with("p", () => <TextIcon />)
@@ -72,32 +77,32 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
             >
               <Menu.Item value="p">
                 <TextIcon />
-                &nbsp;Paragraph
+                &nbsp;{t.editor.paragraph}
               </Menu.Item>
 
               <Menu.Item value="h1" fontSize="lg" fontWeight="extrabold">
                 <Heading1Icon />
-                &nbsp;Heading 1
+                &nbsp;{t.editor.heading1}
               </Menu.Item>
               <Menu.Item value="h2" fontSize="md" fontWeight="extrabold">
                 <Heading2Icon />
-                &nbsp;Heading 2
+                &nbsp;{t.editor.heading2}
               </Menu.Item>
               <Menu.Item value="h3" fontSize="md" fontWeight="bold">
                 <Heading3Icon />
-                &nbsp;Heading 3
+                &nbsp;{t.editor.heading3}
               </Menu.Item>
               <Menu.Item value="h4" fontSize="md" fontWeight="medium">
                 <Heading4Icon />
-                &nbsp;Heading 4
+                &nbsp;{t.editor.heading4}
               </Menu.Item>
               <Menu.Item value="h5" fontSize="sm" fontWeight="normal">
                 <Heading5Icon />
-                &nbsp;Heading 5
+                &nbsp;{t.editor.heading5}
               </Menu.Item>
               <Menu.Item value="h6" fontSize="sm" fontWeight="light">
                 <Heading6Icon />
-                &nbsp;Heading 6
+                &nbsp;{t.editor.heading6}
               </Menu.Item>
             </Menu.Content>
           </Menu.Positioner>
@@ -107,7 +112,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
         type="button"
         size="xs"
         variant={format.bold.isActive ? "subtle" : "ghost"}
-        title="Toggle bold text"
+        title={t.editor.bold}
         onClick={format.bold.toggle}
       >
         <BoldIcon />
@@ -116,7 +121,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
         type="button"
         size="xs"
         variant={format.italic.isActive ? "subtle" : "ghost"}
-        title="Toggle italic text"
+        title={t.editor.italic}
         onClick={format.italic.toggle}
       >
         <ItalicIcon />
@@ -125,7 +130,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
         type="button"
         size="xs"
         variant={format.strike.isActive ? "subtle" : "ghost"}
-        title="Toggle strikeout text"
+        title={t.editor.strike}
         onClick={format.strike.toggle}
       >
         <StrikethroughIcon />
@@ -134,7 +139,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
         type="button"
         size="xs"
         variant={format.code.isActive ? "subtle" : "ghost"}
-        title="Toggle inline code snippet"
+        title={t.editor.inlineCode}
         onClick={format.code.toggle}
       >
         <CodeIcon />
@@ -146,7 +151,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
         type="button"
         size="xs"
         variant={format.blockquote.isActive ? "subtle" : "ghost"}
-        title="Toggle quote"
+        title={t.editor.quote}
         onClick={format.blockquote.toggle}
       >
         <TextQuoteIcon />
@@ -156,7 +161,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
         type="button"
         size="xs"
         variant={format.pre.isActive ? "subtle" : "ghost"}
-        title="Toggle code block"
+        title={t.editor.codeBlock}
         onClick={format.pre.toggle}
       >
         <CodeSquareIcon />
@@ -166,7 +171,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
         type="button"
         size="xs"
         variant={format.bulletList.isActive ? "subtle" : "ghost"}
-        title="Toggle bullet points"
+        title={t.editor.bulletList}
         onClick={format.bulletList.toggle}
       >
         <ListIcon />
@@ -176,7 +181,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
         type="button"
         size="xs"
         variant={format.orderedList.isActive ? "subtle" : "ghost"}
-        title="Toggle numbered list"
+        title={t.editor.orderedList}
         onClick={format.orderedList.toggle}
       >
         <ListOrderedIcon />
@@ -188,7 +193,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
           variant: "ghost",
         })}
         htmlFor={`filepicker-${uniqueID}`}
-        title="Insert an image or document"
+        title={t.editor.insertImage}
       >
         <ImageIcon />
       </label>

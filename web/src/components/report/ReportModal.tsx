@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ReactNode } from "react";
 import { useForm } from "react-hook-form";
@@ -18,6 +20,7 @@ import { WStack, styled } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
 import { Input } from "../ui/input";
+import { useTranslation } from "@/lib/i18n";
 
 const FormSchema = z.object({
   comment: z.string().max(1000).optional(),
@@ -41,11 +44,15 @@ export function ReportModal({
   subject,
   targetId,
   targetKind,
-  submitLabel = "Submit report",
-  successMessage = "Report submitted",
-  loadingMessage = "Sending report...",
+  submitLabel,
+  successMessage,
+  loadingMessage,
   ...disclosure
 }: ReportModalProps) {
+  const t = useTranslation();
+  const defaultSubmitLabel = submitLabel || t.report.submitReport;
+  const defaultSuccessMessage = successMessage || t.report.reportSubmitted;
+  const defaultLoadingMessage = loadingMessage || t.report.sendingReport;
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -64,8 +71,8 @@ export function ReportModal({
       },
       {
         promiseToast: {
-          loading: loadingMessage,
-          success: successMessage,
+          loading: defaultLoadingMessage,
+          success: defaultSuccessMessage,
         },
       },
     );
@@ -103,15 +110,15 @@ export function ReportModal({
         )}
 
         <FormControl>
-          <FormLabel>Additional details</FormLabel>
+          <FormLabel>{t.report.additionalDetails}</FormLabel>
           <Input
             {...form.register("comment")}
-            placeholder="Optional context for moderators"
+            placeholder={t.report.optionalContext}
             maxLength={1000}
             resize="vertical"
           />
           <FormHelperText>
-            Optional additional context to help moderators resolve this matter.
+            {t.report.helperText}
           </FormHelperText>
           <FormErrorText>
             {form.formState.errors.comment?.message}
@@ -120,14 +127,14 @@ export function ReportModal({
 
         <WStack gap="2">
           <Button type="button" variant="outline" onClick={handleCancel}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button
             type="submit"
             colorPalette="red"
             loading={form.formState.isSubmitting}
           >
-            {submitLabel}
+            {defaultSubmitLabel}
           </Button>
         </WStack>
       </styled.form>

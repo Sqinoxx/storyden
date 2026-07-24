@@ -13,7 +13,7 @@ import { EditorView } from "prosemirror-view";
 import { Asset } from "@/api/openapi-schema";
 import { Button } from "@/components/ui/button";
 import { ProgressCircle } from "@/components/ui/progress";
-import { FileIcon } from "lucide-react";
+import { FileIcon, Download } from "lucide-react";
 import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
 
@@ -51,6 +51,7 @@ function Component(props: NodeViewProps) {
     >
       <styled.a
         href={isUploading ? undefined : href}
+        download={fileName}
         target="_blank"
         rel="noopener noreferrer"
         display="inline-flex"
@@ -68,6 +69,12 @@ function Component(props: NodeViewProps) {
         overflow="hidden"
         style={{ cursor: isUploading ? "default" : "pointer" }}
         _hover={!isUploading ? { backgroundColor: "bg.muted" } : undefined}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (isUploading) {
+            e.preventDefault();
+          }
+        }}
       >
         <styled.span
           display="flex"
@@ -87,6 +94,12 @@ function Component(props: NodeViewProps) {
         <styled.span fontSize="sm" fontWeight="medium" truncate maxWidth="xs">
           {fileName}
         </styled.span>
+
+        {!isUploading && href && (
+          <styled.span display="inline-flex" alignItems="center" color="fg.muted" ml="1">
+            <Download size={14} />
+          </styled.span>
+        )}
 
         {uploadError && (
           <styled.div
@@ -129,6 +142,15 @@ function Component(props: NodeViewProps) {
   );
 }
 
+export function isDocumentHref(href: string | null): boolean {
+  if (!href) return false;
+  const lower = href.toLowerCase();
+  const hasDocExt = /\.(pdf|docx?|xlsx?|pptx?|zip|rar|7z|txt|csv)(\?.*)?$/i.test(lower);
+  const isAssetUrl = lower.includes("/api/assets/") || lower.includes("/assets/");
+  const isImage = /\.(png|jpe?g|gif|webp|svg|bmp)(\?.*)?$/i.test(lower);
+  return (hasDocExt || isAssetUrl) && !isImage;
+}
+
 export const FileAttachmentExtended = Node.create<FileAttachmentOptions>({
   name: "fileAttachment",
   group: "inline",
@@ -149,7 +171,7 @@ export const FileAttachmentExtended = Node.create<FileAttachmentOptions>({
       fileName: {
         default: null,
         parseHTML: (element) =>
-          element.getAttribute("data-filename") || element.textContent || null,
+          element.getAttribute("data-filename") || element.textContent?.trim() || null,
         renderHTML: (attributes) => {
           if (!attributes["fileName"]) return {};
           return { "data-filename": attributes["fileName"] };
@@ -195,17 +217,37 @@ export const FileAttachmentExtended = Node.create<FileAttachmentOptions>({
       {
         tag: 'a[data-type="file-attachment"]',
       },
+      {
+        tag: 'a[href]',
+        getAttrs: (dom) => {
+          const element = dom as HTMLElement;
+          const href = element.getAttribute("href");
+          if (isDocumentHref(href)) {
+            return {
+              href,
+              fileName:
+                element.getAttribute("data-filename") ||
+                element.textContent?.trim() ||
+                "Attachment",
+            };
+          }
+          return false;
+        },
+      },
     ];
   },
 
   renderHTML({ HTMLAttributes }) {
+    const fileName =
+      HTMLAttributes["data-filename"] || HTMLAttributes["fileName"] || "Attachment";
     return [
       "a",
       mergeAttributes(HTMLAttributes, {
         "data-type": "file-attachment",
         target: "_blank",
+        download: fileName,
       }),
-      HTMLAttributes["data-filename"] || HTMLAttributes["fileName"] || "Attachment",
+      fileName,
     ];
   },
 

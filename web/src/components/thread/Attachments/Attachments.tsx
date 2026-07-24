@@ -15,6 +15,7 @@ export function Attachments({ assets }: { assets: Asset[] }) {
         <styled.a
           key={a.id}
           href={getAssetURL(a.path)}
+          download={a.filename}
           target="_blank"
           rel="noreferrer"
           display="flex"

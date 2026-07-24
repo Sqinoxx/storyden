@@ -103,6 +103,16 @@ export function useQuickShare({ initialCategory }: Props) {
           throw new Error("Cannot post an empty thread.");
         }
 
+        // Extract any asset IDs from file-attachment links in body HTML
+        const assetIds: string[] = [];
+        parsed.querySelectorAll('a[href*="/api/assets/"]').forEach((el) => {
+          const href = el.getAttribute("href") || "";
+          const match = href.match(/\/api\/assets\/([^/?#]+)/);
+          if (match && match[1]) {
+            assetIds.push(match[1]);
+          }
+        });
+
         const newThread = {
           title: threadTitle,
           body,
@@ -110,6 +120,7 @@ export function useQuickShare({ initialCategory }: Props) {
           category:
             data.category === NO_CATEGORY_VALUE ? undefined : data.category,
           visibility: "published" as const,
+          asset_ids: assetIds.length > 0 ? assetIds : undefined,
         };
 
         await createThread(newThread, linkAvailable);
@@ -183,6 +194,19 @@ function splitTitleBody(html: Document) {
     switch (firstChild.nodeType) {
       case Node.ELEMENT_NODE:
         if (firstChild.nodeName === "A") {
+          const el = firstChild as HTMLAnchorElement;
+
+          // File attachment nodes: use the filename as the title and keep
+          // the attachment in the body (do not treat it like a regular link).
+          if (el.getAttribute("data-type") === "file-attachment") {
+            const fileName =
+              el.getAttribute("data-filename") ||
+              el.textContent?.trim() ||
+              "Attachment";
+            // isFallback stays false so the filename is always used as title.
+            return fileName;
+          }
+
           // Mark this as a fallback strategy, if the Link acquired in the
           // actual link fetch yields a title from the opengraph data, and this
           // is true, then we'll use the opengraph title instead.
@@ -221,8 +245,20 @@ function splitTitleBody(html: Document) {
     throw new Error("Not enough text content to post a new thread.");
   }
 
-  // Now remove the first text node from the first paragraph of the bodyEl.
-  bodyEl?.querySelector("p")?.childNodes[0]?.remove();
+  // For file attachments, keep the entire body intact (don't strip the first
+  // child node) so the attachment link remains downloadable in the post.
+  const firstChildEl =
+    firstChild.nodeType === Node.ELEMENT_NODE
+      ? (firstChild as HTMLElement)
+      : null;
+  const isFileAttachment =
+    firstChildEl?.getAttribute("data-type") === "file-attachment";
+
+  if (!isFileAttachment) {
+    // Remove the first text node from the first paragraph so it doesn't
+    // appear duplicated in the body (it becomes the thread title above).
+    bodyEl?.querySelector("p")?.childNodes[0]?.remove();
+  }
 
   const body = bodyEl?.getHTML() ?? "";
 

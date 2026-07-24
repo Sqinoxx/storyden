@@ -107,7 +107,8 @@ export function isPdfFile(mime: string): boolean {
 }
 
 export function isSupportedAsset(mime: string): boolean {
-  return isSupportedImage(mime) || isPdfFile(mime);
+  if (!mime) return true;
+  return !mime.includes("executable") && !mime.includes("x-msdownload");
 }
 
 export function hasImageFile(

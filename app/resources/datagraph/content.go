@@ -38,6 +38,9 @@ var policy = func() *bluemonday.Policy {
 	// Allow all data attributes that TipTap may add.
 	p.AllowDataAttributes()
 
+	// Allow download attribute on anchor elements for file attachments.
+	p.AllowAttrs("download").OnElements("a")
+
 	return p
 }()
 

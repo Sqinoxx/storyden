@@ -101,20 +101,46 @@ function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[] {
   return assets;
 }
 
+/** Utility function to trigger a clean file download without opening blank tabs. */
+async function downloadAsset(url: string, filename: string) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Download failed");
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(blobUrl);
+  } catch {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+}
+
 /** A compact, styled badge for a file attachment shown in the feed card. */
 function FileAttachmentBadge({ asset }: { asset: Asset }) {
   const url = getAssetURL(asset.path);
 
   function handleDownload(e: React.MouseEvent) {
+    e.preventDefault();
     e.stopPropagation();
+    if (url) {
+      downloadAsset(url, asset.filename);
+    }
   }
 
   return (
     <styled.a
       href={url}
       download={asset.filename}
-      target="_blank"
-      rel="noopener noreferrer"
       display="inline-flex"
       alignItems="center"
       gap="2"

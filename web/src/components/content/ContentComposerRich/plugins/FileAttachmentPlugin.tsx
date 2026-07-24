@@ -52,8 +52,6 @@ function Component(props: NodeViewProps) {
       <styled.a
         href={isUploading ? undefined : href}
         download={fileName}
-        target="_blank"
-        rel="noopener noreferrer"
         display="inline-flex"
         alignItems="center"
         gap="2"
@@ -69,10 +67,34 @@ function Component(props: NodeViewProps) {
         overflow="hidden"
         style={{ cursor: isUploading ? "default" : "pointer" }}
         _hover={!isUploading ? { backgroundColor: "bg.muted" } : undefined}
-        onClick={(e) => {
+        onClick={async (e) => {
           e.stopPropagation();
           if (isUploading) {
             e.preventDefault();
+            return;
+          }
+          if (href) {
+            e.preventDefault();
+            try {
+              const res = await fetch(href);
+              if (!res.ok) throw new Error("Download failed");
+              const blob = await res.blob();
+              const blobUrl = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = blobUrl;
+              link.download = fileName;
+              document.body.appendChild(link);
+              link.click();
+              link.remove();
+              URL.revokeObjectURL(blobUrl);
+            } catch {
+              const link = document.createElement("a");
+              link.href = href;
+              link.download = fileName;
+              document.body.appendChild(link);
+              link.click();
+              link.remove();
+            }
           }
         }}
       >

@@ -2609,8 +2609,9 @@ func (j *ToolRobotDeleteYaml) UnmarshalJSON(value []byte) error {
 }
 
 type ToolRobotGetInput struct {
-	// The unique identifier of the Robot to retrieve. Must be a valid XID format (20
-	// character alphanumeric string). Example: cq3pqt0q91s73dq8r000
+	// The unique identifier of the Robot to retrieve. Must be a valid
+	// XID format (20 character alphanumeric string). Example:
+	// cq3pqt0q91s73dq8r000
 	Id string `json:"id" yaml:"id" mapstructure:"id"`
 }
 

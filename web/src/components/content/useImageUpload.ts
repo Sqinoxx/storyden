@@ -7,8 +7,8 @@ import { deriveError } from "@/utils/error";
 
 export function useImageUpload() {
   async function upload(f: File, params?: AssetUploadParams) {
-    if (!isSupportedImage(f.type)) {
-      throw new Error(`Unsupported image format ${f.type}`);
+    if (!isSupportedAsset(f.type)) {
+      throw new Error(`Unsupported asset format ${f.type}`);
     }
 
     const asset = await assetUpload(f, params);
@@ -22,8 +22,8 @@ export function useImageUpload() {
     params?: AssetUploadParams,
     abortController?: AbortController,
   ): Promise<Asset> {
-    if (!isSupportedImage(f.type)) {
-      throw new Error(`Unsupported image format ${f.type}`);
+    if (!isSupportedAsset(f.type)) {
+      throw new Error(`Unsupported asset format ${f.type}`);
     }
 
     const url = buildAssetUploadURL(params);
@@ -102,6 +102,14 @@ export function isSupportedImage(mime: string): boolean {
   }
 }
 
+export function isPdfFile(mime: string): boolean {
+  return mime === "application/pdf";
+}
+
+export function isSupportedAsset(mime: string): boolean {
+  return isSupportedImage(mime) || isPdfFile(mime);
+}
+
 export function hasImageFile(
   items: DataTransferItemList | DataTransferItem[],
 ): boolean {
@@ -114,8 +122,24 @@ export function hasImageFile(
   });
 }
 
+export function hasAssetFile(
+  items: DataTransferItemList | DataTransferItem[],
+): boolean {
+  const itemArray = Array.from(items);
+  return itemArray.some((item) => {
+    if ("kind" in item && item.kind !== "file") {
+      return false;
+    }
+    return isSupportedAsset(item.type);
+  });
+}
+
 export function getImageFiles(files: FileList | File[]): File[] {
   return Array.from(files).filter((file) => isSupportedImage(file.type));
+}
+
+export function getAssetFiles(files: FileList | File[]): File[] {
+  return Array.from(files).filter((file) => isSupportedAsset(file.type));
 }
 
 function buildAssetUploadURL(params?: AssetUploadParams): URL {

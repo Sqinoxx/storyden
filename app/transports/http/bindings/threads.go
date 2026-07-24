@@ -91,6 +91,8 @@ func (i *Threads) ThreadCreate(ctx context.Context, request openapi.ThreadCreate
 		return int(p)
 	})
 
+	assetIDs := opt.NewPtrMap(request.Body.AssetIds, deserialiseAssetIDs) // NEU
+
 	thread, err := i.thread_svc.Create(ctx,
 		request.Body.Title,
 		accountID,
@@ -102,6 +104,7 @@ func (i *Threads) ThreadCreate(ctx context.Context, request openapi.ThreadCreate
 			Visibility: status,
 			URL:        url,
 			Pinned:     pinned,
+			Assets:     assetIDs, // NEU
 		},
 	)
 	if err != nil {
@@ -115,6 +118,7 @@ func (i *Threads) ThreadCreate(ctx context.Context, request openapi.ThreadCreate
 
 func (i *Threads) ThreadUpdate(ctx context.Context, request openapi.ThreadUpdateRequestObject) (openapi.ThreadUpdateResponseObject, error) {
 	postID, err := i.thread_mark_svc.Lookup(ctx, string(request.ThreadMark))
+
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -137,6 +141,8 @@ func (i *Threads) ThreadUpdate(ctx context.Context, request openapi.ThreadUpdate
 		return int(p)
 	})
 
+	assetIDs := opt.NewPtrMap(request.Body.AssetIds, deserialiseAssetIDs) // NEU
+
 	thread, err := i.thread_svc.Update(ctx, postID, thread_service.Partial{
 		Title:      opt.NewPtr(request.Body.Title),
 		Content:    richContent,
@@ -144,6 +150,7 @@ func (i *Threads) ThreadUpdate(ctx context.Context, request openapi.ThreadUpdate
 		Category:   opt.NewPtrMap(request.Body.Category, deserialiseID),
 		Visibility: Visibility,
 		Pinned:     pinned,
+		Assets:     assetIDs, // NEU
 	})
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))

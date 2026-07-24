@@ -10314,6 +10314,7 @@ components:
         category: { $ref: "#/components/schemas/Identifier" }
         visibility: { $ref: "#/components/schemas/Visibility" }
         url: { $ref: "#/components/schemas/URL" }
+        asset_ids: { $ref: "#/components/schemas/AssetIDs" }   # NEU
 
     ThreadMutableProps:
       type: object
@@ -10326,6 +10327,8 @@ components:
         category: { $ref: "#/components/schemas/Identifier" }
         visibility: { $ref: "#/components/schemas/Visibility" }
         url: { $ref: "#/components/schemas/URL" }
+        asset_ids: { $ref: "#/components/schemas/AssetIDs" }   # NEU
+
 
     ThreadReference:
       type: object

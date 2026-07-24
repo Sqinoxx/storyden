@@ -10,6 +10,8 @@ import { TitleInput } from "../TitleInput/TitleInput";
 
 import { Props, useComposeForm } from "./useComposeForm";
 
+import { AssetUploadAction } from "@/components/asset/AssetUploadAction";
+
 export function ComposeForm(props: Props) {
   const { form, state, handlers } = useComposeForm(props);
 
@@ -73,6 +75,30 @@ export function ComposeForm(props: Props) {
         </HStack>
 
         <BodyInput onAssetUpload={handlers.handleAssetUpload} />
+        <HStack width="full" flexWrap="wrap">
+  {state.attachments.map((a) => (
+    <HStack key={a.id} gap="1">
+      <span>{a.filename}</span>
+      <Button
+        variant="ghost"
+        size="xs"
+        onClick={() => handlers.handleDetach(a)}
+      >
+        entfernen
+      </Button>
+    </HStack>
+  ))}
+
+  <AssetUploadAction
+    title="Datei anhängen"
+    operation="add"
+    onFinish={handlers.handleAttach}
+  >
+    <Button variant="outline" size="xs">
+      Datei anhängen (PDF/Word)
+    </Button>
+  </AssetUploadAction>
+</HStack>
       </FormProvider>
     </styled.form>
   );

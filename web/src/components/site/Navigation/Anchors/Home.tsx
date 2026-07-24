@@ -4,7 +4,7 @@ import { LinkButtonStyleProps } from "@/components/ui/link-button";
 import { Anchor, AnchorProps, MenuItem } from "./Anchor";
 
 export const HomeID = "home";
-export const HomeRoute = "/";
+export const HomeRoute = "/d";
 export const HomeLabel = "Home";
 
 export function HomeAnchor(props: AnchorProps & LinkButtonStyleProps) {

@@ -48,7 +48,8 @@ export function useComposeForm({ initialDraft, editing }: Props) {
       : {},
   });
 
-  const saveDraft = async (data: FormShape) => {
+  const saveDraft = async (data: FormShape, overrideAttachments?: Asset[]) => {
+    const activeAttachments = overrideAttachments ?? attachments;
     const payload: ThreadInitialProps = {
       ...data,
 
@@ -59,7 +60,7 @@ export function useComposeForm({ initialDraft, editing }: Props) {
       tags: data.tags ?? [],
       category: data.category === NO_CATEGORY_VALUE ? undefined : data.category,
 
-      asset_ids: attachments.map((a) => a.id),
+      asset_ids: activeAttachments.map((a) => a.id),
 
       visibility: Visibility.draft,
     };
@@ -141,12 +142,12 @@ export function useComposeForm({ initialDraft, editing }: Props) {
     ),
   );
 
-  const handleAssetUpload = async () => {
+  const handleAssetUpload = async (nextAttachments?: Asset[]) => {
     await handle(
       async () => {
         setIsSavingDraft(true);
         const state = form.getValues();
-        await saveDraft(state);
+        await saveDraft(state, nextAttachments);
       },
       {
         promiseToast: {
@@ -161,13 +162,15 @@ export function useComposeForm({ initialDraft, editing }: Props) {
   };
 
   const handleAttach = async (a: Asset) => {
-    setAttachments((prev) => [...prev, a]);
-    await handleAssetUpload();
+    const next = [...attachments, a];
+    setAttachments(next);
+    await handleAssetUpload(next);
   };
 
   const handleDetach = async (a: Asset) => {
-    setAttachments((prev) => prev.filter((x) => x.id !== a.id));
-    await handleAssetUpload();
+    const next = attachments.filter((x) => x.id !== a.id);
+    setAttachments(next);
+    await handleAssetUpload(next);
   };
 
   function handleBack() {

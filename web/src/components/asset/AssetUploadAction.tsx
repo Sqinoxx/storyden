@@ -36,8 +36,10 @@ export function AssetUploadAction({
   const acceptedMIMEs = getMIMEs(props.accept);
 
   async function handleFile({ files }: FileUploadFileAcceptDetails) {
+    console.log("handleFile called", files); // TEMP DEBUG
     await handle(async () => {
       // NOTE: For some reason (Zag bug?) this is called for rejected files too.
+      
       const file = files[0];
       if (!file) {
         console.error("handleFile: no file was provided", files);
@@ -54,9 +56,11 @@ export function AssetUploadAction({
   }
 
   async function handleFileReject({ files }: FileUploadFileRejectDetails) {
+    console.log("handleFileReject called", files); // TEMP DEBUG
     if (files.length === 0) {
       return;
     }
+    
 
     const file = files[0];
     if (!file) {

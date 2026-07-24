@@ -74,30 +74,32 @@ export function ComposeForm(props: Props) {
           </HStack>
         </HStack>
 
-        <BodyInput onAssetUpload={handlers.handleAssetUpload} />
+        <BodyInput onAssetUpload={() => handlers.handleAssetUpload()} />
         <HStack width="full" flexWrap="wrap">
   {state.attachments.map((a) => (
     <HStack key={a.id} gap="1">
       <span>{a.filename}</span>
       <Button
-        variant="ghost"
-        size="xs"
-        onClick={() => handlers.handleDetach(a)}
-      >
-        entfernen
-      </Button>
+  type="button"
+  variant="ghost"
+  size="xs"
+  onClick={() => handlers.handleDetach(a)}
+>
+  entfernen
+</Button>
     </HStack>
   ))}
 
   <AssetUploadAction
-    title="Datei anhängen"
-    operation="add"
-    onFinish={handlers.handleAttach}
-  >
-    <Button variant="outline" size="xs">
-      Datei anhängen (PDF/Word)
-    </Button>
-  </AssetUploadAction>
+  title="Datei anhängen"
+  operation="add"
+  accept={["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]}
+  onFinish={handlers.handleAttach}
+>
+  <Button type="button" variant="outline" size="xs">
+    Datei anhängen (PDF/Word)
+  </Button>
+</AssetUploadAction>
 </HStack>
       </FormProvider>
     </styled.form>

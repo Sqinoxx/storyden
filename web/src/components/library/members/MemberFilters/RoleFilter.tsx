@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/MultiSelectPicker";
 import { isDefaultRole } from "@/lib/role/defaults";
 import { deriveError } from "@/utils/error";
+import { useTranslation } from "@/lib/i18n";
 
 const roleToMultiSelectItem = map(
   (role: Role): MultiSelectPickerItem => ({
@@ -28,6 +29,7 @@ const filterSearchableRoles = filter<Role>(
 );
 
 export function RoleFilter() {
+  const t = useTranslation();
   const [roles, setRoles] = useQueryState(
     "roles",
     parseAsArrayOf(parseAsString).withDefault([]),
@@ -76,7 +78,7 @@ export function RoleFilter() {
 
   return (
     <MultiSelectPicker
-      inputPlaceholder="Filter roles"
+      inputPlaceholder={t.members.filterRoles}
       value={selectedRoles}
       onChange={handleChange}
       onQuery={handleQuery}

@@ -17,6 +17,7 @@ import { DragItemNodeBlock } from "@/lib/dragdrop/provider";
 import { useLibraryBlockEvent } from "@/lib/library/events";
 import { LibraryPageBlock, LibraryPageBlockType } from "@/lib/library/metadata";
 import { Box, HStack, VStack, styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 import { useLibraryPageContext } from "../Context";
 import { useWatch } from "../store";
@@ -79,6 +80,7 @@ export function LibraryPageBlocks() {
   const blocks = meta.layout?.blocks ?? [];
 
   const blockIds = blocks.map((block) => block.type);
+  const t = useTranslation();
 
   if (isDirectEditing) {
     const editStateBlocks = meta.layout?.blocks ?? [];
@@ -104,7 +106,7 @@ export function LibraryPageBlocks() {
           trigger={
             <Button variant="outline" size="xs" w="full">
               <AddIcon />
-              &nbsp;Add Block
+              &nbsp;{t.library.addBlock}
             </Button>
           }
           positioning={{

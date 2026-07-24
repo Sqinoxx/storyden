@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { styled } from "@/styled-system/jsx";
 
 import { Props, useSearch } from "./useSearch";
+import { useTranslation } from "@/lib/i18n";
 
 export function Search(props: Props) {
   const { form, data, handlers } = useSearch(props);
+  const t = useTranslation();
   return (
     <styled.form
       display="flex"
@@ -25,7 +27,7 @@ export function Search(props: Props) {
         type="search"
         defaultValue={props.query}
         background="bg.default"
-        placeholder={`Search...`}
+        placeholder={t.search.placeholder}
         _focus={{
           // NOTE: This disables the default focus behaviour styles for inputs.
           boxShadow: "none" as any, // TODO: Fix types at Park-UI or Panda level

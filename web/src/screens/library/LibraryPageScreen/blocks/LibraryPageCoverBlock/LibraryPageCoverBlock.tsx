@@ -1,9 +1,13 @@
+"use client";
+
 import Image from "next/image";
-import { FixedCropper, ImageRestriction } from "react-advanced-cropper";
+import { FixedCropper } from "react-advanced-cropper";
+import { ImageRestriction } from "react-advanced-cropper";
 
 import { AssetUploadAction } from "@/components/asset/AssetUploadAction";
 import { Asset } from "@/api/openapi-schema";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 import { parseNodeMetadata } from "@/lib/library/metadata";
 import { css } from "@/styled-system/css";
 import { Box } from "@/styled-system/jsx";
@@ -55,6 +59,7 @@ export function LibraryPageCoverBlock() {
 }
 
 function LibraryPageCoverBlockEditing() {
+  const t = useTranslation();
   const { store } = useLibraryPageContext();
   const { setPrimaryImage } = store.getState();
   const { cropperRef, handleInteractionEnd } = useLibraryPageCoverBlock();
@@ -95,7 +100,7 @@ function LibraryPageCoverBlockEditing() {
           size="xs"
           variant="subtle"
         >
-          Upload cover image
+          {t.library.uploadCoverImage}
         </Button>
       </AssetUploadAction>
     );

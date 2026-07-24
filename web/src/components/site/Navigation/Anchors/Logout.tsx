@@ -1,4 +1,7 @@
+"use client";
+
 import { LogoutIcon } from "@/components/ui/icons/Logout";
+import { useTranslation } from "@/lib/i18n";
 import { Item } from "@/components/ui/menu";
 import { API_ADDRESS } from "@/config";
 
@@ -32,15 +35,16 @@ export const LogoutLabel = "Logout";
 const LogoutMenuFormID = "account-menu-logout-form";
 
 export function LogoutMenuItem() {
+  const t = useTranslation();
   return (
     <>
       {/* NOTE: we use hidden form for proper HTML POST+redirect semantics. */}
       <form id={LogoutMenuFormID} action={LogoutAction} method="POST" hidden />
 
       <Item value={LogoutID} asChild>
-        <button type="submit" form={LogoutMenuFormID} title={LogoutLabel}>
+        <button type="submit" form={LogoutMenuFormID} title={t.nav.logout}>
           <LogoutIcon />
-          &nbsp;<span>{LogoutLabel}</span>
+          &nbsp;<span>{t.nav.logout}</span>
         </button>
       </Item>
     </>

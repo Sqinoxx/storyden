@@ -1,3 +1,5 @@
+"use client";
+
 import { MenuSelectionDetails, Portal } from "@ark-ui/react";
 
 import { Category, Permission } from "@/api/openapi-schema";
@@ -14,6 +16,7 @@ import { useCopyToClipboard } from "@/utils/useCopyToClipboard";
 import { CategoryCreateMenuItem } from "../CategoryCreate/CategoryCreateMenuItem";
 import { CategoryDeleteMenuItem } from "../CategoryDelete/CategoryDeleteMenuItem";
 import { CategoryEditMenuItem } from "../CategoryEdit/CategoryEdit";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   category: Category;
@@ -75,6 +78,7 @@ export function useCategoryMenu({ category }: Props) {
 export function CategoryMenu(props: Props) {
   const { isSharingEnabled, isEditingEnabled, handlers } =
     useCategoryMenu(props);
+  const t = useTranslation();
 
   const { category } = props;
 
@@ -90,13 +94,13 @@ export function CategoryMenu(props: Props) {
             <Menu.ItemGroup id="account">
               <Menu.ItemGroupLabel>
                 <Heading size="sm">{category.name}</Heading>
-                <styled.span color="fg.subtle">discussion category</styled.span>
+                <styled.span color="fg.subtle">{t.category.discussionCategory}</styled.span>
               </Menu.ItemGroupLabel>
 
               <Menu.Separator />
 
-              <Menu.Item value="copy-link">Copy link</Menu.Item>
-              {isSharingEnabled && <Menu.Item value="share">Share</Menu.Item>}
+              <Menu.Item value="copy-link">{t.actions.copyLink}</Menu.Item>
+              {isSharingEnabled && <Menu.Item value="share">{t.actions.share}</Menu.Item>}
             </Menu.ItemGroup>
 
             {isEditingEnabled && (

@@ -15,6 +15,7 @@ import { Item } from "@/components/ui/menu";
 import { WEB_ADDRESS } from "@/config";
 import { Center, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
 import { deriveError } from "@/utils/error";
+import { useTranslation } from "@/lib/i18n";
 
 type InvitationState =
   | { status: "idle" | "loading" }
@@ -64,10 +65,11 @@ export function useInvitation() {
 }
 
 export function InvitationMenuItem() {
+  const t = useTranslation();
   return (
     <Item value={InvitationID}>
       <InvitationIcon />
-      &nbsp;<span>{InvitationLabel}</span>
+      &nbsp;<span>{t.actions.invite}</span>
     </Item>
   );
 }
@@ -83,8 +85,9 @@ export function InvitationModal({
   onRetry: () => void;
   onClose: () => void;
 }) {
+  const t = useTranslation();
   return (
-    <ModalDrawer title="Invite someone" isOpen={isOpen} onClose={onClose}>
+    <ModalDrawer title={t.actions.inviteSomeone} isOpen={isOpen} onClose={onClose}>
       <InvitationModalContent
         invitation={invitation}
         onRetry={onRetry}
@@ -103,6 +106,8 @@ function InvitationModalContent({
   onRetry: () => void;
   onClose: () => void;
 }) {
+  const t = useTranslation();
+
   if (invitation.status === "success") {
     return (
       <LStack gap="6">
@@ -130,7 +135,7 @@ function InvitationModalContent({
 
         <WStack>
           <Button w="full" onClick={onClose}>
-            Done
+            {t.actions.done}
           </Button>
         </WStack>
       </LStack>
@@ -151,10 +156,10 @@ function InvitationModalContent({
 
         <WStack>
           <Button w="full" variant="outline" onClick={onClose}>
-            Close
+            {t.actions.close}
           </Button>
           <Button w="full" onClick={onRetry}>
-            Try again
+            {t.actions.tryAgain}
           </Button>
         </WStack>
       </LStack>

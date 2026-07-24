@@ -5,6 +5,7 @@ import { CardIcon } from "@/components/ui/icons/Card";
 import { LinkIcon } from "@/components/ui/icons/Link";
 import { css } from "@/styled-system/css";
 import { HStack, styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 import { linkPasteMenuKey } from "./plugins/LinkPasteMenuPlugin";
 
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function LinkPasteMenu({ editor }: Props) {
+  const t = useTranslation();
   const dismissMenu = () => {
     const tr = editor.state.tr.setMeta(linkPasteMenuKey, {
       isVisible: false,
@@ -109,7 +111,7 @@ export function LinkPasteMenu({ editor }: Props) {
       })}
     >
       <styled.p color="fg.muted" fontSize="sm">
-        Show link as
+        {t.link.showLinkAs}
       </styled.p>
       <HStack gap="1">
         <Button
@@ -118,7 +120,7 @@ export function LinkPasteMenu({ editor }: Props) {
           variant="subtle"
           onClick={handleLinkChoice}
         >
-          <LinkIcon /> Text
+          <LinkIcon /> {t.link.text}
         </Button>
         <Button
           type="button"
@@ -126,7 +128,7 @@ export function LinkPasteMenu({ editor }: Props) {
           variant="subtle"
           onClick={handleCardChoice}
         >
-          <CardIcon /> Preview
+          <CardIcon /> {t.link.preview}
         </Button>
       </HStack>
     </BubbleMenu>

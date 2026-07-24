@@ -8,8 +8,9 @@ import { ComposeField } from "@/components/ui/form/ComposeField";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { CreateIcon } from "@/components/ui/icons/Create";
 import { Card } from "@/components/ui/rich-card";
-import { CardBox, Flex, HStack, WStack } from "@/styled-system/jsx";
+import { CardBox, HStack, WStack } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
+import { useTranslation } from "@/lib/i18n";
 import { getAssetURL } from "@/utils/asset";
 
 import { Props, useQuickShare } from "./useQuickShare";
@@ -20,6 +21,7 @@ export function QuickShare(props: Props) {
     state: { formRef, hydratedLink, resetKey },
     handlers,
   } = useQuickShare(props);
+  const t = useTranslation();
 
   // TODO: Render a prompt to sign up to contribute if not logged in.
   if (!props.initialSession) {
@@ -39,7 +41,7 @@ export function QuickShare(props: Props) {
         <ComposeField
           control={form.control}
           name="body"
-          placeholder="Share a thought, a link, something cool..."
+          placeholder={t.feed.quickSharePlaceholder}
           resetKey={resetKey}
         />
 
@@ -66,7 +68,7 @@ export function QuickShare(props: Props) {
             loading={form.formState.isSubmitting}
           >
             <CreateIcon />
-            Share
+            {t.feed.share}
           </Button>
         </WStack>
       </form>

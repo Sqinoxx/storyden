@@ -25,10 +25,11 @@ export default async function RootLayout({ children }: PropsWithChildren) {
           the window object. This allows us to set the API/frontend addresses
           without rebuilding the entire app.
         */}
-        <script>{`
+        <script dangerouslySetInnerHTML={{
+          __html: `
           window.__storyden__ = {"API_ADDRESS":"${API_ADDRESS}", "WEB_ADDRESS":"${WEB_ADDRESS}", "source": "script"};
           console.log("set up window config", window.__storyden__);
-        `}</script>
+        `}} />
 
         {/*
             NOTE: This stylesheet is fully server-side rendered but it's not

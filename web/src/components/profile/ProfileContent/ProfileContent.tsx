@@ -1,3 +1,5 @@
+"use client";
+
 import { Unready } from "@/components/site/Unready";
 
 import { CollectionCard } from "@/components/collection/CollectionCard";
@@ -7,11 +9,13 @@ import { CardGrid } from "@/components/ui/rich-card";
 import * as Tabs from "@/components/ui/tabs";
 import { HStack, VStack } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
+import { useTranslation } from "@/lib/i18n";
 
 import { Props, useProfileContent } from "./useProfileContent";
 
 export function ProfileContent(props: Props) {
   const { ready, error, data, isSelf } = useProfileContent(props);
+  const t = useTranslation();
 
   if (!ready) {
     return <Unready error={error} />;
@@ -23,8 +27,8 @@ export function ProfileContent(props: Props) {
     <VStack alignItems="start" w="full">
       <Tabs.Root width="full" variant="enclosed" defaultValue="threads">
         <Tabs.List>
-          <Tabs.Trigger value="threads">Threads</Tabs.Trigger>
-          <Tabs.Trigger value="collections">Collections</Tabs.Trigger>
+          <Tabs.Trigger value="threads">{t.profile.threads}</Tabs.Trigger>
+          <Tabs.Trigger value="collections">{t.profile.collections}</Tabs.Trigger>
           <Tabs.Indicator />
         </Tabs.List>
 

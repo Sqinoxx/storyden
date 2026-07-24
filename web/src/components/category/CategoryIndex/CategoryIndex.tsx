@@ -1,3 +1,5 @@
+"use client";
+
 import { match } from "ts-pattern";
 
 import { Account, ThreadListResult } from "@/api/openapi-schema";
@@ -12,6 +14,7 @@ import { CategoryBadge } from "../CategoryBadge";
 import { CategoryCreateTrigger } from "../CategoryCreate/CategoryCreateTrigger";
 
 import { CategoryLayout } from "./CategoryCardLayout";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   initialSession?: Account;
@@ -38,12 +41,13 @@ export function CategoryIndex({
   paginationBasePath,
 }: Props) {
   const categoryCount = categories.length;
+  const t = useTranslation();
 
   return (
     <LStack gap="8">
       <LStack>
         <WStack>
-          <Heading>Discussion categories</Heading>
+          <Heading>{t.category.discussionCategories}</Heading>
 
           <CategoryCreateTrigger />
         </WStack>
@@ -54,7 +58,7 @@ export function CategoryIndex({
               (c) => c === 0,
               () => (
                 <styled.p color="fg.muted">
-                  No categories yet. Create one?
+                  {t.category.noCategories}
                 </styled.p>
               ),
             )
@@ -62,15 +66,13 @@ export function CategoryIndex({
               (c) => c === 1,
               () => (
                 <styled.p color="fg.muted">
-                  There is {categoryCount} category available to start a
-                  discussion.
+                  {t.category.oneCategoryAvailable}
                 </styled.p>
               ),
             )
             .otherwise(() => (
               <styled.p color="fg.muted">
-                There are {categoryCount} categories available to start
-                discussions.
+                {t.category.multipleCategoriesAvailable.replace("{count}", String(categoryCount))}
               </styled.p>
             ))}
 
@@ -114,14 +116,16 @@ function ThreadListSection({
   showQuickShare: boolean;
   paginationBasePath: string;
 }) {
+  const t = useTranslation();
+
   if (mode === "none") {
     return null;
   }
 
   const heading =
     mode === "all"
-      ? "All discussion threads"
-      : "Uncategorised discussion threads";
+      ? t.category.allThreads
+      : t.category.uncategorisedThreads;
 
   // Only show the category select when showing all threads, not uncategorised.
   const showCategorySelect = mode === "all";

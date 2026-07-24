@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CancelIcon } from "@/components/ui/icons/Cancel";
 import { Input } from "@/components/ui/input";
 import { styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   index: string;
@@ -17,8 +18,10 @@ type Props = {
 export function SearchInput({
   index,
   initialQuery,
-  placeholder = "Search for members",
+  placeholder,
 }: Props) {
+  const t = useTranslation();
+  const defaultPlaceholder = placeholder || t.members.searchPlaceholder;
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(initialQuery ?? "");
@@ -60,7 +63,7 @@ export function SearchInput({
         borderRight="none"
         borderRightRadius="none"
         type="search"
-        placeholder={placeholder}
+        placeholder={defaultPlaceholder}
         value={query}
         onChange={(event) => setQuery(event.target.value)}
       />
@@ -82,7 +85,7 @@ export function SearchInput({
         type="submit"
         width="min"
       >
-        Search
+        {t.nav.search}
       </Button>
     </styled.form>
   );

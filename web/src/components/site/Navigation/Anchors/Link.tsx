@@ -1,3 +1,5 @@
+"use client";
+
 import { LinkIcon } from "@/components/ui/icons/Link";
 import { LinkButtonStyleProps } from "@/components/ui/link-button";
 

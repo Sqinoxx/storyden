@@ -1,3 +1,5 @@
+"use client";
+
 import { BubbleMenu, EditorContent } from "@tiptap/react";
 
 import { EditIcon } from "@/components/ui/icons/Edit";
@@ -13,6 +15,7 @@ import "./styles.css";
 import { EditorMenu } from "./EditorMenu";
 import { LinkPasteMenu } from "./LinkPasteMenu";
 import { useContentComposer } from "./useContentComposerRich";
+import { useTranslation } from "@/lib/i18n";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -23,6 +26,7 @@ declare module "@tiptap/core" {
 }
 
 export function ContentComposerRich(props: ContentComposerProps) {
+  const t = useTranslation();
   const {
     editor,
     initialValueHTML,
@@ -33,7 +37,10 @@ export function ContentComposerRich(props: ContentComposerProps) {
     getDragOverlayMessage,
     handlers,
     format,
-  } = useContentComposer(props);
+  } = useContentComposer({
+    placeholder: t.editor.placeholder,
+    ...props,
+  });
 
   return (
     <LStack

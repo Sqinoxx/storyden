@@ -1,3 +1,5 @@
+"use client";
+
 import { MenuOpenChangeDetails, Portal } from "@ark-ui/react";
 import { format } from "date-fns/format";
 
@@ -9,6 +11,7 @@ import { ButtonProps } from "@/components/ui/button";
 import * as Menu from "@/components/ui/menu";
 import { HStack, styled } from "@/styled-system/jsx";
 import { menuItemColorPalette } from "@/styled-system/patterns";
+import { useTranslation } from "@/lib/i18n";
 
 import { Props, useLibraryPageMenu } from "./useLibraryPageMenu";
 
@@ -60,11 +63,32 @@ export function LibraryPageMenu({
     }
   }
 
+  const t = useTranslation();
+
+  function getOpLabel(label: string) {
+    switch (label) {
+      case "Publish to library":
+        return t.library.publishToLibrary;
+      case "Submit for review":
+        return t.library.submitForReview;
+      case "Publish to profile":
+        return t.library.publishToProfile;
+      case "Revert to draft":
+        return t.library.revertToDraft;
+      case "Unpublish":
+        return t.library.unpublish;
+      case "Reject":
+        return t.library.reject;
+      default:
+        return label;
+    }
+  }
+
   const statusText =
     node.visibility === "draft"
-      ? "(draft)"
+      ? t.library.draft
       : node.visibility === "review"
-        ? "(in review)"
+        ? t.library.inReview
         : "";
 
   return (
@@ -90,7 +114,7 @@ export function LibraryPageMenu({
                 userSelect="none"
               >
                 <styled.span>
-                  {`Created by ${node.owner.name}`} {statusText}
+                  {t.library.createdBy.replace("{name}", node.owner.name)} {statusText}
                 </styled.span>
 
                 <styled.time fontWeight="normal">
@@ -105,7 +129,7 @@ export function LibraryPageMenu({
                   key={op.targetVisibility}
                   value={op.targetVisibility}
                 >
-                  {op.label}
+                  {getOpLabel(op.label)}
                 </Menu.Item>
               ))}
 
@@ -114,8 +138,8 @@ export function LibraryPageMenu({
               {isManager && (
                 <Menu.Item value="toggle-hide-in-tree">
                   {isChildrenHidden
-                    ? "Show children in tree"
-                    : "Hide children in tree"}
+                    ? t.library.showChildrenInTree
+                    : t.library.hideChildrenInTree}
                 </Menu.Item>
               )}
 
@@ -129,7 +153,7 @@ export function LibraryPageMenu({
                       w="full"
                       closeOnSelect={false}
                     >
-                      Are you sure?
+                      {t.actions.deleteConfirm}
                     </Menu.Item>
 
                     <Menu.Item
@@ -150,7 +174,7 @@ export function LibraryPageMenu({
                     value="delete"
                     closeOnSelect={false}
                   >
-                    Delete
+                    {t.actions.delete}
                   </Menu.Item>
                 ))}
             </Menu.ItemGroup>

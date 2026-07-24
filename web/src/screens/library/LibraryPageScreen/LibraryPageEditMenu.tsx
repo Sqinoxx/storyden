@@ -25,6 +25,7 @@ import { InfoIcon } from "@/components/ui/icons/Info";
 import { VersionsIcon } from "@/components/ui/icons/Versions";
 import * as Menu from "@/components/ui/menu";
 import { Box, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 import { useLibraryPath } from "../useLibraryPath";
 
@@ -40,6 +41,7 @@ type Props = {
 
 export function LibraryPageEditMenu({ node }: Props) {
   const router = useRouter();
+  const t = useTranslation();
   const libraryPath = useLibraryPath();
   const [open, setOpen] = useState(false);
   const [, setReviewVersionID] = useQueryState("version", {
@@ -124,7 +126,7 @@ export function LibraryPageEditMenu({ node }: Props) {
         onClick={handleViewPage}
       >
         <CancelIcon width="4" height="4" />
-        View
+        {t.library.viewPage}
       </Button>
     );
   }
@@ -146,7 +148,7 @@ export function LibraryPageEditMenu({ node }: Props) {
           <EditIcon width="4" height="4" />
           {isAllowedToEdit ? (
             <>
-              Edit
+              {t.actions.edit}
               {hasVisibleDraft && (
                 <Box
                   bgColor="visibility.draft.fg"
@@ -158,7 +160,7 @@ export function LibraryPageEditMenu({ node }: Props) {
               )}
             </>
           ) : (
-            "Versions"
+            t.library.versions
           )}
 
           <ChevronDownIcon width="4" height="4" />
@@ -196,7 +198,7 @@ export function LibraryPageEditMenu({ node }: Props) {
                       onClick={handleDirectEdit}
                     >
                       <EditIcon width="4" height="4" />
-                      Quick edit
+                      {t.library.quickEdit}
                     </Button>
                   )}
 
@@ -212,7 +214,7 @@ export function LibraryPageEditMenu({ node }: Props) {
                       onClick={handleDraftEdit}
                     >
                       <DraftIcon width="4" height="4" />
-                      {visibleDraft ? "Edit draft" : "Create draft"}
+                      {visibleDraft ? t.library.editDraft : t.library.createDraft}
                     </Button>
                   )}
                 </ButtonGroup>
@@ -223,7 +225,7 @@ export function LibraryPageEditMenu({ node }: Props) {
 
             {versions.length === 0 ? (
               <styled.p px="1" py="1" color="fg.muted" fontSize="xs">
-                No versions or drafts yet.
+                {t.library.noVersionsOrDrafts}
               </styled.p>
             ) : (
               <Menu.ItemGroup id="versions" gap="1">
@@ -247,7 +249,7 @@ export function LibraryPageEditMenu({ node }: Props) {
                   <Menu.Item value="see-all-versions">
                     <HStack gap="1">
                       <VersionsIcon width="4" height="4" />
-                      See all version history
+                      {t.library.seeAllVersionHistory}
                     </HStack>
                   </Menu.Item>
                 )}
@@ -267,8 +269,9 @@ function VersionMenuItem({
   version: NodeVersion;
   onOpenVersion: (versionID: string) => void;
 }) {
+  const t = useTranslation();
   const isApplied = version.status === NodeVersionStatus.applied;
-  const buttonLabel = isApplied ? "View changes" : "Review";
+  const buttonLabel = isApplied ? t.library.viewChanges : t.library.review;
 
   return (
     <LStack

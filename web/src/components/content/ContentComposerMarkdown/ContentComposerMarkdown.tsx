@@ -19,6 +19,7 @@ import { markdownURLTransform, remarkLooseLists } from "@/utils/markdown";
 import { ComposerTools } from "../ComposerTools";
 import { ContentDragOverlay } from "../ContentDragOverlay";
 import { ContentComposerProps } from "../composer-props";
+import { useTranslation } from "@/lib/i18n";
 
 import { useContentComposerMarkdown } from "./useContentComposerMarkdown";
 
@@ -59,6 +60,7 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
     handleDragEnter,
     handleDragLeave,
   } = useContentComposerMarkdown(props);
+  const t = useTranslation();
 
   if (props.disabled) {
     return (
@@ -137,7 +139,7 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
               transitionProperty: "border-color, border-width",
               overflow: "hidden",
             }}
-            placeholder="Write your heart out..."
+            placeholder={t.editor.placeholder}
           />
           {isDragging && (
             <ContentDragOverlay

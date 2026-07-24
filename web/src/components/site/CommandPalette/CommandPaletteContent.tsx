@@ -24,8 +24,10 @@ import { DatagraphSearchItem } from "./DatagraphSearch/DatagraphSearchItem";
 import { useRobotChat } from "./RobotChat/RobotChatContext";
 import { RobotChatLoadingStatus } from "./RobotChat/RobotChatLoadingStatus";
 import { RobotChatMessageList } from "./RobotChat/RobotChatMessageList";
+import { useTranslation } from "@/lib/i18n";
 
 export function CommandPaletteContent() {
+  const t = useTranslation();
   const { search, setSearch, mode, setMode, focusInput, canUseRobots } =
     useCommandPalette();
   const { activeRobotName, sendMessage, status, stopGenerating } =
@@ -86,10 +88,10 @@ export function CommandPaletteContent() {
 
       <HStack w="full" minW="0">
         <Command.Input
-          aria-label={mode === "chat" ? "Message" : "Ask, search or command"}
+          aria-label={mode === "chat" ? "Message" : t.search.commandPlaceholder.replace("...", "")}
           value={search}
           onValueChange={setSearch}
-          placeholder="Ask, search or command..."
+          placeholder={t.search.commandPlaceholder}
           disabled={isBusy}
           onKeyDown={handleSubmissionIntent}
         />

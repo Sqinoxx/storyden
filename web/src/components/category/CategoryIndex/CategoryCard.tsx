@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import { Heading } from "@/components/ui/heading";
@@ -10,6 +12,7 @@ import { CategoryTree } from "@/lib/category/tree";
 import { CardBox, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { linkOverlay } from "@/styled-system/patterns";
 import { getAssetURL } from "@/utils/asset";
+import { useTranslation } from "@/lib/i18n";
 
 import { CategoryMenu } from "../CategoryMenu/CategoryMenu";
 
@@ -20,11 +23,12 @@ type CategoryCardProps = {
 
 export function CategoryCard({ category, showChildren }: CategoryCardProps) {
   const cssProps = categoryColourCSS(category.colour);
+  const t = useTranslation();
 
   const hasSubcategories = category.children.length > 0;
 
   const plural =
-    category.children.length === 1 ? "subcategory" : "subcategories";
+    category.children.length === 1 ? t.category.subcategory : t.category.subcategories;
 
   const coverImageURL = getAssetURL(category.cover_image?.path);
 
@@ -68,7 +72,7 @@ export function CategoryCard({ category, showChildren }: CategoryCardProps) {
           <WStack>
             <HStack gap="1" color="fg.subtle" fontSize="sm">
               <DiscussionIcon w="4" />
-              <styled.p>{category.postCount} {category.postCount === 1 ? "thread" : "threads"}</styled.p>
+              <styled.p>{category.postCount} {category.postCount === 1 ? t.category.thread : t.category.threads}</styled.p>
               {hasSubcategories && (
                 <HStack gap="1" color="fg.subtle" fontSize="sm">
                   <CategoryIcon w="4" />

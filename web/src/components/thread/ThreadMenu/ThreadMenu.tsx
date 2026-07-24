@@ -22,6 +22,7 @@ import * as Menu from "@/components/ui/menu";
 import { HStack, styled } from "@/styled-system/jsx";
 import { menuItemColorPalette } from "@/styled-system/patterns";
 
+import { useTranslation } from "@/lib/i18n";
 import { Props, useThreadMenu } from "./useThreadMenu";
 
 export function ThreadMenu(props: Props) {
@@ -37,6 +38,7 @@ export function ThreadMenu(props: Props) {
   } = useThreadMenu(props);
 
   const { thread } = props;
+  const t = useTranslation();
 
   return (
     <Menu.Root
@@ -58,7 +60,7 @@ export function ThreadMenu(props: Props) {
                 flexDir="column"
                 userSelect="none"
               >
-                <styled.span>{`Post by ${thread.author.name}`}</styled.span>
+                <styled.span>{t.thread.postBy.replace("{name}", thread.author.name)}</styled.span>
 
                 <MemberBadge
                   profile={thread.author}
@@ -75,20 +77,20 @@ export function ThreadMenu(props: Props) {
 
               <Menu.Item value="copy-link" onClick={handlers.handleCopyLink}>
                 <HStack gap="1">
-                  <LinkIcon /> Copy link
+                  <LinkIcon /> {t.actions.copyLink}
                 </HStack>
               </Menu.Item>
 
               {isSharingEnabled && (
                 <Menu.Item value="share" onClick={handlers.handleShare}>
                   <HStack gap="1">
-                    <ShareIcon /> Share
+                    <ShareIcon /> {t.actions.share}
                   </HStack>
                 </Menu.Item>
               )}
 
               <ReportPostMenuItem
-                menuLabel="Report thread"
+                menuLabel={t.actions.report}
                 targetKind={DatagraphItemKind.thread}
                 targetId={thread.id}
                 author={thread.author}
@@ -99,7 +101,7 @@ export function ThreadMenu(props: Props) {
               {canPinThread && !isThreadPinned && (
                 <Menu.Item value="pin" onClick={handlers.handlePinThread}>
                   <HStack gap="1">
-                    <PinIcon /> Pin thread
+                    <PinIcon /> {t.actions.pin}
                   </HStack>
                 </Menu.Item>
               )}
@@ -107,7 +109,7 @@ export function ThreadMenu(props: Props) {
               {canPinThread && isThreadPinned && (
                 <Menu.Item value="unpin" onClick={handlers.handleUnpinThread}>
                   <HStack gap="1">
-                    <PinOffIcon /> Unpin thread
+                    <PinOffIcon /> {t.actions.unpin}
                   </HStack>
                 </Menu.Item>
               )}
@@ -115,7 +117,7 @@ export function ThreadMenu(props: Props) {
               {isEditingEnabled && (
                 <Menu.Item value="edit" onClick={handlers.handleEdit}>
                   <HStack gap="1">
-                    <EditIcon /> Edit
+                    <EditIcon /> {t.actions.edit}
                   </HStack>
                 </Menu.Item>
               )}
@@ -132,7 +134,7 @@ export function ThreadMenu(props: Props) {
                       closeOnSelect={false}
                       onClick={handlers.handleConfirmDelete}
                     >
-                      Are you sure?
+                      {t.actions.deleteConfirm}
                     </Menu.Item>
 
                     <Menu.Item
@@ -154,7 +156,7 @@ export function ThreadMenu(props: Props) {
                     onClick={handlers.handleConfirmDelete}
                   >
                     <HStack gap="1">
-                      <DeleteIcon /> Delete
+                      <DeleteIcon /> {t.actions.delete}
                     </HStack>
                   </Menu.Item>
                 ))}

@@ -12,6 +12,7 @@ import * as Menu from "@/components/ui/menu";
 import * as Tooltip from "@/components/ui/tooltip";
 import { HStack } from "@/styled-system/jsx";
 import { menuItemColorPalette } from "@/styled-system/patterns";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   isModerator: boolean;
@@ -32,6 +33,8 @@ export function PostReviewBadge({
   isConfirmingDelete,
   onCancelDelete,
 }: Props) {
+  const t = useTranslation();
+
   if (!isModerator) {
     return (
       <Tooltip.Root
@@ -97,7 +100,7 @@ export function PostReviewBadge({
               aria-label="Accept post"
             >
               <HStack gap="1">
-                <CheckIcon /> Accept
+                <CheckIcon /> {t.actions.approve}
               </HStack>
             </Menu.Item>
 
@@ -107,7 +110,7 @@ export function PostReviewBadge({
               aria-label="Edit and accept post"
             >
               <HStack gap="1">
-                <EditIcon /> Edit and Accept
+                <EditIcon /> {t.actions.editAndAccept}
               </HStack>
             </Menu.Item>
 
@@ -123,7 +126,7 @@ export function PostReviewBadge({
                   onClick={() => onDelete(postId)}
                   aria-label="Confirm delete post"
                 >
-                  Are you sure?
+                  {t.actions.deleteConfirm}
                 </Menu.Item>
 
                 <Menu.Item
@@ -144,7 +147,7 @@ export function PostReviewBadge({
                 aria-label="Delete post"
               >
                 <HStack gap="1">
-                  <DeleteIcon /> Delete
+                  <DeleteIcon /> {t.actions.delete}
                 </HStack>
               </Menu.Item>
             )}

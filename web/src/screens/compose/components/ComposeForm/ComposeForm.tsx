@@ -1,9 +1,12 @@
+"use client";
+
 import { FormProvider } from "react-hook-form";
 
 import { CategorySelect } from "@/components/category/CategorySelect/CategorySelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { Button } from "@/components/ui/button";
 import { HStack, WStack, styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 import { BodyInput } from "../BodyInput/BodyInput";
 import { TitleInput } from "../TitleInput/TitleInput";
@@ -14,6 +17,7 @@ import { AssetUploadAction } from "@/components/asset/AssetUploadAction";
 
 export function ComposeForm(props: Props) {
   const { form, state, handlers } = useComposeForm(props);
+  const t = useTranslation();
 
   return (
     <styled.form
@@ -53,7 +57,7 @@ export function ComposeForm(props: Props) {
               onClick={handlers.handleSaveDraft}
               loading={state.isSavingDraft}
             >
-              Save draft
+              {t.editor.saveDraft}
             </Button>
 
             <Button
@@ -63,7 +67,7 @@ export function ComposeForm(props: Props) {
               disabled={!form.formState.isValid || state.isPublishing}
               loading={state.isPublishing}
             >
-              Post
+              {t.editor.post}
             </Button>
           </HStack>
         </WStack>

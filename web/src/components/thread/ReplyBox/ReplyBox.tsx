@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Controller, ControllerProps } from "react-hook-form";
 
@@ -10,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { CloseIcon } from "@/components/ui/icons/Close";
 import { DiscussionIcon } from "@/components/ui/icons/Discussion";
+import { useTranslation } from "@/lib/i18n";
 import { usePublicRegistration } from "@/lib/settings/registration";
 import { css } from "@/styled-system/css";
 import { HStack, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
@@ -22,6 +25,7 @@ import { Form, Props, useReplyBox } from "./useReplyBox";
 
 export function ReplyBox(props: Props) {
   const { replyTo, clearReplyTo } = useReplyContext();
+  const t = useTranslation();
   const {
     isLoggedIn,
     isEmpty,
@@ -98,7 +102,7 @@ export function ReplyBox(props: Props) {
 
         <HStack justifyContent="space-between">
           <HStack gap="1">
-            <styled.span textWrap="nowrap">Reply to</styled.span>
+            <styled.span textWrap="nowrap">{t.thread.replyTo}</styled.span>
             <MemberIdent
               profile={props.thread.author}
               name="handle"
@@ -107,7 +111,7 @@ export function ReplyBox(props: Props) {
           </HStack>
 
           <Button type="submit" size="xs" disabled={isLoading || isEmpty}>
-            Post
+            {t.thread.replyPost}
           </Button>
         </HStack>
 

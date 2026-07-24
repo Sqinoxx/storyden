@@ -25,6 +25,7 @@ import { ThreadMenu } from "@/components/thread/ThreadMenu/ThreadMenu";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { FormErrorText } from "@/components/ui/FormErrorText";
 import { Heading } from "@/components/ui/heading";
+import { useTranslation } from "@/lib/i18n";
 import { HeadingInput } from "@/components/ui/heading-input";
 import {
   DiscussionIcon,
@@ -267,10 +268,11 @@ function ThreadBodyInput({
 }
 
 function ThreadStats({ thread }: { thread: Thread }) {
+  const t = useTranslation();
   const likeCount = thread.likes.likes;
-  const likeLabel = likeCount === 1 ? "like" : "likes";
+  const likeLabel = likeCount === 1 ? t.thread.like : t.thread.likes;
   const replyCount = thread.reply_status.replies;
-  const replyLabel = replyCount === 1 ? "reply" : "replies";
+  const replyLabel = replyCount === 1 ? t.thread.reply : t.thread.replies;
 
   return (
     <HStack gap="4" color="fg.muted">
@@ -278,7 +280,7 @@ function ThreadStats({ thread }: { thread: Thread }) {
         display="flex"
         gap="1"
         alignItems="center"
-        title={thread.likes.liked ? "You liked this thread" : undefined}
+        title={thread.likes.liked ? t.thread.youLikedThis : undefined}
       >
         <span>
           {thread.likes.liked ? (
@@ -298,7 +300,7 @@ function ThreadStats({ thread }: { thread: Thread }) {
         alignItems="center"
         title={
           thread.reply_status.replied
-            ? "You have replied to this thread"
+            ? t.thread.youRepliedToThis
             : undefined
         }
       >

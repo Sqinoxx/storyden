@@ -45,6 +45,7 @@ import { css, cx } from "@/styled-system/css";
 import { HStack, LStack } from "@/styled-system/jsx";
 import { treeView } from "@/styled-system/recipes";
 import { hasPermission } from "@/utils/permissions";
+import { useTranslation } from "@/lib/i18n";
 
 import { CategoryCreateTrigger } from "../CategoryCreate/CategoryCreateTrigger";
 
@@ -86,6 +87,7 @@ export function CategoryListTree({
   mutate: KeyedMutator<CategoryListOKResponse>;
 }) {
   const session = useSession();
+  const t = useTranslation();
 
   const canManageCategories = hasPermission(session, "MANAGE_CATEGORIES");
 
@@ -160,7 +162,7 @@ export function CategoryListTree({
       >
         <HStack gap="2">
           <DiscussionIcon w="5" h="5" />
-          Home
+          {t.category.home}
         </HStack>
       </NavigationHeader>
 

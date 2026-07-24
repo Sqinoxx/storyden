@@ -35,6 +35,8 @@ import {
   LStack,
   styled,
 } from "@/styled-system/jsx";
+import { Download } from "lucide-react";
+
 import { lstack } from "@/styled-system/patterns";
 import { linkDisabledProps } from "@/utils/anchor";
 import { getAssetURL } from "@/utils/asset";
@@ -391,18 +393,54 @@ function GridCard({
                   outline: "none",
                 }}
               />
-            ) : (
-              <Link href={`/l/${node.slug}`}>
-                <styled.div
-                  fontWeight="semibold"
-                  lineClamp="1"
-                  textOverflow="ellipsis"
-                  wordBreak="break-all"
-                >
-                  {node.name}
-                </styled.div>
-              </Link>
-            ))}
+            ) : (() => {
+                const fileAsset =
+                  node.assets && node.assets.length > 0
+                    ? node.assets[0]
+                    : node.primary_image;
+                const downloadUrl = fileAsset
+                  ? getAssetURL(fileAsset.path)
+                  : null;
+
+                if (downloadUrl) {
+                  return (
+                    <styled.a
+                      href={downloadUrl}
+                      download={fileAsset?.filename || node.name}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      display="inline-flex"
+                      alignItems="center"
+                      gap="1.5"
+                      fontWeight="semibold"
+                      color="accent.default"
+                      _hover={{ textDecoration: "underline" }}
+                    >
+                      <styled.div
+                        lineClamp="1"
+                        textOverflow="ellipsis"
+                        wordBreak="break-all"
+                      >
+                        {node.name}
+                      </styled.div>
+                      <Download size={14} style={{ flexShrink: 0 }} />
+                    </styled.a>
+                  );
+                }
+
+                return (
+                  <Link href={`/l/${node.slug}`}>
+                    <styled.div
+                      fontWeight="semibold"
+                      lineClamp="1"
+                      textOverflow="ellipsis"
+                      wordBreak="break-all"
+                    >
+                      {node.name}
+                    </styled.div>
+                  </Link>
+                );
+              })())}
 
           {!descColumnHiddenState &&
             (editing ? (

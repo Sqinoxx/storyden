@@ -35,7 +35,6 @@ import { VisibilityBadge } from "@/components/visibility/VisibilityBadge";
 import { HStack, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
 
 import { Form, Props, useThreadScreen } from "./useThreadScreen";
-import { Attachments } from "@/components/thread/Attachments/Attachments";
 
 export function ThreadScreen(props: Props) {
   const {
@@ -156,8 +155,6 @@ export function ThreadScreen(props: Props) {
             disabled={!isEditing}
             handleEmptyStateChange={handlers.handleEmptyStateChange}
           />
-
-           <Attachments assets={thread.assets} />   {/* NEU */}
 
           {signatureConfig.enabled && (
             <Signature

@@ -2,3 +2,40 @@
   border-radius: 3px;
   background-color: var(--colors-black-alpha-50);
 }
+
+a[data-type="file-attachment"],
+a[href*="/api/assets/"]:not([href*=".png"]):not([href*=".jpg"]):not([href*=".jpeg"]):not([href*=".gif"]):not([href*=".webp"]):not([href*=".svg"]),
+a[href$=".pdf"],
+a[href$=".doc"],
+a[href$=".docx"],
+a[href$=".xls"],
+a[href$=".xlsx"],
+a[href$=".ppt"],
+a[href$=".pptx"],
+a[href$=".zip"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--colors-border-default, #e4e4e7);
+  background-color: var(--colors-bg-default, #ffffff);
+  color: var(--colors-fg-default, #09090b);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0.25rem 0;
+  vertical-align: middle;
+  transition: background-color 0.15s ease;
+}
+
+a[data-type="file-attachment"]:hover,
+a[href*="/api/assets/"]:hover {
+  background-color: var(--colors-bg-muted, #f4f4f5);
+}
+
+a[data-type="file-attachment"]::before,
+a[href*="/api/assets/"]:not([href*=".png"]):not([href*=".jpg"]):not([href*=".jpeg"]):not([href*=".gif"]):not([href*=".webp"]):not([href*=".svg"])::before {
+  content: "📄";
+  font-size: 0.875rem;
+}

@@ -21,8 +21,6 @@ import { ReplyToButton } from "./ReplyToButton";
 import { useFragmentScroll } from "./useFragmentScroll";
 import { Form, Props, useReply } from "./useReply";
 
-import { Attachments } from "../Attachments/Attachments";
-
 export function Reply(props: Props) {
   const {
     isEmpty,
@@ -115,8 +113,6 @@ export function Reply(props: Props) {
           disabled={!isEditing}
           handleEmptyStateChange={handlers.handleEmptyStateChange}
         />
-
-        <Attachments assets={reply.assets} />   {/* NEU */}
 
         {initialSignatureConfig.enabled && (
           <Signature

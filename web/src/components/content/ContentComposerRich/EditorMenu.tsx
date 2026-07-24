@@ -188,7 +188,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
           variant: "ghost",
         })}
         htmlFor={`filepicker-${uniqueID}`}
-        title="Insert an image"
+        title="Insert an image or document"
       >
         <ImageIcon />
       </label>
@@ -197,7 +197,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
         type="file"
         multiple
         display="none"
-        accept="image/*,application/pdf"
+        accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
         onChange={handlers.handleFileUpload}
       />
     </HStack>

@@ -11,6 +11,13 @@ import { ContentComposerProps } from "../composer-props";
 export function ContentComposer(props: ContentComposerProps) {
   const session = useSession();
 
+  // Always use rich-text renderer in read-only/disabled mode so HTML content
+  // (including file attachment cards) is displayed correctly regardless of
+  // the user's preferred editor mode.
+  if (props.disabled) {
+    return <ContentComposerRich {...props} />;
+  }
+
   const editorMode = session?.meta.editor.mode;
 
   switch (editorMode) {

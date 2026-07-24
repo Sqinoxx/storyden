@@ -13,6 +13,10 @@ import { css } from "@/styled-system/css";
 import { cx } from "@/styled-system/css/index.mjs";
 import { LStack } from "@/styled-system/jsx";
 
+import {
+  FileAttachmentExtended,
+  isDocumentHref,
+} from "../ContentComposerRich/plugins/FileAttachmentPlugin";
 import { ImageExtended } from "../ContentComposerRich/plugins/ImagePlugin";
 import { LinkPreview } from "../ContentComposerRich/plugins/LinkPreviewPlugin";
 
@@ -114,10 +118,13 @@ export function ContentDiffView({
         parseHTML() {
           return [
             {
-              tag: "a[href]:not([data-display])",
+              tag: "a[href]:not([data-display]):not([data-type='file-attachment'])",
               getAttrs: (dom) => {
                 const href = dom.getAttribute("href");
-                return href ? { href } : false;
+                if (!href || isDocumentHref(href)) {
+                  return false;
+                }
+                return { href };
               },
             },
           ];
@@ -128,6 +135,11 @@ export function ContentDiffView({
         HTMLAttributes: {
           class: css({ borderRadius: "md" }),
         },
+        handleFiles: async () => [],
+        handleRetry: () => {},
+        handleCancel: () => {},
+      }),
+      FileAttachmentExtended.configure({
         handleFiles: async () => [],
         handleRetry: () => {},
         handleCancel: () => {},

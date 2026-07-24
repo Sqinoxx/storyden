@@ -24,7 +24,10 @@ import {
 } from "../useImageUpload";
 
 import { ImageExtended, uploadPositionsKey } from "./plugins/ImagePlugin";
-import { FileAttachmentExtended } from "./plugins/FileAttachmentPlugin";
+import {
+  FileAttachmentExtended,
+  isDocumentHref,
+} from "./plugins/FileAttachmentPlugin";
 import { LinkPasteMenuPlugin } from "./plugins/LinkPasteMenuPlugin";
 import { LinkPreview } from "./plugins/LinkPreviewPlugin";
 
@@ -112,10 +115,13 @@ export function useContentComposer(props: ContentComposerProps) {
       parseHTML() {
         return [
           {
-            tag: "a[href]:not([data-display])",
+            tag: "a[href]:not([data-display]):not([data-type='file-attachment'])",
             getAttrs: (dom) => {
               const href = dom.getAttribute("href");
-              return href ? { href } : false;
+              if (!href || isDocumentHref(href)) {
+                return false;
+              }
+              return { href };
             },
           },
         ];
@@ -429,8 +435,8 @@ export function useContentComposer(props: ContentComposerProps) {
     for (const f of files) {
       uploadCounterRef.current += 1;
       const uploadId = `upload-${Date.now()}-${uploadCounterRef.current}`;
-      const isPdf = f.type === "application/pdf";
-      const nodeType = isPdf ? fileAttachmentNode : imageNode;
+      const isAttachment = !f.type.startsWith("image/");
+      const nodeType = isAttachment ? fileAttachmentNode : imageNode;
 
       // Create blob URL for immediate preview
       const blobUrl = URL.createObjectURL(f);
@@ -447,7 +453,7 @@ export function useContentComposer(props: ContentComposerProps) {
       });
 
       // Insert placeholder immediately
-      const attrs = isPdf
+      const attrs = isAttachment
         ? {
             href: blobUrl,
             fileName: f.name,

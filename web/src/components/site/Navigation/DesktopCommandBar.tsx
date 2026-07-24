@@ -1,4 +1,5 @@
 import { getServerSession } from "@/auth/server-session";
+import { parseMemberSettings } from "@/lib/settings/member-settings";
 import { allowsPublicRegistration } from "@/lib/settings/registration";
 import { getSettings } from "@/lib/settings/settings-server";
 import { cx } from "@/styled-system/css";
@@ -14,10 +15,17 @@ import { getServerSidebarState } from "./NavigationPane/server";
 import { Title } from "./Title";
 
 export async function DesktopCommandBar() {
-  const { title, registration_mode } = await getSettings();
-  const initialSidebarState = await getServerSidebarState();
+  const globalSettings = await getSettings();
+  const { title, registration_mode } = globalSettings;
+  const sessionAccount = await getServerSession();
+  const session = sessionAccount
+    ? parseMemberSettings(sessionAccount, globalSettings.metadata)
+    : undefined;
 
-  const session = await getServerSession();
+  const sidebarDefaultState =
+    session?.meta.sidebar.defaultState ??
+    globalSettings.metadata.sidebar.defaultState;
+  const initialSidebarState = await getServerSidebarState(sidebarDefaultState);
 
   const canRegister = allowsPublicRegistration(registration_mode);
 
@@ -30,8 +38,8 @@ export async function DesktopCommandBar() {
       px="1"
     >
       <HStack className={styles["topbar-left"]}>
-        {session && <SidebarToggle initialValue={initialSidebarState} />}
-        {session && <SearchAnchor />}
+        {sessionAccount && <SidebarToggle initialValue={initialSidebarState} />}
+        {sessionAccount && <SearchAnchor />}
       </HStack>
 
       <HStack className={styles["topbar-middle"]} justify="space-around">
@@ -39,7 +47,7 @@ export async function DesktopCommandBar() {
       </HStack>
 
       <HStack className={styles["topbar-right"]}>
-        <MemberActions session={session} canRegister={canRegister} />
+        <MemberActions session={sessionAccount} canRegister={canRegister} />
       </HStack>
     </HStack>
   );

@@ -1,11 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { useAccountGet } from "@/api/openapi-client/accounts";
 import { authPasswordSignin } from "@/api/openapi-client/auth";
 import { APIError } from "@/api/openapi-schema";
 import { passkeyLogin } from "@/components/auth/webauthn/utils";
@@ -13,7 +12,6 @@ import { deriveError } from "@/utils/error";
 
 import { ExistingPasswordSchema, UsernameSchema } from "@/lib/auth/schemas";
 import { isWebauthnAvailable } from "@/lib/auth/webauthn";
-import { refreshFeed } from "@/lib/feed/refresh";
 
 export type Props = {
   webauthn: boolean;
@@ -36,25 +34,23 @@ export function useLoginHandleForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     setError,
   } = useForm<Form>({
     resolver: zodResolver(FormSchema),
   });
-  const { push } = useRouter();
   const searchParams = useSearchParams();
   const returnURL = searchParams.get("return_url") ?? "/d";
-  const { mutate } = useAccountGet();
 
   const isWebauthnEnabled = isWebauthnAvailable();
 
   function handler(kind: Kind) {
-    return handleSubmit((payload) => {
+    return handleSubmit(async (payload) => {
       switch (kind) {
         case "password":
-          return handlePassword(payload);
+          return await handlePassword(payload);
         case "webauthn":
-          return handleWebauthn(payload);
+          return await handleWebauthn(payload);
       }
     });
   }
@@ -77,21 +73,21 @@ export function useLoginHandleForm() {
       return;
     }
 
-    await authPasswordSignin(parsed.data)
-      .then(() => {
-        refreshFeed();
-        push(returnURL);
-        mutate();
-      })
-      .catch((e: APIError) => setError("root", { message: deriveError(e) }));
+    try {
+      await authPasswordSignin(parsed.data);
+      // Hard redirect: forces a full page reload so the server renders the
+      // authenticated state with the new session cookie immediately.
+      // Avoids the Next.js client-cache race condition that required a second click.
+      window.location.href = returnURL;
+    } catch (e) {
+      setError("root", { message: deriveError(e as APIError) });
+    }
   }
 
   async function handleWebauthn(payload: Form) {
     try {
       await passkeyLogin(payload.identifier);
-      refreshFeed();
-      push(returnURL);
-      mutate();
+      window.location.href = returnURL;
     } catch (error) {
       setError("root", { message: deriveError(error) });
     }
@@ -104,6 +100,8 @@ export function useLoginHandleForm() {
       handlePassword: handler("password"),
       handleWebauthn: handler("webauthn"),
       errors,
+      isSubmitting,
     },
   };
 }
+

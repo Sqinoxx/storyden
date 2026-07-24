@@ -54,7 +54,7 @@ export function LoginEmailForm() {
         </FormErrorText>
       </FormControl>
 
-      <Button type="submit" w="full">
+      <Button type="submit" w="full" loading={form.formState.isSubmitting}>
         Login
       </Button>
 

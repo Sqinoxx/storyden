@@ -36,23 +36,23 @@ export function useRegisterHandleForm({ invitationID }: Props) {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     setError,
   } = useForm<Form>({
     resolver: zodResolver(FormSchema),
   });
-  const { push } = useRouter();
+  const { push, refresh } = useRouter();
   const { mutate } = useAccountGet();
 
   const isWebauthnEnabled = isWebauthnAvailable();
 
   function handler(kind: Kind) {
-    return handleSubmit((payload) => {
+    return handleSubmit(async (payload) => {
       switch (kind) {
         case "password":
-          return handlePassword(payload);
+          return await handlePassword(payload);
         case "webauthn":
-          return handleWebauthn(payload);
+          return await handleWebauthn(payload);
       }
     });
   }
@@ -75,21 +75,24 @@ export function useRegisterHandleForm({ invitationID }: Props) {
       return;
     }
 
-    await authPasswordSignup(parsed.data, { invitation_id: invitationID })
-      .then(() => {
-        refreshFeed();
-        push("/d");
-        mutate();
-      })
-      .catch((e: APIError) => setError("root", { message: deriveError(e) }));
+    try {
+      await authPasswordSignup(parsed.data, { invitation_id: invitationID });
+      await refreshFeed();
+      await mutate();
+      push("/d");
+      refresh();
+    } catch (e) {
+      setError("root", { message: deriveError(e as APIError) });
+    }
   }
 
   async function handleWebauthn(payload: Form) {
     try {
       await passkeyRegister(payload.identifier);
-      refreshFeed();
+      await refreshFeed();
+      await mutate();
       push("/d");
-      mutate();
+      refresh();
     } catch (error) {
       setError("root", { message: deriveError(error) });
     }
@@ -102,6 +105,7 @@ export function useRegisterHandleForm({ invitationID }: Props) {
       handlePassword: handler("password"),
       handleWebauthn: handler("webauthn"),
       errors,
+      isSubmitting,
     },
   };
 }

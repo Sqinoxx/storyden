@@ -11,6 +11,7 @@ import { APIError } from "@/api/openapi-schema";
 import { passkeyRegister } from "@/components/auth/webauthn/utils";
 import { PasswordSchema, UsernameSchema } from "@/lib/auth/schemas";
 import { isWebauthnAvailable } from "@/lib/auth/webauthn";
+import { refreshFeed } from "@/lib/feed/refresh";
 import { deriveError } from "@/utils/error";
 
 export type Props = {
@@ -76,7 +77,8 @@ export function useRegisterHandleForm({ invitationID }: Props) {
 
     await authPasswordSignup(parsed.data, { invitation_id: invitationID })
       .then(() => {
-        push("/");
+        refreshFeed();
+        push("/d");
         mutate();
       })
       .catch((e: APIError) => setError("root", { message: deriveError(e) }));
@@ -85,7 +87,8 @@ export function useRegisterHandleForm({ invitationID }: Props) {
   async function handleWebauthn(payload: Form) {
     try {
       await passkeyRegister(payload.identifier);
-      push("/");
+      refreshFeed();
+      push("/d");
       mutate();
     } catch (error) {
       setError("root", { message: deriveError(error) });

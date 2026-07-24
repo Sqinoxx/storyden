@@ -25,6 +25,7 @@ export function RegisterHandleForm(props: Props) {
       flexDir="column"
       gap="2"
       textAlign="center"
+      onSubmit={handlePassword}
     >
       <Input
         type="text"
@@ -73,7 +74,7 @@ export function RegisterHandleForm(props: Props) {
       <styled.p color="fg.error" fontSize="sm">
         {errors.token?.message}
       </styled.p>
-      <Button type="submit" w="full" onClick={handlePassword}>
+      <Button type="submit" w="full">
         Register
       </Button>
       <styled.p color="fg.error" fontSize="sm">

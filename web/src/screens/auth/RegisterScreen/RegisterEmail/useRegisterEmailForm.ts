@@ -40,7 +40,7 @@ export function useRegisterEmailForm({ invitationID }: Props) {
 
         mutate();
         refreshFeed();
-        router.push("/");
+        router.push("/d");
       },
       {
         errorToast: false,

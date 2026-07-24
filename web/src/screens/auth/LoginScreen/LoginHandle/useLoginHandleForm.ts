@@ -13,6 +13,7 @@ import { deriveError } from "@/utils/error";
 
 import { ExistingPasswordSchema, UsernameSchema } from "@/lib/auth/schemas";
 import { isWebauthnAvailable } from "@/lib/auth/webauthn";
+import { refreshFeed } from "@/lib/feed/refresh";
 
 export type Props = {
   webauthn: boolean;
@@ -42,7 +43,7 @@ export function useLoginHandleForm() {
   });
   const { push } = useRouter();
   const searchParams = useSearchParams();
-  const returnURL = searchParams.get("return_url") ?? "/";
+  const returnURL = searchParams.get("return_url") ?? "/d";
   const { mutate } = useAccountGet();
 
   const isWebauthnEnabled = isWebauthnAvailable();
@@ -78,6 +79,7 @@ export function useLoginHandleForm() {
 
     await authPasswordSignin(parsed.data)
       .then(() => {
+        refreshFeed();
         push(returnURL);
         mutate();
       })
@@ -87,6 +89,7 @@ export function useLoginHandleForm() {
   async function handleWebauthn(payload: Form) {
     try {
       await passkeyLogin(payload.identifier);
+      refreshFeed();
       push(returnURL);
       mutate();
     } catch (error) {

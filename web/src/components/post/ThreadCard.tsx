@@ -56,16 +56,24 @@ function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[] {
   const existingPaths = new Set(assets.map((a) => a.path));
   const existingNames = new Set(assets.map((a) => a.filename.toLowerCase()));
 
-  if (thread.body && typeof document !== "undefined") {
+  if (thread.body) {
     try {
-      const parsed = new DOMParser().parseFromString(thread.body, "text/html");
-      const anchors = parsed.querySelectorAll("a[href]");
-      anchors.forEach((a) => {
-        const href = a.getAttribute("href");
+      const anchorRegex = /<a\b([^>]*)>(.*?)<\/a>/gi;
+      let match: RegExpExecArray | null;
+      while ((match = anchorRegex.exec(thread.body)) !== null) {
+        const attrString = match[1] ?? "";
+        const innerText = (match[2] ?? "").replace(/<[^>]+>/g, "").trim();
+
+        const hrefMatch = /href=["']([^"']+)["']/i.exec(attrString);
+        const href = hrefMatch ? hrefMatch[1] : null;
+
         if (href && isDocumentHref(href)) {
+          const filenameMatch =
+            /data-filename=["']([^"']+)["']/i.exec(attrString);
+          const filenameAttr = filenameMatch ? filenameMatch[1] : null;
           const filename =
-            a.getAttribute("data-filename") ||
-            a.textContent?.trim() ||
+            filenameAttr ||
+            innerText ||
             href.split("/").pop() ||
             "Attachment";
           const path = href.replace(/^.*\/api\/assets\//, "");
@@ -92,9 +100,9 @@ function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[] {
             } as unknown as Asset);
           }
         }
-      });
+      }
     } catch {
-      // Ignore DOMParser errors
+      // Ignore regex errors
     }
   }
 

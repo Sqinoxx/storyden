@@ -131,6 +131,11 @@ export function useContentComposer(props: ContentComposerProps) {
       handleRetry,
       handleCancel,
     }),
+    FileAttachmentExtended.configure({
+      handleFiles,
+      handleRetry,
+      handleCancel,
+    }),
     Placeholder.configure({
       placeholder: props.placeholder ?? "Write your heart out...",
       includeChildren: true,
@@ -553,6 +558,7 @@ export function useContentComposer(props: ContentComposerProps) {
     );
 
     await handleFiles(editor.view, files);
+    e.target.value = "";
   }
 
   // -

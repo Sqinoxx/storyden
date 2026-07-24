@@ -155,11 +155,12 @@ export function CategoryListTree({
     <LStack gap="0">
       <NavigationHeader
         href={DiscussionRoute}
+        size="md"
         controls={canManageCategories && <CategoryCreateTrigger hideLabel />}
       >
-        <HStack gap="1">
-          <DiscussionIcon />
-          Discussion
+        <HStack gap="2">
+          <DiscussionIcon w="5" h="5" />
+          Home
         </HStack>
       </NavigationHeader>
 
@@ -309,11 +310,11 @@ function CategoryTreeNode({
     opacity: isDragging ? 0.5 : 1,
     ...(isDragging
       ? {
-          pointerEvents: "none",
-        }
+        pointerEvents: "none",
+      }
       : {
-          pointerEvents: "unset",
-        }),
+        pointerEvents: "unset",
+      }),
   };
 
   const showTopDivider =
@@ -329,13 +330,13 @@ function CategoryTreeNode({
 
   const draggingOverStyles = isDraggingOver
     ? css({
-        borderRadius: "md",
-        colorPalette: "accent",
-        outlineWidth: "thin",
-        outlineStyle: "dashed",
-        outlineColor: "colorPalette.6",
-        outlineOffset: "-0.5",
-      })
+      borderRadius: "md",
+      colorPalette: "accent",
+      outlineWidth: "thin",
+      outlineStyle: "dashed",
+      outlineColor: "colorPalette.6",
+      outlineOffset: "-0.5",
+    })
     : "";
 
   const highlightStyles = css({
@@ -493,11 +494,11 @@ function DropIndicator({
   const shouldRender =
     direction === "above"
       ? positionInList === "top" ||
-        positionInList === "in" ||
-        positionInList === "only"
+      positionInList === "in" ||
+      positionInList === "only"
       : positionInList === "bottom" ||
-        positionInList === "in" ||
-        positionInList === "only";
+      positionInList === "in" ||
+      positionInList === "only";
 
   if (!shouldRender) {
     return null;

@@ -41,7 +41,7 @@ export function MobileCommandBar({ canRegister }: Props) {
             ) : (
               <SiteIcon borderRadius="md" w="8" h="8" />
             )}
-            <Search />
+            {account && <Search />}
             <CloseAction onClick={onClose} size="sm" />
           </>
         ) : (
@@ -55,10 +55,10 @@ export function MobileCommandBar({ canRegister }: Props) {
             {account ? (
               <ComposeAnchor hideLabel size="sm" />
             ) : (
-              canRegister && <LoginAnchor />
+              <LoginAnchor />
             )}
             <LibraryAnchor hideLabel size="sm" />
-            <ExpandTrigger onClick={onExpand} />
+            {account && <ExpandTrigger onClick={onExpand} />}
           </>
         )}
       </WStack>

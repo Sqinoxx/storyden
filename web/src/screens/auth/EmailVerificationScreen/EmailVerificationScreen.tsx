@@ -49,7 +49,7 @@ export function EmailVerificationScreen(props: Props) {
           code: data.code,
         });
 
-        router.push(props.returnURL ?? "/");
+        router.push(props.returnURL ?? "/d");
       },
       {
         errorToast: false,

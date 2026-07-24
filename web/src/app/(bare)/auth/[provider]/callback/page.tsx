@@ -40,7 +40,7 @@ export default function Page(props: Props) {
           searchParams,
         );
 
-        router.push(`/?id=${id}`);
+        router.push(`/d?id=${id}`);
       },
       {
         errorToast: false,

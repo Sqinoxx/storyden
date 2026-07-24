@@ -38,7 +38,9 @@ export async function Navigation({
   const sidebarDefaultState =
     session?.meta.sidebar.defaultState ??
     globalSettings.metadata.sidebar.defaultState;
-  const showLeftBar = await getServerSidebarState(sidebarDefaultState);
+  const showLeftBar = sessionAccount
+    ? await getServerSidebarState(sidebarDefaultState)
+    : false;
 
   return (
     <Box

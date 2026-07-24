@@ -30,8 +30,8 @@ export async function DesktopCommandBar() {
       px="1"
     >
       <HStack className={styles["topbar-left"]}>
-        <SidebarToggle initialValue={initialSidebarState} />
-        <SearchAnchor />
+        {session && <SidebarToggle initialValue={initialSidebarState} />}
+        {session && <SearchAnchor />}
       </HStack>
 
       <HStack className={styles["topbar-middle"]} justify="space-around">

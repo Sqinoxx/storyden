@@ -24,6 +24,7 @@ export function LoginHandleForm() {
       flexDir="column"
       gap="2"
       textAlign="center"
+      onSubmit={handlePassword}
     >
       <Input
         type="text"
@@ -54,7 +55,7 @@ export function LoginHandleForm() {
       <styled.p color="fg.error" fontSize="sm">
         {errors.token?.message}
       </styled.p>
-      <Button type="submit" w="full" onClick={handlePassword}>
+      <Button type="submit" w="full">
         Login
       </Button>
       <styled.p color="fg.error" fontSize="sm">

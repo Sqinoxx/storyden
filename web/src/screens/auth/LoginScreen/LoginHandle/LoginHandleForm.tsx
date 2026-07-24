@@ -14,6 +14,7 @@ export function LoginHandleForm() {
       handlePassword,
       handleWebauthn,
       errors,
+      isSubmitting,
     },
   } = useLoginHandleForm();
 
@@ -55,7 +56,7 @@ export function LoginHandleForm() {
       <styled.p color="fg.error" fontSize="sm">
         {errors.token?.message}
       </styled.p>
-      <Button type="submit" w="full">
+      <Button type="submit" w="full" loading={isSubmitting}>
         Login
       </Button>
       <styled.p color="fg.error" fontSize="sm">

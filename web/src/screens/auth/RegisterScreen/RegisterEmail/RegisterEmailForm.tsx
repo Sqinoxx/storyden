@@ -74,7 +74,7 @@ export function RegisterEmailForm(props: Props) {
         </FormErrorText>
       </FormControl>
 
-      <Button type="submit" w="full">
+      <Button type="submit" w="full" loading={form.formState.isSubmitting}>
         Register
       </Button>
 

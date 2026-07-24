@@ -38,9 +38,10 @@ export function useRegisterEmailForm({ invitationID }: Props) {
           invitation_id: invitationID,
         });
 
-        mutate();
-        refreshFeed();
+        await refreshFeed();
+        await mutate();
         router.push("/d");
+        router.refresh();
       },
       {
         errorToast: false,

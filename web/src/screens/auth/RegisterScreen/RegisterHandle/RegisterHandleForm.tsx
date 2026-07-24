@@ -15,6 +15,7 @@ export function RegisterHandleForm(props: Props) {
       handlePassword,
       handleWebauthn,
       errors,
+      isSubmitting,
     },
   } = useRegisterHandleForm(props);
 
@@ -74,7 +75,7 @@ export function RegisterHandleForm(props: Props) {
       <styled.p color="fg.error" fontSize="sm">
         {errors.token?.message}
       </styled.p>
-      <Button type="submit" w="full">
+      <Button type="submit" w="full" loading={isSubmitting}>
         Register
       </Button>
       <styled.p color="fg.error" fontSize="sm">

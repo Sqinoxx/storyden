@@ -159,7 +159,7 @@ export function ThreadScreen(props: Props) {
           />
 
           {thread.assets && thread.assets.length > 0 && (
-            <FileAttachmentList assets={thread.assets} />
+            <FileAttachmentList assets={thread.assets} body={thread.body} />
           )}
 
           {signatureConfig.enabled && (

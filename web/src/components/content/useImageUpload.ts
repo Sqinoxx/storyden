@@ -11,7 +11,12 @@ export function useImageUpload() {
       throw new Error(`Unsupported asset format ${f.type}`);
     }
 
-    const asset = await assetUpload(f, params);
+    const mergedParams: AssetUploadParams = {
+      filename: f.name,
+      ...params,
+    };
+
+    const asset = await assetUpload(f, mergedParams);
 
     return asset;
   }
@@ -26,7 +31,12 @@ export function useImageUpload() {
       throw new Error(`Unsupported asset format ${f.type}`);
     }
 
-    const url = buildAssetUploadURL(params);
+    const mergedParams: AssetUploadParams = {
+      filename: f.name,
+      ...params,
+    };
+
+    const url = buildAssetUploadURL(mergedParams);
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();

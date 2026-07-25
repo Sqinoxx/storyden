@@ -103,6 +103,17 @@ function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[] {
     }
   }
 
+  if (assets.length > 1) {
+    const hasNamedAsset = assets.some(
+      (a) => a.filename && !a.filename.toLowerCase().endsWith("-untitled") && a.filename.toLowerCase() !== "untitled"
+    );
+    if (hasNamedAsset) {
+      return assets.filter(
+        (a) => a.filename && !a.filename.toLowerCase().endsWith("-untitled") && a.filename.toLowerCase() !== "untitled"
+      );
+    }
+  }
+
   return assets;
 }
 

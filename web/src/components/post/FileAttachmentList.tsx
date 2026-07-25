@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Download, FileIcon } from "lucide-react";
+import { Download } from "lucide-react";
 
 import { Asset } from "@/api/openapi-schema";
 import { getAssetURL } from "@/utils/asset";
@@ -77,16 +77,8 @@ export function FileAttachmentBadge({ asset }: { asset: Asset }) {
       onClick={handleDownload}
       style={{ zIndex: 10, transition: "background 0.15s" }}
     >
-      <styled.span
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        bgColor="bg.muted"
-        borderRadius="sm"
-        p="1"
-        flexShrink="0"
-      >
-        <FileIcon size={16} />
+      <styled.span display="flex" alignItems="center" flexShrink="0" fontSize="sm">
+        📄
       </styled.span>
       <styled.span
         overflow="hidden"

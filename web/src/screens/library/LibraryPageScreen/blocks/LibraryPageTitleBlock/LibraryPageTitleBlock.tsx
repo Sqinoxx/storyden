@@ -49,8 +49,13 @@ export function LibraryPageTitleBlock() {
             fontWeight="medium"
             _hover={{ bgColor: "bg.muted" }}
           >
-            <Download size={16} />
+            <styled.span flexShrink="0" fontSize="sm">
+              📄
+            </styled.span>
             <span>{fileAsset?.filename || "Datei herunterladen"}</span>
+            <styled.span display="inline-flex" alignItems="center" color="fg.muted" flexShrink="0" ml="1">
+              <Download size={14} />
+            </styled.span>
           </styled.a>
         </HStack>
       )}

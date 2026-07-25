@@ -155,11 +155,10 @@ function extractCleanTextFromHTML(
       .replace(/&#39;/g, "'")
       .replace(/&nbsp;/g, " ");
 
-    // Normalize whitespace per line and join non-empty lines with newlines
+    // Normalize whitespace per line and join lines with newlines (preserving empty lines)
     const lines = text
       .split("\n")
-      .map((line) => line.replace(/[ \t]+/g, " ").trim())
-      .filter(Boolean);
+      .map((line) => line.replace(/[ \t]+/g, " ").trim());
 
     const cleaned = lines.join("\n").trim();
     return cleaned || fallbackDescription?.trim() || undefined;
@@ -235,11 +234,16 @@ export const ThreadReferenceCard = memo(
         if (a.filename) {
           textDescription = textDescription
             ?.split(a.filename)
-            .join("")
-            .replace(/\s+/g, " ")
-            .trim();
+            .join("");
         }
       });
+      if (textDescription) {
+        textDescription = textDescription
+          .split("\n")
+          .map((line) => line.replace(/[ \t]+/g, " ").trim())
+          .join("\n")
+          .trim();
+      }
     }
 
     if (!textDescription || textDescription === thread.title) {

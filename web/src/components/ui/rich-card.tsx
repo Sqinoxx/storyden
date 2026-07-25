@@ -128,7 +128,7 @@ export function Card({
                 onClick={(e) => disableAnchors && e.preventDefault()}
               >
                 {text && (
-                  <p className={styles.text} style={{ whiteSpace: "pre-line" }}>
+                  <p className={styles.text} style={{ whiteSpace: "pre-wrap" }}>
                     {text}
                   </p>
                 )}

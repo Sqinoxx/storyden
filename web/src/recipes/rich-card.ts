@@ -117,7 +117,7 @@ export const richCard = defineSlotRecipe({
 
     text: {
       lineClamp: "3",
-      whiteSpace: "pre-line",
+      whiteSpace: "pre-wrap",
     },
   },
   variants: {

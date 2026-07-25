@@ -6,6 +6,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/button";
 import { ComposeField } from "@/components/ui/form/ComposeField";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
+import { Input } from "@/components/ui/input";
 import { CreateIcon } from "@/components/ui/icons/Create";
 import { Card } from "@/components/ui/rich-card";
 import { CardBox, HStack, WStack } from "@/styled-system/jsx";
@@ -38,6 +39,24 @@ export function QuickShare(props: Props) {
         onFocus={handlers.handleFocus}
         onSubmit={handlers.handlePost}
       >
+        <Input
+          {...form.register("title")}
+          placeholder={t.editor.titlePlaceholder}
+          fontWeight="semibold"
+          fontSize="md"
+          px="3"
+          py="2"
+          h="auto"
+          w="full"
+          borderRadius="md"
+          borderColor="border.subtle"
+          bg="bg.subtle/30"
+          _focus={{
+            borderColor: "accent.default",
+            bg: "bg.default",
+          }}
+        />
+
         <ComposeField
           control={form.control}
           name="body"

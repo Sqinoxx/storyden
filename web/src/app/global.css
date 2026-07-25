@@ -1,6 +1,7 @@
 @layer reset, base, tokens, recipes, utilities;
 
 @layer base {
+
   *,
   *::before,
   &::after {
@@ -26,36 +27,24 @@
   --global-font-size-h5: 1.2rem;
   --global-font-size-h6: 1.125rem;
 
-  --global-font-size-h1-variable: clamp(
-    100%,
-    calc(var(--global-font-size-h1) / 4) + 4vw,
-    var(--global-font-size-h1)
-  );
-  --global-font-size-h2-variable: clamp(
-    100%,
-    calc(var(--global-font-size-h2) / 4) + 4vw,
-    var(--global-font-size-h2)
-  );
-  --global-font-size-h3-variable: clamp(
-    100%,
-    calc(var(--global-font-size-h3) / 4) + 4vw,
-    var(--global-font-size-h3)
-  );
-  --global-font-size-h4-variable: clamp(
-    100%,
-    calc(var(--global-font-size-h4) / 4) + 4vw,
-    var(--global-font-size-h4)
-  );
-  --global-font-size-h5-variable: clamp(
-    100%,
-    calc(var(--global-font-size-h5) / 4) + 4vw,
-    var(--global-font-size-h5)
-  );
-  --global-font-size-h6-variable: clamp(
-    100%,
-    calc(var(--global-font-size-h6) / 4) + 4vw,
-    var(--global-font-size-h6)
-  );
+  --global-font-size-h1-variable: clamp(100%,
+      calc(var(--global-font-size-h1) / 4) + 4vw,
+      var(--global-font-size-h1));
+  --global-font-size-h2-variable: clamp(100%,
+      calc(var(--global-font-size-h2) / 4) + 4vw,
+      var(--global-font-size-h2));
+  --global-font-size-h3-variable: clamp(100%,
+      calc(var(--global-font-size-h3) / 4) + 4vw,
+      var(--global-font-size-h3));
+  --global-font-size-h4-variable: clamp(100%,
+      calc(var(--global-font-size-h4) / 4) + 4vw,
+      var(--global-font-size-h4));
+  --global-font-size-h5-variable: clamp(100%,
+      calc(var(--global-font-size-h5) / 4) + 4vw,
+      var(--global-font-size-h5));
+  --global-font-size-h6-variable: clamp(100%,
+      calc(var(--global-font-size-h6) / 4) + 4vw,
+      var(--global-font-size-h6));
 }
 
 @media (min-width: 768px) {
@@ -66,13 +55,12 @@
 
 @supports (font-size: 1cqi) {
   .fluid-font-size {
-    font-size: clamp(
-      1rem,
-      var(--font-size-fluid-scale, 5cqi),
-      var(--font-size)
-    );
+    font-size: clamp(1rem,
+        var(--font-size-fluid-scale, 5cqi),
+        var(--font-size));
     text-overflow: ellipsis;
   }
+
   .fluid-letter-spacing {
     letter-spacing: clamp(-1px, -1cqi, 0px);
     text-overflow: ellipsis;
@@ -124,10 +112,12 @@ body {
   a:not([data-no-typography] *) {
     color: var(--colors-blue-9);
   }
+
   a:not([data-no-typography] *):hover {
     color: var(--colors-blue-10);
     text-decoration: underline;
   }
+
   a:not([data-no-typography] *):visited {
     color: var(--colors-blue-11);
   }
@@ -147,6 +137,7 @@ body {
     line-height: 1.3;
     font-family: var(--fonts-heading);
   }
+
   h1:not([data-no-typography] *) {
     margin-top: 0;
 
@@ -154,26 +145,31 @@ body {
     font-size: var(--global-font-size-h1-variable);
     font-weight: 700;
   }
+
   h2:not([data-no-typography] *) {
     font-size: var(--global-font-size-h2);
     font-size: var(--global-font-size-h2-variable);
     font-weight: 700;
   }
+
   h3:not([data-no-typography] *) {
     font-size: var(--global-font-size-h3);
     font-size: var(--global-font-size-h3-variable);
     font-weight: 700;
   }
+
   h4:not([data-no-typography] *) {
     font-size: var(--global-font-size-h4);
     font-size: var(--global-font-size-h4-variable);
     font-weight: 700;
   }
+
   h5:not([data-no-typography] *) {
     font-size: var(--global-font-size-h5);
     font-size: var(--global-font-size-h5-variable);
     font-weight: 700;
   }
+
   h6:not([data-no-typography] *) {
     font-size: var(--global-font-size-h6);
     font-size: var(--global-font-size-h6-variable);
@@ -204,6 +200,7 @@ body {
     padding: var(--spacing-2);
     border-radius: var(--radii-lg);
   }
+
   blockquote:not([data-no-typography] *) p {
     display: inline;
   }
@@ -264,6 +261,7 @@ body *::-webkit-scrollbar {
   width: var(--spacing-scroll-gutter);
   height: var(--spacing-scroll-gutter);
 }
+
 body *::-webkit-scrollbar-thumb {
   background-color: var(--colors-bg-muted);
   border-radius: var(--radii-lg);
@@ -279,14 +277,8 @@ body *::-webkit-scrollbar-thumb {
 .menu__content,
 .button--variant_subtle,
 .bkdp_auto {
-  -webkit-backdrop-filter: var(--backdrop-blur,) var(--backdrop-brightness,)
-    var(--backdrop-contrast,) var(--backdrop-grayscale,)
-    var(--backdrop-hue-rotate,) var(--backdrop-invert,) var(--backdrop-opacity,)
-    var(--backdrop-saturate,) var(--backdrop-sepia,);
-  backdrop-filter: var(--backdrop-blur,) var(--backdrop-brightness,)
-    var(--backdrop-contrast,) var(--backdrop-grayscale,)
-    var(--backdrop-hue-rotate,) var(--backdrop-invert,) var(--backdrop-opacity,)
-    var(--backdrop-saturate,) var(--backdrop-sepia,);
+  -webkit-backdrop-filter: var(--backdrop-blur, ) var(--backdrop-brightness, ) var(--backdrop-contrast, ) var(--backdrop-grayscale, ) var(--backdrop-hue-rotate, ) var(--backdrop-invert, ) var(--backdrop-opacity, ) var(--backdrop-saturate, ) var(--backdrop-sepia, );
+  backdrop-filter: var(--backdrop-blur, ) var(--backdrop-brightness, ) var(--backdrop-contrast, ) var(--backdrop-grayscale, ) var(--backdrop-hue-rotate, ) var(--backdrop-invert, ) var(--backdrop-opacity, ) var(--backdrop-saturate, ) var(--backdrop-sepia, );
 }
 
 /*
@@ -298,7 +290,5 @@ body *::-webkit-scrollbar-thumb {
 */
 html.light {
   --color-warmth: 0;
-  filter: sepia(calc(var(--color-warmth) * 0.004))
-    hue-rotate(calc(var(--color-warmth) * -0.15deg))
-    saturate(calc(1 + var(--color-warmth) * 0.002));
+  filter: sepia(calc(var(--color-warmth) * 0.004)) hue-rotate(calc(var(--color-warmth) * -0.15deg)) saturate(calc(1 + var(--color-warmth) * 0.002));
 }

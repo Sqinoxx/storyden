@@ -341,21 +341,21 @@ export function useContentComposer(props: ContentComposerProps) {
         const isPdfNode = view.state.doc.nodeAt(pos)?.type.name === "fileAttachment";
         const updateAttrs = isPdfNode
           ? {
-              href: getAssetURL(asset.path),
-              fileName: upload.file.name,
-              "data-upload-id": null,
-              "data-uploading": null,
-              "data-upload-error": null,
-              "data-upload-progress": null,
-            }
+            href: getAssetURL(asset.path),
+            fileName: upload.file.name,
+            "data-upload-id": null,
+            "data-uploading": null,
+            "data-upload-error": null,
+            "data-upload-progress": null,
+          }
           : {
-              src: getAssetURL(asset.path),
-              alt: upload.file.name,
-              "data-upload-id": null,
-              "data-uploading": null,
-              "data-upload-error": null,
-              "data-upload-progress": null,
-            };
+            src: getAssetURL(asset.path),
+            alt: upload.file.name,
+            "data-upload-id": null,
+            "data-uploading": null,
+            "data-upload-error": null,
+            "data-upload-progress": null,
+          };
 
         const updateTransaction = view.state.tr.setNodeMarkup(pos, undefined, updateAttrs);
 
@@ -455,17 +455,17 @@ export function useContentComposer(props: ContentComposerProps) {
       // Insert placeholder immediately
       const attrs = isAttachment
         ? {
-            href: blobUrl,
-            fileName: f.name,
-            "data-upload-id": uploadId,
-            "data-uploading": "true",
-          }
+          href: blobUrl,
+          fileName: f.name,
+          "data-upload-id": uploadId,
+          "data-uploading": "true",
+        }
         : {
-            src: blobUrl,
-            alt: f.name,
-            "data-upload-id": uploadId,
-            "data-uploading": "true",
-          };
+          src: blobUrl,
+          alt: f.name,
+          "data-upload-id": uploadId,
+          "data-uploading": "true",
+        };
 
       const placeholderNode = nodeType.create(attrs);
 
@@ -505,21 +505,21 @@ export function useContentComposer(props: ContentComposerProps) {
             const isPdfNode = currentState.doc.nodeAt(nodePos)?.type.name === "fileAttachment";
             const newAttrs = isPdfNode
               ? {
-                  href: getAssetURL(asset.path),
-                  fileName: f.name,
-                  "data-upload-id": null,
-                  "data-uploading": null,
-                  "data-upload-error": null,
-                  "data-upload-progress": null,
-                }
+                href: getAssetURL(asset.path),
+                fileName: f.name,
+                "data-upload-id": null,
+                "data-uploading": null,
+                "data-upload-error": null,
+                "data-upload-progress": null,
+              }
               : {
-                  src: getAssetURL(asset.path),
-                  alt: f.name,
-                  "data-upload-id": null,
-                  "data-uploading": null,
-                  "data-upload-error": null,
-                  "data-upload-progress": null,
-                };
+                src: getAssetURL(asset.path),
+                alt: f.name,
+                "data-upload-id": null,
+                "data-uploading": null,
+                "data-upload-error": null,
+                "data-upload-progress": null,
+              };
             // Update the node with the real URL and remove upload attrs
             const updateTransaction = currentState.tr.setNodeMarkup(
               nodePos,

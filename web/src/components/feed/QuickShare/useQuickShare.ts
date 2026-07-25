@@ -18,7 +18,8 @@ export type Props = {
 };
 
 export const FormSchema = z.object({
-  body: z.string(),
+  title: z.string().optional(),
+  body: z.string().optional(),
   category: z.string().optional(),
 });
 export type Form = z.infer<typeof FormSchema>;
@@ -36,6 +37,7 @@ export function useQuickShare({ initialCategory }: Props) {
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
+      title: "",
       body: undefined,
       category: initialCategory?.id,
     },
@@ -46,7 +48,10 @@ export function useQuickShare({ initialCategory }: Props) {
 
   // When the body changes, find the first URL in the content and remember it.
   useEffect(() => {
-    const parsed = new DOMParser().parseFromString(bodyContent, "text/html");
+    const parsed = new DOMParser().parseFromString(
+      bodyContent || "",
+      "text/html",
+    );
     const url = getFirstURL(parsed);
 
     if (url) {
@@ -84,11 +89,25 @@ export function useQuickShare({ initialCategory }: Props) {
   const handlePost = form.handleSubmit((data: Form) => {
     handle(
       async () => {
+        const titleInput = data.title?.trim();
         const parsed = new DOMParser().parseFromString(
-          bodyContent,
+          bodyContent || "",
           "text/html",
         );
-        const { title, body, isFallback } = splitTitleBody(parsed);
+
+        let title = "";
+        let body = "";
+        let isFallback = false;
+
+        if (titleInput && titleInput.length > 0) {
+          title = titleInput;
+          body = bodyContent || "";
+        } else if (bodyContent && bodyContent.trim().length > 0) {
+          const split = splitTitleBody(parsed);
+          title = split.title;
+          body = split.body;
+          isFallback = split.isFallback;
+        }
 
         const linkAvailable =
           hydratedLink && hydratedLink !== "loading" ? hydratedLink : undefined;
@@ -99,7 +118,7 @@ export function useQuickShare({ initialCategory }: Props) {
             : title
           : title;
 
-        if (!title) {
+        if (!threadTitle) {
           throw new Error("Cannot post an empty thread.");
         }
 
@@ -125,10 +144,10 @@ export function useQuickShare({ initialCategory }: Props) {
 
         await createThread(newThread, linkAvailable);
 
-        // Awful hack to reset the rich text editor...
+        // Reset the rich text editor and title input
         setResetKey(new Date().toISOString());
 
-        // Only reset the body content, the member might want to post again.
+        form.resetField("title");
         form.resetField("body");
 
         setHydratedLink(null);

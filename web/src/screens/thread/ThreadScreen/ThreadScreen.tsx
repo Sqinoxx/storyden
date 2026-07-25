@@ -34,6 +34,7 @@ import {
 import { LikeIcon, LikeSavedIcon } from "@/components/ui/icons/Like";
 import { VisibilityBadge } from "@/components/visibility/VisibilityBadge";
 import { HStack, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
+import { FileAttachmentList } from "@/components/post/FileAttachmentList";
 
 import { Form, Props, useThreadScreen } from "./useThreadScreen";
 
@@ -156,6 +157,10 @@ export function ThreadScreen(props: Props) {
             disabled={!isEditing}
             handleEmptyStateChange={handlers.handleEmptyStateChange}
           />
+
+          {thread.assets && thread.assets.length > 0 && (
+            <FileAttachmentList assets={thread.assets} />
+          )}
 
           {signatureConfig.enabled && (
             <Signature

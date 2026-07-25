@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { memo } from "react";
-import { FileIcon, Download } from "lucide-react";
+import { memo } from "react";
 
 import {
   Asset,
@@ -16,6 +15,10 @@ import { CollectionMenu } from "@/components/content/CollectionMenu/CollectionMe
 
 import { Card } from "@/components/ui/rich-card";
 import { Box, HStack, LStack, styled } from "@/styled-system/jsx";
+import {
+  FileAttachmentBadge,
+  isDocumentAsset,
+} from "./FileAttachmentList";
 import { getAssetURL } from "@/utils/asset";
 import { timestamp } from "@/utils/date";
 import { hasPermission } from "@/utils/permissions";
@@ -32,15 +35,6 @@ import { PinIcon } from "../ui/icons/Pin";
 
 import { LikeButton } from "./LikeButton/LikeButton";
 import { useThreadCardModeration } from "./useThreadCardModeration";
-
-/** Returns true if the asset is a document (not an image). */
-function isDocumentAsset(asset: Asset) {
-  if (!asset) return false;
-  if (asset.mime_type && asset.mime_type.startsWith("image/")) {
-    return false;
-  }
-  return true;
-}
 
 function isDocumentHref(href: string | null): boolean {
   if (!href) return false;
@@ -110,94 +104,6 @@ function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[] {
   }
 
   return assets;
-}
-
-/** Utility function to trigger a clean file download without opening blank tabs. */
-async function downloadAsset(url: string, filename: string) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Download failed");
-    const blob = await res.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(blobUrl);
-  } catch {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }
-}
-
-/** A compact, styled badge for a file attachment shown in the feed card. */
-function FileAttachmentBadge({ asset }: { asset: Asset }) {
-  const url = getAssetURL(asset.path);
-
-  function handleDownload(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (url) {
-      downloadAsset(url, asset.filename);
-    }
-  }
-
-  return (
-    <styled.a
-      href={url}
-      download={asset.filename}
-      display="inline-flex"
-      alignItems="center"
-      gap="2"
-      px="3"
-      py="2"
-      borderRadius="md"
-      borderWidth="thin"
-      borderColor="border.default"
-      bgColor="bg.subtle"
-      color="fg.default"
-      textDecoration="none"
-      fontSize="sm"
-      fontWeight="medium"
-      maxWidth="xs"
-      overflow="hidden"
-      position="relative"
-      cursor="pointer"
-      _hover={{ bgColor: "bg.muted" }}
-      onClick={handleDownload}
-      style={{ zIndex: 10, transition: "background 0.15s" }}
-    >
-      <styled.span
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        bgColor="bg.muted"
-        borderRadius="sm"
-        p="1"
-        flexShrink="0"
-      >
-        <FileIcon size={16} />
-      </styled.span>
-      <styled.span
-        overflow="hidden"
-        textOverflow="ellipsis"
-        whiteSpace="nowrap"
-        flex="1"
-        minWidth="0"
-      >
-        {asset.filename}
-      </styled.span>
-      <styled.span display="flex" alignItems="center" color="fg.muted" flexShrink="0" ml="1">
-        <Download size={14} />
-      </styled.span>
-    </styled.a>
-  );
 }
 
 type Props = {

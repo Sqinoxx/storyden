@@ -121,29 +121,48 @@ function extractCleanTextFromHTML(
   htmlString?: string,
   fallbackDescription?: string,
 ): string | undefined {
-  if (typeof window === "undefined") {
-    return fallbackDescription?.trim() || undefined;
+  const source = htmlString || fallbackDescription;
+  if (!source) {
+    return undefined;
   }
-  if (!htmlString) {
-    return fallbackDescription?.trim() || undefined;
-  }
-  try {
-    const doc = new DOMParser().parseFromString(htmlString, "text/html");
-    doc
-      .querySelectorAll(
-        'a[data-type="file-attachment"], a[data-filename], img',
-      )
-      .forEach((el) => el.remove());
 
-    const blocks: string[] = [];
-    doc.body.childNodes.forEach((node) => {
-      const text = node.textContent?.trim();
-      if (text) {
-        blocks.push(text);
-      }
-    });
-    const cleaned = blocks.join("\n").replace(/[ \t]+/g, " ").trim();
-    return cleaned || undefined;
+  try {
+    let text = source;
+
+    // Remove file attachment links and image tags
+    text = text.replace(
+      /<a\b[^>]*(?:data-type=["']file-attachment["']|data-filename)[^>]*>[\s\S]*?<\/a>/gi,
+      "",
+    );
+    text = text.replace(/<img\b[^>]*>/gi, "");
+
+    // Convert block level closing tags and line breaks to newlines
+    text = text.replace(
+      /<\/(p|div|h[1-6]|li|tr|blockquote|article|section)>/gi,
+      "\n",
+    );
+    text = text.replace(/<br\s*\/?>/gi, "\n");
+
+    // Remove all remaining HTML tags
+    text = text.replace(/<[^>]+>/g, "");
+
+    // Decode standard HTML entities
+    text = text
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, " ");
+
+    // Normalize whitespace per line and join non-empty lines with newlines
+    const lines = text
+      .split("\n")
+      .map((line) => line.replace(/[ \t]+/g, " ").trim())
+      .filter(Boolean);
+
+    const cleaned = lines.join("\n").trim();
+    return cleaned || fallbackDescription?.trim() || undefined;
   } catch {
     return fallbackDescription?.trim() || undefined;
   }

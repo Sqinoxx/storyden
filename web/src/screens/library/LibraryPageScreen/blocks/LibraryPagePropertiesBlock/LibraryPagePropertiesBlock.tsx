@@ -1,3 +1,5 @@
+"use client";
+
 import { ChangeEvent } from "react";
 
 import { PropertyName, PropertyType } from "@/api/openapi-schema";
@@ -6,6 +8,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { DeleteIcon } from "@/components/ui/icons/Delete";
 import { Input } from "@/components/ui/input";
 import { Center, HStack, LStack, styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 import { useLibraryPageContext } from "../../Context";
 import { useWatch } from "../../store";
@@ -62,6 +65,7 @@ export function LibraryPagePropertiesBlock() {
 
 function LibraryPagePropertiesBlockEditable() {
   const { store } = useLibraryPageContext();
+  const t = useTranslation();
   const {
     addProperty,
     removePropertyByName,
@@ -133,7 +137,7 @@ function LibraryPagePropertiesBlockEditable() {
         variant="subtle"
         onClick={handleAddProperty}
       >
-        Add Property
+        {t.library.addProperty}
       </Button>
     </LStack>
   );

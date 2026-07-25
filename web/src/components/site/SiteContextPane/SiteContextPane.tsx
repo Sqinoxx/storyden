@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { css } from "@/styled-system/css";
 import { Divider, HStack, LStack, WStack } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
+import { useTranslation } from "@/lib/i18n";
 
 import { EditAction } from "../Action/Edit";
 import { SaveAction } from "../Action/Save";
@@ -21,6 +22,7 @@ import { Form, Props, useSiteContextPane } from "./useSiteContextPane";
 
 export function SiteContextPane(props: Props) {
   const { ready, error, form, data, handlers } = useSiteContextPane(props);
+  const t = useTranslation();
   if (!ready) {
     return <Unready error={error} />;
   }
@@ -108,10 +110,10 @@ export function SiteContextPane(props: Props) {
 
           <WStack>
             {isEditingSettings ? (
-              <SaveAction type="submit">Save</SaveAction>
+              <SaveAction type="submit">{t.actions.save}</SaveAction>
             ) : (
               <EditAction onClick={handlers.handleEnableEditing}>
-                Edit
+                {t.actions.edit}
               </EditAction>
             )}
             {isAdmin && <AdminAnchor />}

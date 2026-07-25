@@ -46,7 +46,6 @@ function LibraryPageLinkBlockEditing() {
           placeholder={t.library.externalUrlPlaceholder}
           onChange={handlers.handleInputValueChange}
           value={data.inputValue}
-          defaultValue={data.defaultLinkURL}
         />
 
         <HStack>

@@ -56,8 +56,8 @@ export const slider = defineSlotRecipe({
     },
     marker: {
       "--before-background": {
-        _osLight: "white",
-        _osDark: "black",
+        _light: "white",
+        _dark: "black",
       },
       color: "fg.muted",
       _before: {

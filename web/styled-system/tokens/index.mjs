@@ -2976,11 +2976,11 @@ const tokens = {
     "variable": "var(--z-index-tooltip)"
   },
   "shadows.xs": {
-    "value": "0px 1px 2px 0px var(--colors-gray-light-a5), 0px 0px 1px 0px var(--colors-gray-light-a7)",
+    "value": "0px 1px 2px 0px var(--colors-gray-light-a7), 0px 0px 1px 0px var(--colors-gray-light-a9)",
     "variable": "var(--shadows-xs)"
   },
   "shadows.sm": {
-    "value": "0px 2px 4px 0px var(--colors-gray-light-a3), 0px 0px 1px 0px var(--colors-gray-light-a7)",
+    "value": "0px 2px 4px 0px var(--colors-gray-light-a5), 0px 0px 1px 0px var(--colors-gray-light-a9)",
     "variable": "var(--shadows-sm)"
   },
   "shadows.md": {

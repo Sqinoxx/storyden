@@ -12,6 +12,7 @@ import { SearchAnchor } from "./Anchors/Search";
 import { MemberActions } from "./MemberActions";
 import { SidebarToggle } from "./NavigationPane/SidebarToggle";
 import { getServerSidebarState } from "./NavigationPane/server";
+import { ThemeToggle } from "./ThemeToggle";
 import { Title } from "./Title";
 
 export async function DesktopCommandBar() {
@@ -47,6 +48,7 @@ export async function DesktopCommandBar() {
       </HStack>
 
       <HStack className={styles["topbar-right"]}>
+        <ThemeToggle />
         <MemberActions session={sessionAccount} canRegister={canRegister} />
       </HStack>
     </HStack>

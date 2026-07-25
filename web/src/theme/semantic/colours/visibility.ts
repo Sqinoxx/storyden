@@ -3,24 +3,24 @@ export const visibility = {
     bg: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.neutral.light.3}",
-          _osDark: "{colors.neutral.dark.3}",
+          _light: "{colors.neutral.light.3}",
+          _dark: "{colors.neutral.dark.3}",
         },
       },
     },
     fg: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.neutral.light.12}",
-          _osDark: "{colors.neutral.dark.12}",
+          _light: "{colors.neutral.light.12}",
+          _dark: "{colors.neutral.dark.12}",
         },
       },
     },
     border: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.neutral.light.6}",
-          _osDark: "{colors.neutral.dark.6}",
+          _light: "{colors.neutral.light.6}",
+          _dark: "{colors.neutral.dark.6}",
         },
       },
     },
@@ -29,24 +29,24 @@ export const visibility = {
     bg: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.blue.light.3}",
-          _osDark: "{colors.blue.dark.3}",
+          _light: "{colors.blue.light.3}",
+          _dark: "{colors.blue.dark.3}",
         },
       },
     },
     fg: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.blue.light.11}",
-          _osDark: "{colors.blue.dark.11}",
+          _light: "{colors.blue.light.11}",
+          _dark: "{colors.blue.dark.11}",
         },
       },
     },
     border: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.blue.light.6}",
-          _osDark: "{colors.blue.dark.7}",
+          _light: "{colors.blue.light.6}",
+          _dark: "{colors.blue.dark.7}",
         },
       },
     },
@@ -55,24 +55,24 @@ export const visibility = {
     bg: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.amber.light.3}",
-          _osDark: "{colors.amber.dark.3}",
+          _light: "{colors.amber.light.3}",
+          _dark: "{colors.amber.dark.3}",
         },
       },
     },
     fg: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.amber.light.11}",
-          _osDark: "{colors.amber.dark.11}",
+          _light: "{colors.amber.light.11}",
+          _dark: "{colors.amber.dark.11}",
         },
       },
     },
     border: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.amber.light.6}",
-          _osDark: "{colors.amber.dark.7}",
+          _light: "{colors.amber.light.6}",
+          _dark: "{colors.amber.dark.7}",
         },
       },
     },
@@ -81,24 +81,24 @@ export const visibility = {
     bg: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.pink.light.3}",
-          _osDark: "{colors.pink.dark.3}",
+          _light: "{colors.pink.light.3}",
+          _dark: "{colors.pink.dark.3}",
         },
       },
     },
     fg: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.pink.light.11}",
-          _osDark: "{colors.pink.dark.11}",
+          _light: "{colors.pink.light.11}",
+          _dark: "{colors.pink.dark.11}",
         },
       },
     },
     border: {
       DEFAULT: {
         value: {
-          _osLight: "{colors.pink.light.6}",
-          _osDark: "{colors.pink.dark.7}",
+          _light: "{colors.pink.light.6}",
+          _dark: "{colors.pink.dark.7}",
         },
       },
     },

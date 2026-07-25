@@ -97,8 +97,41 @@ export function FileAttachmentBadge({ asset }: { asset: Asset }) {
 }
 
 /** Renders a list of document asset download badges. */
-export function FileAttachmentList({ assets }: { assets: Asset[] }) {
-  const documentAssets = assets.filter(isDocumentAsset);
+export function FileAttachmentList({
+  assets,
+  body,
+}: {
+  assets: Asset[];
+  body?: string;
+}) {
+  let documentAssets = assets.filter(isDocumentAsset);
+
+  if (body) {
+    const bodyLower = body.toLowerCase();
+    documentAssets = documentAssets.filter((asset) => {
+      if (!asset.path && !asset.filename) return true;
+      const pathKey = asset.path ? asset.path.replace(/^.*\/api\/assets\//, "") : "";
+      const nameKey = asset.filename ? asset.filename.toLowerCase() : "";
+
+      if (pathKey && bodyLower.includes(pathKey.toLowerCase())) return false;
+      if (asset.path && bodyLower.includes(asset.path.toLowerCase())) return false;
+      if (nameKey && bodyLower.includes(nameKey)) return false;
+      return true;
+    });
+  }
+
+  // Filter out redundant '-untitled' fallback assets if a properly named asset exists
+  if (documentAssets.length > 1) {
+    const hasNamedAsset = documentAssets.some(
+      (a) => a.filename && !a.filename.toLowerCase().endsWith("-untitled") && a.filename.toLowerCase() !== "untitled"
+    );
+    if (hasNamedAsset) {
+      documentAssets = documentAssets.filter(
+        (a) => a.filename && !a.filename.toLowerCase().endsWith("-untitled") && a.filename.toLowerCase() !== "untitled"
+      );
+    }
+  }
+
   if (documentAssets.length === 0) return null;
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { Title as DialogTitle } from "@radix-ui/react-dialog";
+import { Title as DialogTitle, Description as DialogDescription } from "@radix-ui/react-dialog";
 import { Command } from "cmdk";
 
 import { WStack, styled } from "@/styled-system/jsx";
@@ -32,11 +32,15 @@ function CommandPaletteDialog() {
       ref={dialogRef}
       open={open}
       label="Command Menu"
-      aria-description="The command palette allows you to quickly navigate and perform actions in Storyden."
     >
       <DialogTitle asChild>
         <styled.h2 srOnly>Command Menu</styled.h2>
       </DialogTitle>
+      <DialogDescription asChild>
+        <styled.p srOnly>
+          The command palette allows you to quickly navigate and perform actions in Storyden.
+        </styled.p>
+      </DialogDescription>
       <RobotChatContext
         key={sessionState.id}
         initialSessionID={sessionState.id}

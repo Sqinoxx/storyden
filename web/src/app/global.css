@@ -288,3 +288,17 @@ body *::-webkit-scrollbar-thumb {
     var(--backdrop-hue-rotate,) var(--backdrop-invert,) var(--backdrop-opacity,)
     var(--backdrop-saturate,) var(--backdrop-sepia,);
 }
+
+/*
+  Light mode colour warmth filter.
+  The --color-warmth CSS variable (0–100) is set by the ThemeProvider.
+  A value of 0 = neutral/cool, 100 = very warm.
+  We use sepia() combined with a slight hue-rotate to simulate paper warmth.
+  Only active when the .light class is present on <html>.
+*/
+html.light {
+  --color-warmth: 0;
+  filter: sepia(calc(var(--color-warmth) * 0.004))
+    hue-rotate(calc(var(--color-warmth) * -0.15deg))
+    saturate(calc(1 + var(--color-warmth) * 0.002));
+}

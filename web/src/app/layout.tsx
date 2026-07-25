@@ -31,6 +31,11 @@ export default async function RootLayout({ children }: PropsWithChildren) {
           console.log("set up window config", window.__storyden__);
         `}} />
 
+        {/* Theme init: set dark/light class and warmth before first paint to prevent flash of wrong theme */}
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){try{var s=localStorage.getItem('storyden-theme');var t=(s==='dark'||s==='light')?s:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.classList.add(t);var w=localStorage.getItem('storyden-warmth');if(w!==null){document.documentElement.style.setProperty('--color-warmth',w);}}catch(e){document.documentElement.classList.add('dark');}})();`
+        }} />
+
         {/*
             NOTE: This stylesheet is fully server-side rendered but it's not
             static because it uses data from the API to be generated. But we
@@ -54,7 +59,7 @@ export async function generateViewport(): Promise<Viewport> {
 
   return {
     themeColor: themeColour,
-    colorScheme: "only light",
+    colorScheme: "light dark",
   };
 }
 

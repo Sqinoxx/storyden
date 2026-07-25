@@ -117,6 +117,38 @@ function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[] {
   return assets;
 }
 
+function extractCleanTextFromHTML(
+  htmlString?: string,
+  fallbackDescription?: string,
+): string | undefined {
+  if (typeof window === "undefined") {
+    return fallbackDescription?.trim() || undefined;
+  }
+  if (!htmlString) {
+    return fallbackDescription?.trim() || undefined;
+  }
+  try {
+    const doc = new DOMParser().parseFromString(htmlString, "text/html");
+    doc
+      .querySelectorAll(
+        'a[data-type="file-attachment"], a[data-filename], img',
+      )
+      .forEach((el) => el.remove());
+
+    const blocks: string[] = [];
+    doc.body.childNodes.forEach((node) => {
+      const text = node.textContent?.trim();
+      if (text) {
+        blocks.push(text);
+      }
+    });
+    const cleaned = blocks.join("\n").replace(/[ \t]+/g, " ").trim();
+    return cleaned || undefined;
+  } catch {
+    return fallbackDescription?.trim() || undefined;
+  }
+}
+
 type Props = {
   thread: ThreadReference;
   hideCategoryBadge?: boolean;
@@ -174,18 +206,25 @@ export const ThreadReferenceCard = memo(
 
     // Suppress plain-text description if description is just the document filename
     // to avoid displaying duplicate plain text above the styled file attachment badge.
-    let textDescription = thread.description?.trim();
+    let textDescription = extractCleanTextFromHTML(
+      thread.body,
+      thread.description,
+    );
+
     if (textDescription && documentAssets.length > 0) {
-      const isFileNameOnly = documentAssets.some(
-        (a) =>
-          textDescription === a.filename ||
-          textDescription === a.filename.trim() ||
-          textDescription?.toLowerCase() === a.filename.toLowerCase() ||
-          textDescription === thread.title,
-      );
-      if (isFileNameOnly) {
-        textDescription = undefined;
-      }
+      documentAssets.forEach((a) => {
+        if (a.filename) {
+          textDescription = textDescription
+            ?.split(a.filename)
+            .join("")
+            .replace(/\s+/g, " ")
+            .trim();
+        }
+      });
+    }
+
+    if (!textDescription || textDescription === thread.title) {
+      textDescription = undefined;
     }
 
     return (

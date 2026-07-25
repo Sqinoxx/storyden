@@ -127,7 +127,11 @@ export function Card({
                 className={linkOverlay()}
                 onClick={(e) => disableAnchors && e.preventDefault()}
               >
-                {text && <p className={styles.text}>{text}</p>}
+                {text && (
+                  <p className={styles.text} style={{ whiteSpace: "pre-line" }}>
+                    {text}
+                  </p>
+                )}
                 {content && (
                   <>
                     <ContentComposer

@@ -226,20 +226,27 @@ func parseRichTextFromReader(r io.Reader, preserveBlockIDs bool) (Content, error
 		return Content{}, fault.Wrap(err)
 	}
 
-	result, err := readability.New().Parse(bytes.NewReader(sanitised), baseURL.String())
+	bodyTree, links, media, refs := extractReferences(htmlTree, baseURL)
+	normaliseIDAttributes(bodyTree, preserveBlockIDs)
+
+	readabilityTree := cloneNodeDeep(htmlTree)
+	stripFileAttachmentNodes(readabilityTree)
+	var cleanBuf bytes.Buffer
+	_ = html.Render(&cleanBuf, readabilityTree)
+	cleanedHTML := strings.ReplaceAll(cleanBuf.String(), "><", ">\n<")
+
+	result, err := readability.New().Parse(strings.NewReader(cleanedHTML), baseURL.String())
 	if err != nil {
-		return Content{}, fault.Wrap(err)
+		result, _ = readability.New().Parse(bytes.NewReader(sanitised), baseURL.String())
 	}
 
 	short := getSummary(result)
-
-	bodyTree, links, media, refs := extractReferences(htmlTree, baseURL)
-	normaliseIDAttributes(bodyTree, preserveBlockIDs)
+	plain := result.TextContent
 
 	c := Content{
 		html:  bodyTree,
 		short: short,
-		plain: result.TextContent,
+		plain: plain,
 		links: links,
 		media: media,
 		sdrs:  refs,
@@ -324,11 +331,56 @@ func extractReferences(htmlTree *html.Node, baseURL *url.URL) (*html.Node, []str
 	return bodyTree, links, media, refs
 }
 
-func getSummary(article readability.Article) string {
-	trimmed := strings.TrimSpace(article.TextContent)
+func isDocumentLinkNode(n *html.Node) bool {
+	if n.Type != html.ElementNode || n.DataAtom != atom.A {
+		return false
+	}
+	for _, attr := range n.Attr {
+		key := strings.ToLower(attr.Key)
+		if key == "data-type" && attr.Val == "file-attachment" {
+			return true
+		}
+		if key == "data-filename" {
+			return true
+		}
+	}
+	return false
+}
+
+func stripFileAttachmentNodes(n *html.Node) {
+	if n == nil {
+		return
+	}
+	var walk func(*html.Node)
+	walk = func(curr *html.Node) {
+		if curr == nil {
+			return
+		}
+		if isDocumentLinkNode(curr) {
+			if curr.Parent != nil {
+				spaceNode := &html.Node{Type: html.TextNode, Data: " "}
+				curr.Parent.InsertBefore(spaceNode, curr)
+				curr.Parent.RemoveChild(curr)
+			}
+			return
+		}
+		for c := curr.FirstChild; c != nil; {
+			cNext := c.NextSibling
+			walk(c)
+			c = cNext
+		}
+	}
+	walk(n)
+}
+
+func getSummaryFromText(textContent string) string {
+	trimmed := strings.TrimSpace(textContent)
 	collapsed := spaces.ReplaceAllString(trimmed, " ")
 
 	paragraphs := []rune(collapsed)
+	if len(paragraphs) == 0 {
+		return ""
+	}
 	end := int(math.Min(float64(len(paragraphs)-1), MaxSummaryLength))
 
 	var short string
@@ -339,16 +391,9 @@ func getSummary(article readability.Article) string {
 			}
 		}
 
-		// If stopped on a punctuation (like a comma) continue to walk backwards
-		// until a letter is found. Since this function finally places an
-		// elipsis at the end, a string ending like `hello, john` would output
-		// as: `hello,...` which looks weird, so this makes sure the elipsis is
-		// placed against a letter. If it fails, as with the above loop, it just
-		// uses the max short body length cut in half as a fallback.
 		if !unicode.IsLetter(paragraphs[end] - 1) {
 			for ; end > MaxSummaryLength/2; end-- {
 				if unicode.IsLetter(paragraphs[end]) {
-					// shift forwards again so we don't chop off the last char.
 					end += 1
 					break
 				}
@@ -361,6 +406,10 @@ func getSummary(article readability.Article) string {
 	}
 
 	return short
+}
+
+func getSummary(article readability.Article) string {
+	return getSummaryFromText(article.TextContent)
 }
 
 func textFromNode(n *html.Node, preserveNewlines bool) string {
@@ -392,11 +441,24 @@ func textFromNode(n *html.Node, preserveNewlines bool) string {
 			buf.WriteString(normalized)
 			last = []rune(normalized)[len([]rune(normalized))-1]
 		case html.ElementNode:
+			if isDocumentLinkNode(curr) {
+				return
+			}
+			isBlock := isBlockAtom(curr.DataAtom)
+			if isBlock && buf.Len() > 0 && last != ' ' && last != '\n' {
+				buf.WriteByte(' ')
+				last = ' '
+			}
 			if curr.DataAtom == atom.Br && preserveNewlines {
 				buf.WriteByte('\n')
+				last = '\n'
 			}
 			for c := curr.FirstChild; c != nil; c = c.NextSibling {
 				collect(c)
+			}
+			if isBlock && buf.Len() > 0 && last != ' ' && last != '\n' {
+				buf.WriteByte(' ')
+				last = ' '
 			}
 		default:
 			for c := curr.FirstChild; c != nil; c = c.NextSibling {

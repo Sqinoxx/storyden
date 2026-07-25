@@ -158,8 +158,8 @@ func TestContentAccessors(t *testing.T) {
 
 	assert.Contains(t, c.HTML(), "Hello")
 	assert.NotNil(t, c.HTMLTree())
-	assert.Equal(t, "Hello world.Docs", c.Plaintext())
-	assert.Equal(t, "Hello world.Docs", c.Short())
+	assert.Equal(t, "Hello world.\n\nDocs", c.Plaintext())
+	assert.Equal(t, "Hello world. Docs", c.Short())
 	assert.Equal(t, []string{"https://example.com/docs"}, c.Links())
 	assert.Equal(t, []string{"https://example.com/image.jpg"}, c.Media())
 	assert.Empty(t, c.References())
@@ -198,3 +198,12 @@ func TestContentEmptyParagraphIsEmpty(t *testing.T) {
 	assert.Empty(t, c.References())
 	assert.True(t, c.IsEmpty())
 }
+
+func TestFileAttachmentSummaryExclusion(t *testing.T) {
+	raw := `<p>zuvor</p><p><a data-type="file-attachment" href="/api/assets/123" data-filename="Belegungen drucken (5).pdf">Belegungen drucken (5).pdf</a></p><p>danach</p>`
+	c := mustContent(t, raw)
+
+	assert.Equal(t, "zuvor\n\ndanach", c.Plaintext())
+	assert.Equal(t, "zuvor danach", c.Short())
+}
+

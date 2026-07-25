@@ -1,3 +1,5 @@
+"use client";
+
 import { FileUploadFileAcceptDetails } from "@ark-ui/react";
 import { Upload } from "lucide-react";
 import { useState } from "react";
@@ -11,6 +13,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { Item } from "@/components/ui/menu";
 import { useLibraryMutation } from "@/lib/library/library";
 import { styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 export type CreatePageFromFileProps = ButtonProps & {
   parentSlug?: string;
@@ -29,6 +32,7 @@ export function CreatePageFromFileAction({
   ...props
 }: CreatePageFromFileProps) {
   const { revalidate } = useLibraryMutation();
+  const t = useTranslation();
   const [isUploading, setIsUploading] = useState(false);
 
   async function handleFileAccept({ files }: FileUploadFileAcceptDetails) {
@@ -55,8 +59,8 @@ export function CreatePageFromFileAction({
       },
       {
         promiseToast: {
-          loading: "Uploading file & creating page...",
-          success: "Page created with file!",
+          loading: t.library.uploadingFileAndCreatingPage,
+          success: t.library.pageCreatedWithFile,
         },
         cleanup: async () => {
           setIsUploading(false);
@@ -84,7 +88,7 @@ export function CreatePageFromFileAction({
           {...props}
         >
           {CreatePageFromFileIcon}
-          {!hideLabel && <span>{CreatePageFromFileLabel}</span>}
+          {!hideLabel && <span>{t.library.uploadFile}</span>}
         </IconButton>
       </FileUpload.Trigger>
       <FileUpload.HiddenInput />
@@ -93,12 +97,13 @@ export function CreatePageFromFileAction({
 }
 
 export function CreatePageFromFileMenuItem({ hideLabel }: CreatePageFromFileProps) {
+  const t = useTranslation();
   return (
     <Item value={CreatePageFromFileID}>
       {CreatePageFromFileIcon}
       {!hideLabel && (
         <>
-          &nbsp;<span>{CreatePageFromFileLabel}</span>
+          &nbsp;<span>{t.library.uploadFile}</span>
         </>
       )}
     </Item>

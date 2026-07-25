@@ -1,3 +1,5 @@
+"use client";
+
 import { usePopover } from "@ark-ui/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
@@ -17,6 +19,7 @@ import { useCapability } from "@/lib/settings/capabilities";
 import { HStack, styled } from "@/styled-system/jsx";
 import { UtilityValues } from "@/styled-system/types/prop-type";
 import { deriveError } from "@/utils/error";
+import { useTranslation } from "@/lib/i18n";
 
 import {
   ImportState,
@@ -44,6 +47,7 @@ export function CreatePageFromURLAction({
   ...props
 }: Props) {
   const genaiAvailable = useCapability("gen_ai");
+  const t = useTranslation();
   const [url, setUrl] = useState({
     valid: false,
     value: "",
@@ -150,7 +154,7 @@ export function CreatePageFromURLAction({
           {CreatePageFromURLIcon}
           {!hideLabel && (
             <>
-              <span>{CreatePageFromURLLabel}</span>
+              <span>{t.library.createFromUrl}</span>
             </>
           )}
         </IconButton>
@@ -162,7 +166,7 @@ export function CreatePageFromURLAction({
               <Input
                 w="64"
                 size="xs"
-                placeholder="Enter URL to import..."
+                placeholder={t.library.externalUrlPlaceholder}
                 value={url.value}
                 onChange={handleInputChange}
               />
@@ -172,7 +176,7 @@ export function CreatePageFromURLAction({
                 disabled={!url.valid || isImporting}
                 loading={isImporting}
               >
-                Import
+                {t.library.import}
               </Button>
             </HStack>
           ) : (
@@ -212,12 +216,13 @@ export function CreatePageFromURLAction({
 }
 
 export function CreatePageFromURLMenuItem({ hideLabel }: Props) {
+  const t = useTranslation();
   return (
     <Item value={CreatePageFromURLID}>
       {CreatePageFromURLIcon}
       {!hideLabel && (
         <>
-          &nbsp;<span>{CreatePageFromURLLabel}</span>
+          &nbsp;<span>{t.library.createFromUrl}</span>
         </>
       )}
     </Item>

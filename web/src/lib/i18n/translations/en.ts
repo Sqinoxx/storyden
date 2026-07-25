@@ -237,7 +237,7 @@ export const en = {
   },
   feed: {
     empty: "*tumbleweed* there are no posts...",
-    quickSharePlaceholder: "Share a thought, a link, something cool...",
+    quickSharePlaceholder: "Share a past exam, an exam question, or a tip...",
     share: "Share",
   },
   profile: {

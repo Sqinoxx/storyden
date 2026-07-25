@@ -232,14 +232,14 @@ export const de: Translations = {
     orderedList: "Nummerierte Liste (ein/aus)",
     insertImage: "Bild oder Dokument einfügen",
     placeholder: "Lass deinen Gedanken freien Lauf...",
-    titlePlaceholder: "Titel der Diskussion...",
+    titlePlaceholder: "Titel",
     addTags: "Tags hinzufügen...",
     saveDraft: "Entwurf speichern",
     post: "Veröffentlichen",
   },
   feed: {
     empty: "*Grille* es gibt hier noch keine Beiträge...",
-    quickSharePlaceholder: "Teile einen Gedanken, einen Link, etwas Cooles...",
+    quickSharePlaceholder: "Teile eine Altklausur, eine Prüfungsfrage oder einen Tipp...",
     share: "Teilen",
   },
   profile: {

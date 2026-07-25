@@ -416,6 +416,9 @@ function GridCard({
                       color="accent.default"
                       _hover={{ textDecoration: "underline" }}
                     >
+                      <styled.span flexShrink="0" fontSize="sm" style={{ textDecoration: "none" }}>
+                        📄
+                      </styled.span>
                       <styled.div
                         lineClamp="1"
                         textOverflow="ellipsis"

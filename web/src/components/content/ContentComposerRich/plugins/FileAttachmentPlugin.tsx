@@ -13,7 +13,7 @@ import { EditorView } from "prosemirror-view";
 import { Asset } from "@/api/openapi-schema";
 import { Button } from "@/components/ui/button";
 import { ProgressCircle } from "@/components/ui/progress";
-import { FileIcon, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
 
@@ -98,20 +98,22 @@ function Component(props: NodeViewProps) {
           }
         }}
       >
-        <styled.span
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          backgroundColor="bg.muted"
-          borderRadius="sm"
-          padding="1"
-        >
-          {isUploading ? (
+        {isUploading ? (
+          <styled.span
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            backgroundColor="bg.muted"
+            borderRadius="sm"
+            padding="1"
+          >
             <ProgressCircle value={progressPercent} size="sm" />
-          ) : (
-            <FileIcon size={16} />
-          )}
-        </styled.span>
+          </styled.span>
+        ) : (
+          <styled.span display="flex" alignItems="center" flexShrink="0" fontSize="sm">
+            📄
+          </styled.span>
+        )}
 
         <styled.span fontSize="sm" fontWeight="medium" truncate maxWidth="xs">
           {fileName}

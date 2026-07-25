@@ -469,6 +469,9 @@ function Row({
                             color="accent.default"
                             _hover={{ textDecoration: "underline" }}
                           >
+                            <styled.span flexShrink="0" fontSize="sm" style={{ textDecoration: "none" }}>
+                              📄
+                            </styled.span>
                             <span>
                               {column.value || (
                                 <styled.em color="fg.muted">

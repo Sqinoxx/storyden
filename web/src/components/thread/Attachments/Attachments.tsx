@@ -1,3 +1,4 @@
+import { Download } from "lucide-react";
 import { Asset } from "@/api/openapi-schema";
 import { getAssetURL } from "@/utils/asset";
 import { HStack, styled } from "@/styled-system/jsx";
@@ -18,17 +19,38 @@ export function Attachments({ assets }: { assets: Asset[] }) {
           download={a.filename}
           target="_blank"
           rel="noreferrer"
-          display="flex"
+          display="inline-flex"
           alignItems="center"
-          gap="1"
-          px="2"
-          py="1"
+          gap="2"
+          px="3"
+          py="2"
           borderRadius="md"
+          borderWidth="thin"
+          borderColor="border.default"
           bgColor="bg.subtle"
+          color="fg.default"
+          textDecoration="none"
           fontSize="sm"
+          fontWeight="medium"
+          maxWidth="xs"
+          overflow="hidden"
           _hover={{ bgColor: "bg.muted" }}
         >
-          📄 {a.filename}
+          <styled.span flexShrink="0" fontSize="sm">
+            📄
+          </styled.span>
+          <styled.span
+            overflow="hidden"
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
+            flex="1"
+            minWidth="0"
+          >
+            {a.filename}
+          </styled.span>
+          <styled.span display="flex" alignItems="center" color="fg.muted" flexShrink="0" ml="1">
+            <Download size={14} />
+          </styled.span>
         </styled.a>
       ))}
     </HStack>

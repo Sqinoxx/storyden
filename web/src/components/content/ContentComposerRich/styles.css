@@ -33,9 +33,3 @@ a[data-type="file-attachment"]:hover,
 a[href*="/api/assets/"]:hover {
   background-color: var(--colors-bg-muted, #f4f4f5);
 }
-
-a[data-type="file-attachment"]::before,
-a[href*="/api/assets/"]:not([href*=".png"]):not([href*=".jpg"]):not([href*=".jpeg"]):not([href*=".gif"]):not([href*=".webp"]):not([href*=".svg"])::before {
-  content: "📄";
-  font-size: 0.875rem;
-}

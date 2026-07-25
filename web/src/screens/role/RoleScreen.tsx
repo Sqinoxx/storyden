@@ -168,6 +168,7 @@ function SortableRoleGrid({ roles, canEdit }: SortableRoleGridProps) {
 
   return (
     <DndContext
+      id="role-sortable-grid"
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}

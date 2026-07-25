@@ -11,6 +11,7 @@ import { CloseAction } from "../Action/Close";
 
 type Props = {
   title?: string;
+  description?: string;
   dismissable?: boolean;
   className?: string;
   size?: "default" | "wide";
@@ -66,6 +67,9 @@ export function ModalDrawer({
                 <Drawer.Title asChild>
                   <Heading size="md">{props.title}</Heading>
                 </Drawer.Title>
+                <Drawer.Description className="sr-only">
+                  {props.description || props.title || "Modal window"}
+                </Drawer.Description>
                 <CloseAction onClick={props.onClose} />
               </WStack>
 

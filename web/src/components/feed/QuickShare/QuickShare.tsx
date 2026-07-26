@@ -1,6 +1,9 @@
+import { useId } from "react";
+
 import { match } from "ts-pattern";
 
 import { LinkReference } from "@/api/openapi-schema";
+import { assetUpload } from "@/api/openapi-client/assets";
 import { CategorySelect } from "@/components/category/CategorySelect/CategorySelect";
 import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/button";
@@ -9,7 +12,8 @@ import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { Input } from "@/components/ui/input";
 import { CreateIcon } from "@/components/ui/icons/Create";
 import { Card } from "@/components/ui/rich-card";
-import { CardBox, HStack, WStack } from "@/styled-system/jsx";
+import { CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
+import { button } from "@/styled-system/recipes";
 import { lstack } from "@/styled-system/patterns";
 import { useTranslation } from "@/lib/i18n";
 import { getAssetURL } from "@/utils/asset";
@@ -17,6 +21,8 @@ import { getAssetURL } from "@/utils/asset";
 import { Props, useQuickShare } from "./useQuickShare";
 
 export function QuickShare(props: Props) {
+  const fileInputId = useId();
+
   const {
     form,
     state: { formRef, hydratedLink, resetKey },
@@ -80,15 +86,56 @@ export function QuickShare(props: Props) {
             </HStack>
           )}
 
-          <Button
-            type="submit"
-            size="sm"
-            variant="subtle"
-            loading={form.formState.isSubmitting}
-          >
-            <CreateIcon />
-            {t.feed.share}
-          </Button>
+          <HStack gap="2" ml={props.showCategorySelect ? "auto" : undefined}>
+            <label
+              className={button({ size: "sm", variant: "ghost" })}
+              htmlFor={fileInputId}
+              title="Datei hochladen"
+            >
+              📎
+            </label>
+            <styled.input
+              id={fileInputId}
+              type="file"
+              multiple
+              display="none"
+              accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
+              onChange={async (e) => {
+                const files = Array.from(e.currentTarget.files ?? []);
+                if (files.length === 0) return;
+
+                for (const file of files) {
+                  try {
+                    const asset = await assetUpload(
+                      file,
+                      { filename: file.name },
+                    );
+                    const url = getAssetURL(asset.path);
+                    const isImage = /^image\//i.test(file.type);
+                    const insertion = isImage
+                      ? `<img src="${url}" alt="${file.name}" />`
+                      : `<a href="${url}" data-type="file-attachment" data-filename="${file.name}" download="${file.name}">${file.name}</a>`;
+
+                    const current = form.getValues("body") ?? "";
+                    form.setValue("body", current + "<p>" + insertion + "</p>");
+                  } catch {
+                    // ignore upload errors silently
+                  }
+                }
+                e.target.value = "";
+              }}
+            />
+
+            <Button
+              type="submit"
+              size="sm"
+              variant="subtle"
+              loading={form.formState.isSubmitting}
+            >
+              <CreateIcon />
+              {t.feed.share}
+            </Button>
+          </HStack>
         </WStack>
       </form>
 

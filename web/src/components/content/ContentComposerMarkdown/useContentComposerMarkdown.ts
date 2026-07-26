@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { handle } from "@/api/client";
 import { getAssetURL } from "@/utils/asset";
@@ -28,6 +28,7 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const uploadCounterRef = useRef(0);
   const dragCounterRef = useRef(0);
+  const uniqueID = useId();
 
   useEffect(() => {
     if (props.resetKey) {
@@ -259,6 +260,59 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
     }
   }
 
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.currentTarget.files ?? []);
+    if (files.length === 0) return;
+
+    const textarea = textareaRef.current;
+    const insertPosition = textarea?.selectionStart ?? value.length;
+
+    const imageFiles = files.filter((f) => isSupportedImage(f.type));
+    const otherFiles = files.filter((f) => !isSupportedImage(f.type));
+
+    if (imageFiles.length > 0) {
+      await handleMultipleImageUploads(imageFiles);
+    }
+
+    for (const file of otherFiles) {
+      setUploadingCount((prev) => prev + 1);
+      await handle(
+        async () => {
+          const asset = await upload(file, { filename: file.name });
+          const url = getAssetURL(asset.path);
+          const markdownLink = `[${file.name}](${url})`;
+
+          setValue((current) => {
+            const pos = Math.min(insertPosition, current.length);
+            const newValue =
+              current.substring(0, pos) +
+              "\n" +
+              markdownLink +
+              "\n" +
+              current.substring(pos);
+
+            markdownToHTML(newValue).then((html) => {
+              const isEmpty =
+                newValue.trim().length === 0 || html.trim().length === 0;
+              props.onChange?.(html, isEmpty);
+            });
+
+            return newValue;
+          });
+
+          props.onAssetUpload?.(asset);
+        },
+        {
+          cleanup: async () => {
+            setUploadingCount((prev) => prev - 1);
+          },
+        },
+      );
+    }
+
+    e.target.value = "";
+  }
+
   return {
     value,
     previewHTML,
@@ -267,6 +321,7 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
     isDragError,
     uploadingCount,
     textareaRef,
+    uniqueID,
     getDragOverlayMessage,
 
     // Handlers
@@ -277,6 +332,7 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
     handleDragOver,
     handleDragEnter,
     handleDragLeave,
+    handleFileUpload,
   };
 }
 

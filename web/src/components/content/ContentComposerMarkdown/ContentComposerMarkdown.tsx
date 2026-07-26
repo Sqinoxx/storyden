@@ -14,6 +14,7 @@ import { ShowIcon } from "@/components/ui/icons/ShowIcon";
 import { Switch } from "@/components/ui/switch";
 import { css } from "@/styled-system/css";
 import { LStack, styled } from "@/styled-system/jsx";
+import { button } from "@/styled-system/recipes";
 import { markdownURLTransform, remarkLooseLists } from "@/utils/markdown";
 
 import { ComposerTools } from "../ComposerTools";
@@ -51,6 +52,7 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
     isDragError,
     uploadingCount,
     textareaRef,
+    uniqueID,
     getDragOverlayMessage,
     handleBufferChange,
     handleTogglePreview,
@@ -59,6 +61,7 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
     handleDragOver,
     handleDragEnter,
     handleDragLeave,
+    handleFileUpload,
   } = useContentComposerMarkdown(props);
   const t = useTranslation();
 
@@ -94,6 +97,21 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
         <Switch size="sm" checked={showPreview} onClick={handleTogglePreview}>
           Preview
         </Switch>
+        <label
+          className={button({ size: "xs", variant: "ghost" })}
+          htmlFor={`md-filepicker-${uniqueID}`}
+          title="Datei hochladen"
+        >
+          📎
+        </label>
+        <styled.input
+          id={`md-filepicker-${uniqueID}`}
+          type="file"
+          multiple
+          display="none"
+          accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
+          onChange={handleFileUpload}
+        />
       </ComposerTools>
 
       {showPreview ? (

@@ -24,6 +24,7 @@ import {
 } from "@/styled-system/jsx";
 import { getAssetURL } from "@/utils/asset";
 import { htmlToMarkdown } from "@/utils/markdown";
+import { extractImageUrlsFromThread } from "@/components/post/ThreadCard";
 
 import { Timestamp } from "../../Timestamp";
 
@@ -393,9 +394,8 @@ function RobotThreadReferenceCard({
   url?: string;
 }) {
   const title = thread.title || thread.link?.title || "Untitled thread";
-  const image = getAssetURL(
-    thread.assets?.[0]?.path ?? thread.link?.primary_image?.path,
-  );
+  const imageUrls = extractImageUrlsFromThread(thread);
+  const image = imageUrls[0];
   const replyCount = thread.reply_status.replies;
   const replyLabel = replyCount === 1 ? "1 reply" : `${replyCount} replies`;
   const text = resourceSnippet(thread.description, thread.body);

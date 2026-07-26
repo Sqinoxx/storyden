@@ -6,25 +6,11 @@
   "configurations": [
     {
       "cwd": "${workspaceFolder}",
-      "name": "Backend (Go)",
+      "name": "Launch Package",
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${workspaceFolder}/cmd/backend",
-      "envFile": "${workspaceFolder}/.env"
-    },
-    {
-      "name": "Frontend (Next.js)",
-      "type": "node-terminal",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/web",
-      "command": "pnpm dev"
-    },
-    {
-      "name": "Frontend: debug client-side",
-      "type": "chrome",
-      "request": "launch",
-      "url": "http://localhost:3000"
+      "program": "${workspaceFolder}/cmd/backend"
     },
     {
       "cwd": "${workspaceFolder}",
@@ -34,13 +20,29 @@
       "mode": "auto",
       "program": "${workspaceFolder}/internal/tools/configen",
       "args": []
-    }
-  ],
-  "compounds": [
+    },
     {
-      "name": "🚀 Storyden: Backend + Frontend",
-      "configurations": ["Backend (Go)", "Frontend (Next.js)"],
-      "stopAll": true
+      "name": "Next.js: debug server-side",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev"
+    },
+    {
+      "name": "Next.js: debug client-side",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    },
+    {
+      "name": "Next.js: debug full stack",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "serverReadyAction": {
+        "pattern": "started server on .+, url: (https?://.+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
+      }
     }
   ]
 }

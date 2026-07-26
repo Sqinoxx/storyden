@@ -117,6 +117,79 @@ function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[] {
   return assets;
 }
 
+function isImageUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  if (/\.(png|jpe?g|gif|webp|svg|bmp)(\?.*)?$/i.test(lower)) return true;
+  if (lower.includes("image/")) return true;
+  return false;
+}
+
+/** Extracts all image URLs from thread.assets, link primary_image, or embedded <img>/markdown tags in thread.body. */
+export function extractImageUrlsFromThread(
+  thread: Partial<ThreadReference> & { body?: string; assets?: Asset[] },
+): string[] {
+  const urls: string[] = [];
+  const seen = new Set<string>();
+
+  function addUrl(url?: string | null) {
+    if (!url) return;
+    const resolved = getAssetURL(url);
+    if (resolved && !seen.has(resolved)) {
+      seen.add(resolved);
+      urls.push(resolved);
+    }
+  }
+
+  // 1. Explicit non-document image assets attached to thread.assets
+  const imageAssets = (thread.assets ?? []).filter((a) => !isDocumentAsset(a));
+  for (const asset of imageAssets) {
+    if (asset.path) {
+      addUrl(asset.path);
+    }
+  }
+
+  // 2. Primary image from link preview
+  if (thread.link?.primary_image?.path) {
+    addUrl(thread.link.primary_image.path);
+  }
+
+  // 3. Extract HTML <img> tags, Markdown images, and <a> image links from thread.body
+  if (thread.body) {
+    try {
+      // HTML <img ... src="...">
+      const imgRegex = /<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi;
+      let match: RegExpExecArray | null;
+      while ((match = imgRegex.exec(thread.body)) !== null) {
+        if (match[1]) {
+          addUrl(match[1]);
+        }
+      }
+
+      // Markdown ![alt](url)
+      const mdImgRegex = /!\[[^\]]*\]\(([^)\s]+)(?:\s+["'][^"']*["'])?\)/gi;
+      while ((match = mdImgRegex.exec(thread.body)) !== null) {
+        if (match[1]) {
+          addUrl(match[1]);
+        }
+      }
+
+      // HTML <a ... href="..."> links pointing to images
+      const anchorRegex = /<a\b[^>]*\bhref=["']([^"']+)["'][^>]*>/gi;
+      while ((match = anchorRegex.exec(thread.body)) !== null) {
+        const href = match[1];
+        if (href && isImageUrl(href)) {
+          addUrl(href);
+        }
+      }
+    } catch {
+      // Ignore regex errors
+    }
+  }
+
+  return urls;
+}
+
 function extractCleanTextFromHTML(
   htmlString?: string,
   fallbackDescription?: string,
@@ -210,17 +283,11 @@ export const ThreadReferenceCard = memo(
 
     // Separate image assets from document assets.
     const documentAssets = extractDocumentAssetsFromThread(thread);
-    const imageAssets = (thread.assets ?? []).filter(
-      (a) => !isDocumentAsset(a),
-    );
+    const imageUrls = extractImageUrlsFromThread(thread);
 
-    // Use only image assets (or link preview image) as the card cover.
+    // Use only image assets (or link preview image or body image) as the card cover.
     // Document assets are shown as file badges, not as broken cover images.
-    const image = isInReview
-      ? undefined
-      : getAssetURL(
-          imageAssets[0]?.path ?? thread.link?.primary_image?.path,
-        );
+    const image = isInReview ? undefined : imageUrls[0];
 
     // Suppress plain-text description if description is just the document filename
     // to avoid displaying duplicate plain text above the styled file attachment badge.
@@ -304,6 +371,60 @@ export const ThreadReferenceCard = memo(
                   asset={asset}
                 />
               ))}
+            </styled.div>
+          )}
+          {imageUrls.length > 1 && (
+            <styled.div
+              display="flex"
+              flexWrap="wrap"
+              gap="2"
+              position="relative"
+              style={{ zIndex: 1 }}
+            >
+              {imageUrls.slice(1, 5).map((imgUrl, idx) => (
+                <styled.a
+                  key={idx}
+                  href={imgUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  display="inline-block"
+                  borderRadius="md"
+                  overflow="hidden"
+                  borderWidth="thin"
+                  borderColor="border.default"
+                  _hover={{
+                    borderColor: "border.muted",
+                  }}
+                  style={{ transition: "all 0.15s ease" }}
+                >
+                  <styled.img
+                    src={imgUrl}
+                    alt=""
+                    w="14"
+                    h="14"
+                    objectFit="cover"
+                  />
+                </styled.a>
+              ))}
+              {imageUrls.length > 5 && (
+                <styled.div
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  w="14"
+                  h="14"
+                  borderRadius="md"
+                  bg="bg.emphasized"
+                  color="fg.muted"
+                  fontSize="xs"
+                  fontWeight="medium"
+                  borderWidth="thin"
+                  borderColor="border.default"
+                >
+                  +{imageUrls.length - 5}
+                </styled.div>
+              )}
             </styled.div>
           )}
           <Byline

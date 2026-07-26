@@ -70,6 +70,9 @@ function Component(props: NodeViewProps) {
         borderRadius="lg"
         opacity={isUploading ? "5" : "full"}
         transition="all"
+        maxWidth="50%"
+        height="auto"
+        display="block"
         {...props.node.attrs}
       />
       {isUploading && (

@@ -124,6 +124,9 @@ body {
 
   img:not([data-no-typography] *) {
     margin-bottom: 0.5rem;
+    max-width: 50%;
+    height: auto;
+    border-radius: 0.5rem;
   }
 
   h1:not([data-no-typography] *),

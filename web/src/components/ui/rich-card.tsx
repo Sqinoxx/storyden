@@ -159,13 +159,13 @@ export function Card({
 
 export type CardGroupProps =
   | {
-      items: CardItem[];
-      children?: undefined;
-    }
+    items: CardItem[];
+    children?: undefined;
+  }
   | {
-      items?: undefined;
-      children: ReactNode[];
-    };
+    items?: undefined;
+    children: ReactNode[];
+  };
 
 export function CardRows(props: CardGroupProps) {
   return (

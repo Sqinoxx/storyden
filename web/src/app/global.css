@@ -285,13 +285,51 @@ body *::-webkit-scrollbar-thumb {
 }
 
 /*
-  Light mode colour warmth filter.
-  The --color-warmth CSS variable (0–100) is set by the ThemeProvider.
-  A value of 0 = neutral/cool, 100 = very warm.
-  We use sepia() combined with a slight hue-rotate to simulate paper warmth.
-  Only active when the .light class is present on <html>.
+  Light mode colour warmth & theme preset styles.
+  Preset surfaces are customized cleanly via CSS variables so images, photos,
+  and videos retain 100% accurate original colors without hue distortion.
 */
 html.light {
   --color-warmth: 0;
-  filter: sepia(calc(var(--color-warmth) * 0.004)) hue-rotate(calc(var(--color-warmth) * -0.15deg)) saturate(calc(1 + var(--color-warmth) * 0.002));
+  filter: sepia(calc(var(--color-warmth) * 0.003)) saturate(calc(1 + var(--color-warmth) * 0.001));
 }
+
+/* Ensure images, avatars, and media are NEVER affected by filters */
+html.light img,
+html.light video,
+html.light canvas,
+html.light svg,
+html.light [data-no-filter] {
+  filter: none !important;
+}
+
+/* Presets inspired by top-tier reading and app designs */
+html.light[data-light-preset="paper"] {
+  --colors-bg-site: #fbf9f5;
+  --colors-bg-default: #ffffff;
+  --colors-bg-subtle: #f5efe6;
+  --colors-bg-muted: #eae1d2;
+}
+
+html.light[data-light-preset="nordic"] {
+  --colors-bg-site: #f5f7fa;
+  --colors-bg-default: #ffffff;
+  --colors-bg-subtle: #ebf0f5;
+  --colors-bg-muted: #dfe6ee;
+}
+
+/* Standalone Background Nuances */
+html.light[data-light-bg="soft"] {
+  --colors-bg-site: #f4f6f8;
+  --colors-bg-default: #ffffff;
+  --colors-bg-subtle: #ebedf0;
+  --colors-bg-muted: #e2e5e9;
+}
+
+html.light[data-light-bg="warm"] {
+  --colors-bg-site: #fcf9f2;
+  --colors-bg-default: #fffdfa;
+  --colors-bg-subtle: #f6efe2;
+  --colors-bg-muted: #ece3d3;
+}
+

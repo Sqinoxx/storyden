@@ -1,9 +1,9 @@
 "use client";
 
-import { Unready } from "@/components/site/Unready";
-
 import { NodeCardRows } from "@/components/library/NodeCardList";
 import { ThreadReferenceList } from "@/components/post/ThreadReferenceList";
+import { QueueVersionList } from "@/components/queue/QueueVersionList";
+import { Unready } from "@/components/site/Unready";
 import { Heading } from "@/components/ui/heading";
 import { VStack } from "@/styled-system/jsx";
 
@@ -17,17 +17,34 @@ export function DraftListScreen(props: Props) {
 
   if (!ready) return <Unready error={error} />;
 
-  const { nodes, threads } = data;
+  const { nodes, threads, nodeDrafts } = data;
 
   return (
-    <VStack w="full" alignItems="start">
+    <VStack w="full" alignItems="start" gap="4">
       <Heading>Your drafts</Heading>
 
-      <Heading color="fg.subtle">Threads</Heading>
-      <ThreadReferenceList threads={threads} />
+      {threads.length > 0 && (
+        <>
+          <Heading color="fg.subtle">Threads</Heading>
+          <ThreadReferenceList threads={threads} />
+        </>
+      )}
 
-      <Heading color="fg.subtle">Library</Heading>
-      <NodeCardRows libraryPath={libraryPath} context="generic" nodes={nodes} />
+      {(nodes.length > 0 || (nodeDrafts && nodeDrafts.length > 0)) && (
+        <>
+          <Heading color="fg.subtle">Library</Heading>
+          {nodes.length > 0 && (
+            <NodeCardRows
+              libraryPath={libraryPath}
+              context="generic"
+              nodes={nodes}
+            />
+          )}
+          {nodeDrafts && nodeDrafts.length > 0 && (
+            <QueueVersionList drafts={nodeDrafts} />
+          )}
+        </>
+      )}
     </VStack>
   );
 }

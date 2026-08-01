@@ -7,6 +7,7 @@ import { TagListField } from "@/components/thread/ThreadTagList";
 import { Button } from "@/components/ui/button";
 import { Box, CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
 import { useTranslation } from "@/lib/i18n";
+import { getCleanFilename } from "@/utils/asset";
 
 import { BodyInput } from "../BodyInput/BodyInput";
 import { TitleInput } from "../TitleInput/TitleInput";
@@ -142,7 +143,7 @@ export function ComposeForm(props: Props) {
                     borderColor="border.subtle"
                     fontSize="xs"
                   >
-                    <span>{a.filename}</span>
+                    <span>{getCleanFilename(a.filename)}</span>
                     <Button
                       type="button"
                       variant="ghost"

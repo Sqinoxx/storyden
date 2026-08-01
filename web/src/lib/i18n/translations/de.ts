@@ -5,9 +5,9 @@ export const de: Translations = {
   nav: {
     home: "Startseite",
     discussion: "Diskussion",
-    library: "Bibliothek",
+    library: "Altklausuren-Bibliothek",
     members: "Mitglieder",
-    collections: "Sammlungen",
+    collections: "Meine Sammlungen",
     search: "Suche",
     compose: "Neuer Post",
     post: "Posten",
@@ -73,6 +73,10 @@ export const de: Translations = {
     sortOldestFirst: "Älteste zuerst",
     sortNewestFirst: "Neueste zuerst",
     sortBy: "Sortieren nach",
+    id: "ID",
+    author: "Autor",
+    started: "Gestartet",
+    participating: "Beteiligt",
   },
   category: {
     home: "Startseite",
@@ -91,6 +95,7 @@ export const de: Translations = {
     subcategory: "Unterkategorie",
     subcategories: "Unterkategorien",
     filesInThisCategory: "Dateien",
+    slug: "Slug",
   },
   search: {
     placeholder: "Suchen...",
@@ -114,6 +119,9 @@ export const de: Translations = {
     loading: "Lädt...",
     error: "Fehler",
     retry: "Erneut versuchen",
+    yes: "Ja",
+    no: "Nein",
+    scrollToTop: "Nach oben",
   },
   report: {
     submitReport: "Meldung absenden",

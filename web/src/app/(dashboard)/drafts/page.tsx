@@ -1,7 +1,7 @@
 import { Visibility } from "@/api/openapi-schema";
 import { DraftListScreen } from "@/screens/drafts/DraftListScreen";
 
-import { nodeList } from "@/api/openapi-server/nodes";
+import { nodeDraftList, nodeList } from "@/api/openapi-server/nodes";
 import { threadList } from "@/api/openapi-server/threads";
 import { getServerSession } from "@/auth/server-session";
 import {
@@ -21,21 +21,31 @@ export default async function Page() {
       return <UnauthenticatedBanner initialSettings={settings} />;
     }
 
-    const [threads, nodes] = await Promise.all([
+    const [threads, nodes, nodeDrafts] = await Promise.all([
       threadList(
-        { author: session.handle, visibility: [Visibility.draft] },
+        {
+          author: session.handle,
+          visibility: [Visibility.draft, Visibility.review],
+        },
         {
           cache: "no-store",
           next: { revalidate: 0 },
         },
       ),
       nodeList(
-        { author: session.handle, visibility: [Visibility.draft] },
+        {
+          author: session.handle,
+          visibility: [Visibility.draft, Visibility.review],
+        },
         {
           cache: "no-store",
           next: { revalidate: 0 },
         },
       ),
+      nodeDraftList(undefined, {
+        cache: "no-store",
+        next: { revalidate: 0 },
+      }).catch(() => undefined),
     ]);
 
     return (
@@ -43,6 +53,7 @@ export default async function Page() {
         session={session}
         initialThreads={threads.data}
         initialNodes={nodes.data}
+        initialNodeDrafts={nodeDrafts?.data}
       />
     );
   } catch (e) {

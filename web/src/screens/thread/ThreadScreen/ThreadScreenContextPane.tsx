@@ -15,6 +15,7 @@ import { css, cva } from "@/styled-system/css";
 import { Box, HStack, LStack } from "@/styled-system/jsx";
 import { Floating } from "@/styled-system/patterns";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { useLanguage } from "@/lib/i18n";
 
 import { Props, useThreadScreen } from "./useThreadScreen";
 
@@ -37,6 +38,8 @@ const valueStyles = cva({
 export function ThreadScreenContextPane(props: Props) {
   const { ready, error, form, isEditing, isEmpty, resetKey, data, handlers } =
     useThreadScreen(props);
+  const { t, language } = useLanguage();
+
   if (!ready) {
     return <Unready error={error} />;
   }
@@ -45,13 +48,15 @@ export function ThreadScreenContextPane(props: Props) {
 
   const tableData = [
     {
-      label: "ID",
+      key: "id",
+      label: t.thread?.id ?? "ID",
       icon: SlugIcon,
       value: thread.id,
       style: "numeric" as const,
     },
     {
-      label: "author",
+      key: "author",
+      label: t.thread?.author ?? "author",
       icon: AuthorIcon,
       value: (
         <MemberBadge
@@ -63,19 +68,27 @@ export function ThreadScreenContextPane(props: Props) {
       ),
     },
     {
-      label: "started",
+      key: "started",
+      label: t.thread?.started ?? "started",
       icon: CalendarIcon,
-      value: formatDate(thread.createdAt, "MMM d, yyyy"),
+      value: formatDate(
+        thread.createdAt,
+        language === "de" ? "d. MMM yyyy" : "MMM d, yyyy"
+      ),
     },
     {
-      label: "replies",
+      key: "replies",
+      label: t.thread?.replies ?? "replies",
       icon: MembersIcon,
       value: `${thread.reply_status.replies}`,
     },
     {
-      label: "participating",
+      key: "participating",
+      label: t.thread?.participating ?? "participating",
       icon: ParticipatingIcon,
-      value: thread.reply_status.replied ? "Yes" : "No",
+      value: thread.reply_status.replied
+        ? (t.common?.yes ?? "Yes")
+        : (t.common?.no ?? "No"),
     },
   ];
 
@@ -88,7 +101,7 @@ export function ThreadScreenContextPane(props: Props) {
         <Table.Root size="sm" tableLayout="fixed" w="full" overflow="hidden">
           <Table.Body>
             {tableData.map((item) => (
-              <Table.Row key={item.label}>
+              <Table.Row key={item.key}>
                 <Table.Cell fontWeight="medium" color="fg.muted">
                   <HStack gap="1" flexShrink="0">
                     <item.icon width="4" />

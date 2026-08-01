@@ -71,6 +71,10 @@ export const en = {
     sortOldestFirst: "Oldest first",
     sortNewestFirst: "Newest first",
     sortBy: "Sort by",
+    id: "ID",
+    author: "Author",
+    started: "Started",
+    participating: "Participating",
   },
   category: {
     home: "Home",
@@ -89,6 +93,7 @@ export const en = {
     subcategory: "subcategory",
     subcategories: "subcategories",
     filesInThisCategory: "Files in this category",
+    slug: "Slug",
   },
   search: {
     placeholder: "Search...",
@@ -112,6 +117,9 @@ export const en = {
     loading: "Loading...",
     error: "Error",
     retry: "Retry",
+    yes: "Yes",
+    no: "No",
+    scrollToTop: "Scroll to top",
   },
   report: {
     submitReport: "Submit report",

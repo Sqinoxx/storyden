@@ -2,11 +2,11 @@
 
 import { MenuSelectionDetails, Portal } from "@ark-ui/react";
 
-import { Account } from "@/api/openapi-schema";
+import { Account, Permission } from "@/api/openapi-schema";
 import { MemberAvatar } from "@/components/member/MemberBadge/MemberAvatar";
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import * as Menu from "@/components/ui/menu";
-import { hasPermission } from "@/utils/permissions";
+import { hasPermission, isModeratorOrAdmin } from "@/utils/permissions";
 import { useDisclosure } from "@/utils/useDisclosure";
 
 import { AdminMenuItem } from "../Anchors/Admin";
@@ -31,8 +31,9 @@ type Props = {
 };
 
 export function AccountMenu({ account, size = "md" }: Props) {
-  const isAdmin = hasPermission(account, "ADMINISTRATOR");
-  const canCreateInvitations = hasPermission(account, "CREATE_INVITATION");
+  const isAdmin = hasPermission(account, Permission.ADMINISTRATOR);
+  const canCreateInvitations = hasPermission(account, Permission.CREATE_INVITATION);
+  const isStaff = isModeratorOrAdmin(account);
   const invitationDisclosure = useDisclosure();
   const invitation = useInvitation();
 
@@ -86,7 +87,7 @@ export function AccountMenu({ account, size = "md" }: Props) {
 
               <Menu.ItemGroup id="content">
                 <DraftsMenuItem />
-                <QueueMenuItem />
+                {isStaff && <QueueMenuItem />}
                 <ReportsMenuItem />
               </Menu.ItemGroup>
 

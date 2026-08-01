@@ -38,3 +38,20 @@ export function hasPermissionOr(
 
   return false;
 }
+
+export function isModeratorOrAdmin(account?: Account | AccountCommonProps) {
+  return hasPermission(
+    account,
+    Permission.ADMINISTRATOR,
+    Permission.MANAGE_POSTS,
+    Permission.MANAGE_ROLES,
+    Permission.MANAGE_LIBRARY,
+    Permission.MANAGE_CATEGORIES,
+    Permission.MANAGE_ACCOUNTS,
+    Permission.MANAGE_SETTINGS,
+    Permission.MANAGE_WARNINGS,
+    Permission.MANAGE_SUSPENSIONS,
+    Permission.MANAGE_REPORTS,
+  );
+}
+

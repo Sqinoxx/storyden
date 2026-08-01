@@ -48,7 +48,7 @@ function isDocumentHref(href: string | null): boolean {
 }
 
 /** Extracts document assets from thread.assets and parses fallback links from thread.body if necessary. */
-function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[] {
+export function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[] {
   const assets: Asset[] = [...(thread.assets ?? []).filter(isDocumentAsset)];
   const existingPaths = new Set(assets.map((a) => a.path));
   const existingNames = new Set(assets.map((a) => a.filename.toLowerCase()));

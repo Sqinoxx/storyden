@@ -12,7 +12,8 @@ import { ParticipatingIcon } from "@/components/ui/icons/Participating";
 import { SlugIcon } from "@/components/ui/icons/Slug";
 import * as Table from "@/components/ui/table";
 import { css, cva } from "@/styled-system/css";
-import { HStack, LStack } from "@/styled-system/jsx";
+import { Box, HStack, LStack } from "@/styled-system/jsx";
+import { Floating } from "@/styled-system/patterns";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 import { Props, useThreadScreen } from "./useThreadScreen";
@@ -79,42 +80,44 @@ export function ThreadScreenContextPane(props: Props) {
   ];
 
   return (
-    <LStack gap="1">
-      <Heading>{thread.title}</Heading>
-      <p className={css({ color: "fg.muted" })}>{thread.description}</p>
+    <Box className={Floating()} borderRadius="md" p="3" w="full">
+      <LStack gap="1">
+        <Heading>{thread.title}</Heading>
+        <p className={css({ color: "fg.muted" })}>{thread.description}</p>
 
-      <Table.Root size="sm" tableLayout="fixed" w="full" overflow="hidden">
-        <Table.Body>
-          {tableData.map((item) => (
-            <Table.Row key={item.label}>
-              <Table.Cell fontWeight="medium" color="fg.muted">
-                <HStack gap="1" flexShrink="0">
-                  <item.icon width="4" />
-                  <span>{item.label}</span>
-                </HStack>
-              </Table.Cell>
-              <Table.Cell
-                className={valueStyles({ style: item.style })}
-                display="flex"
-                justifyContent="flex-end"
-                alignItems="center"
-                textAlign="right"
-                overflow="hidden"
-                textOverflow="ellipsis"
-                width="full"
-                maxWidth="full"
-                minW="0"
-              >
-                {item.value}
-              </Table.Cell>
-            </Table.Row>
-          ))}
-        </Table.Body>
-      </Table.Root>
+        <Table.Root size="sm" tableLayout="fixed" w="full" overflow="hidden">
+          <Table.Body>
+            {tableData.map((item) => (
+              <Table.Row key={item.label}>
+                <Table.Cell fontWeight="medium" color="fg.muted">
+                  <HStack gap="1" flexShrink="0">
+                    <item.icon width="4" />
+                    <span>{item.label}</span>
+                  </HStack>
+                </Table.Cell>
+                <Table.Cell
+                  className={valueStyles({ style: item.style })}
+                  display="flex"
+                  justifyContent="flex-end"
+                  alignItems="center"
+                  textAlign="right"
+                  overflow="hidden"
+                  textOverflow="ellipsis"
+                  width="full"
+                  maxWidth="full"
+                  minW="0"
+                >
+                  {item.value}
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Root>
 
-      <p>
-        <ScrollToTop />
-      </p>
-    </LStack>
+        <p>
+          <ScrollToTop />
+        </p>
+      </LStack>
+    </Box>
   );
 }

@@ -166,6 +166,7 @@ func Mapper(
 
 				Content:     content.Content,
 				Author:      *pro,
+				Assets:      dt.Map(m.Edges.Assets, asset.Map),
 				Likes:       ls.Status(m.ID),
 				Collections: cs.Status(m.ID),
 				Reacts:      reacts,

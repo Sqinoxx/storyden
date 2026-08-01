@@ -9,7 +9,7 @@ export const de: Translations = {
     members: "Mitglieder",
     collections: "Sammlungen",
     search: "Suche",
-    compose: "Verfassen",
+    compose: "Neuer Post",
     post: "Posten",
     notifications: "Benachrichtigungen",
     settings: "Einstellungen",

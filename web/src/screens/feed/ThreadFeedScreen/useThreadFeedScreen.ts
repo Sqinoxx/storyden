@@ -1,6 +1,6 @@
 "use client";
 
-import { parseAsInteger, useQueryState } from "nuqs";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 
 import { useThreadList } from "@/api/openapi-client/threads";
 import { Category, ThreadListResult } from "@/api/openapi-schema";
@@ -22,6 +22,11 @@ export function useThreadFeedScreen(props: Props) {
     ...parseAsInteger,
     defaultValue: props.initialPage ?? 1,
   });
+  const [sortParam, setSortParam] = useQueryState(
+    "sort",
+    parseAsString.withDefault("desc"),
+  );
+  const sortOrder: "asc" | "desc" = sortParam === "asc" ? "asc" : "desc";
 
   function handlePageChange(page: number) {
     setPage(page);
@@ -54,6 +59,9 @@ export function useThreadFeedScreen(props: Props) {
     ready: true as const,
     showPaginationTop,
     data,
+    sortOrder,
     handlePageChange,
+    handleSetSortOrder: (order: "asc" | "desc") =>
+      setSortParam(order === "desc" ? null : order),
   };
 }

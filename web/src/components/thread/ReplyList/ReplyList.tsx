@@ -1,10 +1,7 @@
-import { formatDate, formatDistance, formatDistanceStrict } from "date-fns";
-import { Fragment } from "react";
-
 import { Account, Thread } from "@/api/openapi-schema";
 
 import type { SignatureConfig } from "@/lib/settings/settings";
-import { VStack, styled } from "@/styled-system/jsx";
+import { styled } from "@/styled-system/jsx";
 
 import { Reply } from "../Reply/Reply";
 
@@ -13,6 +10,7 @@ type Props = {
   thread: Thread;
   currentPage?: number;
   initialSignatureConfig: SignatureConfig;
+  sortOrder?: "asc" | "desc";
 };
 
 export function ReplyList({
@@ -20,7 +18,13 @@ export function ReplyList({
   thread,
   currentPage,
   initialSignatureConfig,
+  sortOrder = "asc",
 }: Props) {
+  const replies = [...thread.replies.replies];
+  if (sortOrder === "desc") {
+    replies.reverse();
+  }
+
   return (
     <styled.ol
       listStyleType="none"
@@ -30,55 +34,17 @@ export function ReplyList({
       flexDir="column"
       width="full"
     >
-      {thread.replies.replies.map((reply, i) => {
-        const previous = thread.replies[i - 1];
-        const start = previous ? new Date(previous.createdAt) : undefined;
-        const end = new Date(reply.createdAt);
-
-        return (
-          <Fragment key={reply.id}>
-            {start && <IntervalDivider interval={{ start, end }} />}
-
-            <styled.li listStyleType="none" m="0">
-              <Reply
-                initialSession={initialSession}
-                thread={thread}
-                reply={reply}
-                currentPage={currentPage}
-                initialSignatureConfig={initialSignatureConfig}
-              />
-            </styled.li>
-          </Fragment>
-        );
-      })}
+      {replies.map((reply) => (
+        <styled.li key={reply.id} listStyleType="none" m="0">
+          <Reply
+            initialSession={initialSession}
+            thread={thread}
+            reply={reply}
+            currentPage={currentPage}
+            initialSignatureConfig={initialSignatureConfig}
+          />
+        </styled.li>
+      ))}
     </styled.ol>
-  );
-}
-
-export type IntervalDividerProps = {
-  interval: {
-    start: Date;
-    end: Date;
-  };
-};
-
-export function IntervalDivider({ interval }: IntervalDividerProps) {
-  const difference = interval.end.getTime() - interval.start.getTime();
-
-  if (difference < 8640000) {
-    return null;
-  }
-
-  const startLabel = formatDate(interval.start, "PP");
-  const endLabel = formatDate(interval.end, "PP");
-
-  const title = `${startLabel} - ${formatDistanceStrict(interval.start, interval.end)} - ${endLabel}`;
-
-  return (
-    <VStack w="full" color="fg.subtle" fontSize="xs">
-      <time title={title}>
-        {formatDistance(interval.start, interval.end)} later
-      </time>
-    </VStack>
   );
 }

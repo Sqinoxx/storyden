@@ -41,7 +41,7 @@ export function ReplyBox(props: Props) {
   }
 
   return (
-    <VStack w="full" pb="12" gap="2" alignItems="stretch">
+    <VStack w="full" gap="2" alignItems="stretch">
       <Admonition
         value={!!postedReply}
         onChange={handlers.handleReplyPostedAdmonitionClose}

@@ -243,6 +243,7 @@ export const en = {
     addTags: "Add tags...",
     saveDraft: "Save draft",
     post: "Post",
+    uploadFile: "Upload file",
   },
   feed: {
     empty: "*tumbleweed* there are no posts...",

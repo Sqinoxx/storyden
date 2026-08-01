@@ -245,6 +245,7 @@ export const de: Translations = {
     addTags: "Tags hinzufügen...",
     saveDraft: "Entwurf speichern",
     post: "Veröffentlichen",
+    uploadFile: "Datei hochladen",
   },
   feed: {
     empty: "*Grille* es gibt hier noch keine Beiträge...",

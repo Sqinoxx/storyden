@@ -9,8 +9,7 @@ import { DiscussionIcon } from "@/components/ui/icons/Discussion";
 import { EditIcon } from "@/components/ui/icons/Edit";
 import { LibraryIcon } from "@/components/ui/icons/Library";
 import { ProfileIcon } from "@/components/ui/icons/Profile";
-import { ReplyIcon } from "@/components/ui/icons/Reply";
-import { ShowIcon } from "@/components/ui/icons/ShowIcon";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/components/ui/icons/Chevron";
 import { Switch } from "@/components/ui/switch";
 import { css } from "@/styled-system/css";
 import { LStack, styled } from "@/styled-system/jsx";
@@ -86,11 +85,11 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
   }
 
   return (
-    <LStack position="relative" minHeight="8" maxHeight="fit">
+    <LStack position="relative" minHeight="10" maxHeight="fit">
       <ComposerTools
         enabled={!props.disabled}
-        icon={<ShowIcon />}
-        expandedIcon={<EditIcon />}
+        icon={<ChevronLeftIcon />}
+        expandedIcon={<ChevronRightIcon />}
         onClick={handleTogglePreview}
         workingCount={uploadingCount}
       >
@@ -100,9 +99,9 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
         <label
           className={button({ size: "xs", variant: "ghost" })}
           htmlFor={`md-filepicker-${uniqueID}`}
-          title="Datei hochladen"
+          title={t.editor.uploadFile}
         >
-          📎
+          📎 {t.editor.uploadFile}
         </label>
         <styled.input
           id={`md-filepicker-${uniqueID}`}

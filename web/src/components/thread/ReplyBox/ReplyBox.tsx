@@ -1,10 +1,11 @@
 "use client";
 
+import { useId } from "react";
 import Link from "next/link";
 import { Controller, ControllerProps } from "react-hook-form";
 
+import { assetUpload } from "@/api/openapi-client/assets";
 import { Anchor } from "@/components/site/Anchor";
-
 import { ContentComposer } from "@/components/content/ContentComposer/ContentComposer";
 import { MemberIdent } from "@/components/member/MemberBadge/MemberIdent";
 import { Admonition } from "@/components/ui/admonition";
@@ -15,8 +16,10 @@ import { DiscussionIcon } from "@/components/ui/icons/Discussion";
 import { useTranslation } from "@/lib/i18n";
 import { usePublicRegistration } from "@/lib/settings/registration";
 import { css } from "@/styled-system/css";
-import { HStack, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
+import { Box, HStack, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
 import { CardBox } from "@/styled-system/patterns";
+import { button } from "@/styled-system/recipes";
+import { getAssetURL } from "@/utils/asset";
 import { timestamp } from "@/utils/date";
 
 import { useReplyContext } from "../ReplyContext";
@@ -24,6 +27,7 @@ import { useReplyContext } from "../ReplyContext";
 import { Form, Props, useReplyBox } from "./useReplyBox";
 
 export function ReplyBox(props: Props) {
+  const fileInputId = useId();
   const { replyTo, clearReplyTo } = useReplyContext();
   const t = useTranslation();
   const {
@@ -70,12 +74,12 @@ export function ReplyBox(props: Props) {
         className={CardBox()}
         display="flex"
         flexDirection="column"
-        gap="1"
+        gap="2"
         width="full"
         onSubmit={handlers.handleSubmit}
       >
         {replyTo && (
-          <WStack py="1" px="2" borderRadius="md" bgColor="bg.muted">
+          <WStack py="1.5" px="3" borderRadius="md" bgColor="bg.muted" justifyContent="space-between">
             <HStack gap="1" fontSize="sm" color="fg.muted">
               <styled.span>Replying&nbsp;to</styled.span>
               <MemberIdent
@@ -100,27 +104,84 @@ export function ReplyBox(props: Props) {
           </WStack>
         )}
 
-        <HStack justifyContent="space-between">
-          <HStack gap="1">
-            <styled.span textWrap="nowrap">{t.thread.replyTo}</styled.span>
-            <MemberIdent
-              profile={props.thread.author}
-              name="handle"
-              avatar="hidden"
-            />
-          </HStack>
-
-          <Button type="submit" size="xs" disabled={isLoading || isEmpty}>
-            {t.thread.replyPost}
-          </Button>
+        <HStack gap="1" fontSize="sm" color="fg.muted" fontWeight="medium">
+          <styled.span textWrap="nowrap">{t.thread.replyTo}</styled.span>
+          <MemberIdent
+            profile={props.thread.author}
+            name="handle"
+            avatar="hidden"
+          />
         </HStack>
 
-        <ReplyBodyInput
-          name="body"
-          control={form.control}
-          handleEmptyStateChange={handlers.handleEmptyStateChange}
-          resetKey={resetKey}
-        />
+        <Box w="full">
+          <ReplyBodyInput
+            name="body"
+            control={form.control}
+            handleEmptyStateChange={handlers.handleEmptyStateChange}
+            resetKey={resetKey}
+          />
+        </Box>
+
+        <WStack
+          w="full"
+          pt="2"
+          justifyContent="flex-end"
+          alignItems="center"
+        >
+          <HStack gap="2">
+            <label
+              className={button({ size: "sm", variant: "ghost" })}
+              htmlFor={fileInputId}
+              title={t.editor.uploadFile}
+            >
+              📎 {t.editor.uploadFile}
+            </label>
+            <styled.input
+              id={fileInputId}
+              type="file"
+              multiple
+              display="none"
+              accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
+              onChange={async (e) => {
+                const files = Array.from(e.currentTarget.files ?? []);
+                if (files.length === 0) return;
+
+                for (const file of files) {
+                  try {
+                    const asset = await assetUpload(
+                      file,
+                      { filename: file.name },
+                    );
+                    const url = getAssetURL(asset.path);
+                    const isImage = /^image\//i.test(file.type);
+                    const insertion = isImage
+                      ? `<img src="${url}" alt="${file.name}" />`
+                      : `<a href="${url}" data-type="file-attachment" data-filename="${file.name}" download="${file.name}">${file.name}</a>`;
+
+                    const current = form.getValues("body") ?? "";
+                    form.setValue("body", current + "<p>" + insertion + "</p>", {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    });
+                  } catch {
+                    // ignore upload errors
+                  }
+                }
+                e.target.value = "";
+              }}
+            />
+
+            <Button
+              type="submit"
+              size="sm"
+              variant="subtle"
+              disabled={isLoading || isEmpty}
+              loading={isLoading}
+            >
+              {t.thread.replyPost}
+            </Button>
+          </HStack>
+        </WStack>
       </styled.form>
     </VStack>
   );

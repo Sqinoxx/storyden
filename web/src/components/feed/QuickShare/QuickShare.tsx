@@ -90,9 +90,9 @@ export function QuickShare(props: Props) {
             <label
               className={button({ size: "sm", variant: "ghost" })}
               htmlFor={fileInputId}
-              title="Datei hochladen"
+              title={t.editor.uploadFile}
             >
-              📎
+              📎 {t.editor.uploadFile}
             </label>
             <styled.input
               id={fileInputId}

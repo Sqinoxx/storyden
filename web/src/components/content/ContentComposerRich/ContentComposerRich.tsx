@@ -2,7 +2,7 @@
 
 import { BubbleMenu, EditorContent } from "@tiptap/react";
 
-import { EditIcon } from "@/components/ui/icons/Edit";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/components/ui/icons/Chevron";
 import { css, cx } from "@/styled-system/css";
 import { LStack } from "@/styled-system/jsx";
 
@@ -50,7 +50,7 @@ export function ContentComposerRich(props: ContentComposerProps) {
       position="relative"
       w="full"
       gap="1"
-      minHeight="8"
+      minHeight="10"
       onDragOver={handlers.handleDragOver}
       onDragEnter={handlers.handleDragEnter}
       onDragLeave={handlers.handleDragLeave}
@@ -59,7 +59,8 @@ export function ContentComposerRich(props: ContentComposerProps) {
       {editor && (
         <ComposerTools
           enabled={!props.disabled}
-          icon={<EditIcon />}
+          icon={<ChevronLeftIcon />}
+          expandedIcon={<ChevronRightIcon />}
           workingCount={uploadingCount}
         >
           <EditorMenu

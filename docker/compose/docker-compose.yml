@@ -10,6 +10,8 @@
 # Starten:              docker compose up
 # Nach Code-Änderungen: docker compose build && docker compose up
 #
+
+# TODO: Github-Domain => Danach mit Brevo Verbinden
 services:
   storyden:
     build:

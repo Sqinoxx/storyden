@@ -4,7 +4,7 @@ import React from "react";
 import { Download } from "lucide-react";
 
 import { Asset } from "@/api/openapi-schema";
-import { getAssetURL } from "@/utils/asset";
+import { getAssetURL, getCleanFilename } from "@/utils/asset";
 import { styled } from "@/styled-system/jsx";
 
 /** Returns true if the asset is a document (not an image). */
@@ -43,20 +43,21 @@ async function downloadAsset(url: string, filename: string) {
 /** A compact, styled badge for a single file attachment. */
 export function FileAttachmentBadge({ asset }: { asset: Asset }) {
   const url = getAssetURL(asset.path);
+  const displayName = getCleanFilename(asset.filename);
 
   function handleDownload(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     if (url) {
-      downloadAsset(url, asset.filename);
+      downloadAsset(url, displayName);
     }
   }
 
   return (
     <styled.a
       href={url}
-      download={asset.filename}
-      title={asset.filename}
+      download={displayName}
+      title={displayName}
       display="inline-flex"
       alignItems="center"
       gap="2"
@@ -88,7 +89,7 @@ export function FileAttachmentBadge({ asset }: { asset: Asset }) {
         flex="1"
         minWidth="0"
       >
-        {asset.filename}
+        {displayName}
       </styled.span>
       <styled.span display="flex" alignItems="center" color="fg.muted" flexShrink="0" ml="1">
         <Download size={14} />

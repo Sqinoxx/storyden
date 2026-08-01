@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { CreatePageAction } from "@/components/library/CreatePage";
 import { LibraryPageTree } from "@/components/library/LibraryPageTree/LibraryPageTree";
 import { LibraryIcon } from "@/components/ui/icons/Library";
@@ -14,6 +16,27 @@ import { useTranslation } from "@/lib/i18n";
 export function LibraryNavigationTree(props: Props) {
   const { ready, data, canManageLibrary } = useLibraryNavigationTree(props);
   const t = useTranslation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("nav_section_collapsed_library");
+      if (stored !== null) {
+        setIsCollapsed(stored === "true");
+      }
+    } catch { }
+  }, []);
+
+  const handleToggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("nav_section_collapsed_library", String(next));
+      } catch { }
+      return next;
+    });
+  };
+
   if (!ready) {
     // TODO: Render a small version of <Unready /> that's more suitable for this
     return null;
@@ -25,9 +48,13 @@ export function LibraryNavigationTree(props: Props) {
     <LStack gap="1">
       <NavigationHeader
         href={LibraryRoute}
+        size="sm"
         controls={
           canManageLibrary && <CreatePageAction variant="ghost" hideLabel />
         }
+        collapsible
+        isCollapsed={isCollapsed}
+        onToggleCollapse={handleToggleCollapse}
       >
         <HStack gap="1">
           <LibraryIcon />
@@ -35,11 +62,13 @@ export function LibraryNavigationTree(props: Props) {
         </HStack>
       </NavigationHeader>
 
-      <LibraryPageTree
-        currentNode={currentNode}
-        nodes={data.nodes}
-        canManageLibrary={canManageLibrary}
-      />
+      {!isCollapsed && (
+        <LibraryPageTree
+          currentNode={currentNode}
+          nodes={data.nodes}
+          canManageLibrary={canManageLibrary}
+        />
+      )}
     </LStack>
   );
 }

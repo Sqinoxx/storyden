@@ -87,8 +87,10 @@ export function CategoryScreen(props: ScreenProps) {
       )}
 
       <LStack gap="1">
-        <WStack alignItems="start">
-          <Heading>{category.name}</Heading>
+        <WStack alignItems="center">
+          <Heading size="2xl" fontWeight="bold">
+            {category.name}
+          </Heading>
 
           <CategoryMenu category={category} />
         </WStack>

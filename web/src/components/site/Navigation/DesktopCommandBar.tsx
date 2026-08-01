@@ -44,7 +44,7 @@ export async function DesktopCommandBar() {
       </HStack>
 
       <HStack className={styles["topbar-middle"]} justify="space-around">
-        <Title>{title}</Title>
+        <Title>Zahnis Regensburg</Title>
       </HStack>
 
       <HStack className={styles["topbar-right"]}>

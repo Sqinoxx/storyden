@@ -24,8 +24,7 @@ export async function NavigationPane({
 }: ServerProps) {
   try {
     const { data: initialNodeList } = await nodeListCached({
-      // NOTE: This doesn't work due to a bug in Orval.
-      // visibility: ["draft", "review", "unlisted", "published"],
+      visibility: ["draft", "review", "unlisted", "published"],
     });
     const { data: initialCategoryList } = await categoryListCached();
 

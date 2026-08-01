@@ -33,6 +33,7 @@ import { treeView } from "@/styled-system/recipes";
 import { token } from "@/styled-system/tokens";
 
 import { LibraryPageMenu } from "../LibraryPageMenu/LibraryPageMenu";
+import { useTranslation } from "@/lib/i18n";
 
 export interface LibraryPageTreeProps {
   nodes: NodeWithChildren[];
@@ -45,13 +46,6 @@ const visibilitySortKey: Record<Visibility, number> = {
   [Visibility.review]: 1,
   [Visibility.draft]: 2,
   [Visibility.unlisted]: 3,
-};
-
-const visibilityLabels: Record<Visibility, string> = {
-  [Visibility.published]: "Published",
-  [Visibility.review]: "In review",
-  [Visibility.draft]: "Drafts",
-  [Visibility.unlisted]: "Unlisted",
 };
 
 const visibilityIcons: Record<Visibility, JSX.Element> = {
@@ -84,8 +78,16 @@ export function getPositionInList(
 
 export const LibraryPageTree = (props: LibraryPageTreeProps) => {
   const { nodes, currentNode } = props;
+  const t = useTranslation();
 
   const styles = treeView();
+
+  const visibilityLabels: Record<Visibility, string> = {
+    [Visibility.published]: "Published",
+    [Visibility.review]: t.library?.inReview ? t.library.inReview.replace(/^\(|\)$/g, "") : "In review",
+    [Visibility.draft]: t.nav?.drafts ?? "Drafts",
+    [Visibility.unlisted]: "Unlisted",
+  };
 
   const defaultExpandedValue: string[] = [];
 
@@ -109,7 +111,7 @@ export const LibraryPageTree = (props: LibraryPageTreeProps) => {
 
   nodes.forEach(findCurrentNode);
 
-  const sortedByVisibility = nodes.sort((a, b) => {
+  const sortedByVisibility = [...nodes].sort((a, b) => {
     return visibilitySortKey[a.visibility] - visibilitySortKey[b.visibility];
   });
 
@@ -156,16 +158,16 @@ export const LibraryPageTree = (props: LibraryPageTreeProps) => {
           {rootNodes.map((node, index) => {
             const previous = index > 0 ? rootNodes[index - 1] : null;
 
-            const sameVisibilityAsPrevious = previous
-              ? previous.visibility === node.visibility
-              : true;
+            const isNewVisibilityGroup = previous
+              ? previous.visibility !== node.visibility
+              : node.visibility !== Visibility.published;
 
             const dividerLabel = visibilityLabels[node.visibility];
             const dividerIcon = visibilityIcons[node.visibility];
 
             // We only show dividers on the root list, as this is the only list that's
             // sorted by visibility.
-            const showDivider = !sameVisibilityAsPrevious;
+            const showDivider = isNewVisibilityGroup;
 
             return (
               <Fragment key={node.id}>

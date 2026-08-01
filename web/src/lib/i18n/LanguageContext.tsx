@@ -16,6 +16,7 @@ export type Language = "en" | "de";
 
 const STORAGE_KEY = "storyden-language";
 
+// Translation map per supported language
 const translations: Record<Language, Translations> = { en, de };
 
 type LanguageContextValue = {

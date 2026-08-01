@@ -10,6 +10,7 @@ import { CollectionsAnchor } from "../Anchors/Collections";
 import { LinksAnchor } from "../Anchors/Link";
 import { MembersAnchor } from "../Anchors/Members";
 import { RolesAnchor } from "../Anchors/Roles";
+import { DraftsSidebarSection } from "../DraftsSidebarSection/DraftsSidebarSection";
 import { LibraryNavigationTree } from "../LibraryNavigationTree/LibraryNavigationTree";
 import { useNavigation } from "../useNavigation";
 
@@ -42,11 +43,20 @@ export function ContentNavigationList(props: Props) {
         }}
       >
         <CategoryList initialCategoryList={props.initialCategoryList} />
+        <styled.hr
+          width="full"
+          border="none"
+          borderTop="1px solid"
+          borderColor="border.subtle"
+          opacity={0.15}
+          my="1.5"
+        />
         <LibraryNavigationTree
           initialNodeList={props.initialNodeList}
           currentNode={nodeSlug}
           visibility={["draft", "review", "unlisted", "published"]}
         />
+        <DraftsSidebarSection />
       </LStack>
 
       <LStack gap="1">

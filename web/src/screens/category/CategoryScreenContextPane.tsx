@@ -72,13 +72,15 @@ export function CategoryScreenContextPane(props: Props) {
 
   const tableData = [
     {
-      label: "slug",
+      key: "slug",
+      label: t.category?.slug ?? "slug",
       icon: SlugIcon,
       value: category.slug,
       style: "numeric" as const,
     },
     {
-      label: category.postCount === 1 ? "thread" : "threads",
+      key: "threads",
+      label: category.postCount === 1 ? (t.category?.thread ?? "thread") : (t.category?.threads ?? "threads"),
       icon: DiscussionIcon,
       value: `${category.postCount}`,
     },

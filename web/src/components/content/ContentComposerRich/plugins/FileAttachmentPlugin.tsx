@@ -16,6 +16,7 @@ import { ProgressCircle } from "@/components/ui/progress";
 import { Download } from "lucide-react";
 import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
+import { getCleanFilename } from "@/utils/asset";
 
 export interface FileAttachmentOptions {
   handleFiles: (view: EditorView, files: File[]) => Promise<Asset[]>;
@@ -31,7 +32,8 @@ function Component(props: NodeViewProps) {
   const progressPercent = uploadProgress ? parseInt(uploadProgress, 10) : 0;
 
   const href = props.node.attrs["href"];
-  const fileName = props.node.attrs["fileName"] || "Attachment";
+  const rawFileName = props.node.attrs["fileName"] || "Attachment";
+  const fileName = getCleanFilename(rawFileName);
 
   const isEditable = props.editor.isEditable;
   const isSelected = props.selected && isEditable;

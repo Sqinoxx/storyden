@@ -9,6 +9,7 @@ import { DiscussionIcon } from "@/components/ui/icons/Discussion";
 import { EditIcon } from "@/components/ui/icons/Edit";
 import { LibraryIcon } from "@/components/ui/icons/Library";
 import { ProfileIcon } from "@/components/ui/icons/Profile";
+import { ReplyIcon } from "@/components/ui/icons/Reply";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/ui/icons/Chevron";
 import { Switch } from "@/components/ui/switch";
 import { css } from "@/styled-system/css";

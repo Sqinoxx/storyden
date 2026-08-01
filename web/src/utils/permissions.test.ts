@@ -4,7 +4,7 @@ import * as assert from "uvu/assert";
 import type { Account } from "@/api/openapi-schema";
 import { Permission } from "@/api/openapi-schema";
 
-import { hasPermission, hasPermissionOr } from "./permissions";
+import { hasPermission, hasPermissionOr, isModeratorOrAdmin } from "./permissions";
 
 function accountWithPermissions(...permissions: string[]): Account {
   return {
@@ -55,6 +55,17 @@ test("hasPermissionOr returns false without account even if fallback true", () =
   assert.not.ok(
     hasPermissionOr(undefined, () => true, Permission.MANAGE_POSTS),
   );
+});
+
+test("isModeratorOrAdmin checks for admin or moderator permissions", () => {
+  const user = accountWithPermissions(Permission.READ_PROFILE, Permission.CREATE_POST);
+  const mod = accountWithPermissions(Permission.MANAGE_POSTS);
+  const admin = accountWithPermissions(Permission.ADMINISTRATOR);
+
+  assert.not.ok(isModeratorOrAdmin(undefined));
+  assert.not.ok(isModeratorOrAdmin(user));
+  assert.ok(isModeratorOrAdmin(mod));
+  assert.ok(isModeratorOrAdmin(admin));
 });
 
 test.run();

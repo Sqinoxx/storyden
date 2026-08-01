@@ -23,3 +23,10 @@ services:
     environment:
       - PUBLIC_WEB_ADDRESS=${PUBLIC_WEB_ADDRESS:-http://localhost:3000}
       - PUBLIC_API_ADDRESS=${PUBLIC_API_ADDRESS:-http://localhost:8000}
+      # E-Mail-Authentifizierung
+      # EMAIL_PROVIDER=mock gibt E-Mails (OTP-Codes, Verifizierungslinks) in den Container-Logs aus.
+      # Später durch smtp oder sendgrid ersetzen, sobald ein echter Anbieter verfügbar ist.
+      - EMAIL_PROVIDER=mock
+      # JWT_SECRET wird für das Signieren von E-Mail-Tokens (Passwort-Reset, Verifizierung) benötigt.
+      # Diesen Wert geheim halten und NICHT ändern, sobald Benutzer registriert sind.
+      - JWT_SECRET=eb2f096fa194d98a4668369e676f4ff6d6270901f261e4bd5fa35ecd2cd9afe4

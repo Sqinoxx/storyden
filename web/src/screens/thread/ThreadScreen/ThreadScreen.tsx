@@ -26,6 +26,10 @@ import { TagListField } from "@/components/thread/ThreadTagList";
 import { FormErrorText } from "@/components/ui/FormErrorText";
 import { Heading } from "@/components/ui/heading";
 import { useTranslation } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
+import { CheckIcon } from "@/components/ui/icons/Check";
+import { SortAscendingIcon, SortDescendingIcon } from "@/components/ui/icons/Sort";
+import * as Menu from "@/components/ui/menu";
 import { HeadingInput } from "@/components/ui/heading-input";
 import {
   DiscussionIcon,
@@ -48,6 +52,7 @@ export function ThreadScreen(props: Props) {
     resetKey,
     isModerator,
     isConfirmingDelete,
+    sortOrder,
     data,
     handlers,
   } = useThreadScreen(props);
@@ -64,7 +69,7 @@ export function ThreadScreen(props: Props) {
 
   return (
     <ReplyProvider>
-      <LStack gap="4">
+      <LStack gap="4" pb="12">
         <styled.form
           display="flex"
           flexDirection="column"
@@ -170,7 +175,17 @@ export function ThreadScreen(props: Props) {
           )}
         </styled.form>
 
-        <ThreadStats thread={thread} />
+        <ThreadStats
+          thread={thread}
+          sortOrder={sortOrder}
+          onSortOrderChange={handlers.handleSetSortOrder}
+        />
+
+        <ReplyBox
+          initialSession={props.initialSession}
+          initialSettings={props.initialSettings}
+          thread={thread}
+        />
 
         <VStack w="full">
           {data.thread.replies.total_pages > 1 && (
@@ -187,6 +202,7 @@ export function ThreadScreen(props: Props) {
             thread={thread}
             currentPage={data.thread.replies.current_page}
             initialSignatureConfig={signatureConfig}
+            sortOrder={sortOrder}
           />
 
           {data.thread.replies.total_pages > 1 && (
@@ -198,12 +214,6 @@ export function ThreadScreen(props: Props) {
             />
           )}
         </VStack>
-
-        <ReplyBox
-          initialSession={props.initialSession}
-          initialSettings={props.initialSettings}
-          thread={thread}
-        />
       </LStack>
     </ReplyProvider>
   );
@@ -272,7 +282,15 @@ function ThreadBodyInput({
   );
 }
 
-function ThreadStats({ thread }: { thread: Thread }) {
+function ThreadStats({
+  thread,
+  sortOrder,
+  onSortOrderChange,
+}: {
+  thread: Thread;
+  sortOrder: "asc" | "desc";
+  onSortOrderChange: (order: "asc" | "desc") => void;
+}) {
   const t = useTranslation();
   const likeCount = thread.likes.likes;
   const likeLabel = likeCount === 1 ? t.thread.like : t.thread.likes;
@@ -280,46 +298,101 @@ function ThreadStats({ thread }: { thread: Thread }) {
   const replyLabel = replyCount === 1 ? t.thread.reply : t.thread.replies;
 
   return (
-    <HStack gap="4" color="fg.muted">
-      <styled.span
-        display="flex"
-        gap="1"
-        alignItems="center"
-        title={thread.likes.liked ? t.thread.youLikedThis : undefined}
-      >
-        <span>
-          {thread.likes.liked ? (
-            <LikeSavedIcon width="4" />
-          ) : (
-            <LikeIcon width="4" />
-          )}
-        </span>
-        <span>
-          {likeCount} {likeLabel}
-        </span>
-      </styled.span>
+    <WStack justifyContent="space-between" width="full" color="fg.muted">
+      <HStack gap="4">
+        <styled.span
+          display="flex"
+          gap="1"
+          alignItems="center"
+          title={thread.likes.liked ? t.thread.youLikedThis : undefined}
+        >
+          <span>
+            {thread.likes.liked ? (
+              <LikeSavedIcon width="4" />
+            ) : (
+              <LikeIcon width="4" />
+            )}
+          </span>
+          <span>
+            {likeCount} {likeLabel}
+          </span>
+        </styled.span>
 
-      <styled.span
-        display="flex"
-        gap="1"
-        alignItems="center"
-        title={
-          thread.reply_status.replied
-            ? t.thread.youRepliedToThis
-            : undefined
-        }
-      >
-        <span>
-          {thread.reply_status.replied ? (
-            <DiscussionParticipatingIcon width="4" />
-          ) : (
-            <DiscussionIcon width="4" />
-          )}
-        </span>
-        <span>
-          {replyCount} {replyLabel}
-        </span>
-      </styled.span>
-    </HStack>
+        <styled.span
+          display="flex"
+          gap="1"
+          alignItems="center"
+          title={
+            thread.reply_status.replied
+              ? t.thread.youRepliedToThis
+              : undefined
+          }
+        >
+          <span>
+            {thread.reply_status.replied ? (
+              <DiscussionParticipatingIcon width="4" />
+            ) : (
+              <DiscussionIcon width="4" />
+            )}
+          </span>
+          <span>
+            {replyCount} {replyLabel}
+          </span>
+        </styled.span>
+      </HStack>
+
+      <Menu.Root positioning={{ placement: "bottom-end" }} lazyMount>
+        <Menu.Trigger asChild>
+          <Button variant="ghost" size="xs" aria-label={t.thread.sortBy}>
+            <HStack gap="1" fontSize="xs">
+              {sortOrder === "asc" ? (
+                <SortAscendingIcon width="3.5" height="3.5" />
+              ) : (
+                <SortDescendingIcon width="3.5" height="3.5" />
+              )}
+              <span>
+                {sortOrder === "asc"
+                  ? t.thread.sortOldestFirst
+                  : t.thread.sortNewestFirst}
+              </span>
+            </HStack>
+          </Button>
+        </Menu.Trigger>
+        <Menu.Positioner>
+          <Menu.Content minW="44">
+            <Menu.ItemGroup id="reply-sort-options">
+              <Menu.Item
+                key="asc"
+                value="asc"
+                onClick={() => onSortOrderChange("asc")}
+                aria-label={t.thread.sortOldestFirst}
+              >
+                <HStack gap="2" justifyContent="space-between" w="full">
+                  <HStack gap="2">
+                    <SortAscendingIcon width="4" height="4" />
+                    <span>{t.thread.sortOldestFirst}</span>
+                  </HStack>
+                  {sortOrder === "asc" && <CheckIcon width="4" height="4" />}
+                </HStack>
+              </Menu.Item>
+              <Menu.Item
+                key="desc"
+                value="desc"
+                onClick={() => onSortOrderChange("desc")}
+                aria-label={t.thread.sortNewestFirst}
+              >
+                <HStack gap="2" justifyContent="space-between" w="full">
+                  <HStack gap="2">
+                    <SortDescendingIcon width="4" height="4" />
+                    <span>{t.thread.sortNewestFirst}</span>
+                  </HStack>
+                  {sortOrder === "desc" && <CheckIcon width="4" height="4" />}
+                </HStack>
+              </Menu.Item>
+            </Menu.ItemGroup>
+          </Menu.Content>
+        </Menu.Positioner>
+      </Menu.Root>
+    </WStack>
   );
 }

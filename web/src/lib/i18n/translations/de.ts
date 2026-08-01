@@ -64,6 +64,9 @@ export const de: Translations = {
     ago: "vor",
     youLikedThis: "Du hast diesen Beitrag geliked",
     youRepliedToThis: "Du hast auf diesen Beitrag geantwortet",
+    sortOldestFirst: "Älteste zuerst",
+    sortNewestFirst: "Neueste zuerst",
+    sortBy: "Sortieren nach",
   },
   category: {
     home: "Startseite",

@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { parseAsBoolean, useQueryState } from "nuqs";
+import { parseAsBoolean, parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -57,6 +57,12 @@ export function useThreadScreen({
     defaultValue: false,
     clearOnDefault: true,
   });
+  const [sortParam, setSortParam] = useQueryState(
+    "sort",
+    parseAsString.withDefault("asc"),
+  );
+  const sortOrder: "asc" | "desc" = sortParam === "desc" ? "desc" : "asc";
+
   const [resetKey, setResetKey] = useState("");
   const [isEmpty, setEmpty] = useState(
     !thread.body || thread.body.trim().length === 0,
@@ -207,6 +213,7 @@ export function useThreadScreen({
     form,
     isModerator,
     isConfirmingDelete,
+    sortOrder,
     data: {
       thread: data,
     },
@@ -219,6 +226,8 @@ export function useThreadScreen({
       handleEditAndAccept,
       handleConfirmDelete,
       handleCancelDelete,
+      handleSetSortOrder: (order: "asc" | "desc") =>
+        setSortParam(order === "asc" ? null : order),
     },
   };
 }

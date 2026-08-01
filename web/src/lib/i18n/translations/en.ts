@@ -62,6 +62,9 @@ export const en = {
     ago: "ago",
     youLikedThis: "You liked this thread",
     youRepliedToThis: "You have replied to this thread",
+    sortOldestFirst: "Oldest first",
+    sortNewestFirst: "Newest first",
+    sortBy: "Sort by",
   },
   category: {
     home: "Home",

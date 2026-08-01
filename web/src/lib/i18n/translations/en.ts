@@ -22,6 +22,12 @@ export const en = {
     language: "Language",
     switchLanguage: "Switch language",
   },
+  auth: {
+    loginRequired: "Authentication Required",
+    loginRequiredDescription: "This forum is private. Please log in to access discussions and content.",
+    login: "Log In",
+    register: "Register",
+  },
   actions: {
     viewProfile: "View profile",
     resetPassword: "Reset password",

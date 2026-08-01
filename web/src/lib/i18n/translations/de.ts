@@ -24,6 +24,12 @@ export const de: Translations = {
     language: "Sprache",
     switchLanguage: "Sprache wechseln",
   },
+  auth: {
+    loginRequired: "Anmeldung erforderlich",
+    loginRequiredDescription: "Diese Plattform ist geschützt. Bitte melde dich an, um auf die Diskussionen und Inhalte zuzugreifen.",
+    login: "Anmelden",
+    register: "Registrieren",
+  },
   actions: {
     viewProfile: "Profil ansehen",
     resetPassword: "Passwort zurücksetzen",

@@ -1,5 +1,7 @@
 "use client";
 
+import type { KeyboardEvent } from "react";
+
 import { Button } from "@/components/ui/button";
 import { BiometricIcon } from "@/components/ui/icons/Biometric";
 import { Input } from "@/components/ui/input";
@@ -19,6 +21,13 @@ export function RegisterHandleForm(props: Props) {
     },
   } = useRegisterHandleForm(props);
 
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handlePassword(e);
+    }
+  };
+
   return (
     <styled.form
       w="full"
@@ -27,6 +36,7 @@ export function RegisterHandleForm(props: Props) {
       gap="2"
       textAlign="center"
       onSubmit={handlePassword}
+      onKeyDown={handleKeyDown}
     >
       <Input
         type="text"

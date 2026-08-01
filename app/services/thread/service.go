@@ -16,6 +16,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/datagraph"
 	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/post"
+	"github.com/Southclaws/storyden/app/resources/post/category"
 	"github.com/Southclaws/storyden/app/resources/post/thread"
 	"github.com/Southclaws/storyden/app/resources/post/thread_cache"
 	"github.com/Southclaws/storyden/app/resources/post/thread_querier"
@@ -93,6 +94,7 @@ type service struct {
 	logger *slog.Logger
 	ins    spanner.Instrumentation
 
+	categoryRepo   *category.Repository
 	threadQuerier  *thread_querier.Querier
 	threadWriter   *thread_writer.Writer
 	tagWriter      *tag_writer.Writer
@@ -109,6 +111,7 @@ func New(
 	logger *slog.Logger,
 	ins spanner.Builder,
 
+	categoryRepo *category.Repository,
 	threadQuerier *thread_querier.Querier,
 	threadWriter *thread_writer.Writer,
 	tagWriter *tag_writer.Writer,
@@ -124,6 +127,7 @@ func New(
 		logger: logger,
 		ins:    ins.Build(),
 
+		categoryRepo:   categoryRepo,
 		threadQuerier:  threadQuerier,
 		threadWriter:   threadWriter,
 		tagWriter:      tagWriter,

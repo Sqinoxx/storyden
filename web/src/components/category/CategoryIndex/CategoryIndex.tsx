@@ -15,6 +15,9 @@ import { CategoryCreateTrigger } from "../CategoryCreate/CategoryCreateTrigger";
 
 import { CategoryLayout } from "./CategoryCardLayout";
 import { useTranslation } from "@/lib/i18n";
+import { useSession } from "@/auth";
+import { Permission } from "@/api/openapi-schema";
+import { hasPermission } from "@/utils/permissions";
 
 export type Props = {
   initialSession?: Account;
@@ -42,6 +45,14 @@ export function CategoryIndex({
 }: Props) {
   const categoryCount = categories.length;
   const t = useTranslation();
+  const session = useSession(initialSession, initialSettings);
+
+  // Gate the QuickShare box: only show it when the feature is enabled AND the
+  // user has ManageCategories (admin/mod). Normal users cannot post without a
+  // leaf category, and this index view only lists top-level / uncategorised
+  // threads, so there's nothing valid for them to post into here.
+  const canPost = hasPermission(session, Permission.MANAGE_CATEGORIES);
+  const effectiveShowQuickShare = showQuickShare && canPost;
 
   return (
     <LStack gap="8">
@@ -92,7 +103,7 @@ export function CategoryIndex({
         initialSettings={initialSettings}
         initialThreadList={initialThreadList}
         mode={threadListMode}
-        showQuickShare={showQuickShare}
+        showQuickShare={effectiveShowQuickShare}
         paginationBasePath={paginationBasePath}
       />
     </LStack>

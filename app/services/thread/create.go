@@ -7,11 +7,13 @@ import (
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/fault/fmsg"
+	"github.com/Southclaws/fault/ftag"
 	"github.com/Southclaws/opt"
 	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/datagraph"
+	"github.com/Southclaws/storyden/app/resources/post/category"
 	"github.com/Southclaws/storyden/app/resources/post/thread"
 	"github.com/Southclaws/storyden/app/resources/post/thread_writer"
 	"github.com/Southclaws/storyden/app/resources/rbac"
@@ -29,6 +31,10 @@ func (s *service) Create(ctx context.Context,
 	partial Partial,
 ) (*thread.Thread, error) {
 	if err := authoriseMutation(ctx, partial); err != nil {
+		return nil, err
+	}
+
+	if err := s.authoriseCategoryForCreate(ctx, partial); err != nil {
 		return nil, err
 	}
 
@@ -118,6 +124,46 @@ func authoriseMutation(ctx context.Context, partial Partial) error {
 				fmsg.WithDesc("pinned state", "You do not have permission to create a pinned thread."),
 			)
 		}
+	}
+
+	return nil
+}
+
+// authoriseCategoryForCreate enforces the leaf-category rule for normal users:
+//   - Admins / users with ManageCategories permission may post in any category
+//     (including parent categories) or without a category.
+//   - All other authenticated users MUST supply a category, and that category
+//     must be a leaf (i.e. it has no child categories).
+func (s *service) authoriseCategoryForCreate(ctx context.Context, partial Partial) error {
+	// If the caller has ManageCategories (admin / mod), skip all restrictions.
+	if err := session.Authorise(ctx, nil, rbac.PermissionManageCategories); err == nil {
+		return nil
+	}
+
+	// Normal users must provide a category.
+	catID, ok := partial.Category.Get()
+	if !ok {
+		return fault.New(
+			"a category is required",
+			fctx.With(ctx),
+			ftag.With(ftag.InvalidArgument),
+			fmsg.WithDesc("category required", "You must select a category before creating a thread."),
+		)
+	}
+
+	// The chosen category must be a leaf (no sub-categories).
+	isLeaf, err := s.categoryRepo.IsLeaf(ctx, category.CategoryID(catID))
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if !isLeaf {
+		return fault.New(
+			"category is not a leaf category",
+			fctx.With(ctx),
+			ftag.With(ftag.InvalidArgument),
+			fmsg.WithDesc("not a leaf category", "Threads can only be created in the deepest subcategory. Please select a subcategory that has no further sub-categories."),
+		)
 	}
 
 	return nil

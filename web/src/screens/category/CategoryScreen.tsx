@@ -39,10 +39,18 @@ export function useCategoryScreen({ initialCategory, slug }: Props) {
 
   const canEditCategory = hasPermission(session, Permission.MANAGE_CATEGORIES);
 
+  // Normal users may only create threads in leaf categories (no children).
+  // Admins/Mods (ManageCategories) can always post regardless.
+  const isLeafCategory =
+    !data.children || data.children.length === 0;
+
+  const showQuickShare = canEditCategory || isLeafCategory;
+
   return {
     ready: true as const,
     data: {
       canEditCategory,
+      showQuickShare,
       category: data,
     },
   };
@@ -58,7 +66,7 @@ export function CategoryScreen(props: ScreenProps) {
     return <UnreadyBanner error={error} />;
   }
 
-  const { category } = data;
+  const { category, showQuickShare } = data;
   const coverImageURL = getAssetURL(category.cover_image?.path);
 
   return (
@@ -104,6 +112,7 @@ export function CategoryScreen(props: ScreenProps) {
         paginationBasePath={`/d/${data.category.slug}`}
         showCategorySelect={false}
         hideCategoryBadge={true}
+        showQuickShare={showQuickShare}
       />
     </LStack>
   );

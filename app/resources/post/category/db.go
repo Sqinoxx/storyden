@@ -316,6 +316,20 @@ func (d *Repository) DeleteCategory(ctx context.Context, slug string, moveto Cat
 	return FromModel(c), nil
 }
 
+// IsLeaf returns true if the category with the given ID has no children.
+// Normal users may only create threads in leaf categories.
+func (d *Repository) IsLeaf(ctx context.Context, id CategoryID) (bool, error) {
+	count, err := d.db.Category.
+		Query().
+		Where(category.ParentCategoryID(xid.ID(id))).
+		Count(ctx)
+	if err != nil {
+		return false, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return count == 0, nil
+}
+
 func (d *Repository) MoveCategory(ctx context.Context, slug string, opts MoveOptions) ([]*Category, error) {
 	if opts.Before != nil && opts.After != nil {
 		return nil, fault.New("category move cannot specify both before and after", fctx.With(ctx), ftag.With(ftag.InvalidArgument))

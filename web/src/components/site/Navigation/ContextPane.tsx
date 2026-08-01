@@ -1,7 +1,6 @@
 import { PropsWithChildren } from "react";
 
 import { Box, HStack, styled } from "@/styled-system/jsx";
-import { Floating } from "@/styled-system/patterns";
 
 export function ContextPane({ children }: PropsWithChildren) {
   return (
@@ -9,24 +8,25 @@ export function ContextPane({ children }: PropsWithChildren) {
       display="flex"
       flexDir="column"
       alignItems="center"
+      justifyContent="space-between"
       gap="2"
       width="full"
       height="full"
     >
       <Box
         id="desktop-nav-right"
-        className={Floating()}
-        borderRadius="md"
+        display="flex"
+        flexDir="column"
+        gap="3"
         w="full"
-        height="min"
-        p="2"
-        pr="0"
-        overflowY="scroll"
+        height="full"
+        minH="0"
+        overflowY="auto"
       >
         {children}
       </Box>
 
-      <HStack color="fg.subtle" fontSize="xs">
+      <HStack color="fg.subtle" fontSize="xs" flexShrink="0" py="1">
         {/* TODO: Provide links to privacy/terms/etc custom pages */}
         {/* <p>copyright {settings.owner}</p> */}
         {/* <a href={PrivacyRoute}>privacy</a> */}
@@ -35,3 +35,4 @@ export function ContextPane({ children }: PropsWithChildren) {
     </styled.nav>
   );
 }
+

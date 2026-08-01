@@ -9,8 +9,8 @@ import { FormErrorText } from "@/components/ui/FormErrorText";
 import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
 import { css } from "@/styled-system/css";
-import { Divider, HStack, LStack, WStack } from "@/styled-system/jsx";
-import { lstack } from "@/styled-system/patterns";
+import { Box, Divider, HStack, LStack, WStack } from "@/styled-system/jsx";
+import { Floating, lstack } from "@/styled-system/patterns";
 import { useTranslation } from "@/lib/i18n";
 
 import { EditAction } from "../Action/Edit";
@@ -32,10 +32,11 @@ export function SiteContextPane(props: Props) {
   const isEditingSettings = editing === "settings";
 
   return (
-    <form
-      className={lstack({ gap: "1" })}
-      onSubmit={handlers.handleSaveSettings}
-    >
+    <Box className={Floating()} borderRadius="md" p="3" w="full">
+      <form
+        className={lstack({ gap: "1" })}
+        onSubmit={handlers.handleSaveSettings}
+      >
       <WStack alignItems="start">
         {isEditingSettings ? (
           <FormControl>
@@ -121,5 +122,6 @@ export function SiteContextPane(props: Props) {
         </LStack>
       )}
     </form>
-  );
+  </Box>
+);
 }

@@ -56,6 +56,7 @@ export function FileAttachmentBadge({ asset }: { asset: Asset }) {
     <styled.a
       href={url}
       download={asset.filename}
+      title={asset.filename}
       display="inline-flex"
       alignItems="center"
       gap="2"

@@ -1,5 +1,7 @@
 "use client";
 
+import type { KeyboardEvent } from "react";
+
 import { FormControl } from "@/components/ui/FormControl";
 import { Button } from "@/components/ui/button";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
@@ -12,6 +14,13 @@ import { useLoginEmailForm } from "./useLoginEmailForm";
 export function LoginEmailForm() {
   const { form, handlers } = useLoginEmailForm();
 
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handlers.handleSubmit(e);
+    }
+  };
+
   return (
     <styled.form
       className={vstack()}
@@ -19,6 +28,7 @@ export function LoginEmailForm() {
       gap="2"
       textAlign="center"
       onSubmit={handlers.handleSubmit}
+      onKeyDown={handleKeyDown}
     >
       <FormControl>
         <Input

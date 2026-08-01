@@ -1,5 +1,7 @@
 "use client";
 
+import type { KeyboardEvent } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Flex, styled } from "@/styled-system/jsx";
@@ -18,6 +20,13 @@ export function LoginHandleForm() {
     },
   } = useLoginHandleForm();
 
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handlePassword(e);
+    }
+  };
+
   return (
     <styled.form
       w="full"
@@ -26,6 +35,7 @@ export function LoginHandleForm() {
       gap="2"
       textAlign="center"
       onSubmit={handlePassword}
+      onKeyDown={handleKeyDown}
     >
       <Input
         type="text"

@@ -17,6 +17,7 @@ import { css, cva } from "@/styled-system/css";
 import { Box, HStack, LStack, styled } from "@/styled-system/jsx";
 import { Floating } from "@/styled-system/patterns";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { useLanguage } from "@/lib/i18n";
 
 import { Props, useCategoryScreen } from "./CategoryScreen";
 
@@ -60,6 +61,7 @@ function collectAllDocumentAssets(threads: ThreadReference[]): Asset[] {
 
 export function CategoryScreenContextPane(props: Props) {
   const { ready, error, data } = useCategoryScreen(props);
+  const { t } = useLanguage();
   const [filesOpen, setFilesOpen] = useState(true);
 
   if (!ready) {
@@ -122,6 +124,10 @@ export function CategoryScreenContextPane(props: Props) {
               ))}
             </Table.Body>
           </Table.Root>
+
+          <Box pt="1">
+            <ScrollToTop />
+          </Box>
         </LStack>
       </Box>
 
@@ -148,7 +154,7 @@ export function CategoryScreenContextPane(props: Props) {
               gap="2"
             >
               <Download size={14} />
-              Dateien in diesem Fach
+              {t.category.filesInThisCategory}
               <styled.span fontSize="xs" fontWeight="normal" color="fg.muted">
                 ({documentAssets.length})
               </styled.span>
@@ -171,10 +177,6 @@ export function CategoryScreenContextPane(props: Props) {
           )}
         </Box>
       )}
-
-      <Box px="1">
-        <ScrollToTop />
-      </Box>
     </LStack>
   );
 }

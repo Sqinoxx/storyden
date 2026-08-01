@@ -88,6 +88,7 @@ export const en = {
     threads: "threads",
     subcategory: "subcategory",
     subcategories: "subcategories",
+    filesInThisCategory: "Files in this category",
   },
   search: {
     placeholder: "Search...",

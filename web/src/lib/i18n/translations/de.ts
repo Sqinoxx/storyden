@@ -90,6 +90,7 @@ export const de: Translations = {
     threads: "Beiträge",
     subcategory: "Unterkategorie",
     subcategories: "Unterkategorien",
+    filesInThisCategory: "Dateien in diesem Fach",
   },
   search: {
     placeholder: "Suchen...",

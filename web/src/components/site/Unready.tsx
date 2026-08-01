@@ -1,15 +1,20 @@
-import { PropsWithChildren } from "react";
+"use client";
 
+import { PropsWithChildren } from "react";
+import { Lock, ShieldAlert } from "lucide-react";
+
+import { useSession } from "@/auth";
+import { useTranslation } from "@/lib/i18n";
+import { usePublicRegistration } from "@/lib/settings/registration";
+import type { Settings } from "@/lib/settings/settings";
 import {
-  Box,
   CardBox,
   Center,
   HStack,
   LStack,
   styled,
+  VStack,
 } from "@/styled-system/jsx";
-import { usePublicRegistration } from "@/lib/settings/registration";
-import type { Settings } from "@/lib/settings/settings";
 import { deriveError } from "@/utils/error";
 
 import { Spinner } from "../ui/Spinner";
@@ -21,11 +26,15 @@ type Props = {
 };
 
 export function Unready({ error }: Props) {
+  const t = useTranslation();
+  const session = useSession();
+  const canRegister = usePublicRegistration();
+
   if (!error) {
     return (
       <Center
         w="full"
-        h="full"
+        minH="60"
         role="status"
         aria-busy="true"
         aria-live="polite"
@@ -39,20 +48,116 @@ export function Unready({ error }: Props) {
   }
 
   const message = deriveError(error);
+  const lowerMsg = message.toLowerCase();
+
+  const isAuthError =
+    !session ||
+    lowerMsg.includes("access") ||
+    lowerMsg.includes("unauthoris") ||
+    lowerMsg.includes("unauthoriz") ||
+    lowerMsg.includes("forbidden") ||
+    lowerMsg.includes("permission") ||
+    lowerMsg.includes("log in") ||
+    lowerMsg.includes("anmelden");
+
+  if (isAuthError) {
+    return (
+      <Center w="full" py={{ base: "10", md: "16" }} px="4">
+        <CardBox
+          maxW="md"
+          p={{ base: "6", md: "8" }}
+          textAlign="center"
+          borderRadius="2xl"
+          boxShadow="lg"
+          borderWidth="thin"
+          borderStyle="solid"
+          borderColor="border.subtle"
+          bg="bg.default"
+        >
+          <VStack gap="6" alignItems="center">
+            <Center
+              w="16"
+              h="16"
+              borderRadius="full"
+              bg="accent.subtle"
+              color="fg.accent"
+              shadow="sm"
+            >
+              <Lock width={30} height={30} />
+            </Center>
+
+            <VStack gap="2" textAlign="center">
+              <styled.h2
+                fontSize="xl"
+                fontWeight="bold"
+                color="fg.default"
+                letterSpacing="tight"
+              >
+                {t.auth?.loginRequired ?? "Anmeldung erforderlich"}
+              </styled.h2>
+              <styled.p
+                fontSize="sm"
+                color="fg.muted"
+                maxW="sm"
+                lineHeight="relaxed"
+              >
+                {t.auth?.loginRequiredDescription ??
+                  "Diese Plattform ist privat. Bitte melde dich an, um auf Themen und Diskussionen zuzugreifen."}
+              </styled.p>
+            </VStack>
+
+            <HStack w="full" gap="3" pt="2" justifyContent="center">
+              <LinkButton href="/login" variant="subtle" size="sm" px="6" minW="32">
+                {t.nav.login}
+              </LinkButton>
+              {canRegister && (
+                <LinkButton href="/register" variant="outline" size="sm" px="6" minW="32">
+                  {t.auth?.register ?? "Registrieren"}
+                </LinkButton>
+              )}
+            </HStack>
+          </VStack>
+        </CardBox>
+      </Center>
+    );
+  }
 
   return (
-    <HStack
-      maxW="xs"
-      alignItems="center"
-      color="fg.subtle"
-      role="alert"
-      aria-atomic="true"
-    >
-      <Box w="5" flexShrink="0">
-        <WarningIcon aria-hidden="true" />
-      </Box>
-      <p id="error__message">{message}</p>
-    </HStack>
+    <Center w="full" py={{ base: "10", md: "16" }} px="4">
+      <CardBox
+        maxW="md"
+        p={{ base: "6", md: "8" }}
+        textAlign="center"
+        borderRadius="2xl"
+        boxShadow="md"
+        borderWidth="thin"
+        borderStyle="solid"
+        borderColor="border.subtle"
+        bg="bg.default"
+      >
+        <VStack gap="5" alignItems="center">
+          <Center
+            w="14"
+            h="14"
+            borderRadius="full"
+            bg="bg.subtle"
+            color="fg.error"
+            shadow="xs"
+          >
+            <ShieldAlert width={26} height={26} />
+          </Center>
+
+          <VStack gap="2" textAlign="center">
+            <styled.h2 fontSize="lg" fontWeight="bold" color="fg.default">
+              {t.common.error}
+            </styled.h2>
+            <styled.p fontSize="sm" color="fg.muted" maxW="sm" id="error__message">
+              {message}
+            </styled.p>
+          </VStack>
+        </VStack>
+      </CardBox>
+    </Center>
   );
 }
 
@@ -80,9 +185,10 @@ export function UnreadyBanner({ error, children }: PropsWithChildren<Props>) {
       justifyContent="center"
       role="alert"
       aria-atomic="true"
+      py="8"
     >
-      <CardBox maxW="xs">
-        <LStack>
+      <CardBox maxW="md" p="6" borderRadius="xl">
+        <LStack gap="4">
           <HStack id="error__heading" gap="2" alignItems="center">
             <WarningIcon aria-hidden />
             <styled.h1 fontSize="md" fontWeight="bold" my="0">
@@ -94,7 +200,7 @@ export function UnreadyBanner({ error, children }: PropsWithChildren<Props>) {
             <span>{message}</span>
           </styled.p>
 
-          <LStack>{children}</LStack>
+          {children && <LStack>{children}</LStack>}
         </LStack>
       </CardBox>
     </Center>
@@ -107,19 +213,67 @@ export function UnauthenticatedBanner({
   initialSettings?: Settings;
 }) {
   const canRegister = usePublicRegistration(initialSettings);
+  const t = useTranslation();
 
   return (
-    <UnreadyBanner error="Please log in to see this page.">
-      <HStack w="full">
-        {canRegister && (
-          <LinkButton w="full" size="xs" href="/register">
-            Register
-          </LinkButton>
-        )}
-        <LinkButton w="full" size="xs" variant="outline" href="/login">
-          Login
-        </LinkButton>
-      </HStack>
-    </UnreadyBanner>
+    <Center w="full" py={{ base: "10", md: "16" }} px="4">
+      <CardBox
+        maxW="md"
+        p={{ base: "6", md: "8" }}
+        textAlign="center"
+        borderRadius="2xl"
+        boxShadow="lg"
+        borderWidth="thin"
+        borderStyle="solid"
+        borderColor="border.subtle"
+        bg="bg.default"
+      >
+        <VStack gap="6" alignItems="center">
+          <Center
+            w="16"
+            h="16"
+            borderRadius="full"
+            bg="accent.subtle"
+            color="fg.accent"
+            shadow="sm"
+          >
+            <Lock width={30} height={30} />
+          </Center>
+
+          <VStack gap="2" textAlign="center">
+            <styled.h2
+              fontSize="xl"
+              fontWeight="bold"
+              color="fg.default"
+              letterSpacing="tight"
+            >
+              {t.auth?.loginRequired ?? "Anmeldung erforderlich"}
+            </styled.h2>
+            <styled.p
+              fontSize="sm"
+              color="fg.muted"
+              maxW="sm"
+              lineHeight="relaxed"
+            >
+              {t.auth?.loginRequiredDescription ??
+                "Diese Plattform ist privat. Bitte melde dich an, um auf Themen und Diskussionen zuzugreifen."}
+            </styled.p>
+          </VStack>
+
+          <HStack w="full" gap="3" pt="2" justifyContent="center">
+            <LinkButton href="/login" variant="subtle" size="sm" px="6" minW="32">
+              {t.nav.login}
+            </LinkButton>
+            {canRegister && (
+              <LinkButton href="/register" variant="outline" size="sm" px="6" minW="32">
+                {t.auth?.register ?? "Registrieren"}
+              </LinkButton>
+            )}
+          </HStack>
+        </VStack>
+      </CardBox>
+    </Center>
   );
 }
+
+

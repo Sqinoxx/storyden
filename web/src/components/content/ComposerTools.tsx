@@ -36,7 +36,7 @@ export function ComposerTools({
   onClick,
   children,
 }: PropsWithChildren<Props>) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -51,31 +51,22 @@ export function ComposerTools({
 
   const handleClick = () => {
     // Toggle the menu state
-    // On desktop (mouse): closes if already open from hover
-    // On mobile (touch): toggles because pointer events are ignored
     setIsExpanded((prev) => !prev);
 
     onClick?.();
   };
 
   const handlePointerEnter = (e: React.PointerEvent) => {
-    // Only respond to mouse hover, not touch events
     if (e.pointerType === "touch") return;
 
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
     }
-    setIsExpanded(true);
   };
 
   const handlePointerLeave = (e: React.PointerEvent) => {
-    // Only respond to mouse leave, not touch events
     if (e.pointerType === "touch") return;
-
-    closeTimeoutRef.current = setTimeout(() => {
-      setIsExpanded(false);
-    }, 650);
   };
 
   // The anchor is the absolutely positioned container. This is fixed to its

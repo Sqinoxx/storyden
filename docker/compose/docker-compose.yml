@@ -6,13 +6,20 @@
 # environment variables to the public URL of your server. Remember that these
 # are full URLs, scheme included, so ensure `https://` is included.
 #
+# Eigenes Image bauen:  docker compose build
+# Starten:              docker compose up
+# Nach Code-Änderungen: docker compose build && docker compose up
+#
 services:
   storyden:
-    image: ghcr.io/southclaws/storyden:latest
+    build:
+      context: ../..          # Projekt-Root (wo go.mod liegt)
+      dockerfile: docker/api/Dockerfile
+    image: storyden-local:latest
     ports:
       - "8000:8000"
     volumes:
-      - ./data:/storyden/data
+      - ./data:/storyden/data  # SQLite-DB & Assets bleiben erhalten
     environment:
-      - PUBLIC_WEB_ADDRESS=${PUBLIC_WEB_ADDRESS}
-      - PUBLIC_API_ADDRESS=${PUBLIC_API_ADDRESS}
+      - PUBLIC_WEB_ADDRESS=${PUBLIC_WEB_ADDRESS:-http://localhost:3000}
+      - PUBLIC_API_ADDRESS=${PUBLIC_API_ADDRESS:-http://localhost:8000}

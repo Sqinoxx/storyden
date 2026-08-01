@@ -13,20 +13,28 @@
 services:
   storyden:
     build:
-      context: ../..          # Projekt-Root (wo go.mod liegt)
+      context: ../.. # Projekt-Root (wo go.mod liegt)
       dockerfile: docker/api/Dockerfile
     image: storyden-local:latest
     ports:
       - "8000:8000"
     volumes:
-      - ./data:/storyden/data  # SQLite-DB & Assets bleiben erhalten
+      - ./data:/storyden/data # SQLite-DB & Assets bleiben erhalten
     environment:
       - PUBLIC_WEB_ADDRESS=${PUBLIC_WEB_ADDRESS:-http://localhost:3000}
       - PUBLIC_API_ADDRESS=${PUBLIC_API_ADDRESS:-http://localhost:8000}
       # E-Mail-Authentifizierung
       # EMAIL_PROVIDER=mock gibt E-Mails (OTP-Codes, Verifizierungslinks) in den Container-Logs aus.
       # Später durch smtp oder sendgrid ersetzen, sobald ein echter Anbieter verfügbar ist.
-      - EMAIL_PROVIDER=mock
+      - EMAIL_PROVIDER=smtp
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=587
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-Storyden}
+      - SMTP_USE_TLS=true
+
       # JWT_SECRET wird für das Signieren von E-Mail-Tokens (Passwort-Reset, Verifizierung) benötigt.
       # Diesen Wert geheim halten und NICHT ändern, sobald Benutzer registriert sind.
-      - JWT_SECRET=eb2f096fa194d98a4668369e676f4ff6d6270901f261e4bd5fa35ecd2cd9afe4
+      - JWT_SECRET=${JWT_SECRET}

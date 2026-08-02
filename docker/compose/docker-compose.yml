@@ -10,6 +10,8 @@
 # Starten:              docker compose up
 # Nach Code-Änderungen: docker compose build && docker compose up
 #
+# Secrets: Kopiere .env.example nach .env und trage deine Werte ein.
+# Die .env-Datei wird automatisch von docker compose geladen und ist gitignored.
 
 # TODO: Github-Domain => Danach mit Brevo Verbinden
 services:
@@ -30,12 +32,12 @@ services:
       # Später durch smtp oder sendgrid ersetzen, sobald ein echter Anbieter verfügbar ist.
       - EMAIL_PROVIDER=smtp
       - SMTP_HOST=${SMTP_HOST}
-      - SMTP_PORT=587
+      - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS}
       - SMTP_FROM_NAME=${SMTP_FROM_NAME:-Storyden}
-      - SMTP_USE_TLS=true
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
 
       # JWT_SECRET wird für das Signieren von E-Mail-Tokens (Passwort-Reset, Verifizierung) benötigt.
       # Diesen Wert geheim halten und NICHT ändern, sobald Benutzer registriert sind.

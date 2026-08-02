@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
-import { Download } from "lucide-react";
+import React, { useState, useCallback } from "react";
+import { Download, Eye } from "lucide-react";
 
 import { Asset } from "@/api/openapi-schema";
 import { getAssetURL, getCleanFilename } from "@/utils/asset";
 import { styled } from "@/styled-system/jsx";
+import { FilePreviewModal, isPreviewableAsset } from "./FilePreviewModal";
 
 /** Returns true if the asset is a document (not an image). */
 export function isDocumentAsset(asset: Asset) {
@@ -45,71 +46,138 @@ export function FileAttachmentBadge({ asset }: { asset: Asset }) {
   const url = getAssetURL(asset.path);
   const displayName = getCleanFilename(asset.filename);
   const isImage = asset.mime_type?.startsWith("image/");
+  const canPreview = isPreviewableAsset(asset.mime_type, asset.filename);
 
-  function handleDownload(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (url) {
-      downloadAsset(url, displayName);
-    }
-  }
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const handleDownload = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (url) {
+        downloadAsset(url, displayName);
+      }
+    },
+    [url, displayName]
+  );
+
+  const handlePreview = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setPreviewOpen(true);
+    },
+    []
+  );
 
   return (
-    <styled.a
-      href={url}
-      download={displayName}
-      title={displayName}
-      display="inline-flex"
-      alignItems="center"
-      gap="2"
-      px="3"
-      py="2"
-      borderRadius="md"
-      borderWidth="thin"
-      borderColor="border.default"
-      bgColor="bg.subtle"
-      color="fg.default"
-      textDecoration="none"
-      fontSize="sm"
-      fontWeight="medium"
-      maxWidth="xs"
-      overflow="hidden"
-      position="relative"
-      cursor="pointer"
-      _hover={{ bgColor: "bg.muted" }}
-      onClick={handleDownload}
-      style={{ zIndex: 10, transition: "background 0.15s" }}
-    >
-      {isImage ? (
-        <styled.img
-          src={url ?? ""}
-          alt={displayName}
-          style={{
-            width: "20px",
-            height: "20px",
-            objectFit: "cover",
-            borderRadius: "3px",
-            flexShrink: 0,
-          }}
-        />
-      ) : (
-        <styled.span display="flex" alignItems="center" flexShrink="0" fontSize="sm">
-          📄
-        </styled.span>
-      )}
-      <styled.span
+    <>
+      <styled.div
+        display="inline-flex"
+        alignItems="center"
+        gap="2"
+        px="3"
+        py="2"
+        borderRadius="md"
+        borderWidth="thin"
+        borderColor="border.default"
+        bgColor="bg.subtle"
+        color="fg.default"
+        fontSize="sm"
+        fontWeight="medium"
+        maxWidth="xs"
         overflow="hidden"
-        textOverflow="ellipsis"
-        whiteSpace="nowrap"
-        flex="1"
-        minWidth="0"
+        position="relative"
+        title={displayName}
+        style={{ zIndex: 10 }}
       >
-        {displayName}
-      </styled.span>
-      <styled.span display="flex" alignItems="center" color="fg.muted" flexShrink="0" ml="1">
-        <Download size={14} />
-      </styled.span>
-    </styled.a>
+        {/* File type icon */}
+        {isImage ? (
+          <styled.img
+            src={url ?? ""}
+            alt={displayName}
+            style={{
+              width: "20px",
+              height: "20px",
+              objectFit: "cover",
+              borderRadius: "3px",
+              flexShrink: 0,
+            }}
+          />
+        ) : (
+          <styled.span display="flex" alignItems="center" flexShrink="0" fontSize="sm">
+            📄
+          </styled.span>
+        )}
+
+        {/* Filename */}
+        <styled.span
+          overflow="hidden"
+          textOverflow="ellipsis"
+          whiteSpace="nowrap"
+          flex="1"
+          minWidth="0"
+        >
+          {displayName}
+        </styled.span>
+
+        {/* Action buttons */}
+        <styled.span display="flex" alignItems="center" gap="1.5" flexShrink="0" ml="1">
+          {/* Preview eye icon – only for supported formats */}
+          {canPreview && (
+            <styled.button
+              type="button"
+              onClick={handlePreview}
+              title="Vorschau"
+              display="inline-flex"
+              alignItems="center"
+              justifyContent="center"
+              color="fg.muted"
+              _hover={{ color: "fg.default" }}
+              style={{
+                cursor: "pointer",
+                background: "transparent",
+                border: "none",
+                padding: "2px",
+              }}
+            >
+              <Eye size={14} />
+            </styled.button>
+          )}
+
+          {/* Download icon */}
+          <styled.button
+            type="button"
+            onClick={handleDownload}
+            title="Herunterladen"
+            display="inline-flex"
+            alignItems="center"
+            justifyContent="center"
+            color="fg.muted"
+            _hover={{ color: "fg.default" }}
+            style={{
+              cursor: "pointer",
+              background: "transparent",
+              border: "none",
+              padding: "2px",
+            }}
+          >
+            <Download size={14} />
+          </styled.button>
+        </styled.span>
+      </styled.div>
+
+      {/* Preview modal */}
+      {previewOpen && url && (
+        <FilePreviewModal
+          url={url}
+          displayName={displayName}
+          mimeType={asset.mime_type}
+          onClose={() => setPreviewOpen(false)}
+          onDownload={() => downloadAsset(url, displayName)}
+        />
+      )}
+    </>
   );
 }
 

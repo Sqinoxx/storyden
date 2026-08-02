@@ -1,4 +1,5 @@
 import { Portal } from "@ark-ui/react";
+import { PlusIcon, TagIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import * as Menu from "@/components/ui/menu";
@@ -174,7 +175,7 @@ export function MultiSelectPicker({
       size={size}
       lazyMount
       positioning={{
-        placement: "bottom-end",
+        placement: "bottom-start",
         strategy: "fixed",
       }}
       {...menuVariantProps}
@@ -270,8 +271,8 @@ export function MultiSelectPicker({
 
       <Portal>
         <Menu.Positioner zIndex="popover">
-          <Menu.Content zIndex="popover">
-            <Menu.ItemGroup pl="2" py="1">
+          <Menu.Content zIndex="popover" style={{ minWidth: "240px", maxHeight: "320px", overflowY: "auto" }}>
+            <Box position="sticky" top="0" zIndex="1" bg="bg.default" p="2" pb="1" borderBottomWidth="thin" borderColor="border.subtle">
               <Input
                 size={size}
                 value={queryInput}
@@ -281,10 +282,114 @@ export function MultiSelectPicker({
                 onChange={handleQuery}
                 onKeyDown={handleKeyDown}
               />
-            </Menu.ItemGroup>
+            </Box>
+
+            {queryError ? (
+              <Menu.ItemGroup p="2">
+                <Unready error={queryError} />
+              </Menu.ItemGroup>
+            ) : (
+              <>
+                {filteredQueryResults && filteredQueryResults.length > 0 && (
+                  <Menu.ItemGroup>
+                    <Menu.ItemGroupLabel>
+                      <HStack gap="1.5" alignItems="center">
+                        <TagIcon size={12} />
+                        <span>
+                          {queryInput.trim() ? "Suchergebnisse" : "Vorhandene Tags"}
+                        </span>
+                      </HStack>
+                    </Menu.ItemGroupLabel>
+                    {filteredQueryResults.map((item) => {
+                      const colour = badgeColours(
+                        item.colour ? item.colour : deriveColour(item.value),
+                      );
+                      const colourStyles = colour
+                        ? badgeColourPalette(colour)
+                        : undefined;
+
+                      return (
+                        <Menu.Item
+                          key={item.value}
+                          value={item.value}
+                          closeOnSelect={false}
+                          onSelect={handleAddResult(item)}
+                          cursor="pointer"
+                        >
+                          <Badge
+                            size="sm"
+                            style={colourStyles}
+                            bgColor={colourStyles ? "colorPalette.bg" : undefined}
+                            borderColor={
+                              colourStyles ? "colorPalette.border" : undefined
+                            }
+                            color={colourStyles ? "colorPalette.fg" : undefined}
+                          >
+                            {item.label}
+                          </Badge>
+                        </Menu.Item>
+                      );
+                    })}
+                  </Menu.ItemGroup>
+                )}
+
+                {showCreateNew && (
+                  <Menu.ItemGroup mt="1">
+                    <Menu.ItemGroupLabel>
+                      <HStack gap="1.5" alignItems="center" color="accent.default">
+                        <PlusIcon size={12} />
+                        <span>Neuen Tag erstellen</span>
+                      </HStack>
+                    </Menu.ItemGroupLabel>
+                    <Menu.Item
+                      value={`new-${queryInput}`}
+                      closeOnSelect={false}
+                      onSelect={handleAddNewValue}
+                      cursor="pointer"
+                      style={{
+                        borderRadius: "var(--radii-l2)",
+                        border: "1px dashed var(--colors-border-default)",
+                      }}
+                      _hover={{
+                        borderColor: "var(--colors-accent-default, #3b82f6)",
+                        bg: "var(--colors-bg-muted)",
+                      }}
+                    >
+                      <HStack gap="2" alignItems="center" width="full">
+                        <Box
+                          p="1"
+                          borderRadius="full"
+                          bg="accent.default"
+                          color="white"
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <PlusIcon size={12} />
+                        </Box>
+                        <Text size="sm" fontWeight="medium" color="fg.default">
+                          Tag <strong>"{queryInput.trim()}"</strong> erstellen
+                        </Text>
+                      </HStack>
+                    </Menu.Item>
+                  </Menu.ItemGroup>
+                )}
+
+                {queryInput &&
+                  !queryError &&
+                  !filteredQueryResults?.length &&
+                  !showCreateNew && (
+                    <Menu.ItemGroup p="2">
+                      <Text size="sm" color="fg.subtle">
+                        No results found
+                      </Text>
+                    </Menu.ItemGroup>
+                  )}
+              </>
+            )}
 
             {value.length > 0 && (
-              <Menu.ItemGroup>
+              <Menu.ItemGroup borderTopWidth="thin" borderColor="border.subtle" mt="2" pt="1">
                 <Menu.ItemGroupLabel>Selected</Menu.ItemGroupLabel>
                 {value.map((item) => {
                   return (
@@ -306,56 +411,6 @@ export function MultiSelectPicker({
                   );
                 })}
               </Menu.ItemGroup>
-            )}
-
-            {queryError ? (
-              <Menu.ItemGroup p="2">
-                <Unready error={queryError} />
-              </Menu.ItemGroup>
-            ) : (
-              <>
-                {filteredQueryResults && filteredQueryResults.length > 0 && (
-                  <Menu.ItemGroup>
-                    <Menu.ItemGroupLabel>Results</Menu.ItemGroupLabel>
-                    {filteredQueryResults.map((item) => {
-                      return (
-                        <Menu.Item
-                          key={item.value}
-                          value={item.value}
-                          closeOnSelect={false}
-                          onSelect={handleAddResult(item)}
-                        >
-                          {item.label}
-                        </Menu.Item>
-                      );
-                    })}
-                  </Menu.ItemGroup>
-                )}
-
-                {showCreateNew && (
-                  <Menu.ItemGroup>
-                    <Menu.ItemGroupLabel>Create new</Menu.ItemGroupLabel>
-                    <Menu.Item
-                      value={`new-${queryInput}`}
-                      closeOnSelect={false}
-                      onSelect={handleAddNewValue}
-                    >
-                      Create "{queryInput}"
-                    </Menu.Item>
-                  </Menu.ItemGroup>
-                )}
-
-                {queryInput &&
-                  !queryError &&
-                  !filteredQueryResults?.length &&
-                  !showCreateNew && (
-                    <Menu.ItemGroup p="2">
-                      <Text size="sm" color="fg.subtle">
-                        No results found
-                      </Text>
-                    </Menu.ItemGroup>
-                  )}
-              </>
             )}
           </Menu.Content>
         </Menu.Positioner>

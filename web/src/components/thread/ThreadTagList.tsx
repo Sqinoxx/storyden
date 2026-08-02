@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Control, Controller, ControllerProps, FieldValues } from "react-hook-form";
 
 import { handle } from "@/api/client";
@@ -35,9 +35,15 @@ export function ThreadTagList(props: Props) {
       value: t.name,
     })) ?? [];
 
+  useEffect(() => {
+    if (props.editing) {
+      handleQuery("");
+    }
+  }, [props.editing]);
+
   function handleQuery(q: string) {
     handle(async () => {
-      const { tags } = await tagList({ q });
+      const { tags } = await tagList({ q: q || undefined });
       const filtered = tags.filter(
         (t) => !currentTags.some((ct) => ct.value === t.name),
       );

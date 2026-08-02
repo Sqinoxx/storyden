@@ -3,6 +3,8 @@
 import { SliderValueChangeDetails } from "@ark-ui/react";
 
 import {
+  DarkPreset,
+  DARK_PRESET_CONFIGS,
   LightBgStyle,
   LightPreset,
   PRESET_CONFIGS,
@@ -78,6 +80,40 @@ const BG_STYLE_OPTIONS: Array<{
     { id: "warm", label: "Warmes Creme", desc: "Papier-Tönung" },
   ];
 
+const DARK_PRESET_LIST: Array<{
+  id: DarkPreset;
+  title: string;
+  subtitle: string;
+  previewBg: string;
+  previewBorder: string;
+  previewDot: string;
+}> = [
+    {
+      id: "slate",
+      title: "Slate",
+      subtitle: "GitHub / Linear",
+      previewBg: "#1c1f26",
+      previewBorder: "#2e3340",
+      previewDot: "#94a3b8",
+    },
+    {
+      id: "midnight",
+      title: "Midnight",
+      subtitle: "OLED Black",
+      previewBg: "#000000",
+      previewBorder: "#1a1a1a",
+      previewDot: "#e2e8f0",
+    },
+    {
+      id: "warmnight",
+      title: "Warme Nacht",
+      subtitle: "Bear / Obsidian",
+      previewBg: "#201d19",
+      previewBorder: "#332e28",
+      previewDot: "#d4b896",
+    },
+  ];
+
 export function MemberInterfaceSettings(props: Props) {
   const result = useMemberInterfaceSettings(props);
   const {
@@ -88,6 +124,8 @@ export function MemberInterfaceSettings(props: Props) {
     setLightPreset,
     lightBgStyle,
     setLightBgStyle,
+    darkPreset,
+    setDarkPreset,
   } = useTheme();
 
   if (!result.ready) {
@@ -343,8 +381,117 @@ export function MemberInterfaceSettings(props: Props) {
           </Box>
         </CardBox>
       )}
+
+      {/* Dark Mode Customization Suite – only active when in Dark Mode */}
+      {resolvedTheme === "dark" && (
+        <CardBox className={lstack()}>
+          <WStack justifyContent="space-between" alignItems="center">
+            <Heading size="md">Dark Mode: Farbschema</Heading>
+            <span
+              className={css({
+                px: "2.5",
+                py: "0.5",
+                borderRadius: "full",
+                bg: "bg.subtle",
+                color: "fg.subtle",
+                fontSize: "xs",
+                fontWeight: "semibold",
+              })}
+            >
+              Live Aktiv
+            </span>
+          </WStack>
+
+          <FormHelperText>
+            Wähle einen dunklen Stil für den Dark Mode. Von klassischem Schiefer bis zu reinem OLED-Schwarz.
+          </FormHelperText>
+
+          <FormControl>
+            <FormLabel>Farb-Thema</FormLabel>
+            <Grid gridTemplateColumns={{ base: "repeat(1, 1fr)", sm: "repeat(3, 1fr)" }} gap="3" pt="1">
+              {DARK_PRESET_LIST.map((preset) => {
+                const isActive = darkPreset === preset.id;
+                return (
+                  <Box
+                    key={preset.id}
+                    onClick={() => setDarkPreset(preset.id)}
+                    p="3"
+                    borderRadius="lg"
+                    cursor="pointer"
+                    style={{
+                      backgroundColor: preset.previewBg,
+                      border: isActive
+                        ? "2px solid var(--colors-accent-default)"
+                        : `1px solid ${preset.previewBorder}`,
+                      boxShadow: isActive ? "0 0 0 1px var(--colors-accent-default)" : "none",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <HStack gap="2.5" alignItems="center">
+                      <Box
+                        w="4"
+                        h="4"
+                        borderRadius="full"
+                        style={{ backgroundColor: preset.previewDot }}
+                      />
+                      <Box>
+                        <Box fontSize="sm" fontWeight="semibold" style={{ color: preset.previewDot }}>
+                          {preset.title}
+                        </Box>
+                        <Box fontSize="xs" style={{ color: preset.previewBorder }}>
+                          {preset.subtitle}
+                        </Box>
+                      </Box>
+                    </HStack>
+                  </Box>
+                );
+              })}
+            </Grid>
+          </FormControl>
+
+          {/* Live Preview */}
+          <Box pt="2">
+            <FormLabel mb="2">Live-Vorschau</FormLabel>
+            <Box
+              p="4"
+              borderRadius="xl"
+              style={{
+                backgroundColor: "var(--colors-bg-default)",
+                border: "1px solid var(--colors-border-default)",
+                boxShadow: "var(--shadows-sm)",
+              }}
+            >
+              <WStack justifyContent="space-between" alignItems="center" mb="3">
+                <Heading size="sm">Vorschau</Heading>
+                <span
+                  className={css({
+                    px: "2",
+                    py: "0.5",
+                    borderRadius: "md",
+                    bg: "bg.subtle",
+                    fontSize: "xs",
+                    color: "fg.muted",
+                  })}
+                >
+                  {DARK_PRESET_CONFIGS[darkPreset]?.name ?? "Slate"}
+                </span>
+              </WStack>
+              <Box fontSize="xs" color="fg.subtle" mb="3">
+                So sehen Beiträge und Karten mit deinem gewählten Dark-Mode-Stil aus.
+              </Box>
+              <HStack gap="2">
+                <Button size="sm" variant="solid">
+                  Primärer Button
+                </Button>
+                <Button size="sm" variant="subtle">
+                  Sekundär
+                </Button>
+              </HStack>
+            </Box>
+          </Box>
+        </CardBox>
+      )}
     </styled.div>
   );
 }
-
 

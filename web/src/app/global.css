@@ -332,4 +332,26 @@ html.light[data-light-bg="warm"] {
   --colors-bg-subtle: #f6efe2;
   --colors-bg-muted: #ece3d3;
 }
+
+/*
+  Dark mode colour presets.
+  Same pattern as light mode: override CSS variables via data attribute.
+  Default (slate) needs no override – just the theme token values.
+*/
+
+/* Midnight – true OLED black (YouTube / Twitter dark) */
+html.dark[data-dark-preset="midnight"] {
+  --colors-bg-site: #000000;
+  --colors-bg-default: #0a0a0a;
+  --colors-bg-subtle: #111111;
+  --colors-bg-muted: #1a1a1a;
+}
+
+/* Warm Night – soft brown-tinted dark (Bear / Obsidian) */
+html.dark[data-dark-preset="warmnight"] {
+  --colors-bg-site: #1a1714;
+  --colors-bg-default: #201d19;
+  --colors-bg-subtle: #2a2520;
+  --colors-bg-muted: #332e28;
+}
 

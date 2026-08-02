@@ -154,7 +154,7 @@ export function ImpressumModal({ isOpen, onClose }: ImpressumModalProps) {
                 <User size={15} style={{ marginTop: "3px", flexShrink: 0 }} />
                 <Box>
                   <styled.span fontWeight="medium">Dienstanbieter / Betreiber:</styled.span>{" "}
-                  Zahnis Regensburg (Unimedics für Zahnmediziner)
+                  Zahnis Regensburg
                 </Box>
               </HStack>
 
@@ -162,7 +162,7 @@ export function ImpressumModal({ isOpen, onClose }: ImpressumModalProps) {
                 <MapPin size={15} style={{ marginTop: "3px", flexShrink: 0 }} />
                 <Box>
                   <styled.span fontWeight="medium">Anschrift:</styled.span>{" "}
-                  Universitätsstraße 31, 93053 Regensburg
+                  Franz Josef Strauß Allee 11, 93053 Regensburg
                 </Box>
               </HStack>
 
@@ -170,7 +170,7 @@ export function ImpressumModal({ isOpen, onClose }: ImpressumModalProps) {
                 <Mail size={15} style={{ marginTop: "3px", flexShrink: 0 }} />
                 <Box>
                   <styled.span fontWeight="medium">Kontakt:</styled.span>{" "}
-                  kontakt@zahnis-regensburg.de
+                  info@zahnmedizin-rgbg.de
                 </Box>
               </HStack>
             </Box>
@@ -198,7 +198,7 @@ export function ImpressumModal({ isOpen, onClose }: ImpressumModalProps) {
                 Administration Zahnis Regensburg
               </styled.p>
               <styled.p fontSize="xs" color="fg.subtle" mt="1">
-                Universitätsstraße 31, 93053 Regensburg
+                Franz Josef Strauß Allee 11, 93053 Regensburg
               </styled.p>
             </Box>
           </Stack>

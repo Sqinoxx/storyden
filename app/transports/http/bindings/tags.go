@@ -6,6 +6,7 @@ import (
 	"github.com/Southclaws/dt"
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
+	"github.com/Southclaws/fault/ftag"
 	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/tag"
@@ -52,7 +53,14 @@ func (h Tags) TagList(ctx context.Context, request openapi.TagListRequestObject)
 }
 
 func (h Tags) TagCreate(ctx context.Context, request openapi.TagCreateRequestObject) (openapi.TagCreateResponseObject, error) {
+	if request.Body == nil {
+		return nil, fault.New("missing request body", fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
 	name := tag_ref.NewName(request.Body.Name)
+	if name.String() == "" {
+		return nil, fault.New("tag name cannot be empty", fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
 
 	tags, err := h.tagWriter.Add(ctx, name)
 	if err != nil {

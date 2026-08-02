@@ -26,7 +26,7 @@ type Props = {
 export function TagManagementScreen({ initialTagList }: Props) {
   const t = useTranslation();
   const { mutate } = useSWRConfig();
-  const { data } = useTagList({}, { swr: { fallbackData: initialTagList } });
+  const { data } = useTagList(undefined, { swr: { fallbackData: initialTagList } });
 
   const [search, setSearch] = useState("");
   const [newTagName, setNewTagName] = useState("");

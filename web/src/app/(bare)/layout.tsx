@@ -5,9 +5,11 @@ import { Fullpage } from "@/layouts/Fullpage";
 
 import { BackAction } from "@/components/site/Action/Back";
 import { HomeAnchor } from "@/components/site/Navigation/Anchors/Home";
+import { ImpressumLink } from "@/components/site/ImpressumModal/ImpressumLink";
+import { CookieLink } from "@/components/site/CookieNotice/CookieLink";
 import { getSettings } from "@/lib/settings/settings-server";
 import { css } from "@/styled-system/css";
-import { CardBox, VStack, WStack, styled } from "@/styled-system/jsx";
+import { CardBox, HStack, VStack, WStack, styled } from "@/styled-system/jsx";
 import { vstack } from "@/styled-system/patterns";
 import { getIconURL } from "@/utils/icon";
 
@@ -22,7 +24,8 @@ export default async function Layout({ children }: PropsWithChildren) {
 
   return (
     <Fullpage>
-      <VStack minH="dvh" py="24">
+      <VStack minH="dvh" py="6" justifyContent="space-between" alignItems="center" w="full">
+        <styled.div flexGrow={1} />
         <CardBox className={vstack()} maxW="sm" gap="4" p="4">
           <WStack>
             <BackAction />
@@ -45,6 +48,15 @@ export default async function Layout({ children }: PropsWithChildren) {
 
           {children}
         </CardBox>
+        <styled.div flexGrow={2} />
+
+        <HStack color="fg.subtle" fontSize="xs" flexShrink="0" py="2" gap="2">
+          <ImpressumLink />
+          <styled.span color="fg.subtle">•</styled.span>
+          <CookieLink />
+          <styled.span color="fg.subtle">•</styled.span>
+          <p>powered by storyden</p>
+        </HStack>
       </VStack>
     </Fullpage>
   );

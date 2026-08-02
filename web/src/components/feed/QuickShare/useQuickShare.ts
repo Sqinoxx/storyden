@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { handle } from "@/api/client";
 import { linkCreate } from "@/api/openapi-client/links";
-import { Account, Category, LinkReference } from "@/api/openapi-schema";
+import { Account, Asset, Category, LinkReference } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { NO_CATEGORY_VALUE } from "@/components/category/CategorySelect/useCategorySelect";
 import { useFeedMutations } from "@/lib/feed/mutation";
@@ -34,6 +34,7 @@ export function useQuickShare({ initialCategory }: Props) {
   >(null);
   const formRef = useClickAway<HTMLFormElement>(() => setEditing(false));
   const [resetKey, setResetKey] = useState("");
+  const [uploadedAssets, setUploadedAssets] = useState<Asset[]>([]);
 
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
@@ -87,6 +88,14 @@ export function useQuickShare({ initialCategory }: Props) {
           : [initialCategory.slug],
   });
 
+  const handleAddAssets = (assets: Asset[]) => {
+    setUploadedAssets((prev) => [...prev, ...assets]);
+  };
+
+  const handleRemoveAsset = (assetId: string) => {
+    setUploadedAssets((prev) => prev.filter((a) => a.id !== assetId));
+  };
+
   const handlePost = form.handleSubmit((data: Form) => {
     handle(
       async () => {
@@ -124,14 +133,19 @@ export function useQuickShare({ initialCategory }: Props) {
         }
 
         // Extract any asset IDs from file-attachment links in body HTML
-        const assetIds: string[] = [];
+        const assetIdsFromBody: string[] = [];
         parsed.querySelectorAll('a[href*="/api/assets/"]').forEach((el) => {
           const href = el.getAttribute("href") || "";
           const match = href.match(/\/api\/assets\/([^/?#]+)/);
           if (match && match[1]) {
-            assetIds.push(match[1]);
+            assetIdsFromBody.push(match[1]);
           }
         });
+
+        const stateAssetIds = uploadedAssets.map((a) => a.id);
+        const combinedAssetIds = Array.from(
+          new Set([...stateAssetIds, ...assetIdsFromBody]),
+        );
 
         const newThread = {
           title: threadTitle,
@@ -141,7 +155,7 @@ export function useQuickShare({ initialCategory }: Props) {
             data.category === NO_CATEGORY_VALUE ? undefined : data.category,
           tags: data.tags && data.tags.length > 0 ? data.tags : undefined,
           visibility: "published" as const,
-          asset_ids: assetIds.length > 0 ? assetIds : undefined,
+          asset_ids: combinedAssetIds.length > 0 ? combinedAssetIds : undefined,
         };
 
         await createThread(newThread, linkAvailable);
@@ -152,6 +166,7 @@ export function useQuickShare({ initialCategory }: Props) {
         form.resetField("title");
         form.resetField("body");
         form.setValue("tags", []);
+        setUploadedAssets([]);
 
         setHydratedLink(null);
       },
@@ -174,10 +189,13 @@ export function useQuickShare({ initialCategory }: Props) {
       editing,
       hydratedLink,
       resetKey,
+      uploadedAssets,
     },
     handlers: {
       handleFocus,
       handlePost,
+      handleAddAssets,
+      handleRemoveAsset,
     },
   };
 }

@@ -1,11 +1,13 @@
 import { useId } from "react";
 
 import { match } from "ts-pattern";
+import { X } from "lucide-react";
 
-import { LinkReference } from "@/api/openapi-schema";
+import { Asset, LinkReference } from "@/api/openapi-schema";
 import { assetUpload } from "@/api/openapi-client/assets";
 import { CategorySelect } from "@/components/category/CategorySelect/CategorySelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
+import { FileAttachmentBadge } from "@/components/post/FileAttachmentList";
 import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/button";
 import { ComposeField } from "@/components/ui/form/ComposeField";
@@ -26,7 +28,7 @@ export function QuickShare(props: Props) {
 
   const {
     form,
-    state: { formRef, hydratedLink, resetKey },
+    state: { formRef, hydratedLink, resetKey, uploadedAssets },
     handlers,
   } = useQuickShare(props);
   const t = useTranslation();
@@ -71,6 +73,37 @@ export function QuickShare(props: Props) {
           resetKey={resetKey}
         />
 
+        {uploadedAssets.length > 0 && (
+          <HStack flexWrap="wrap" gap="2" py="1" px="1">
+            {uploadedAssets.map((asset) => (
+              <styled.div
+                key={asset.id || asset.filename}
+                display="inline-flex"
+                alignItems="center"
+                gap="1"
+              >
+                <FileAttachmentBadge asset={asset} />
+                <styled.button
+                  type="button"
+                  onClick={() => handlers.handleRemoveAsset(asset.id)}
+                  title="Datei entfernen"
+                  display="inline-flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  w="6"
+                  h="6"
+                  borderRadius="md"
+                  color="fg.muted"
+                  _hover={{ bgColor: "bg.muted", color: "fg.default" }}
+                  style={{ cursor: "pointer", transition: "all 0.15s ease" }}
+                >
+                  <X size={14} />
+                </styled.button>
+              </styled.div>
+            ))}
+          </HStack>
+        )}
+
         <WStack
           w="full"
           justifyContent="space-between"
@@ -89,7 +122,11 @@ export function QuickShare(props: Props) {
               </>
             )}
 
-            <TagListField name="tags" control={form.control} />
+            <TagListField
+              name="tags"
+              control={form.control}
+              attachments={uploadedAssets}
+            />
           </HStack>
 
           <HStack gap="2" ml="auto" flexShrink={0}>
@@ -110,12 +147,15 @@ export function QuickShare(props: Props) {
                 const files = Array.from(e.currentTarget.files ?? []);
                 if (files.length === 0) return;
 
+                const newAssets: Asset[] = [];
                 for (const file of files) {
                   try {
                     const asset = await assetUpload(
                       file,
                       { filename: file.name },
                     );
+                    newAssets.push(asset);
+
                     const url = getAssetURL(asset.path);
                     const isImage = /^image\//i.test(file.type);
                     const insertion = isImage
@@ -127,6 +167,9 @@ export function QuickShare(props: Props) {
                   } catch {
                     // ignore upload errors silently
                   }
+                }
+                if (newAssets.length > 0) {
+                  handlers.handleAddAssets(newAssets);
                 }
                 e.target.value = "";
               }}

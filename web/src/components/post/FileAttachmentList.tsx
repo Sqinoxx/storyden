@@ -206,31 +206,20 @@ export function FileAttachmentList({
 }) {
   let visibleAssets = assets.filter((a) => !!a);
 
-  if (body) {
-    const bodyLower = body.toLowerCase();
-    visibleAssets = visibleAssets.filter((asset) => {
-      // Always show images in the attachment list, even if embedded in body
-      if (asset.mime_type?.startsWith("image/")) return true;
-
-      if (!asset.path && !asset.filename) return true;
-      const pathKey = asset.path ? asset.path.replace(/^.*\/api\/assets\//, "") : "";
-      const nameKey = asset.filename ? asset.filename.toLowerCase() : "";
-
-      if (pathKey && bodyLower.includes(pathKey.toLowerCase())) return false;
-      if (asset.path && bodyLower.includes(asset.path.toLowerCase())) return false;
-      if (nameKey && bodyLower.includes(nameKey)) return false;
-      return true;
-    });
-  }
-
   // Filter out redundant '-untitled' fallback assets if a properly named asset exists
   if (visibleAssets.length > 1) {
     const hasNamedAsset = visibleAssets.some(
-      (a) => a.filename && !a.filename.toLowerCase().endsWith("-untitled") && a.filename.toLowerCase() !== "untitled"
+      (a) =>
+        a.filename &&
+        !a.filename.toLowerCase().endsWith("-untitled") &&
+        a.filename.toLowerCase() !== "untitled",
     );
     if (hasNamedAsset) {
       visibleAssets = visibleAssets.filter(
-        (a) => a.filename && !a.filename.toLowerCase().endsWith("-untitled") && a.filename.toLowerCase() !== "untitled"
+        (a) =>
+          a.filename &&
+          !a.filename.toLowerCase().endsWith("-untitled") &&
+          a.filename.toLowerCase() !== "untitled",
       );
     }
   }

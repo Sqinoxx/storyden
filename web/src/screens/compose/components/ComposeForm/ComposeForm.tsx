@@ -69,6 +69,7 @@ export function ComposeForm(props: Props) {
                   name="tags"
                   control={form.control}
                   initialTags={props.initialDraft?.tags}
+                  attachments={state.attachments}
                 />
               </HStack>
 

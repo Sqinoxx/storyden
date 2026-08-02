@@ -9,14 +9,17 @@ import {
 } from "@tiptap/react";
 import { Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
+import { useState, useCallback } from "react";
+import React from "react";
 
 import { Asset } from "@/api/openapi-schema";
 import { Button } from "@/components/ui/button";
 import { ProgressCircle } from "@/components/ui/progress";
-import { Download } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
 import { getCleanFilename } from "@/utils/asset";
+import { FilePreviewModal, isPreviewableAsset } from "@/components/post/FilePreviewModal";
 
 export interface FileAttachmentOptions {
   handleFiles: (view: EditorView, files: File[]) => Promise<Asset[]>;
@@ -41,130 +44,184 @@ function Component(props: NodeViewProps) {
   const { handleRetry, handleCancel } =
     props.extension.options as FileAttachmentOptions;
 
+  // Preview state
+  const canPreview = !isUploading && isPreviewableAsset(undefined, fileName);
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const handleDownload = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isUploading) { e.preventDefault(); return; }
+    if (href) {
+      e.preventDefault();
+      try {
+        const res = await fetch(href);
+        if (!res.ok) throw new Error("Download failed");
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(blobUrl);
+      } catch {
+        const link = document.createElement("a");
+        link.href = href;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+    }
+  }, [href, fileName, isUploading]);
+
+  const handlePreview = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPreviewOpen(true);
+  }, []);
+
   return (
-    <NodeViewWrapper
-      as="span"
-      className={css({
-        display: "inline-block",
-        marginLeft: "1",
-        marginRight: "1",
-        verticalAlign: "middle",
-      })}
-    >
-      <styled.a
-        href={isUploading ? undefined : href}
-        download={fileName}
-        display="inline-flex"
-        alignItems="center"
-        gap="2"
-        padding="2"
-        paddingRight="3"
-        borderRadius="md"
-        borderWidth="thin"
-        borderColor="border.default"
-        backgroundColor={isSelected ? "bg.muted" : "bg.default"}
-        color="fg.default"
-        textDecoration="none"
-        position="relative"
-        overflow="hidden"
-        style={{ cursor: isUploading ? "default" : "pointer" }}
-        _hover={!isUploading ? { backgroundColor: "bg.muted" } : undefined}
-        onClick={async (e) => {
-          e.stopPropagation();
-          if (isUploading) {
-            e.preventDefault();
-            return;
-          }
-          if (href) {
-            e.preventDefault();
-            try {
-              const res = await fetch(href);
-              if (!res.ok) throw new Error("Download failed");
-              const blob = await res.blob();
-              const blobUrl = URL.createObjectURL(blob);
-              const link = document.createElement("a");
-              link.href = blobUrl;
-              link.download = fileName;
-              document.body.appendChild(link);
-              link.click();
-              link.remove();
-              URL.revokeObjectURL(blobUrl);
-            } catch {
-              const link = document.createElement("a");
-              link.href = href;
-              link.download = fileName;
-              document.body.appendChild(link);
-              link.click();
-              link.remove();
-            }
-          }
-        }}
+    <>
+      <NodeViewWrapper
+        as="span"
+        className={css({
+          display: "inline-block",
+          marginLeft: "1",
+          marginRight: "1",
+          verticalAlign: "middle",
+        })}
       >
-        {isUploading ? (
-          <styled.span
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            backgroundColor="bg.muted"
-            borderRadius="sm"
-            padding="1"
-          >
-            <ProgressCircle value={progressPercent} size="sm" />
-          </styled.span>
-        ) : (
-          <styled.span display="flex" alignItems="center" flexShrink="0" fontSize="sm">
-            📄
-          </styled.span>
-        )}
-
-        <styled.span fontSize="sm" fontWeight="medium" truncate maxWidth="xs">
-          {fileName}
-        </styled.span>
-
-        {!isUploading && href && (
-          <styled.span display="inline-flex" alignItems="center" color="fg.muted" ml="1">
-            <Download size={14} />
-          </styled.span>
-        )}
-
-        {uploadError && (
-          <styled.div
-            position="absolute"
-            inset="0"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            backgroundColor="bg.error"
-            color="fg.error"
-            gap="2"
-          >
-            <styled.span fontSize="xs">Failed</styled.span>
-            <Button
-              type="button"
-              size="xs"
-              variant="outline"
-              onClick={(e) => {
-                e.preventDefault();
-                handleRetry(props.view, uploadId);
-              }}
+        <styled.div
+          display="inline-flex"
+          alignItems="center"
+          gap="2"
+          padding="2"
+          paddingRight="3"
+          borderRadius="md"
+          borderWidth="thin"
+          borderColor="border.default"
+          backgroundColor={isSelected ? "bg.muted" : "bg.default"}
+          color="fg.default"
+          position="relative"
+          overflow="hidden"
+        >
+          {isUploading ? (
+            <styled.span
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              backgroundColor="bg.muted"
+              borderRadius="sm"
+              padding="1"
             >
-              Retry
-            </Button>
-            <Button
-              type="button"
-              size="xs"
-              variant="ghost"
-              onClick={(e) => {
-                e.preventDefault();
-                handleCancel(props.view, uploadId);
-              }}
+              <ProgressCircle value={progressPercent} size="sm" />
+            </styled.span>
+          ) : (
+            <styled.span display="flex" alignItems="center" flexShrink="0" fontSize="sm">
+              📄
+            </styled.span>
+          )}
+
+          <styled.span fontSize="sm" fontWeight="medium" truncate maxWidth="xs">
+            {fileName}
+          </styled.span>
+
+          {!isUploading && href && (
+            <styled.span display="inline-flex" alignItems="center" gap="1.5" color="fg.muted" ml="1">
+              {/* Preview eye */}
+              {canPreview && (
+                <styled.button
+                  type="button"
+                  onClick={handlePreview}
+                  title="Vorschau"
+                  display="inline-flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  color="fg.muted"
+                  _hover={{ color: "fg.default" }}
+                  style={{
+                    cursor: "pointer",
+                    background: "transparent",
+                    border: "none",
+                    padding: "2px",
+                  }}
+                >
+                  <Eye size={14} />
+                </styled.button>
+              )}
+              {/* Download */}
+              <styled.button
+                type="button"
+                onClick={handleDownload}
+                title="Herunterladen"
+                display="inline-flex"
+                alignItems="center"
+                justifyContent="center"
+                color="fg.muted"
+                _hover={{ color: "fg.default" }}
+                style={{
+                  cursor: "pointer",
+                  background: "transparent",
+                  border: "none",
+                  padding: "2px",
+                }}
+              >
+                <Download size={14} />
+              </styled.button>
+            </styled.span>
+          )}
+
+          {uploadError && (
+            <styled.div
+              position="absolute"
+              inset="0"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              backgroundColor="bg.error"
+              color="fg.error"
+              gap="2"
             >
-              Remove
-            </Button>
-          </styled.div>
-        )}
-      </styled.a>
-    </NodeViewWrapper>
+              <styled.span fontSize="xs">Failed</styled.span>
+              <Button
+                type="button"
+                size="xs"
+                variant="outline"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleRetry(props.view, uploadId);
+                }}
+              >
+                Retry
+              </Button>
+              <Button
+                type="button"
+                size="xs"
+                variant="ghost"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleCancel(props.view, uploadId);
+                }}
+              >
+                Remove
+              </Button>
+            </styled.div>
+          )}
+        </styled.div>
+      </NodeViewWrapper>
+
+      {/* Preview modal */}
+      {previewOpen && href && (
+        <FilePreviewModal
+          url={href}
+          displayName={fileName}
+          onClose={() => setPreviewOpen(false)}
+          onDownload={() => handleDownload({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent)}
+        />
+      )}
+    </>
   );
 }
 

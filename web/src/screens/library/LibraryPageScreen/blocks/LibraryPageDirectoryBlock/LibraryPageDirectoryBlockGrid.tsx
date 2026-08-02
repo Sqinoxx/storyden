@@ -9,6 +9,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { keyBy } from "lodash";
 import Link from "next/link";
 import { ChangeEvent, useState } from "react";
+import React from "react";
 
 import {
   Identifier,
@@ -35,11 +36,12 @@ import {
   LStack,
   styled,
 } from "@/styled-system/jsx";
-import { Download } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 
 import { lstack } from "@/styled-system/patterns";
 import { linkDisabledProps } from "@/utils/anchor";
-import { getAssetURL } from "@/utils/asset";
+import { getAssetURL, getCleanFilename } from "@/utils/asset";
+import { FilePreviewModal, isPreviewableAsset } from "@/components/post/FilePreviewModal";
 
 import { useLibraryPageContext } from "../../Context";
 import { useEditState } from "../../useEditState";
@@ -401,33 +403,110 @@ function GridCard({
                 const downloadUrl = fileAsset
                   ? getAssetURL(fileAsset.path)
                   : null;
+                const displayName = getCleanFilename(fileAsset?.filename) || fileAsset?.filename || node.name;
+                const canPreview = fileAsset
+                  ? isPreviewableAsset(fileAsset.mime_type, fileAsset.filename)
+                  : false;
+
+                // eslint-disable-next-line react-hooks/rules-of-hooks
+                const [previewOpen, setPreviewOpen] = useState(false);
+
+                async function handleDownload(e: React.MouseEvent) {
+                  e.preventDefault();
+                  if (!downloadUrl) return;
+                  try {
+                    const res = await fetch(downloadUrl);
+                    if (!res.ok) throw new Error();
+                    const blob = await res.blob();
+                    const blobUrl = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = blobUrl;
+                    link.download = displayName;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    URL.revokeObjectURL(blobUrl);
+                  } catch {
+                    const link = document.createElement("a");
+                    link.href = downloadUrl;
+                    link.download = displayName;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                  }
+                }
 
                 if (downloadUrl) {
                   return (
-                    <styled.a
-                      href={downloadUrl}
-                      download={fileAsset?.filename || node.name}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      display="inline-flex"
-                      alignItems="center"
-                      gap="1.5"
-                      fontWeight="semibold"
-                      color="accent.default"
-                      _hover={{ textDecoration: "underline" }}
-                    >
-                      <styled.span flexShrink="0" fontSize="sm" style={{ textDecoration: "none" }}>
-                        📄
-                      </styled.span>
+                    <>
                       <styled.div
-                        lineClamp="1"
-                        textOverflow="ellipsis"
-                        wordBreak="break-all"
+                        display="inline-flex"
+                        alignItems="center"
+                        gap="1.5"
+                        fontWeight="semibold"
+                        color="fg.default"
                       >
-                        {node.name}
+                        <styled.span flexShrink="0" fontSize="sm" style={{ textDecoration: "none" }}>
+                          📄
+                        </styled.span>
+                        <styled.div
+                          lineClamp="1"
+                          textOverflow="ellipsis"
+                          wordBreak="break-all"
+                        >
+                          {node.name}
+                        </styled.div>
+                        <styled.span display="inline-flex" alignItems="center" gap="1.5" color="fg.muted" flexShrink="0" ml="1">
+                          {canPreview && (
+                            <styled.button
+                              type="button"
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreviewOpen(true); }}
+                              title="Vorschau"
+                              display="inline-flex"
+                              alignItems="center"
+                              justifyContent="center"
+                              color="fg.muted"
+                              _hover={{ color: "fg.default" }}
+                              style={{
+                                cursor: "pointer",
+                                background: "transparent",
+                                border: "none",
+                                padding: "2px",
+                              }}
+                            >
+                              <Eye size={14} />
+                            </styled.button>
+                          )}
+                          <styled.button
+                            type="button"
+                            onClick={handleDownload}
+                            title="Herunterladen"
+                            display="inline-flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            color="fg.muted"
+                            _hover={{ color: "fg.default" }}
+                            style={{
+                              cursor: "pointer",
+                              background: "transparent",
+                              border: "none",
+                              padding: "2px",
+                            }}
+                          >
+                            <Download size={14} />
+                          </styled.button>
+                        </styled.span>
                       </styled.div>
-                      <Download size={14} style={{ flexShrink: 0 }} />
-                    </styled.a>
+                      {previewOpen && (
+                        <FilePreviewModal
+                          url={downloadUrl}
+                          displayName={displayName}
+                          mimeType={fileAsset?.mime_type}
+                          onClose={() => setPreviewOpen(false)}
+                          onDownload={() => handleDownload({ preventDefault: () => {} } as React.MouseEvent)}
+                        />
+                      )}
+                    </>
                   );
                 }
 

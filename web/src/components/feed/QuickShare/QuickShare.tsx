@@ -5,6 +5,7 @@ import { match } from "ts-pattern";
 import { LinkReference } from "@/api/openapi-schema";
 import { assetUpload } from "@/api/openapi-client/assets";
 import { CategorySelect } from "@/components/category/CategorySelect/CategorySelect";
+import { TagListField } from "@/components/thread/ThreadTagList";
 import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/button";
 import { ComposeField } from "@/components/ui/form/ComposeField";
@@ -72,21 +73,26 @@ export function QuickShare(props: Props) {
 
         <WStack
           w="full"
-          justifyContent={
-            props.showCategorySelect ? "space-between" : "flex-end"
-          }
+          justifyContent="space-between"
+          alignItems="center"
+          gap="2"
+          flexWrap="wrap"
         >
-          {props.showCategorySelect && (
-            <HStack alignItems="center">
-              <CategorySelect control={form.control} name="category" />
+          <HStack alignItems="center" flexWrap="wrap" gap="2" flex="1" minW="0">
+            {props.showCategorySelect && (
+              <>
+                <CategorySelect control={form.control} name="category" />
 
-              <FormErrorText>
-                {form.formState.errors["category"]?.message}
-              </FormErrorText>
-            </HStack>
-          )}
+                <FormErrorText>
+                  {form.formState.errors["category"]?.message}
+                </FormErrorText>
+              </>
+            )}
 
-          <HStack gap="2" ml={props.showCategorySelect ? "auto" : undefined}>
+            <TagListField name="tags" control={form.control} />
+          </HStack>
+
+          <HStack gap="2" ml="auto" flexShrink={0}>
             <label
               className={button({ size: "sm", variant: "ghost" })}
               htmlFor={fileInputId}

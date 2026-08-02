@@ -21,6 +21,7 @@ export const FormSchema = z.object({
   title: z.string().optional(),
   body: z.string().optional(),
   category: z.string().optional(),
+  tags: z.string().array().optional(),
 });
 export type Form = z.infer<typeof FormSchema>;
 
@@ -138,6 +139,7 @@ export function useQuickShare({ initialCategory }: Props) {
           url: postURL ?? undefined,
           category:
             data.category === NO_CATEGORY_VALUE ? undefined : data.category,
+          tags: data.tags && data.tags.length > 0 ? data.tags : undefined,
           visibility: "published" as const,
           asset_ids: assetIds.length > 0 ? assetIds : undefined,
         };
@@ -149,6 +151,7 @@ export function useQuickShare({ initialCategory }: Props) {
 
         form.resetField("title");
         form.resetField("body");
+        form.setValue("tags", []);
 
         setHydratedLink(null);
       },

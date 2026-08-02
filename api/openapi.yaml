@@ -2521,6 +2521,17 @@ paths:
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "200": { $ref: "#/components/responses/TagListOK" }
+    post:
+      operationId: TagCreate
+      description: Create a new tag. Visible to staff/moderators.
+      tags: [tags]
+      requestBody: { $ref: "#/components/requestBodies/TagCreate" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/TagCreateOK" }
 
   /tags/{tag_name}:
     get:
@@ -2532,6 +2543,18 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "200": { $ref: "#/components/responses/TagGetOK" }
+    delete:
+      operationId: TagDelete
+      description: Delete a tag by name. Visible to staff/moderators.
+      tags: [tags]
+      parameters: [{ $ref: "#/components/parameters/TagNameParam" }]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { description: OK }
+
 
   #
   # 888    888                                    888
@@ -5490,6 +5513,12 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/RobotMutableProps" }
 
+    TagCreate:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/TagCreateProps" }
+
   #
   # 8888888b.  8888888888 .d8888b.  8888888b.   .d88888b.  888b    888  .d8888b.  8888888888 .d8888b.
   # 888   Y88b 888       d88P  Y88b 888   Y88b d88P" "Y88b 8888b   888 d88P  Y88b 888       d88P  Y88b
@@ -6135,6 +6164,13 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/TagListResult"
+
+    TagCreateOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TagReference"
 
     TagGetOK:
       description: OK
@@ -10160,6 +10196,14 @@ components:
       properties:
         id: { $ref: "#/components/schemas/Identifier" }
         items: { $ref: "#/components/schemas/DatagraphItemList" }
+
+    TagCreateProps:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
 
     TagReferenceProps:
       type: object

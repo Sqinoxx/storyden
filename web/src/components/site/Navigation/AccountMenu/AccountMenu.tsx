@@ -17,6 +17,7 @@ import { ProfileMenuItem } from "../Anchors/Profile";
 import { QueueMenuItem } from "../Anchors/Queue";
 import { ReportsMenuItem } from "../Anchors/Reports";
 import { SettingsMenuItem } from "../Anchors/Settings";
+import { TagsMenuItem } from "../Anchors/Tags";
 
 import {
   InvitationID,
@@ -89,6 +90,7 @@ export function AccountMenu({ account, size = "md" }: Props) {
                 <DraftsMenuItem />
                 {isStaff && <QueueMenuItem />}
                 <ReportsMenuItem />
+                {isStaff && <TagsMenuItem />}
               </Menu.ItemGroup>
 
               <Menu.Separator />

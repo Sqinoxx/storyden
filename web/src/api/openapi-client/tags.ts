@@ -8,15 +8,22 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 import useSwr from "swr";
-import type { Key, SWRConfiguration } from "swr";
+import type { Arguments, Key, SWRConfiguration } from "swr";
+import useSWRMutation from "swr/mutation";
+import type { SWRMutationConfiguration } from "swr/mutation";
 
 import { fetcher } from "../client";
 import type {
+  BadRequestResponse,
+  ForbiddenResponse,
   InternalServerErrorResponse,
   NotFoundResponse,
+  TagCreateBody,
+  TagCreateOKResponse,
   TagGetOKResponse,
   TagListOKResponse,
   TagListParams,
+  UnauthorisedResponse,
 } from "../openapi-schema";
 
 /**
@@ -62,6 +69,64 @@ export const useTagList = <TError = InternalServerErrorResponse>(
   };
 };
 /**
+ * Create a new tag. Visible to staff/moderators.
+ */
+export const tagCreate = (tagCreateBody: TagCreateBody) => {
+  return fetcher<TagCreateOKResponse>({
+    url: `/tags`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: tagCreateBody,
+  });
+};
+
+export const getTagCreateMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: TagCreateBody },
+  ): Promise<TagCreateOKResponse> => {
+    return tagCreate(arg);
+  };
+};
+export const getTagCreateMutationKey = () => [`/tags`] as const;
+
+export type TagCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof tagCreate>>
+>;
+export type TagCreateMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useTagCreate = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof tagCreate>>,
+    TError,
+    Key,
+    TagCreateBody,
+    Awaited<ReturnType<typeof tagCreate>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getTagCreateMutationKey();
+  const swrFn = getTagCreateMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
  * Get information about a tag.
  */
 export const tagGet = (tagName: string) => {
@@ -96,6 +161,60 @@ export const useTagGet = <
     swrFn,
     swrOptions,
   );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Delete a tag by name. Visible to staff/moderators.
+ */
+export const tagDelete = (tagName: string) => {
+  return fetcher<void>({ url: `/tags/${tagName}`, method: "DELETE" });
+};
+
+export const getTagDeleteMutationFetcher = (tagName: string) => {
+  return (_: Key, __: { arg: Arguments }): Promise<void> => {
+    return tagDelete(tagName);
+  };
+};
+export const getTagDeleteMutationKey = (tagName: string) =>
+  [`/tags/${tagName}`] as const;
+
+export type TagDeleteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof tagDelete>>
+>;
+export type TagDeleteMutationError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+  | InternalServerErrorResponse;
+
+export const useTagDelete = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+    | InternalServerErrorResponse,
+>(
+  tagName: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof tagDelete>>,
+      TError,
+      Key,
+      Arguments,
+      Awaited<ReturnType<typeof tagDelete>>
+    > & { swrKey?: string };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getTagDeleteMutationKey(tagName);
+  const swrFn = getTagDeleteMutationFetcher(tagName);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,

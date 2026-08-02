@@ -8,6 +8,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 import type {
+  TagCreateBody,
+  TagCreateOKResponse,
   TagGetOKResponse,
   TagListOKResponse,
   TagListParams,
@@ -47,6 +49,30 @@ export const tagList = async (
 };
 
 /**
+ * Create a new tag. Visible to staff/moderators.
+ */
+export type tagCreateResponse = {
+  data: TagCreateOKResponse;
+  status: number;
+};
+
+export const getTagCreateUrl = () => {
+  return `/tags`;
+};
+
+export const tagCreate = async (
+  tagCreateBody: TagCreateBody,
+  options?: RequestInit,
+): Promise<tagCreateResponse> => {
+  return fetcher<Promise<tagCreateResponse>>(getTagCreateUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(tagCreateBody),
+  });
+};
+
+/**
  * Get information about a tag.
  */
 export type tagGetResponse = {
@@ -65,5 +91,27 @@ export const tagGet = async (
   return fetcher<Promise<tagGetResponse>>(getTagGetUrl(tagName), {
     ...options,
     method: "GET",
+  });
+};
+
+/**
+ * Delete a tag by name. Visible to staff/moderators.
+ */
+export type tagDeleteResponse = {
+  data: void;
+  status: number;
+};
+
+export const getTagDeleteUrl = (tagName: string) => {
+  return `/tags/${tagName}`;
+};
+
+export const tagDelete = async (
+  tagName: string,
+  options?: RequestInit,
+): Promise<tagDeleteResponse> => {
+  return fetcher<Promise<tagDeleteResponse>>(getTagDeleteUrl(tagName), {
+    ...options,
+    method: "DELETE",
   });
 };

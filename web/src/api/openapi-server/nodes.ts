@@ -99,7 +99,7 @@ export const getNodeListUrl = (params?: NodeListParams) => {
     }
   });
 
-  return normalizedParams.toString()
+  return normalizedParams.size
     ? `/nodes?${normalizedParams.toString()}`
     : `/nodes`;
 };

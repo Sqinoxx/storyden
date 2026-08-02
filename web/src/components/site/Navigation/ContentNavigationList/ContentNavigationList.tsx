@@ -46,10 +46,9 @@ export function ContentNavigationList(props: Props) {
         <styled.hr
           width="full"
           border="none"
-          borderTop="1px solid"
           borderColor="border.subtle"
-          opacity={0.15}
           my="1.5"
+          style={{ borderTop: "1px solid", opacity: 0.15 }}
         />
         <LibraryNavigationTree
           initialNodeList={props.initialNodeList}

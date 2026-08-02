@@ -44,6 +44,7 @@ async function downloadAsset(url: string, filename: string) {
 export function FileAttachmentBadge({ asset }: { asset: Asset }) {
   const url = getAssetURL(asset.path);
   const displayName = getCleanFilename(asset.filename);
+  const isImage = asset.mime_type?.startsWith("image/");
 
   function handleDownload(e: React.MouseEvent) {
     e.preventDefault();
@@ -79,9 +80,23 @@ export function FileAttachmentBadge({ asset }: { asset: Asset }) {
       onClick={handleDownload}
       style={{ zIndex: 10, transition: "background 0.15s" }}
     >
-      <styled.span display="flex" alignItems="center" flexShrink="0" fontSize="sm">
-        📄
-      </styled.span>
+      {isImage ? (
+        <styled.img
+          src={url ?? ""}
+          alt={displayName}
+          style={{
+            width: "20px",
+            height: "20px",
+            objectFit: "cover",
+            borderRadius: "3px",
+            flexShrink: 0,
+          }}
+        />
+      ) : (
+        <styled.span display="flex" alignItems="center" flexShrink="0" fontSize="sm">
+          📄
+        </styled.span>
+      )}
       <styled.span
         overflow="hidden"
         textOverflow="ellipsis"
@@ -98,7 +113,7 @@ export function FileAttachmentBadge({ asset }: { asset: Asset }) {
   );
 }
 
-/** Renders a list of document asset download badges. */
+/** Renders a list of all asset download badges (images + documents). */
 export function FileAttachmentList({
   assets,
   body,
@@ -106,11 +121,14 @@ export function FileAttachmentList({
   assets: Asset[];
   body?: string;
 }) {
-  let documentAssets = assets.filter(isDocumentAsset);
+  let visibleAssets = assets.filter((a) => !!a);
 
   if (body) {
     const bodyLower = body.toLowerCase();
-    documentAssets = documentAssets.filter((asset) => {
+    visibleAssets = visibleAssets.filter((asset) => {
+      // Always show images in the attachment list, even if embedded in body
+      if (asset.mime_type?.startsWith("image/")) return true;
+
       if (!asset.path && !asset.filename) return true;
       const pathKey = asset.path ? asset.path.replace(/^.*\/api\/assets\//, "") : "";
       const nameKey = asset.filename ? asset.filename.toLowerCase() : "";
@@ -123,18 +141,18 @@ export function FileAttachmentList({
   }
 
   // Filter out redundant '-untitled' fallback assets if a properly named asset exists
-  if (documentAssets.length > 1) {
-    const hasNamedAsset = documentAssets.some(
+  if (visibleAssets.length > 1) {
+    const hasNamedAsset = visibleAssets.some(
       (a) => a.filename && !a.filename.toLowerCase().endsWith("-untitled") && a.filename.toLowerCase() !== "untitled"
     );
     if (hasNamedAsset) {
-      documentAssets = documentAssets.filter(
+      visibleAssets = visibleAssets.filter(
         (a) => a.filename && !a.filename.toLowerCase().endsWith("-untitled") && a.filename.toLowerCase() !== "untitled"
       );
     }
   }
 
-  if (documentAssets.length === 0) return null;
+  if (visibleAssets.length === 0) return null;
 
   return (
     <styled.div
@@ -143,7 +161,7 @@ export function FileAttachmentList({
       gap="2"
       mt="2"
     >
-      {documentAssets.map((asset) => (
+      {visibleAssets.map((asset) => (
         <FileAttachmentBadge key={asset.id || asset.filename} asset={asset} />
       ))}
     </styled.div>

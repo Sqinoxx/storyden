@@ -115,7 +115,7 @@ export function ComposeForm(props: Props) {
             </Box>
 
             <Box w="full" flex="1">
-              <BodyInput onAssetUpload={() => handlers.handleAssetUpload()} />
+              <BodyInput onAssetUpload={handlers.handleAttach} />
             </Box>
 
             {/* Footer row inside Box 2: Attachments & Bottom-Right "Datei anhängen" button */}

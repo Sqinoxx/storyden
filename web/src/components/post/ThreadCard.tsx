@@ -47,9 +47,9 @@ function isDocumentHref(href: string | null): boolean {
   return (hasDocExt || isAssetUrl) && !isImage;
 }
 
-/** Extracts document assets from thread.assets and parses fallback links from thread.body if necessary. */
+/** Extracts all assets (images + documents) from thread.assets and parses fallback links from thread.body if necessary. */
 export function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[] {
-  const assets: Asset[] = [...(thread.assets ?? []).filter(isDocumentAsset)];
+  const assets: Asset[] = [...(thread.assets ?? [])];
   const existingPaths = new Set(assets.map((a) => a.path));
   const existingNames = new Set(assets.map((a) => a.filename.toLowerCase()));
 
@@ -73,7 +73,7 @@ export function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[
             innerText ||
             href.split("/").pop() ||
             "Attachment";
-          const path = href.replace(/^.*\/api\/assets\//, "");
+          const path = href.replace(/^\/api\/assets\//, "");
 
           if (
             !existingPaths.has(path) &&
@@ -283,7 +283,16 @@ export const ThreadReferenceCard = memo(
 
     // Separate image assets from document assets.
     const documentAssets = extractDocumentAssetsFromThread(thread);
+    // Image URLs from assets that will be shown as badges — exclude them from the thumbnail strip
+    const assetImageUrls = new Set(
+      (thread.assets ?? [])
+        .filter((a) => !isDocumentAsset(a) && a.path)
+        .map((a) => getAssetURL(a.path))
+        .filter(Boolean) as string[]
+    );
     const imageUrls = extractImageUrlsFromThread(thread);
+    // Only show in the thumbnail strip images NOT already shown as an asset badge
+    const extraImageUrls = imageUrls.filter((u) => !assetImageUrls.has(u));
 
     // Use only image assets (or link preview image or body image) as the card cover.
     // Document assets are shown as file badges, not as broken cover images.
@@ -373,7 +382,7 @@ export const ThreadReferenceCard = memo(
               ))}
             </styled.div>
           )}
-          {imageUrls.length > 1 && (
+          {extraImageUrls.length > 1 && (
             <styled.div
               display="flex"
               flexWrap="wrap"
@@ -381,7 +390,7 @@ export const ThreadReferenceCard = memo(
               position="relative"
               style={{ zIndex: 1 }}
             >
-              {imageUrls.slice(1, 5).map((imgUrl, idx) => (
+              {extraImageUrls.slice(1, 5).map((imgUrl, idx) => (
                 <styled.a
                   key={idx}
                   href={imgUrl}
@@ -407,7 +416,7 @@ export const ThreadReferenceCard = memo(
                   />
                 </styled.a>
               ))}
-              {imageUrls.length > 5 && (
+              {extraImageUrls.length > 5 && (
                 <styled.div
                   display="flex"
                   alignItems="center"
@@ -422,7 +431,7 @@ export const ThreadReferenceCard = memo(
                   borderWidth="thin"
                   borderColor="border.default"
                 >
-                  +{imageUrls.length - 5}
+                  +{extraImageUrls.length - 5}
                 </styled.div>
               )}
             </styled.div>

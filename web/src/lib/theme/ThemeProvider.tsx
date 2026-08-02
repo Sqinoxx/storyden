@@ -28,6 +28,18 @@ export const PRESET_CONFIGS: Record<
   custom: { warmth: 0, bgStyle: "default", name: "Benutzerdefiniert" },
 };
 
+export type DarkPreset = "slate" | "midnight" | "warmnight" | "custom";
+
+export const DARK_PRESET_CONFIGS: Record<
+  DarkPreset,
+  { name: string }
+> = {
+  slate:     { name: "Slate (GitHub / Linear)" },
+  midnight:  { name: "Midnight (OLED Black)" },
+  warmnight: { name: "Warme Nacht (Bear / Obsidian)" },
+  custom:    { name: "Benutzerdefiniert" },
+};
+
 type ThemeContextValue = {
   theme: Theme;
   resolvedTheme: "dark" | "light";
@@ -39,12 +51,15 @@ type ThemeContextValue = {
   setLightPreset: (preset: LightPreset) => void;
   lightBgStyle: LightBgStyle;
   setLightBgStyle: (style: LightBgStyle) => void;
+  darkPreset: DarkPreset;
+  setDarkPreset: (preset: DarkPreset) => void;
 };
 
 const STORAGE_KEY = "storyden-theme";
 const WARMTH_KEY = "storyden-warmth";
 const PRESET_KEY = "storyden-light-preset";
 const BG_STYLE_KEY = "storyden-light-bg-style";
+const DARK_PRESET_KEY = "storyden-dark-preset";
 
 const ThemeContext = createContext<ThemeContextValue>({
   theme: "system",
@@ -57,6 +72,8 @@ const ThemeContext = createContext<ThemeContextValue>({
   setLightPreset: () => { },
   lightBgStyle: "default",
   setLightBgStyle: () => { },
+  darkPreset: "slate",
+  setDarkPreset: () => { },
 });
 
 export function useTheme() {
@@ -134,12 +151,31 @@ function applyLightStyles(preset: LightPreset, warmth: number, bgStyle: LightBgS
   }
 }
 
+function getStoredDarkPreset(): DarkPreset {
+  if (typeof window === "undefined") return "slate";
+  try {
+    const stored = localStorage.getItem(DARK_PRESET_KEY) as DarkPreset | null;
+    if (stored && stored in DARK_PRESET_CONFIGS) return stored;
+  } catch { }
+  return "slate";
+}
+
+function applyDarkStyles(preset: DarkPreset) {
+  const root = document.documentElement;
+  if (preset === "slate") {
+    root.removeAttribute("data-dark-preset");
+  } else {
+    root.setAttribute("data-dark-preset", preset);
+  }
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("system");
   const [resolvedTheme, setResolvedTheme] = useState<"dark" | "light">("dark");
   const [warmth, setWarmthState] = useState<number>(0);
   const [lightPreset, setLightPresetState] = useState<LightPreset>("neutral");
   const [lightBgStyle, setLightBgStyleState] = useState<LightBgStyle>("default");
+  const [darkPreset, setDarkPresetState] = useState<DarkPreset>("slate");
 
   // On mount, read from localStorage
   useEffect(() => {
@@ -152,12 +188,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const storedWarmth = getStoredWarmth();
     const storedPreset = getStoredPreset();
     const storedBgStyle = getStoredBgStyle();
+    const storedDarkPreset = getStoredDarkPreset();
 
     setWarmthState(storedWarmth);
     setLightPresetState(storedPreset);
     setLightBgStyleState(storedBgStyle);
+    setDarkPresetState(storedDarkPreset);
 
     applyLightStyles(storedPreset, storedWarmth, storedBgStyle);
+    applyDarkStyles(storedDarkPreset);
   }, []);
 
   // Listen to OS preference changes (only relevant when theme === "system")
@@ -234,6 +273,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     [updateLightState, warmth]
   );
 
+  const setDarkPreset = useCallback(
+    (preset: DarkPreset) => {
+      try {
+        localStorage.setItem(DARK_PRESET_KEY, preset);
+      } catch { }
+      setDarkPresetState(preset);
+      applyDarkStyles(preset);
+    },
+    []
+  );
+
   return (
     <ThemeContext.Provider
       value={{
@@ -247,6 +297,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setLightPreset,
         lightBgStyle,
         setLightBgStyle,
+        darkPreset,
+        setDarkPreset,
       }}
     >
       {children}

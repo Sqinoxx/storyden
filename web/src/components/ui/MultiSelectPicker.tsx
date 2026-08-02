@@ -261,7 +261,7 @@ export function MultiSelectPicker({
               )}
             </>
           ) : (
-            <Text size="sm" color="fg.muted">
+            <Text size="sm" color="fg.muted" textWrap="nowrap">
               {inputPlaceholder || "Select items..."}
             </Text>
           )}

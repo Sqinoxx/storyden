@@ -13,10 +13,13 @@ import {
 } from "@/components/ui/MultiSelectPicker";
 import { useTranslation } from "@/lib/i18n";
 
+import { ButtonProps } from "@/components/ui/button";
+
 export type Props = {
   editing: boolean;
   initialTags?: TagReferenceList;
   onChange: (tags: TagNameList) => Promise<void>;
+  triggerProps?: ButtonProps;
 };
 
 export function ThreadTagList(props: Props) {
@@ -62,6 +65,13 @@ export function ThreadTagList(props: Props) {
         inputPlaceholder={t.editor.addTags}
         autoColour={true}
         size="sm"
+        triggerProps={
+          props.triggerProps ?? {
+            w: "auto",
+            minW: "[140px]",
+            maxW: "full",
+          }
+        }
       />
     );
   }
@@ -78,12 +88,14 @@ type TagListFieldProps<T extends FieldValues> = Omit<
   "render"
 > & {
   initialTags?: TagReferenceList;
+  triggerProps?: ButtonProps;
 };
 
 export function TagListField<T extends FieldValues>({
   control,
   name,
   initialTags,
+  triggerProps,
 }: TagListFieldProps<T>) {
   return (
     <Controller<T>
@@ -100,6 +112,7 @@ export function TagListField<T extends FieldValues>({
             editing={true}
             initialTags={fieldTags}
             onChange={handleChange}
+            triggerProps={triggerProps}
           />
         );
       }}

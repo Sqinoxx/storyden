@@ -17,11 +17,14 @@ export function isPreviewableAsset(
 
   if (mime.startsWith("image/")) return true;
   if (mime === "application/pdf") return true;
-  if (mime === "text/plain" || mime === "text/csv") return true;
+  if (mime.startsWith("text/")) return true;
+  if (mime === "application/json") return true;
 
   // Fallback: check extension in filename
+  if (/\.(png|jpe?g|gif|webp|svg|bmp|ico|avif)$/i.test(name)) return true;
   if (/\.(pdf)$/i.test(name)) return true;
-  if (/\.(txt|csv)$/i.test(name)) return true;
+  if (/\.(txt|csv|json|md|log|js|ts|jsx|tsx|html|css|xml|yaml|yml)$/i.test(name))
+    return true;
 
   return false;
 }
@@ -35,12 +38,16 @@ function detectPreviewType(
   const mime = (mimeType ?? "").toLowerCase();
   const name = (filename ?? "").toLowerCase();
 
-  if (mime.startsWith("image/")) return "image";
+  if (
+    mime.startsWith("image/") ||
+    /\.(png|jpe?g|gif|webp|svg|bmp|ico|avif)$/i.test(name)
+  )
+    return "image";
   if (mime === "application/pdf" || /\.pdf$/i.test(name)) return "pdf";
   if (
-    mime === "text/plain" ||
-    mime === "text/csv" ||
-    /\.(txt|csv)$/i.test(name)
+    mime.startsWith("text/") ||
+    mime === "application/json" ||
+    /\.(txt|csv|json|md|log|js|ts|jsx|tsx|html|css|xml|yaml|yml)$/i.test(name)
   )
     return "text";
 
@@ -64,6 +71,11 @@ export function FilePreviewModal({
 }: FilePreviewModalProps) {
   const previewType = detectPreviewType(mimeType, displayName);
   const [textContent, setTextContent] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Load text files
   useEffect(() => {
@@ -84,35 +96,59 @@ export function FilePreviewModal({
     return () => window.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  if (!mounted) return null;
+
   return (
     <Portal>
       {/* Backdrop */}
       <styled.div
         position="fixed"
-        inset="0"
-        zIndex="99998"
-        backgroundColor="rgba(0, 0, 0, 0.5)"
-        backdropFilter="blur(6px)"
         onClick={onClose}
-        style={{ cursor: "default" }}
+        style={{
+          top: "-20px",
+          left: "-20px",
+          right: "-20px",
+          bottom: "-20px",
+          zIndex: 99998,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          transform: "translateZ(0)",
+          willChange: "backdrop-filter, opacity",
+          cursor: "default",
+          animation: "previewFadeIn 0.15s ease-out forwards",
+        }}
       />
 
       {/* Modal panel */}
       <styled.div
         position="fixed"
-        zIndex="99999"
-        top="50%"
-        left="50%"
-        style={{ transform: "translate(-50%, -50%)" }}
         display="flex"
         flexDirection="column"
-        width="90vw"
-        height="90vh"
         borderRadius="xl"
         bgColor="bg.default"
         boxShadow="2xl"
         overflow="hidden"
+        style={{
+          zIndex: 99999,
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%) translateZ(0)",
+          width: "90vw",
+          height: "90vh",
+          animation: "previewZoomIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        }}
       >
+        <style jsx global>{`
+          @keyframes previewFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes previewZoomIn {
+            from { opacity: 0; transform: translate(-50%, -48%) scale(0.97) translateZ(0); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1) translateZ(0); }
+          }
+        `}</style>
         {/* Header */}
         <styled.div
           display="flex"

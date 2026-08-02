@@ -460,107 +460,15 @@ function Row({
                       ? isPreviewableAsset(fileAsset.mime_type, fileAsset.filename)
                       : false;
 
-                    // eslint-disable-next-line react-hooks/rules-of-hooks
-                    const [previewOpen, setPreviewOpen] = useState(false);
-
-                    async function handleDownload(e: React.MouseEvent) {
-                      e.preventDefault();
-                      if (!downloadUrl) return;
-                      try {
-                        const res = await fetch(downloadUrl);
-                        if (!res.ok) throw new Error();
-                        const blob = await res.blob();
-                        const blobUrl = URL.createObjectURL(blob);
-                        const link = document.createElement("a");
-                        link.href = blobUrl;
-                        link.download = displayName;
-                        document.body.appendChild(link);
-                        link.click();
-                        link.remove();
-                        URL.revokeObjectURL(blobUrl);
-                      } catch {
-                        const link = document.createElement("a");
-                        link.href = downloadUrl;
-                        link.download = displayName;
-                        document.body.appendChild(link);
-                        link.click();
-                        link.remove();
-                      }
-                    }
-
                     if (downloadUrl) {
                       return (
-                        <>
-                          <HStack gap="1.5" display="inline-flex" alignItems="center">
-                            <styled.div
-                              display="inline-flex"
-                              alignItems="center"
-                              gap="1.5"
-                              fontWeight="medium"
-                              color="fg.default"
-                            >
-                              <styled.span flexShrink="0" fontSize="sm" style={{ textDecoration: "none" }}>
-                                📄
-                              </styled.span>
-                              <span>
-                                {column.value || (
-                                  <styled.em color="fg.muted">
-                                    (untitled page)
-                                  </styled.em>
-                                )}
-                              </span>
-                              <styled.span display="inline-flex" alignItems="center" gap="1.5" color="fg.muted" flexShrink="0" ml="1">
-                                {canPreview && (
-                                  <styled.button
-                                    type="button"
-                                    onClick={() => setPreviewOpen(true)}
-                                    title="Vorschau"
-                                    display="inline-flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                    color="fg.muted"
-                                    _hover={{ color: "fg.default" }}
-                                    style={{
-                                      cursor: "pointer",
-                                      background: "transparent",
-                                      border: "none",
-                                      padding: "2px",
-                                    }}
-                                  >
-                                    <Eye size={14} />
-                                  </styled.button>
-                                )}
-                                <styled.button
-                                  type="button"
-                                  onClick={handleDownload}
-                                  title="Herunterladen"
-                                  display="inline-flex"
-                                  alignItems="center"
-                                  justifyContent="center"
-                                  color="fg.muted"
-                                  _hover={{ color: "fg.default" }}
-                                  style={{
-                                    cursor: "pointer",
-                                    background: "transparent",
-                                    border: "none",
-                                    padding: "2px",
-                                  }}
-                                >
-                                  <Download size={14} />
-                                </styled.button>
-                              </styled.span>
-                            </styled.div>
-                          </HStack>
-                          {previewOpen && (
-                            <FilePreviewModal
-                              url={downloadUrl}
-                              displayName={displayName}
-                              mimeType={fileAsset?.mime_type}
-                              onClose={() => setPreviewOpen(false)}
-                              onDownload={() => handleDownload({ preventDefault: () => {} } as React.MouseEvent)}
-                            />
-                          )}
-                        </>
+                        <TableFileNameCell
+                          columnValue={column.value}
+                          downloadUrl={downloadUrl}
+                          displayName={displayName}
+                          fileAsset={fileAsset}
+                          canPreview={canPreview}
+                        />
                       );
                     }
 
@@ -590,3 +498,117 @@ function Row({
     </Table.Row>
   );
 }
+
+function TableFileNameCell({
+  columnValue,
+  downloadUrl,
+  displayName,
+  fileAsset,
+  canPreview,
+}: {
+  columnValue?: string;
+  downloadUrl: string;
+  displayName: string;
+  fileAsset?: any;
+  canPreview: boolean;
+}) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  async function handleDownload(e: React.MouseEvent) {
+    e.preventDefault();
+    if (!downloadUrl) return;
+    try {
+      const res = await fetch(downloadUrl);
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = displayName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = displayName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+  }
+
+  return (
+    <>
+      <HStack gap="1.5" display="inline-flex" alignItems="center">
+        <styled.div
+          display="inline-flex"
+          alignItems="center"
+          gap="1.5"
+          fontWeight="medium"
+          color="fg.default"
+        >
+          <styled.span flexShrink="0" fontSize="sm" style={{ textDecoration: "none" }}>
+            📄
+          </styled.span>
+          <span>
+            {columnValue || (
+              <styled.em color="fg.muted">(untitled page)</styled.em>
+            )}
+          </span>
+          <styled.span display="inline-flex" alignItems="center" gap="1.5" color="fg.muted" flexShrink="0" ml="1">
+            {canPreview && (
+              <styled.button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                title="Vorschau"
+                display="inline-flex"
+                alignItems="center"
+                justifyContent="center"
+                color="fg.muted"
+                _hover={{ color: "fg.default" }}
+                style={{
+                  cursor: "pointer",
+                  background: "transparent",
+                  border: "none",
+                  padding: "2px",
+                }}
+              >
+                <Eye size={14} />
+              </styled.button>
+            )}
+            <styled.button
+              type="button"
+              onClick={handleDownload}
+              title="Herunterladen"
+              display="inline-flex"
+              alignItems="center"
+              justifyContent="center"
+              color="fg.muted"
+              _hover={{ color: "fg.default" }}
+              style={{
+                cursor: "pointer",
+                background: "transparent",
+                border: "none",
+                padding: "2px",
+              }}
+            >
+              <Download size={14} />
+            </styled.button>
+          </styled.span>
+        </styled.div>
+      </HStack>
+      {previewOpen && (
+        <FilePreviewModal
+          url={downloadUrl}
+          displayName={displayName}
+          mimeType={fileAsset?.mime_type}
+          onClose={() => setPreviewOpen(false)}
+          onDownload={() => handleDownload({ preventDefault: () => {} } as React.MouseEvent)}
+        />
+      )}
+    </>
+  );
+}
+

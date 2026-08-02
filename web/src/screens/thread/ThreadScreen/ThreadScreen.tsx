@@ -147,6 +147,7 @@ export function ThreadScreen(props: Props) {
               name="tags"
               control={form.control}
               initialTags={thread.tags}
+              attachments={thread.assets}
             />
           ) : (
             <TagBadgeList tags={thread.tags} />

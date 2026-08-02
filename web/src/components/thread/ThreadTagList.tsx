@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Controller, ControllerProps, FieldValues } from "react-hook-form";
+import { Control, Controller, ControllerProps, FieldValues } from "react-hook-form";
 
 import { handle } from "@/api/client";
 import { tagList } from "@/api/openapi-client/tags";
@@ -14,6 +14,7 @@ import {
 import { useTranslation } from "@/lib/i18n";
 
 import { ButtonProps } from "@/components/ui/button";
+import { AttachmentItem, useAutoTagDetection } from "./useAutoTagDetection";
 
 export type Props = {
   editing: boolean;
@@ -89,6 +90,8 @@ type TagListFieldProps<T extends FieldValues> = Omit<
 > & {
   initialTags?: TagReferenceList;
   triggerProps?: ButtonProps;
+  autoDetect?: boolean;
+  attachments?: AttachmentItem[];
 };
 
 export function TagListField<T extends FieldValues>({
@@ -96,6 +99,8 @@ export function TagListField<T extends FieldValues>({
   name,
   initialTags,
   triggerProps,
+  autoDetect = true,
+  attachments,
 }: TagListFieldProps<T>) {
   return (
     <Controller<T>
@@ -108,16 +113,56 @@ export function TagListField<T extends FieldValues>({
           field.value?.map((name: string) => ({ name })) || initialTags || [];
 
         return (
-          <ThreadTagList
-            editing={true}
-            initialTags={fieldTags}
+          <TagListFieldInternal
+            control={control}
+            fieldValue={field.value || []}
+            fieldTags={fieldTags}
             onChange={handleChange}
             triggerProps={triggerProps}
+            autoDetect={autoDetect}
+            attachments={attachments}
           />
         );
       }}
       control={control}
       name={name}
+    />
+  );
+}
+
+function TagListFieldInternal<T extends FieldValues>({
+  control,
+  fieldValue,
+  fieldTags,
+  onChange,
+  triggerProps,
+  autoDetect = true,
+  attachments,
+}: {
+  control?: Control<T>;
+  fieldValue: string[];
+  fieldTags: TagReferenceList;
+  onChange: (tags: string[]) => Promise<void>;
+  triggerProps?: ButtonProps;
+  autoDetect?: boolean;
+  attachments?: AttachmentItem[];
+}) {
+  useAutoTagDetection({
+    control,
+    currentTags: fieldValue,
+    onChange: (nextTags) => {
+      onChange(nextTags);
+    },
+    enabled: autoDetect,
+    attachments,
+  });
+
+  return (
+    <ThreadTagList
+      editing={true}
+      initialTags={fieldTags}
+      onChange={onChange}
+      triggerProps={triggerProps}
     />
   );
 }

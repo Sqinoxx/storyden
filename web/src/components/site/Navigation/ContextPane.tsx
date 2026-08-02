@@ -2,6 +2,7 @@ import { PropsWithChildren } from "react";
 
 import { Box, HStack, styled } from "@/styled-system/jsx";
 import { ImpressumLink } from "@/components/site/ImpressumModal/ImpressumLink";
+import { CookieLink } from "@/components/site/CookieNotice/CookieLink";
 
 export function ContextPane({ children }: PropsWithChildren) {
   return (
@@ -29,6 +30,8 @@ export function ContextPane({ children }: PropsWithChildren) {
 
       <HStack color="fg.subtle" fontSize="xs" flexShrink="0" py="1" gap="2">
         <ImpressumLink />
+        <styled.span color="fg.subtle">•</styled.span>
+        <CookieLink />
         <styled.span color="fg.subtle">•</styled.span>
         <p>powered by storyden</p>
       </HStack>

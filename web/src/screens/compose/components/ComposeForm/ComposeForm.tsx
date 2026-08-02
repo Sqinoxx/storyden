@@ -160,15 +160,10 @@ export function ComposeForm(props: Props) {
                 <AssetUploadAction
                   title="Datei anhängen"
                   operation="add"
-                  accept={[
-                    "application/pdf",
-                    "application/msword",
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                  ]}
                   onFinish={handlers.handleAttach}
                 >
                   <Button type="button" variant="outline" size="xs">
-                    Datei anhängen (PDF/Word)
+                    Datei anhängen
                   </Button>
                 </AssetUploadAction>
               </Box>

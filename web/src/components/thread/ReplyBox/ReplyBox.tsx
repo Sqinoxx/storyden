@@ -141,7 +141,7 @@ export function ReplyBox(props: Props) {
               type="file"
               multiple
               display="none"
-              accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
+              accept="*"
               onChange={async (e) => {
                 const files = Array.from(e.currentTarget.files ?? []);
                 if (files.length === 0) return;

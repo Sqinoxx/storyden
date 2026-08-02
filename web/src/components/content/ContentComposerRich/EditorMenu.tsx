@@ -202,7 +202,7 @@ export function EditorMenu({ editor, uniqueID, format, handlers }: Props) {
         type="file"
         multiple
         display="none"
-        accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
+        accept="*"
         onChange={handlers.handleFileUpload}
       />
     </HStack>

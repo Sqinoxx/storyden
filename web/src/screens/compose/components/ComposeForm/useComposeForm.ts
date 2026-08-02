@@ -32,7 +32,7 @@ export function useComposeForm({ initialDraft, editing }: Props) {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [attachments, setAttachments] = useState<Asset[]>(
-  initialDraft?.assets?.filter((a) => !a.mime_type.startsWith("image/")) ?? [],
+  initialDraft?.assets ?? [],
 );
 
   const form = useForm<FormShape>({

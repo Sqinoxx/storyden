@@ -121,9 +121,9 @@ function LibraryPageCoverBlockEditing() {
         defaultPosition={
           initialCoverCoordinates
             ? {
-                top: initialCoverCoordinates.top,
-                left: initialCoverCoordinates.left,
-              }
+              top: initialCoverCoordinates.top,
+              left: initialCoverCoordinates.left,
+            }
             : undefined
         }
         backgroundWrapperProps={{

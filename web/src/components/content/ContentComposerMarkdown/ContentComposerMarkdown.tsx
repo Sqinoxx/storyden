@@ -109,7 +109,7 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
           type="file"
           multiple
           display="none"
-          accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
+          accept="*"
           onChange={handleFileUpload}
         />
       </ComposerTools>

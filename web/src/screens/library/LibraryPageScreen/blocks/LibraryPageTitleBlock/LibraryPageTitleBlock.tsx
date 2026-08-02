@@ -79,6 +79,17 @@ export function LibraryPageTitleBlock() {
               borderColor="border.subtle"
               fontSize="sm"
               fontWeight="medium"
+              onClick={(e) => {
+                e.preventDefault();
+                if (canPreview) {
+                  setPreviewOpen(true);
+                } else {
+                  handleDownload(e);
+                }
+              }}
+              title={canPreview ? `${displayName} – Vorschau öffnen` : `${displayName} – Herunterladen`}
+              style={{ cursor: "pointer" }}
+              _hover={{ bgColor: "bg.muted" }}
             >
               <styled.span flexShrink="0" fontSize="sm">
                 📄
@@ -88,7 +99,7 @@ export function LibraryPageTitleBlock() {
                 {canPreview && (
                   <styled.button
                     type="button"
-                    onClick={() => setPreviewOpen(true)}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreviewOpen(true); }}
                     title="Vorschau"
                     display="inline-flex"
                     alignItems="center"

@@ -959,3 +959,11 @@ func (m *Mapping) RobotSessionsList() (bool, *rbac.Permission) {
 func (m *Mapping) RobotSessionGet() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionUseRobots
 }
+
+func (m *Mapping) TagCreate() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManagePosts
+}
+
+func (m *Mapping) TagDelete() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManagePosts
+}

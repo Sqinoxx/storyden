@@ -10,6 +10,7 @@ import { CollectionsAnchor } from "../Anchors/Collections";
 import { LinksAnchor } from "../Anchors/Link";
 import { MembersAnchor } from "../Anchors/Members";
 import { RolesAnchor } from "../Anchors/Roles";
+import { TagsAnchor } from "../Anchors/Tags";
 import { DraftsSidebarSection } from "../DraftsSidebarSection/DraftsSidebarSection";
 import { LibraryNavigationTree } from "../LibraryNavigationTree/LibraryNavigationTree";
 import { useNavigation } from "../useNavigation";
@@ -65,6 +66,7 @@ export function ContentNavigationList(props: Props) {
           <>
             <MembersAnchor />
             <RolesAnchor />
+            <TagsAnchor />
           </>
         )}
       </LStack>

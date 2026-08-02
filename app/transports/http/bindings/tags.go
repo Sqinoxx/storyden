@@ -11,15 +11,23 @@ import (
 	"github.com/Southclaws/storyden/app/resources/tag"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_querier"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
+	"github.com/Southclaws/storyden/app/resources/tag/tag_writer"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 )
 
 type Tags struct {
 	tagQuerier *tag_querier.Querier
+	tagWriter  *tag_writer.Writer
 }
 
-func NewTags(tagQuerier *tag_querier.Querier) Tags {
-	return Tags{tagQuerier: tagQuerier}
+func NewTags(
+	tagQuerier *tag_querier.Querier,
+	tagWriter *tag_writer.Writer,
+) Tags {
+	return Tags{
+		tagQuerier: tagQuerier,
+		tagWriter:  tagWriter,
+	}
 }
 
 func (h Tags) TagList(ctx context.Context, request openapi.TagListRequestObject) (openapi.TagListResponseObject, error) {
@@ -41,6 +49,34 @@ func (h Tags) TagList(ctx context.Context, request openapi.TagListRequestObject)
 			Tags: serialiseTagReferenceList(list),
 		},
 	}, nil
+}
+
+func (h Tags) TagCreate(ctx context.Context, request openapi.TagCreateRequestObject) (openapi.TagCreateResponseObject, error) {
+	name := tag_ref.NewName(request.Body.Name)
+
+	tags, err := h.tagWriter.Add(ctx, name)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if len(tags) == 0 {
+		return nil, fault.New("failed to create tag", fctx.With(ctx))
+	}
+
+	return openapi.TagCreate200JSONResponse{
+		TagCreateOKJSONResponse: openapi.TagCreateOKJSONResponse(serialiseTagReference(tags[0])),
+	}, nil
+}
+
+func (h Tags) TagDelete(ctx context.Context, request openapi.TagDeleteRequestObject) (openapi.TagDeleteResponseObject, error) {
+	name := tag_ref.NewName(request.TagName)
+
+	err := h.tagWriter.Remove(ctx, name)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.TagDelete200Response{}, nil
 }
 
 func (h Tags) TagGet(ctx context.Context, request openapi.TagGetRequestObject) (openapi.TagGetResponseObject, error) {

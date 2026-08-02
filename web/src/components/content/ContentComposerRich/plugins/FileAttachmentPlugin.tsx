@@ -82,6 +82,16 @@ function Component(props: NodeViewProps) {
     setPreviewOpen(true);
   }, []);
 
+  const handleBadgeClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (canPreview) {
+      setPreviewOpen(true);
+    } else {
+      handleDownload(e);
+    }
+  }, [canPreview, handleDownload]);
+
   return (
     <>
       <NodeViewWrapper
@@ -106,6 +116,10 @@ function Component(props: NodeViewProps) {
           color="fg.default"
           position="relative"
           overflow="hidden"
+          onClick={!isUploading && href ? handleBadgeClick : undefined}
+          title={!isUploading && href ? (canPreview ? `${fileName} – Vorschau öffnen` : `${fileName} – Herunterladen`) : fileName}
+          style={{ cursor: !isUploading && href ? "pointer" : "default" }}
+          _hover={{ backgroundColor: "bg.muted" }}
         >
           {isUploading ? (
             <styled.span

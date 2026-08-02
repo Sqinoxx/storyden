@@ -625,6 +625,16 @@ function GridFileNameCell({
     }
   }
 
+  const handleCellClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (canPreview) {
+      setPreviewOpen(true);
+    } else {
+      handleDownload(e);
+    }
+  };
+
   return (
     <>
       <styled.div
@@ -633,6 +643,10 @@ function GridFileNameCell({
         gap="1.5"
         fontWeight="semibold"
         color="fg.default"
+        onClick={handleCellClick}
+        title={canPreview ? `${displayName} – Vorschau öffnen` : `${displayName} – Herunterladen`}
+        style={{ cursor: "pointer" }}
+        _hover={{ textDecoration: "underline" }}
       >
         <styled.span flexShrink="0" fontSize="sm" style={{ textDecoration: "none" }}>
           📄

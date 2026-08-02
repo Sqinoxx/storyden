@@ -539,6 +539,16 @@ function TableFileNameCell({
     }
   }
 
+  const handleCellClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (canPreview) {
+      setPreviewOpen(true);
+    } else {
+      handleDownload(e);
+    }
+  };
+
   return (
     <>
       <HStack gap="1.5" display="inline-flex" alignItems="center">
@@ -548,6 +558,10 @@ function TableFileNameCell({
           gap="1.5"
           fontWeight="medium"
           color="fg.default"
+          onClick={handleCellClick}
+          title={canPreview ? `${displayName} – Vorschau öffnen` : `${displayName} – Herunterladen`}
+          style={{ cursor: "pointer" }}
+          _hover={{ textDecoration: "underline" }}
         >
           <styled.span flexShrink="0" fontSize="sm" style={{ textDecoration: "none" }}>
             📄
@@ -561,7 +575,7 @@ function TableFileNameCell({
             {canPreview && (
               <styled.button
                 type="button"
-                onClick={() => setPreviewOpen(true)}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreviewOpen(true); }}
                 title="Vorschau"
                 display="inline-flex"
                 alignItems="center"

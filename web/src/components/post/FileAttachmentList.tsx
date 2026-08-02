@@ -70,6 +70,19 @@ export function FileAttachmentBadge({ asset }: { asset: Asset }) {
     []
   );
 
+  const handleCardClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (canPreview) {
+        setPreviewOpen(true);
+      } else if (url) {
+        downloadAsset(url, displayName);
+      }
+    },
+    [canPreview, url, displayName]
+  );
+
   return (
     <>
       <styled.div
@@ -88,8 +101,10 @@ export function FileAttachmentBadge({ asset }: { asset: Asset }) {
         maxWidth="xs"
         overflow="hidden"
         position="relative"
-        title={displayName}
-        style={{ zIndex: 10 }}
+        title={canPreview ? `${displayName} – Vorschau öffnen` : `${displayName} – Herunterladen`}
+        onClick={handleCardClick}
+        style={{ zIndex: 10, cursor: "pointer" }}
+        _hover={{ bgColor: "bg.muted" }}
       >
         {/* File type icon */}
         {isImage ? (

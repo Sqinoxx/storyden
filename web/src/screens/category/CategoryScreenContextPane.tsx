@@ -19,6 +19,7 @@ import { Floating } from "@/styled-system/patterns";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { useLanguage } from "@/lib/i18n";
 
+import { useThreadList } from "@/api/openapi-client/threads";
 import { Props, useCategoryScreen } from "./CategoryScreen";
 
 const valueStyles = cva({
@@ -64,6 +65,17 @@ export function CategoryScreenContextPane(props: Props) {
   const { t } = useLanguage();
   const [filesOpen, setFilesOpen] = useState(true);
 
+  const { data: threadListData } = useThreadList(
+    {
+      categories: props.slug ? [props.slug] : [],
+    },
+    {
+      swr: {
+        fallbackData: props.initialThreadList,
+      },
+    }
+  );
+
   if (!ready) {
     return <Unready error={error} />;
   }
@@ -87,8 +99,8 @@ export function CategoryScreenContextPane(props: Props) {
   ];
 
   // Collect all document assets from every thread visible on this page,
-  // using the same body-parsing logic as the ThreadCard.
-  const threads = (props.initialThreadList?.threads ?? []) as ThreadReference[];
+  // using the live SWR thread data so it updates dynamically.
+  const threads = ((threadListData?.threads ?? props.initialThreadList?.threads ?? []) as ThreadReference[]);
   const documentAssets = collectAllDocumentAssets(threads);
 
   return (

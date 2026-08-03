@@ -7,6 +7,7 @@ import { Asset } from "@/api/openapi-schema";
 import { getAssetURL, getCleanFilename } from "@/utils/asset";
 import { styled } from "@/styled-system/jsx";
 import { FilePreviewModal, isPreviewableAsset } from "./FilePreviewModal";
+import { extractDocumentAssetsFromThread } from "./ThreadCard";
 
 /** Returns true if the asset is a document (not an image). */
 export function isDocumentAsset(asset: Asset) {
@@ -204,25 +205,7 @@ export function FileAttachmentList({
   assets: Asset[];
   body?: string;
 }) {
-  let visibleAssets = assets.filter((a) => !!a);
-
-  // Filter out redundant '-untitled' fallback assets if a properly named asset exists
-  if (visibleAssets.length > 1) {
-    const hasNamedAsset = visibleAssets.some(
-      (a) =>
-        a.filename &&
-        !a.filename.toLowerCase().endsWith("-untitled") &&
-        a.filename.toLowerCase() !== "untitled",
-    );
-    if (hasNamedAsset) {
-      visibleAssets = visibleAssets.filter(
-        (a) =>
-          a.filename &&
-          !a.filename.toLowerCase().endsWith("-untitled") &&
-          a.filename.toLowerCase() !== "untitled",
-      );
-    }
-  }
+  const visibleAssets = extractDocumentAssetsFromThread({ assets, body });
 
   if (visibleAssets.length === 0) return null;
 
@@ -234,7 +217,7 @@ export function FileAttachmentList({
       mt="2"
     >
       {visibleAssets.map((asset) => (
-        <FileAttachmentBadge key={asset.id || asset.filename} asset={asset} />
+        <FileAttachmentBadge key={asset.id || asset.path || asset.filename} asset={asset} />
       ))}
     </styled.div>
   );

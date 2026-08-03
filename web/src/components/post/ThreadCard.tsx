@@ -19,7 +19,12 @@ import {
   FileAttachmentBadge,
   isDocumentAsset,
 } from "./FileAttachmentList";
-import { getAssetURL } from "@/utils/asset";
+import {
+  getAssetURL,
+  getCleanFilename,
+  normalizeAssetPath,
+  normalizeFilename,
+} from "@/utils/asset";
 import { timestamp } from "@/utils/date";
 import { hasPermission } from "@/utils/permissions";
 import { useLanguage } from "@/lib/i18n";
@@ -32,11 +37,10 @@ import {
   DiscussionParticipatingIcon,
 } from "../ui/icons/Discussion";
 import { PinIcon } from "../ui/icons/Pin";
-
 import { LikeButton } from "./LikeButton/LikeButton";
 import { useThreadCardModeration } from "./useThreadCardModeration";
 
-function isDocumentHref(href: string | null): boolean {
+function isDocumentHref(href: string): boolean {
   if (!href) return false;
   const lower = href.toLowerCase();
   const hasDocExt =
@@ -48,10 +52,20 @@ function isDocumentHref(href: string | null): boolean {
 }
 
 /** Extracts all assets (images + documents) from thread.assets and parses fallback links from thread.body if necessary. */
-export function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[] {
-  const assets: Asset[] = [...(thread.assets ?? [])];
-  const existingPaths = new Set(assets.map((a) => a.path));
-  const existingNames = new Set(assets.map((a) => a.filename.toLowerCase()));
+export function extractDocumentAssetsFromThread(
+  thread: Partial<ThreadReference> & {
+    body?: string;
+    assets?: Asset[];
+    createdAt?: string;
+  }
+): Asset[] {
+  const rawAssets = thread.assets ?? [];
+  const assets: Asset[] = [];
+
+  for (const a of rawAssets) {
+    if (!a) continue;
+    assets.push({ ...a });
+  }
 
   if (thread.body) {
     try {
@@ -73,15 +87,49 @@ export function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[
             innerText ||
             href.split("/").pop() ||
             "Attachment";
-          const path = href.replace(/^\/api\/assets\//, "");
 
-          if (
-            !existingPaths.has(path) &&
-            !existingPaths.has(href) &&
-            !existingNames.has(filename.toLowerCase())
-          ) {
-            existingPaths.add(path);
-            existingNames.add(filename.toLowerCase());
+          const normP = normalizeAssetPath(href);
+          const normN = normalizeFilename(filename);
+          const cleanN = getCleanFilename(filename).toLowerCase();
+
+          const existing = assets.find((existingAsset) => {
+            const aNormP = normalizeAssetPath(
+              existingAsset.path ?? existingAsset.id
+            );
+            const aNormN = normalizeFilename(existingAsset.filename);
+            const aCleanN = getCleanFilename(
+              existingAsset.filename
+            ).toLowerCase();
+
+            const pathMatches =
+              normP &&
+              aNormP &&
+              (normP === aNormP ||
+                normP.includes(aNormP) ||
+                aNormP.includes(normP));
+            const idMatches =
+              existingAsset.id &&
+              href.toLowerCase().includes(existingAsset.id.toLowerCase());
+            const nameMatches =
+              (normN && aNormN && normN === aNormN) ||
+              (cleanN && aCleanN && cleanN === aCleanN);
+
+            return Boolean(pathMatches || idMatches || nameMatches);
+          });
+
+          if (existing) {
+            if (filename && filename !== existing.filename) {
+              const currentClean = getCleanFilename(existing.filename);
+              if (
+                currentClean.includes("-") ||
+                currentClean.endsWith("-pdf") ||
+                currentClean === currentClean.toLowerCase()
+              ) {
+                existing.filename = filename;
+              }
+            }
+          } else {
+            const path = href.replace(/^\/api\/assets\//, "");
             assets.push({
               id: path,
               filename,
@@ -103,18 +151,41 @@ export function extractDocumentAssetsFromThread(thread: ThreadReference): Asset[
     }
   }
 
-  if (assets.length > 1) {
-    const hasNamedAsset = assets.some(
-      (a) => a.filename && !a.filename.toLowerCase().endsWith("-untitled") && a.filename.toLowerCase() !== "untitled"
+  const uniqueAssets: Asset[] = [];
+  const seenPaths = new Set<string>();
+  const seenNames = new Set<string>();
+
+  for (const a of assets) {
+    const normP = normalizeAssetPath(a.path ?? a.id);
+    const normN = normalizeFilename(a.filename);
+
+    if (normP && seenPaths.has(normP)) continue;
+    if (normN && seenNames.has(normN)) continue;
+
+    if (normP) seenPaths.add(normP);
+    if (normN) seenNames.add(normN);
+
+    uniqueAssets.push(a);
+  }
+
+  if (uniqueAssets.length > 1) {
+    const hasNamedAsset = uniqueAssets.some(
+      (a) =>
+        a.filename &&
+        !a.filename.toLowerCase().endsWith("-untitled") &&
+        a.filename.toLowerCase() !== "untitled"
     );
     if (hasNamedAsset) {
-      return assets.filter(
-        (a) => a.filename && !a.filename.toLowerCase().endsWith("-untitled") && a.filename.toLowerCase() !== "untitled"
+      return uniqueAssets.filter(
+        (a) =>
+          a.filename &&
+          !a.filename.toLowerCase().endsWith("-untitled") &&
+          a.filename.toLowerCase() !== "untitled"
       );
     }
   }
 
-  return assets;
+  return uniqueAssets;
 }
 
 function isImageUrl(url: string | null | undefined): boolean {

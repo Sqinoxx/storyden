@@ -272,7 +272,7 @@ export function MultiSelectPicker({
       <Portal>
         <Menu.Positioner zIndex="popover">
           <Menu.Content zIndex="popover" style={{ minWidth: "240px", maxHeight: "320px", overflowY: "auto" }}>
-            <Box position="sticky" top="0" zIndex="1" bg="bg.default" p="2" pb="1" borderBottomWidth="thin" borderColor="border.subtle">
+            <Box position="sticky" top="0" zIndex="[1]" bg="bg.default" p="2" pb="1" borderBottomWidth="thin" borderColor="border.subtle">
               <Input
                 size={size}
                 value={queryInput}

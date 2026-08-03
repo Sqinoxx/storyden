@@ -11,6 +11,8 @@ import { NO_CATEGORY_VALUE } from "@/components/category/CategorySelect/useCateg
 import { useFeedMutations } from "@/lib/feed/mutation";
 import { useClickAway } from "@/utils/useClickAway";
 
+import { normalizeAssetPath } from "@/utils/asset";
+
 export type Props = {
   initialSession?: Account;
   initialCategory?: Category | null;
@@ -89,7 +91,16 @@ export function useQuickShare({ initialCategory }: Props) {
   });
 
   const handleAddAssets = (assets: Asset[]) => {
-    setUploadedAssets((prev) => [...prev, ...assets]);
+    setUploadedAssets((prev) => {
+      const existingPaths = new Set(
+        prev.map((a) => normalizeAssetPath(a.path ?? a.id))
+      );
+      const filtered = assets.filter((a) => {
+        const normP = normalizeAssetPath(a.path ?? a.id);
+        return !normP || !existingPaths.has(normP);
+      });
+      return [...prev, ...filtered];
+    });
   };
 
   const handleRemoveAsset = (assetId: string) => {

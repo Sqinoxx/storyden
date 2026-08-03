@@ -18,7 +18,7 @@ export function useImageUpload() {
 
     const asset = await assetUpload(f, mergedParams);
 
-    return asset;
+    return { ...asset, filename: f.name };
   }
 
   async function uploadWithProgress(
@@ -61,7 +61,7 @@ export function useImageUpload() {
           try {
             // TODO: Validate this properly, remove "as".
             const asset = JSON.parse(xhr.responseText) as Asset;
-            resolve(asset);
+            resolve({ ...asset, filename: f.name });
           } catch (error) {
             reject(new Error("Failed to parse upload response"));
           }

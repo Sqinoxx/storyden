@@ -154,7 +154,7 @@ export function QuickShare(props: Props) {
                       file,
                       { filename: file.name },
                     );
-                    newAssets.push(asset);
+                    newAssets.push({ ...asset, filename: file.name });
 
                     const url = getAssetURL(asset.path);
                     const isImage = /^image\//i.test(file.type);

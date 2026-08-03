@@ -26,16 +26,17 @@ export function ComposeField<T extends FieldValues>({
 }: Props<T>) {
   return (
     <Controller<T>
-      render={({ field: { onChange } }) => {
-        function handleChange(value: string, isEmpty: boolean) {
+      render={({ field: { onChange, value } }) => {
+        function handleChange(val: string, isEmpty: boolean) {
           handleEmptyStateChange?.(isEmpty);
-          onChange(value);
+          onChange(val);
         }
 
         return (
           <ContentComposer
             onChange={handleChange}
             resetKey={resetKey}
+            value={value}
             {...props}
           />
         );

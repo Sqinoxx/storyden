@@ -15,7 +15,7 @@ import React from "react";
 import { Asset } from "@/api/openapi-schema";
 import { Button } from "@/components/ui/button";
 import { ProgressCircle } from "@/components/ui/progress";
-import { Download, Eye } from "lucide-react";
+import { Download, Eye, X } from "lucide-react";
 import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
 import { getCleanFilename } from "@/utils/asset";
@@ -47,6 +47,15 @@ function Component(props: NodeViewProps) {
   // Preview state
   const canPreview = !isUploading && isPreviewableAsset(undefined, fileName);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  const handleDeleteNode = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      props.deleteNode();
+    },
+    [props]
+  );
 
   const handleDownload = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -142,10 +151,10 @@ function Component(props: NodeViewProps) {
             {fileName}
           </styled.span>
 
-          {!isUploading && href && (
+          {!isUploading && (
             <styled.span display="inline-flex" alignItems="center" gap="1.5" color="fg.muted" ml="1">
               {/* Preview eye */}
-              {canPreview && (
+              {href && canPreview && (
                 <styled.button
                   type="button"
                   onClick={handlePreview}
@@ -166,24 +175,48 @@ function Component(props: NodeViewProps) {
                 </styled.button>
               )}
               {/* Download */}
-              <styled.button
-                type="button"
-                onClick={handleDownload}
-                title="Herunterladen"
-                display="inline-flex"
-                alignItems="center"
-                justifyContent="center"
-                color="fg.muted"
-                _hover={{ color: "fg.default" }}
-                style={{
-                  cursor: "pointer",
-                  background: "transparent",
-                  border: "none",
-                  padding: "2px",
-                }}
-              >
-                <Download size={14} />
-              </styled.button>
+              {href && (
+                <styled.button
+                  type="button"
+                  onClick={handleDownload}
+                  title="Herunterladen"
+                  display="inline-flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  color="fg.muted"
+                  _hover={{ color: "fg.default" }}
+                  style={{
+                    cursor: "pointer",
+                    background: "transparent",
+                    border: "none",
+                    padding: "2px",
+                  }}
+                >
+                  <Download size={14} />
+                </styled.button>
+              )}
+              {/* Remove attachment when editing */}
+              {isEditable && (
+                <styled.button
+                  type="button"
+                  onClick={handleDeleteNode}
+                  title="Datei entfernen"
+                  display="inline-flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  color="fg.muted"
+                  _hover={{ color: "fg.error" }}
+                  style={{
+                    cursor: "pointer",
+                    background: "transparent",
+                    border: "none",
+                    padding: "2px",
+                    marginLeft: "2px",
+                  }}
+                >
+                  <X size={14} />
+                </styled.button>
+              )}
             </styled.span>
           )}
 

@@ -202,13 +202,21 @@ export function useContentComposer(props: ContentComposerProps) {
     }
 
     if (!props.resetKey) {
-      if (props.value) {
-        editor.commands.setContent(props.value);
+      if (props.value !== undefined && props.value !== editor.getHTML()) {
+        queueMicrotask(() => {
+          if (editor && !editor.isDestroyed && props.value !== undefined && props.value !== editor.getHTML()) {
+            editor.commands.setContent(props.value);
+          }
+        });
       }
       return;
     }
 
-    editor.commands.setContent(props.initialValue ?? "<p></p>");
+    queueMicrotask(() => {
+      if (editor && !editor.isDestroyed) {
+        editor.commands.setContent(props.value ?? props.initialValue ?? "<p></p>");
+      }
+    });
   }, [editor, props.initialValue, props.value, props.resetKey]);
 
   useEffect(() => {

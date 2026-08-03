@@ -183,6 +183,39 @@ export function useComposeForm({ initialDraft, editing }: Props) {
   const handleDetach = async (a: Asset) => {
     const next = attachments.filter((x) => x.id !== a.id);
     setAttachments(next);
+
+    const currentBody = form.getValues("body") || "";
+    if (currentBody) {
+      const parsed = new DOMParser().parseFromString(currentBody, "text/html");
+      let modified = false;
+      const targetId = a.id;
+      const targetPath = normalizeAssetPath(a.path ?? a.id);
+      const targetFilename = a.filename;
+
+      parsed.querySelectorAll("a, img").forEach((el) => {
+        const href = el.getAttribute("href") || el.getAttribute("src") || "";
+        const fn = el.getAttribute("data-filename") || el.getAttribute("alt") || "";
+        const normHref = normalizeAssetPath(href);
+
+        const matchesId = targetId && href.includes(targetId);
+        const matchesPath = targetPath && normHref && targetPath === normHref;
+        const matchesFilename = targetFilename && fn === targetFilename;
+
+        if (matchesId || matchesPath || matchesFilename) {
+          const parent = el.parentElement;
+          el.remove();
+          if (parent && parent.tagName.toLowerCase() === "p" && parent.innerHTML.trim() === "") {
+            parent.remove();
+          }
+          modified = true;
+        }
+      });
+
+      if (modified) {
+        form.setValue("body", parsed.body.innerHTML);
+      }
+    }
+
     await handleAssetUpload(next);
   };
 

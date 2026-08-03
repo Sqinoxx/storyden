@@ -73,37 +73,6 @@ export function QuickShare(props: Props) {
           resetKey={resetKey}
         />
 
-        {uploadedAssets.length > 0 && (
-          <HStack flexWrap="wrap" gap="2" py="1" px="1">
-            {uploadedAssets.map((asset) => (
-              <styled.div
-                key={asset.id || asset.filename}
-                display="inline-flex"
-                alignItems="center"
-                gap="1"
-              >
-                <FileAttachmentBadge asset={asset} />
-                <styled.button
-                  type="button"
-                  onClick={() => handlers.handleRemoveAsset(asset.id)}
-                  title="Datei entfernen"
-                  display="inline-flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  w="6"
-                  h="6"
-                  borderRadius="md"
-                  color="fg.muted"
-                  _hover={{ bgColor: "bg.muted", color: "fg.default" }}
-                  style={{ cursor: "pointer", transition: "all 0.15s ease" }}
-                >
-                  <X size={14} />
-                </styled.button>
-              </styled.div>
-            ))}
-          </HStack>
-        )}
-
         <WStack
           w="full"
           justifyContent="space-between"

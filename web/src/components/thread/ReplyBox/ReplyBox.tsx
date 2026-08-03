@@ -154,12 +154,17 @@ export function ReplyBox(props: Props) {
                     );
                     const url = getAssetURL(asset.path);
                     const isImage = /^image\//i.test(file.type);
+                    const safeName = file.name.replace(/"/g, "&quot;");
                     const insertion = isImage
-                      ? `<img src="${url}" alt="${file.name}" />`
-                      : `<a href="${url}" data-type="file-attachment" data-filename="${file.name}" download="${file.name}">${file.name}</a>`;
+                      ? `<img src="${url}" alt="${safeName}" />`
+                      : `<a href="${url}" data-type="file-attachment" data-filename="${safeName}" download="${safeName}">${file.name}</a>`;
 
                     const current = form.getValues("body") ?? "";
-                    form.setValue("body", current + "<p>" + insertion + "</p>", {
+                    const newBody = current && current !== "<p></p>"
+                      ? current + "<p>" + insertion + "</p>"
+                      : "<p>" + insertion + "</p>";
+
+                    form.setValue("body", newBody, {
                       shouldValidate: true,
                       shouldDirty: true,
                     });
@@ -200,13 +205,19 @@ function ReplyBodyInput({
 }: ReplyBodyInputProps) {
   return (
     <Controller<Form>
-      render={({ field: { onChange } }) => {
-        function handleChange(value: string, isEmpty: boolean) {
+      render={({ field: { onChange, value } }) => {
+        function handleChange(val: string, isEmpty: boolean) {
           handleEmptyStateChange(isEmpty);
-          onChange(value);
+          onChange(val);
         }
 
-        return <ContentComposer onChange={handleChange} resetKey={resetKey} />;
+        return (
+          <ContentComposer
+            onChange={handleChange}
+            resetKey={resetKey}
+            value={value}
+          />
+        );
       }}
       control={control}
       name={name}

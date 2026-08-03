@@ -51,7 +51,7 @@ export function AssetUploadAction({
         parent_asset_id: parentAssetID,
       });
 
-      onFinish(asset);
+      onFinish({ ...asset, filename: file.name });
     });
   }
 

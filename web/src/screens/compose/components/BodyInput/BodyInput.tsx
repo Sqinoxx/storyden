@@ -23,6 +23,7 @@ export function BodyInput({ onAssetUpload }: PropsWithChildren<Props>) {
             onChange={field.onChange}
             onAssetUpload={onAssetUpload}
             initialValue={formState.defaultValues?.["body"]}
+            value={field.value}
           />
         )}
         control={control}

@@ -4,7 +4,12 @@ import React, { useState, useCallback } from "react";
 import { Download, Eye } from "lucide-react";
 
 import { Asset } from "@/api/openapi-schema";
-import { getAssetURL, getCleanFilename } from "@/utils/asset";
+import {
+  getAssetURL,
+  getCleanFilename,
+  normalizeAssetPath,
+  normalizeFilename,
+} from "@/utils/asset";
 import { styled } from "@/styled-system/jsx";
 import { FilePreviewModal, isPreviewableAsset } from "./FilePreviewModal";
 import { extractDocumentAssetsFromThread } from "./ThreadCard";
@@ -207,7 +212,53 @@ export function FileAttachmentList({
 }) {
   const visibleAssets = extractDocumentAssetsFromThread({ assets, body });
 
-  if (visibleAssets.length === 0) return null;
+  // Filter out assets that are ALREADY embedded as links in the body HTML,
+  // since ContentComposerRich renders embedded file attachment links inline.
+  const unembeddedAssets = visibleAssets.filter((asset) => {
+    if (!body) return true;
+    const normP = normalizeAssetPath(asset.path ?? asset.id);
+    const normN = normalizeFilename(asset.filename);
+    const cleanN = getCleanFilename(asset.filename).toLowerCase();
+
+    try {
+      const anchorRegex = /<a\b([^>]*)>(.*?)<\/a>/gi;
+      let match: RegExpExecArray | null;
+      while ((match = anchorRegex.exec(body)) !== null) {
+        const attrString = match[1] ?? "";
+        const hrefMatch = /href=["']([^"']+)["']/i.exec(attrString);
+        const href = hrefMatch ? hrefMatch[1] : null;
+
+        if (href) {
+          const filenameMatch = /data-filename=["']([^"']+)["']/i.exec(attrString);
+          const fnAttr = filenameMatch ? filenameMatch[1] : null;
+          const innerText = (match[2] ?? "").replace(/<[^>]+>/g, "").trim();
+          const fn = fnAttr || innerText || href.split("/").pop() || "";
+
+          const elNormP = normalizeAssetPath(href);
+          const elNormN = normalizeFilename(fn);
+          const elCleanN = getCleanFilename(fn).toLowerCase();
+
+          const pathMatch =
+            normP &&
+            elNormP &&
+            (normP === elNormP ||
+              (asset.id && href.toLowerCase().includes(asset.id.toLowerCase())));
+          const nameMatch =
+            (normN && elNormN && normN === elNormN) ||
+            (cleanN && elCleanN && cleanN === elCleanN);
+
+          if (pathMatch || nameMatch) {
+            return false;
+          }
+        }
+      }
+    } catch {
+      // ignore regex parsing issues
+    }
+    return true;
+  });
+
+  if (unembeddedAssets.length === 0) return null;
 
   return (
     <styled.div
@@ -216,7 +267,7 @@ export function FileAttachmentList({
       gap="2"
       mt="2"
     >
-      {visibleAssets.map((asset) => (
+      {unembeddedAssets.map((asset) => (
         <FileAttachmentBadge key={asset.id || asset.path || asset.filename} asset={asset} />
       ))}
     </styled.div>

@@ -104,7 +104,42 @@ export function useQuickShare({ initialCategory }: Props) {
   };
 
   const handleRemoveAsset = (assetId: string) => {
-    setUploadedAssets((prev) => prev.filter((a) => a.id !== assetId));
+    const targetAsset = uploadedAssets.find((a) => a.id === assetId || a.filename === assetId);
+    setUploadedAssets((prev) => prev.filter((a) => a.id !== assetId && a.filename !== assetId));
+
+    const currentBody = form.getValues("body") || "";
+    if (currentBody) {
+      const parsed = new DOMParser().parseFromString(currentBody, "text/html");
+      let modified = false;
+
+      const normTargetPath = targetAsset ? normalizeAssetPath(targetAsset.path ?? targetAsset.id) : null;
+      const targetFilename = targetAsset?.filename ?? assetId;
+
+      parsed.querySelectorAll("a, img").forEach((el) => {
+        const href = el.getAttribute("href") || el.getAttribute("src") || "";
+        const fn = el.getAttribute("data-filename") || el.getAttribute("alt") || "";
+        const normHrefPath = normalizeAssetPath(href);
+
+        const matchesId = assetId && href.includes(assetId);
+        const matchesPath = normTargetPath && normHrefPath && normTargetPath === normHrefPath;
+        const matchesFn = targetFilename && fn === targetFilename;
+
+        if (matchesId || matchesPath || matchesFn) {
+          const parent = el.parentElement;
+          el.remove();
+          if (parent && parent.tagName.toLowerCase() === "p" && parent.innerHTML.trim() === "") {
+            parent.remove();
+          }
+          modified = true;
+        }
+      });
+
+      if (modified) {
+        const newHtml = parsed.body.innerHTML;
+        form.setValue("body", newHtml);
+        setResetKey(new Date().toISOString());
+      }
+    }
   };
 
   const handlePost = form.handleSubmit((data: Form) => {
@@ -143,19 +178,25 @@ export function useQuickShare({ initialCategory }: Props) {
           throw new Error("Cannot post an empty thread.");
         }
 
-        // Extract any asset IDs from file-attachment links in body HTML
-        const assetIdsFromBody: string[] = [];
-        parsed.querySelectorAll('a[href*="/api/assets/"]').forEach((el) => {
-          const href = el.getAttribute("href") || "";
-          const match = href.match(/\/api\/assets\/([^/?#]+)/);
-          if (match && match[1]) {
-            assetIdsFromBody.push(match[1]);
-          }
+        // Filter uploadedAssets to only include assets that are actually still referenced in body HTML
+        const activeUploadedAssets = uploadedAssets.filter((a) => {
+          const targetId = a.id;
+          const normP = normalizeAssetPath(a.path ?? a.id);
+          const fn = a.filename;
+          return Array.from(parsed.querySelectorAll("a, img")).some((el) => {
+            const href = el.getAttribute("href") || el.getAttribute("src") || "";
+            const elFn = el.getAttribute("data-filename") || el.getAttribute("alt") || "";
+            const normHref = normalizeAssetPath(href);
+            return (
+              (targetId && href.includes(targetId)) ||
+              (normP && normHref && normP === normHref) ||
+              (fn && elFn === fn)
+            );
+          });
         });
 
-        const stateAssetIds = uploadedAssets.map((a) => a.id);
-        const combinedAssetIds = Array.from(
-          new Set([...stateAssetIds, ...assetIdsFromBody]),
+        const assetIds = Array.from(
+          new Set(activeUploadedAssets.map((a) => a.id).filter(Boolean)),
         );
 
         const newThread = {
@@ -166,7 +207,7 @@ export function useQuickShare({ initialCategory }: Props) {
             data.category === NO_CATEGORY_VALUE ? undefined : data.category,
           tags: data.tags && data.tags.length > 0 ? data.tags : undefined,
           visibility: "published" as const,
-          asset_ids: combinedAssetIds.length > 0 ? combinedAssetIds : undefined,
+          asset_ids: assetIds.length > 0 ? assetIds : undefined,
         };
 
         await createThread(newThread, linkAvailable);

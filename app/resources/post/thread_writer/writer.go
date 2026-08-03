@@ -88,7 +88,10 @@ func WithPinned(v int) Option {
 
 func WithAssets(a []asset.AssetID) Option {
 	return func(m *ent.PostMutation) {
-		m.AddAssetIDs(a...)
+		m.ClearAssets()
+		if len(a) > 0 {
+			m.AddAssetIDs(a...)
+		}
 	}
 }
 

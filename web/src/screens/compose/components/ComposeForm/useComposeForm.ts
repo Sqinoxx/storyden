@@ -15,6 +15,8 @@ import {
 import { handle } from "@/api/client";
 import { NO_CATEGORY_VALUE } from "@/components/category/CategorySelect/useCategorySelect";
 
+import { normalizeAssetPath } from "@/utils/asset";
+
 export type Props = { editing?: string; initialDraft?: Thread };
 
 export const FormShapeSchema = z.object({
@@ -162,6 +164,17 @@ export function useComposeForm({ initialDraft, editing }: Props) {
   };
 
   const handleAttach = async (a: Asset) => {
+    const normNewPath = normalizeAssetPath(a.path ?? a.id);
+    const isAlreadyAttached = attachments.some((existing) => {
+      if (existing.id && a.id && existing.id === a.id) return true;
+      const existingNormPath = normalizeAssetPath(
+        existing.path ?? existing.id
+      );
+      return Boolean(
+        normNewPath && existingNormPath && normNewPath === existingNormPath
+      );
+    });
+    if (isAlreadyAttached) return;
     const next = [...attachments, a];
     setAttachments(next);
     await handleAssetUpload(next);

@@ -193,30 +193,32 @@ export function useContentComposer(props: ContentComposerProps) {
     },
   });
 
-  // This is a huge hack but it means the composer doesn't need to be made into
-  // a controlled component. Baiscally, if the resetKey changes, we reset the
-  // content of the editor to the initial value or empty paragraph. Hacky? Yes.
+  const prevResetKeyRef = useRef(props.resetKey);
+
   useEffect(() => {
     if (!editor) {
       return;
     }
 
-    if (!props.resetKey) {
-      if (props.value !== undefined && props.value !== editor.getHTML()) {
-        queueMicrotask(() => {
-          if (editor && !editor.isDestroyed && props.value !== undefined && props.value !== editor.getHTML()) {
-            editor.commands.setContent(props.value);
-          }
-        });
-      }
+    const resetKeyChanged = prevResetKeyRef.current !== props.resetKey;
+    prevResetKeyRef.current = props.resetKey;
+
+    if (resetKeyChanged) {
+      queueMicrotask(() => {
+        if (editor && !editor.isDestroyed) {
+          editor.commands.setContent(props.value ?? props.initialValue ?? "<p></p>");
+        }
+      });
       return;
     }
 
-    queueMicrotask(() => {
-      if (editor && !editor.isDestroyed) {
-        editor.commands.setContent(props.value ?? props.initialValue ?? "<p></p>");
-      }
-    });
+    if (props.value !== undefined && props.value !== editor.getHTML()) {
+      queueMicrotask(() => {
+        if (editor && !editor.isDestroyed && props.value !== undefined && props.value !== editor.getHTML()) {
+          editor.commands.setContent(props.value);
+        }
+      });
+    }
   }, [editor, props.initialValue, props.value, props.resetKey]);
 
   useEffect(() => {

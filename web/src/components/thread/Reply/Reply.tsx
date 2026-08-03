@@ -162,10 +162,10 @@ function ReplyBodyInput({
 }: ReplyBodyInputProps) {
   return (
     <Controller<Form>
-      render={({ field: { onChange } }) => {
-        function handleChange(value: string, isEmpty: boolean) {
+      render={({ field: { onChange, value } }) => {
+        function handleChange(val: string, isEmpty: boolean) {
           handleEmptyStateChange(isEmpty);
-          onChange(value);
+          onChange(val);
         }
 
         return (
@@ -174,6 +174,7 @@ function ReplyBodyInput({
             onChange={handleChange}
             resetKey={resetKey}
             disabled={disabled}
+            value={value}
           />
         );
       }}

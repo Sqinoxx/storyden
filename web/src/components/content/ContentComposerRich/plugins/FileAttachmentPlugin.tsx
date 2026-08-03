@@ -15,7 +15,7 @@ import React from "react";
 import { Asset } from "@/api/openapi-schema";
 import { Button } from "@/components/ui/button";
 import { ProgressCircle } from "@/components/ui/progress";
-import { Download, Eye, X } from "lucide-react";
+import { Download, Eye, Trash2 } from "lucide-react";
 import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
 import { getCleanFilename } from "@/utils/asset";
@@ -38,8 +38,18 @@ function Component(props: NodeViewProps) {
   const rawFileName = props.node.attrs["fileName"] || "Attachment";
   const fileName = getCleanFilename(rawFileName);
 
-  const isEditable = props.editor.isEditable;
+  const [isEditable, setIsEditable] = useState(props.editor.isEditable);
   const isSelected = props.selected && isEditable;
+
+  React.useEffect(() => {
+    const updateEditable = () => {
+      setIsEditable(props.editor.isEditable);
+    };
+    props.editor.on("transaction", updateEditable);
+    return () => {
+      props.editor.off("transaction", updateEditable);
+    };
+  }, [props.editor]);
 
   const { handleRetry, handleCancel } =
     props.extension.options as FileAttachmentOptions;
@@ -205,7 +215,7 @@ function Component(props: NodeViewProps) {
                   alignItems="center"
                   justifyContent="center"
                   color="fg.muted"
-                  _hover={{ color: "fg.error" }}
+                  _hover={{ color: "red.5" }}
                   style={{
                     cursor: "pointer",
                     background: "transparent",
@@ -214,7 +224,7 @@ function Component(props: NodeViewProps) {
                     marginLeft: "2px",
                   }}
                 >
-                  <X size={14} />
+                  <Trash2 size={14} />
                 </styled.button>
               )}
             </styled.span>

@@ -61,7 +61,10 @@ func WithMeta(meta map[string]any) Option {
 
 func WithAssets(ids ...asset.AssetID) Option {
 	return func(m *ent.PostMutation) {
-		m.AddAssetIDs(ids...)
+		m.ClearAssets()
+		if len(ids) > 0 {
+			m.AddAssetIDs(ids...)
+		}
 	}
 }
 

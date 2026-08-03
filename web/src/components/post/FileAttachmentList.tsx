@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { Download, Eye } from "lucide-react";
+import { Download, Eye, Trash2 } from "lucide-react";
 
 import { Asset } from "@/api/openapi-schema";
 import {
@@ -48,7 +48,13 @@ async function downloadAsset(url: string, filename: string) {
 }
 
 /** A compact, styled badge for a single file attachment. */
-export function FileAttachmentBadge({ asset }: { asset: Asset }) {
+export function FileAttachmentBadge({
+  asset,
+  onRemove,
+}: {
+  asset: Asset;
+  onRemove?: () => void;
+}) {
   const url = getAssetURL(asset.path);
   const displayName = getCleanFilename(asset.filename);
   const isImage = asset.mime_type?.startsWith("image/");
@@ -185,6 +191,32 @@ export function FileAttachmentBadge({ asset }: { asset: Asset }) {
           >
             <Download size={14} />
           </styled.button>
+
+          {/* Delete icon – when onRemove is provided (e.g. during editing) */}
+          {onRemove && (
+            <styled.button
+              type="button"
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRemove();
+              }}
+              title="Datei löschen"
+              display="inline-flex"
+              alignItems="center"
+              justifyContent="center"
+              color="fg.muted"
+              _hover={{ color: "red.5" }}
+              style={{
+                cursor: "pointer",
+                background: "transparent",
+                border: "none",
+                padding: "2px",
+              }}
+            >
+              <Trash2 size={14} />
+            </styled.button>
+          )}
         </styled.span>
       </styled.div>
 
@@ -206,14 +238,17 @@ export function FileAttachmentBadge({ asset }: { asset: Asset }) {
 export function FileAttachmentList({
   assets,
   body,
+  onRemoveAsset,
 }: {
   assets: Asset[];
   body?: string;
+  onRemoveAsset?: (asset: Asset) => void;
 }) {
   const visibleAssets = extractDocumentAssetsFromThread({ assets, body });
 
-  // Filter out assets that are ALREADY embedded as links in the body HTML,
+  // When not editing, filter out assets that are ALREADY embedded as links in the body HTML,
   // since ContentComposerRich renders embedded file attachment links inline.
+  // When editing (onRemoveAsset provided), show all visible document assets so the user can easily manage/delete them.
   const unembeddedAssets = visibleAssets.filter((asset) => {
     if (!body) return true;
     const normP = normalizeAssetPath(asset.path ?? asset.id);
@@ -221,44 +256,45 @@ export function FileAttachmentList({
     const cleanN = getCleanFilename(asset.filename).toLowerCase();
 
     try {
-      const anchorRegex = /<a\b([^>]*)>(.*?)<\/a>/gi;
-      let match: RegExpExecArray | null;
-      while ((match = anchorRegex.exec(body)) !== null) {
-        const attrString = match[1] ?? "";
-        const hrefMatch = /href=["']([^"']+)["']/i.exec(attrString);
-        const href = hrefMatch ? hrefMatch[1] : null;
+      const parsed = new DOMParser().parseFromString(body, "text/html");
+      const elements = parsed.querySelectorAll(
+        "a, span[data-type='file-attachment'], div[data-type='file-attachment']"
+      );
+      
+      for (const el of elements) {
+        const href = el.getAttribute("href") || el.getAttribute("src") || "";
+        if (!href) continue;
 
-        if (href) {
-          const filenameMatch = /data-filename=["']([^"']+)["']/i.exec(attrString);
-          const fnAttr = filenameMatch ? filenameMatch[1] : null;
-          const innerText = (match[2] ?? "").replace(/<[^>]+>/g, "").trim();
-          const fn = fnAttr || innerText || href.split("/").pop() || "";
+        const fnAttr = el.getAttribute("data-filename") || el.getAttribute("download") || "";
+        const innerText = el.textContent?.trim() || "";
+        const fn = fnAttr || innerText || href.split("/").pop() || "";
 
-          const elNormP = normalizeAssetPath(href);
-          const elNormN = normalizeFilename(fn);
-          const elCleanN = getCleanFilename(fn).toLowerCase();
+        const elNormP = normalizeAssetPath(href);
+        const elNormN = normalizeFilename(fn);
+        const elCleanN = getCleanFilename(fn).toLowerCase();
 
-          const pathMatch =
-            normP &&
-            elNormP &&
-            (normP === elNormP ||
-              (asset.id && href.toLowerCase().includes(asset.id.toLowerCase())));
-          const nameMatch =
-            (normN && elNormN && normN === elNormN) ||
-            (cleanN && elCleanN && cleanN === elCleanN);
+        const pathMatch =
+          normP &&
+          elNormP &&
+          (normP === elNormP ||
+            (asset.id && href.toLowerCase().includes(asset.id.toLowerCase())));
+        const nameMatch =
+          (normN && elNormN && normN === elNormN) ||
+          (cleanN && elCleanN && cleanN === elCleanN);
 
-          if (pathMatch || nameMatch) {
-            return false;
-          }
+        if (pathMatch || nameMatch) {
+          return false;
         }
       }
     } catch {
-      // ignore regex parsing issues
+      // ignore DOMParser parsing issues
     }
     return true;
   });
 
-  if (unembeddedAssets.length === 0) return null;
+  const listToRender = unembeddedAssets;
+
+  if (listToRender.length === 0) return null;
 
   return (
     <styled.div
@@ -267,9 +303,14 @@ export function FileAttachmentList({
       gap="2"
       mt="2"
     >
-      {unembeddedAssets.map((asset) => (
-        <FileAttachmentBadge key={asset.id || asset.path || asset.filename} asset={asset} />
+      {listToRender.map((asset) => (
+        <FileAttachmentBadge
+          key={asset.id || asset.path || asset.filename}
+          asset={asset}
+          onRemove={onRemoveAsset ? () => onRemoveAsset(asset) : undefined}
+        />
       ))}
     </styled.div>
   );
 }
+

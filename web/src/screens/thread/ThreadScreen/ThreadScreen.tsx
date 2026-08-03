@@ -50,6 +50,7 @@ export function ThreadScreen(props: Props) {
     isEditing,
     isEmpty,
     resetKey,
+    attachments,
     isModerator,
     isConfirmingDelete,
     sortOrder,
@@ -164,8 +165,12 @@ export function ThreadScreen(props: Props) {
             handleEmptyStateChange={handlers.handleEmptyStateChange}
           />
 
-          {thread.assets && thread.assets.length > 0 && (
-            <FileAttachmentList assets={thread.assets} body={thread.body} />
+          {((isEditing && attachments.length > 0) || (thread.assets && thread.assets.length > 0)) && (
+            <FileAttachmentList
+              assets={isEditing ? attachments : (data.thread.assets ?? thread.assets)}
+              body={isEditing ? form.watch("body") : thread.body}
+              onRemoveAsset={isEditing ? handlers.handleRemoveAsset : undefined}
+            />
           )}
 
           {signatureConfig.enabled && (
@@ -246,7 +251,7 @@ export function TitleInput({ control }: TitleInputProps) {
   );
 }
 
-type ThreadBodyInputProps = Omit<ControllerProps<Form>, "render"> & {
+type ThreadBodyInputProps = Omit<ControllerProps<Form, "body">, "render"> & {
   initialValue: string;
   resetKey: string;
   handleEmptyStateChange: (isEmpty: boolean) => void;
@@ -254,23 +259,24 @@ type ThreadBodyInputProps = Omit<ControllerProps<Form>, "render"> & {
 
 function ThreadBodyInput({
   control,
-  name,
+  name = "body",
   initialValue,
   resetKey,
   disabled,
   handleEmptyStateChange,
 }: ThreadBodyInputProps) {
   return (
-    <Controller<Form>
-      render={({ field: { onChange } }) => {
-        function handleChange(value: string, isEmpty: boolean) {
+    <Controller<Form, "body">
+      render={({ field: { onChange, value } }) => {
+        function handleChange(val: string, isEmpty: boolean) {
           handleEmptyStateChange(isEmpty);
-          onChange(value);
+          onChange(val);
         }
 
         return (
           <ContentComposer
             initialValue={initialValue}
+            value={typeof value === "string" ? value : undefined}
             onChange={handleChange}
             resetKey={resetKey}
             disabled={disabled}

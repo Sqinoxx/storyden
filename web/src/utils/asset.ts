@@ -10,14 +10,17 @@ export function getAssetURL(filename?: string) {
 }
 
 /**
- * Removes internal random prefixes (such as 20-character xid prefixes e.g. "d9n2uhh3fmss73bsumm0-")
+ * Removes internal random prefixes (such as 20-character xid prefixes e.g. "d9n2uhh3fmss73bsumm0-" or "d9ihuvuqbbt08i08p1j0_")
  * and formats file extensions for display (e.g. "-pdf" -> ".pdf").
  */
 export function getCleanFilename(filename?: string): string {
   if (!filename) return "";
 
-  // Remove 20-character xid prefix if present (e.g. "d9n2uhh3fmss73bsumm0-foo" -> "foo")
-  let clean = filename.replace(/^[a-z0-9]{20}-/i, "");
+  let clean = filename.trim();
+
+  // Strip query/hash params and any leading path components
+  clean = (clean.split("?")[0] ?? "").split("#")[0] ?? clean;
+  clean = clean.split("/").pop() ?? clean;
 
   // If the filename ends with a hyphenated extension like "-pdf", "-docx", etc., convert the last hyphen to a dot
   // (e.g. "belegungen-drucken-5-1-pdf" -> "belegungen-drucken-5-1.pdf")
@@ -25,6 +28,19 @@ export function getCleanFilename(filename?: string): string {
     /-(pdf|doc|docx|xls|xlsx|ppt|pptx|zip|rar|7z|png|jpg|jpeg|gif|svg|txt|csv)$/i,
     ".$1"
   );
+
+  // Repeatedly remove random ID / xid / hex prefixes (e.g. 20-32 alphanumeric chars or UUIDs followed by -, _, or .)
+  let prev = "";
+  while (clean !== prev) {
+    prev = clean;
+    clean = clean.replace(
+      /^([a-z0-9]{20,32}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})[-_.]/i,
+      ""
+    );
+  }
+
+  if (!clean) return filename;
+  if (clean.startsWith(".")) return `file${clean}`;
 
   return clean;
 }

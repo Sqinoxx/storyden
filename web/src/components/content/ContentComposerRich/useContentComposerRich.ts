@@ -465,6 +465,9 @@ export function useContentComposer(props: ContentComposerProps) {
             props.onAssetUpload?.(assetWithFilename);
           },
           {
+            onError: async (err) => {
+              console.error("Attachment upload failed:", err);
+            },
             cleanup: async () => {
               setUploadingCount((prev) => prev - 1);
             },

@@ -78,6 +78,10 @@ func (m *Mapping) AdminAccountBanCreate() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageSuspensions
 }
 
+func (m *Mapping) AdminAccountDelete() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
 func (m *Mapping) AccountList() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionViewAccounts
 }

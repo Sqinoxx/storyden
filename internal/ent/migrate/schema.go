@@ -1158,7 +1158,7 @@ var (
 				Symbol:     "posts_accounts_posts",
 				Columns:    []*schema.Column{PostsColumns[13]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "posts_categories_posts",

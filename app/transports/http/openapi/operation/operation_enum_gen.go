@@ -32,6 +32,7 @@ var (
 	OperationIDModerationActionCreate                 = OperationID{`ModerationActionCreate`}
 	OperationIDAdminAccountBanCreate                  = OperationID{`AdminAccountBanCreate`}
 	OperationIDAdminAccountBanRemove                  = OperationID{`AdminAccountBanRemove`}
+	OperationIDAdminAccountDelete                     = OperationID{`AdminAccountDelete`}
 	OperationIDAdminAccessKeyList                     = OperationID{`AdminAccessKeyList`}
 	OperationIDAdminAccessKeyDelete                   = OperationID{`AdminAccessKeyDelete`}
 	OperationIDAdminOAuthClientList                   = OperationID{`AdminOAuthClientList`}
@@ -331,6 +332,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAdminAccountBanCreate, nil
 	case string(`AdminAccountBanRemove`):
 		return OperationIDAdminAccountBanRemove, nil
+	case string(`AdminAccountDelete`):
+		return OperationIDAdminAccountDelete, nil
 	case string(`AdminAccessKeyList`):
 		return OperationIDAdminAccessKeyList, nil
 	case string(`AdminAccessKeyDelete`):

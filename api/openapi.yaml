@@ -433,6 +433,22 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorised" }
         "200": { $ref: "#/components/responses/AccountGetOK" }
 
+  /admin/accounts/{account_handle}:
+    delete:
+      operationId: AdminAccountDelete
+      description: |
+        Permanently delete an account. The account MUST already be suspended.
+        Only site Administrators can perform this action.
+      tags: [admin]
+      parameters: [$ref: "#/components/parameters/AccountHandleParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "204": { $ref: "#/components/responses/NoContent" }
+
   /admin/access-keys:
     get:
       operationId: AdminAccessKeyList

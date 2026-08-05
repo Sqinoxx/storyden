@@ -561,6 +561,68 @@ export const useAdminAccountBanRemove = <
   };
 };
 /**
+ * Permanently delete an account. The account MUST already be suspended.
+Only site Administrators can perform this action.
+
+ */
+export const adminAccountDelete = (accountHandle: string) => {
+  return fetcher<NoContentResponse>({
+    url: `/admin/accounts/${accountHandle}`,
+    method: "DELETE",
+  });
+};
+
+export const getAdminAccountDeleteMutationFetcher = (accountHandle: string) => {
+  return (_: Key, __: { arg: Arguments }): Promise<NoContentResponse> => {
+    return adminAccountDelete(accountHandle);
+  };
+};
+export const getAdminAccountDeleteMutationKey = (accountHandle: string) =>
+  [`/admin/accounts/${accountHandle}`] as const;
+
+export type AdminAccountDeleteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminAccountDelete>>
+>;
+export type AdminAccountDeleteMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+  | InternalServerErrorResponse;
+
+export const useAdminAccountDelete = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+    | InternalServerErrorResponse,
+>(
+  accountHandle: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof adminAccountDelete>>,
+      TError,
+      Key,
+      Arguments,
+      Awaited<ReturnType<typeof adminAccountDelete>>
+    > & { swrKey?: string };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey =
+    swrOptions?.swrKey ?? getAdminAccountDeleteMutationKey(accountHandle);
+  const swrFn = getAdminAccountDeleteMutationFetcher(accountHandle);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
  * List all access keys for the entire instance. This is only available to
 admin accounts and is used to manage access keys from other accounts.
 

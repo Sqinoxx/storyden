@@ -47,6 +47,7 @@ export const en = {
     editAndAccept: "Edit and Accept",
     reject: "Reject",
     banMember: "Ban member",
+    deleteMember: "Delete member",
     invite: "Invite",
     inviteSomeone: "Invite someone",
     create: "Create",

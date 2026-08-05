@@ -221,3 +221,17 @@ func (r *Repository) Update(ctx context.Context, id account.AccountID, opts ...M
 
 	return r.GetByID(ctx, account.AccountID(saved.ID))
 }
+
+func (r *Repository) Delete(ctx context.Context, id account.AccountID) error {
+	err := r.db.Account.DeleteOneID(xid.ID(id)).Exec(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return fault.Wrap(err, ftag.With(ftag.NotFound))
+		}
+		return fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.Internal))
+	}
+
+	r.accountCache.delete(ctx, xid.ID(id))
+	return nil
+}
+

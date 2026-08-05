@@ -15,6 +15,7 @@ import { useTranslation } from "@/lib/i18n";
 
 import { MemberIdent } from "../MemberBadge/MemberIdent";
 import { MemberPasswordResetTrigger } from "../MemberPasswordReset/MemberPasswordResetTrigger";
+import { MemberDeletionTrigger } from "../MemberDeletion/MemberDeletionTrigger";
 import { MemberRoleMenu } from "../MemberRoleMenu/MemberRoleMenu";
 import { MemberSuspensionTrigger } from "../MemberSuspension/MemberSuspensionTrigger";
 import { MemberWarningTrigger } from "../MemberWarning/MemberWarningTrigger";
@@ -42,6 +43,9 @@ export function MemberOptionsMenu({
     !isSelf && hasPermission(session, Permission.MANAGE_SUSPENSIONS);
   const canResetPassword =
     !isSelf && hasPermission(session, Permission.MANAGE_ACCOUNTS);
+
+  const isAdmin = session?.admin === true || hasPermission(session, Permission.ADMINISTRATOR);
+  const canDelete = !isSelf && isAdmin && profile.suspended;
 
   const isRoleChangeEnabled = hasPermission(session, "MANAGE_ROLES");
 
@@ -119,6 +123,21 @@ export function MemberOptionsMenu({
                     {profile.suspended ? t.actions.unsuspend : t.actions.suspend}
                   </Menu.Item>
                 </MemberSuspensionTrigger>
+              )}
+
+              {canDelete && (
+                <MemberDeletionTrigger profile={profile}>
+                  <Menu.Item
+                    value="delete-member"
+                    color="fg.destructive"
+                    _hover={{
+                      color: "fg.destructive",
+                      background: "bg.destructive",
+                    }}
+                  >
+                    {t.actions.deleteMember}
+                  </Menu.Item>
+                </MemberDeletionTrigger>
               )}
             </Menu.ItemGroup>
           </Menu.Content>

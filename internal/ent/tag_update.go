@@ -32,6 +32,20 @@ func (_u *TagUpdate) Where(ps ...predicate.Tag) *TagUpdate {
 	return _u
 }
 
+// SetName sets the "name" field.
+func (_u *TagUpdate) SetName(v string) *TagUpdate {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *TagUpdate) SetNillableName(v *string) *TagUpdate {
+	if v != nil {
+		_u.SetName(*v)
+	}
+	return _u
+}
+
 // AddPostIDs adds the "posts" edge to the Post entity by IDs.
 func (_u *TagUpdate) AddPostIDs(ids ...xid.ID) *TagUpdate {
 	_u.mutation.AddPostIDs(ids...)
@@ -186,6 +200,9 @@ func (_u *TagUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(tag.FieldName, field.TypeString, value)
 	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -342,6 +359,20 @@ type TagUpdateOne struct {
 	hooks     []Hook
 	mutation  *TagMutation
 	modifiers []func(*sql.UpdateBuilder)
+}
+
+// SetName sets the "name" field.
+func (_u *TagUpdateOne) SetName(v string) *TagUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *TagUpdateOne) SetNillableName(v *string) *TagUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
+	}
+	return _u
 }
 
 // AddPostIDs adds the "posts" edge to the Post entity by IDs.
@@ -528,6 +559,9 @@ func (_u *TagUpdateOne) sqlSave(ctx context.Context) (_node *Tag, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(tag.FieldName, field.TypeString, value)
 	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{

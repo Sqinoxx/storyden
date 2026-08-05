@@ -148,6 +148,7 @@ type OperationPermissions interface {
 	TagCreate() (bool, *rbac.Permission)
 	TagGet() (bool, *rbac.Permission)
 	TagDelete() (bool, *rbac.Permission)
+	TagUpdate() (bool, *rbac.Permission)
 	ThreadCreate() (bool, *rbac.Permission)
 	ThreadList() (bool, *rbac.Permission)
 	ThreadGet() (bool, *rbac.Permission)
@@ -536,6 +537,8 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.TagGet()
 	case "TagDelete":
 		return optable.TagDelete()
+	case "TagUpdate":
+		return optable.TagUpdate()
 	case "ThreadCreate":
 		return optable.ThreadCreate()
 	case "ThreadList":

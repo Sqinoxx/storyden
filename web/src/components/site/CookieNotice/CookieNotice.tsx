@@ -11,20 +11,7 @@ export function CookieNotice() {
   const [isVisible, setIsVisible] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
-
-  useEffect(() => {
-    // Check if user has already made a choice
-    const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
-    if (consent) return;
-
-    // Small delay for smooth entrance after page load
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Listen to custom re-open event (e.g. from footer link)
+  // Listen to custom open event (e.g. from footer/sidebar Cookie link)
   useEffect(() => {
     const handleReopen = () => {
       setIsAnimatingOut(false);

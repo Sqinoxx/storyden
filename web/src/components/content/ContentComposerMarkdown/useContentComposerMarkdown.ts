@@ -279,27 +279,6 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
       await handle(
         async () => {
           const asset = await upload(file, { filename: file.name });
-          const url = getAssetURL(asset.path);
-          const markdownLink = `[${file.name}](${url})`;
-
-          setValue((current) => {
-            const pos = Math.min(insertPosition, current.length);
-            const newValue =
-              current.substring(0, pos) +
-              "\n" +
-              markdownLink +
-              "\n" +
-              current.substring(pos);
-
-            markdownToHTML(newValue).then((html) => {
-              const isEmpty =
-                newValue.trim().length === 0 || html.trim().length === 0;
-              props.onChange?.(html, isEmpty);
-            });
-
-            return newValue;
-          });
-
           props.onAssetUpload?.(asset);
         },
         {

@@ -1,10 +1,10 @@
 "use client";
 
-import { CategoryListOKResponse, NodeListResult } from "@/api/openapi-schema";
+import { CategoryListOKResponse, NodeListResult, Permission } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { CategoryList } from "@/components/category/CategoryList/CategoryList";
 import { LStack, styled } from "@/styled-system/jsx";
-import { isModeratorOrAdmin } from "@/utils/permissions";
+import { hasPermission, isModeratorOrAdmin } from "@/utils/permissions";
 
 import { CollectionsAnchor } from "../Anchors/Collections";
 import { LinksAnchor } from "../Anchors/Link";
@@ -24,6 +24,7 @@ export function ContentNavigationList(props: Props) {
   const { nodeSlug } = useNavigation();
   const session = useSession();
   const isStaff = isModeratorOrAdmin(session);
+  const isAdmin = hasPermission(session, Permission.ADMINISTRATOR);
 
   return (
     <styled.nav
@@ -61,7 +62,7 @@ export function ContentNavigationList(props: Props) {
 
       <LStack gap="1">
         <CollectionsAnchor />
-        <LinksAnchor />
+        {isAdmin && <LinksAnchor />}
         {isStaff && (
           <>
             <MembersAnchor />

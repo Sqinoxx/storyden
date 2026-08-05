@@ -23,6 +23,8 @@ import type {
   TagGetOKResponse,
   TagListOKResponse,
   TagListParams,
+  TagUpdateBody,
+  TagUpdateOKResponse,
   UnauthorisedResponse,
 } from "../openapi-schema";
 
@@ -213,6 +215,70 @@ export const useTagDelete = <
 
   const swrKey = swrOptions?.swrKey ?? getTagDeleteMutationKey(tagName);
   const swrFn = getTagDeleteMutationFetcher(tagName);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Update/rename a tag by name. Visible to staff/moderators.
+ */
+export const tagUpdate = (tagName: string, tagUpdateBody: TagUpdateBody) => {
+  return fetcher<TagUpdateOKResponse>({
+    url: `/tags/${tagName}`,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    data: tagUpdateBody,
+  });
+};
+
+export const getTagUpdateMutationFetcher = (tagName: string) => {
+  return (
+    _: Key,
+    { arg }: { arg: TagUpdateBody },
+  ): Promise<TagUpdateOKResponse> => {
+    return tagUpdate(tagName, arg);
+  };
+};
+export const getTagUpdateMutationKey = (tagName: string) =>
+  [`/tags/${tagName}`] as const;
+
+export type TagUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof tagUpdate>>
+>;
+export type TagUpdateMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+  | InternalServerErrorResponse;
+
+export const useTagUpdate = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+    | InternalServerErrorResponse,
+>(
+  tagName: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof tagUpdate>>,
+      TError,
+      Key,
+      TagUpdateBody,
+      Awaited<ReturnType<typeof tagUpdate>>
+    > & { swrKey?: string };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getTagUpdateMutationKey(tagName);
+  const swrFn = getTagUpdateMutationFetcher(tagName);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

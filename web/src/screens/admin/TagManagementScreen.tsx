@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useSWRConfig } from "swr";
-import { PlusIcon, TrashIcon } from "lucide-react";
+import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
 
 import {
   getTagListKey,
   tagCreate,
   tagDelete,
+  tagUpdate,
   useTagList,
 } from "@/api/openapi-client/tags";
 import { TagListResult, TagReference } from "@/api/openapi-schema";
@@ -35,6 +36,11 @@ export function TagManagementScreen({ initialTagList }: Props) {
 
   const [tagToDelete, setTagToDelete] = useState<TagReference | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [tagToEdit, setTagToEdit] = useState<TagReference | null>(null);
+  const [editTagName, setEditTagName] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const tags = data?.tags ?? [];
   const filteredTags = tags.filter((tag) =>
@@ -74,6 +80,32 @@ export function TagManagementScreen({ initialTagList }: Props) {
       console.error(err);
     } finally {
       setIsDeleting(false);
+    }
+  }
+
+  function handleOpenEdit(tag: TagReference) {
+    setTagToEdit(tag);
+    setEditTagName(tag.name);
+    setEditError(null);
+  }
+
+  async function handleUpdateTag(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tagToEdit) return;
+    const newName = editTagName.trim();
+    if (!newName) return;
+
+    setIsEditing(true);
+    setEditError(null);
+
+    try {
+      await tagUpdate(tagToEdit.name, { name: newName });
+      setTagToEdit(null);
+      await mutate(getTagListKey());
+    } catch (err: any) {
+      setEditError(err?.message || "Fehler beim Aktualisieren des Tags.");
+    } finally {
+      setIsEditing(false);
     }
   }
 
@@ -221,18 +253,98 @@ export function TagManagementScreen({ initialTagList }: Props) {
                 <TagBadge tag={tag} showItemCount />
               </HStack>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setTagToDelete(tag)}
-                title={t.tags.deleteButton}
-                color="fg.muted"
-                _hover={{ color: "fg.error", bg: "bg.muted" }}
-              >
-                <TrashIcon size={16} />
-              </Button>
+              <HStack gap="1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleOpenEdit(tag)}
+                  title={t.tags.editButton}
+                  color="fg.muted"
+                  _hover={{ color: "fg.default", bg: "bg.muted" }}
+                >
+                  <PencilIcon size={16} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setTagToDelete(tag)}
+                  title={t.tags.deleteButton}
+                  color="fg.muted"
+                  _hover={{ color: "fg.error", bg: "bg.muted" }}
+                >
+                  <TrashIcon size={16} />
+                </Button>
+              </HStack>
             </Flex>
           ))}
+        </styled.div>
+      )}
+
+      {/* Edit Tag Modal / Backdrop */}
+      {tagToEdit && (
+        <styled.div
+          position="fixed"
+          inset="0"
+          style={{
+            zIndex: 100,
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backdropFilter: "blur(4px)",
+          }}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          p="4"
+        >
+          <Box
+            bg="bg.default"
+            p="6"
+            borderRadius="l3"
+            borderWidth="thin"
+            borderColor="border.default"
+            maxW="md"
+            width="full"
+            shadow="xl"
+          >
+            <styled.form onSubmit={handleUpdateTag}>
+              <LStack gap="4">
+                <styled.h3 textStyle="lg" fontWeight="bold">
+                  {t.tags.editTitle}
+                </styled.h3>
+                <Input
+                  placeholder={t.tags.editPlaceholder}
+                  value={editTagName}
+                  onChange={(e) => setEditTagName(e.target.value)}
+                  disabled={isEditing}
+                  width="full"
+                  autoFocus
+                />
+                {editError && (
+                  <Text textStyle="xs" color="fg.error">
+                    {editError}
+                  </Text>
+                )}
+                <HStack justifyContent="flex-end" gap="3" mt="2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setTagToEdit(null)}
+                    disabled={isEditing}
+                  >
+                    {t.tags.cancel}
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="solid"
+                    disabled={!editTagName.trim() || isEditing}
+                    loading={isEditing}
+                    loadingText={t.tags.saving}
+                  >
+                    {t.tags.save}
+                  </Button>
+                </HStack>
+              </LStack>
+            </styled.form>
+          </Box>
         </styled.div>
       )}
 

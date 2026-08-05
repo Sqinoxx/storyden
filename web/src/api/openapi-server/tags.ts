@@ -13,6 +13,8 @@ import type {
   TagGetOKResponse,
   TagListOKResponse,
   TagListParams,
+  TagUpdateBody,
+  TagUpdateOKResponse,
 } from "../openapi-schema";
 import { fetcher } from "../server";
 
@@ -113,5 +115,30 @@ export const tagDelete = async (
   return fetcher<Promise<tagDeleteResponse>>(getTagDeleteUrl(tagName), {
     ...options,
     method: "DELETE",
+  });
+};
+
+/**
+ * Update/rename a tag by name. Visible to staff/moderators.
+ */
+export type tagUpdateResponse = {
+  data: TagUpdateOKResponse;
+  status: number;
+};
+
+export const getTagUpdateUrl = (tagName: string) => {
+  return `/tags/${tagName}`;
+};
+
+export const tagUpdate = async (
+  tagName: string,
+  tagUpdateBody: TagUpdateBody,
+  options?: RequestInit,
+): Promise<tagUpdateResponse> => {
+  return fetcher<Promise<tagUpdateResponse>>(getTagUpdateUrl(tagName), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(tagUpdateBody),
   });
 };

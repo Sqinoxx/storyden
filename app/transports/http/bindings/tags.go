@@ -87,6 +87,28 @@ func (h Tags) TagDelete(ctx context.Context, request openapi.TagDeleteRequestObj
 	return openapi.TagDelete200Response{}, nil
 }
 
+func (h Tags) TagUpdate(ctx context.Context, request openapi.TagUpdateRequestObject) (openapi.TagUpdateResponseObject, error) {
+	if request.Body == nil {
+		return nil, fault.New("missing request body", fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	oldName := tag_ref.NewName(request.TagName)
+	newName := tag_ref.NewName(request.Body.Name)
+
+	if newName.String() == "" {
+		return nil, fault.New("tag name cannot be empty", fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	tag, err := h.tagWriter.Rename(ctx, oldName, newName)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.TagUpdate200JSONResponse{
+		TagUpdateOKJSONResponse: openapi.TagUpdateOKJSONResponse(serialiseTagReference(tag)),
+	}, nil
+}
+
 func (h Tags) TagGet(ctx context.Context, request openapi.TagGetRequestObject) (openapi.TagGetResponseObject, error) {
 	name := tag_ref.NewName(request.TagName)
 

@@ -308,6 +308,18 @@ type (
 	}
 )
 
+// SetName sets the "name" field.
+func (u *TagUpsert) SetName(v string) *TagUpsert {
+	u.Set(tag.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *TagUpsert) UpdateName() *TagUpsert {
+	u.SetExcluded(tag.FieldName)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -327,9 +339,6 @@ func (u *TagUpsertOne) UpdateNewValues() *TagUpsertOne {
 		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(tag.FieldCreatedAt)
-		}
-		if _, exists := u.create.mutation.Name(); exists {
-			s.SetIgnore(tag.FieldName)
 		}
 	}))
 	return u
@@ -360,6 +369,20 @@ func (u *TagUpsertOne) Update(set func(*TagUpsert)) *TagUpsertOne {
 		set(&TagUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetName sets the "name" field.
+func (u *TagUpsertOne) SetName(v string) *TagUpsertOne {
+	return u.Update(func(s *TagUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *TagUpsertOne) UpdateName() *TagUpsertOne {
+	return u.Update(func(s *TagUpsert) {
+		s.UpdateName()
+	})
 }
 
 // Exec executes the query.
@@ -548,9 +571,6 @@ func (u *TagUpsertBulk) UpdateNewValues() *TagUpsertBulk {
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(tag.FieldCreatedAt)
 			}
-			if _, exists := b.mutation.Name(); exists {
-				s.SetIgnore(tag.FieldName)
-			}
 		}
 	}))
 	return u
@@ -581,6 +601,20 @@ func (u *TagUpsertBulk) Update(set func(*TagUpsert)) *TagUpsertBulk {
 		set(&TagUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetName sets the "name" field.
+func (u *TagUpsertBulk) SetName(v string) *TagUpsertBulk {
+	return u.Update(func(s *TagUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *TagUpsertBulk) UpdateName() *TagUpsertBulk {
+	return u.Update(func(s *TagUpsert) {
+		s.UpdateName()
+	})
 }
 
 // Exec executes the query.

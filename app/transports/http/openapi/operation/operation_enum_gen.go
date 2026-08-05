@@ -157,6 +157,7 @@ var (
 	OperationIDTagCreate                              = OperationID{`TagCreate`}
 	OperationIDTagGet                                 = OperationID{`TagGet`}
 	OperationIDTagDelete                              = OperationID{`TagDelete`}
+	OperationIDTagUpdate                              = OperationID{`TagUpdate`}
 	OperationIDThreadCreate                           = OperationID{`ThreadCreate`}
 	OperationIDThreadList                             = OperationID{`ThreadList`}
 	OperationIDThreadGet                              = OperationID{`ThreadGet`}
@@ -580,6 +581,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDTagGet, nil
 	case string(`TagDelete`):
 		return OperationIDTagDelete, nil
+	case string(`TagUpdate`):
+		return OperationIDTagUpdate, nil
 	case string(`ThreadCreate`):
 		return OperationIDThreadCreate, nil
 	case string(`ThreadList`):

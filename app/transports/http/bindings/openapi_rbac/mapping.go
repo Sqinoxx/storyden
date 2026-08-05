@@ -967,3 +967,7 @@ func (m *Mapping) TagCreate() (bool, *rbac.Permission) {
 func (m *Mapping) TagDelete() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManagePosts
 }
+
+func (m *Mapping) TagUpdate() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManagePosts
+}

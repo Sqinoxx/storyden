@@ -957,6 +957,8 @@ export * from "./tagProps";
 export * from "./tagReference";
 export * from "./tagReferenceList";
 export * from "./tagReferenceProps";
+export * from "./tagUpdateBody";
+export * from "./tagUpdateOKResponse";
 export * from "./targetNodeSlugQueryParameter";
 export * from "./textDeltaPart";
 export * from "./textDeltaPartType";

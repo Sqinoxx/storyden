@@ -78,17 +78,17 @@ func (s *Mutator) Update(ctx context.Context, replyID post.ID, partial Partial) 
 		}
 	}
 
+	p, err = s.replyWriter.Update(ctx, replyID, opts...)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	pref, err := s.replyQuerier.Probe(ctx, replyID)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	if err := s.cache.Invalidate(ctx, xid.ID(pref.RootPostID)); err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
-	}
-
-	p, err = s.replyWriter.Update(ctx, replyID, opts...)
-	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 

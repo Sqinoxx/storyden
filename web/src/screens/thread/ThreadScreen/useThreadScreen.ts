@@ -105,10 +105,18 @@ export function useThreadScreen({
     },
   );
 
-  // Sync attachments when SWR data changes and user is not editing
+  // Sync form and attachments when SWR data changes or when entering edit mode
   useEffect(() => {
-    if (data && !editing) {
-      setAttachments(extractDocumentAssetsFromThread(data));
+    if (data) {
+      if (!editing) {
+        setAttachments(extractDocumentAssetsFromThread(data));
+      } else {
+        form.reset({
+          title: data.title,
+          body: data.body,
+          tags: data.tags?.map((t) => t.name) ?? [],
+        });
+      }
     }
   }, [data, editing]);
 
@@ -295,7 +303,7 @@ export function useThreadScreen({
             }
           });
 
-        const originalBody = thread.body || "";
+        const originalBody = (data?.body ?? thread.body) || "";
         const originalEmbeddedPaths = new Set<string>();
         const originalParsed = new DOMParser().parseFromString(originalBody, "text/html");
         originalParsed
@@ -342,12 +350,15 @@ export function useThreadScreen({
 
         const assetIds = Array.from(finalAssetIds);
 
-        await mutate({
-          ...thread,
-          title: formData.title,
-          body: formData.body,
-          assets: attachments, // this is optimistic local state
-        });
+        await mutate(
+          {
+            ...(data ?? thread),
+            title: formData.title,
+            body: formData.body,
+            assets: attachments, // this is optimistic local state
+          },
+          { revalidate: false },
+        );
 
         await threadUpdate(slug, {
           title: formData.title,
@@ -366,6 +377,7 @@ export function useThreadScreen({
         },
         cleanup: async () => {
           await mutate();
+          router.refresh();
         },
       },
     );

@@ -213,6 +213,33 @@ describe("MemberIdent common permutations", () => {
     expect(queryByText("@deleted-acc_deleted")).not.toBeInTheDocument();
   });
 
+  it("renders original name and handle in brackets for deleted profile with meta", () => {
+    const deletedProfileWithMeta: ProfileReference = {
+      id: "acc_deleted_meta",
+      handle: "deleted-acc_deleted_meta",
+      name: "Deleted User",
+      joined: new Date().toISOString(),
+      suspended: new Date().toISOString(),
+      roles: [],
+      meta: {
+        original_name: "Original Name",
+        original_handle: "original_handle",
+      },
+    };
+
+    const { getByText } = render(
+      <MemberIdent
+        profile={deletedProfileWithMeta}
+        size="md"
+        name="full-horizontal"
+      />,
+    );
+
+    expect(
+      getByText("Deleted user (Original Name / @original_handle)"),
+    ).toBeInTheDocument();
+  });
+
   it("does NOT render DeletedMemberIdent for suspended accounts", () => {
     const suspendedProfile: ProfileReference = {
       id: "acc_suspended",

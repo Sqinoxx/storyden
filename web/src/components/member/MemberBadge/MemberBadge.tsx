@@ -40,7 +40,16 @@ export function MemberBadge({
   as = "menu",
 }: Props) {
   if (isDeletedAccount(profile)) {
-    return <DeletedMemberIdent size={size} />;
+    const meta = profile.meta as Record<string, any> | undefined;
+    const originalName = meta?.original_name as string | undefined;
+    const originalHandle = meta?.original_handle as string | undefined;
+    return (
+      <DeletedMemberIdent
+        size={size}
+        originalName={originalName}
+        originalHandle={originalHandle}
+      />
+    );
   }
 
   const permalink = `${WEB_ADDRESS}/m/${profile.handle}`;

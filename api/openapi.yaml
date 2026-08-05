@@ -7043,6 +7043,7 @@ components:
         name: { $ref: "#/components/schemas/AccountName" }
         signature: { $ref: "#/components/schemas/AccountSignature" }
         roles: { $ref: "#/components/schemas/AccountRoleRefList" }
+        meta: { $ref: "#/components/schemas/Metadata" }
 
     ThreadTitle:
       type: string

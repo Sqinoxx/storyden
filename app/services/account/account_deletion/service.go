@@ -3,6 +3,7 @@ package account_deletion
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Southclaws/fault"
@@ -76,6 +77,22 @@ func (s *service) Delete(ctx context.Context, id account.AccountID) error {
 
 	xidID := xid.ID(id)
 
+	meta := map[string]any{}
+	if acc.Metadata != nil {
+		for k, v := range acc.Metadata {
+			meta[k] = v
+		}
+	}
+	if acc.Name != "" && acc.Name != "Deleted User" {
+		meta["original_name"] = acc.Name
+	}
+	if acc.Handle != "" && !strings.HasPrefix(acc.Handle, "deleted-") {
+		meta["original_handle"] = acc.Handle
+	}
+	if len(acc.EmailAddresses) > 0 && acc.EmailAddresses[0] != nil {
+		meta["original_email"] = acc.EmailAddresses[0].Email.Address
+	}
+
 	// Delete sensitive sub-records / credentials / sessions
 	_, _ = s.db.Session.Delete().Where(ent_session.HasAccountWith(ent_account.IDEQ(xidID))).Exec(ctx)
 	_, _ = s.db.Email.Delete().Where(ent_email.HasAccountWith(ent_account.IDEQ(xidID))).Exec(ctx)
@@ -94,7 +111,7 @@ func (s *service) Delete(ctx context.Context, id account.AccountID) error {
 		account_writer.SetBio(""),
 		account_writer.SetSignature(""),
 		account_writer.SetLinks([]account.ExternalLink{}),
-		account_writer.SetMetadata(map[string]any{}),
+		account_writer.SetMetadata(meta),
 		account_writer.SetVerifiedStatus(account.VerifiedStatusNone),
 		account_writer.SetAdmin(false),
 		account_writer.SetDeleted(opt.New(time.Now())),

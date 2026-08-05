@@ -214,9 +214,24 @@ export function AdminMemberIndexScreen(props: Props) {
                       <InfoBlock label="Emails">
                         <VStack alignItems="stretch" gap="1.5">
                           {account.email_addresses.length === 0 ? (
-                            <styled.span color="fg.muted" fontSize="sm">
-                              No email addresses
-                            </styled.span>
+                            account.meta?.original_email ? (
+                              <HStack
+                                justifyContent="space-between"
+                                gap="2"
+                                flexWrap="wrap"
+                              >
+                                <styled.span fontFamily="mono" fontSize="sm">
+                                  {account.meta.original_email as string}
+                                </styled.span>
+                                <Badge variant="outline" colorPalette="gray">
+                                  original (deleted)
+                                </Badge>
+                              </HStack>
+                            ) : (
+                              <styled.span color="fg.muted" fontSize="sm">
+                                No email addresses
+                              </styled.span>
+                            )
                           ) : (
                             account.email_addresses.map((email) => (
                               <HStack
@@ -371,5 +386,6 @@ function asProfileReference(account: Account): ProfileReference {
     roles: account.roles,
     signature: account.signature,
     suspended: account.suspended,
+    meta: account.meta,
   };
 }

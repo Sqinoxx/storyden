@@ -19,6 +19,21 @@ test("getCleanFilename handles full asset paths and query parameters", () => {
   );
 });
 
+test("getCleanFilename formats slugified hyphenated filenames nicely", () => {
+  assert.is(
+    getCleanFilename("d9ihuvuqbbt08i08p1j0_belegungen-drucken-1.pdf"),
+    "belegungen drucken 1.pdf"
+  );
+  assert.is(
+    getCleanFilename("d9ihuvuqbbt08i08p1j0-belegungen-drucken-1-pdf"),
+    "belegungen drucken 1.pdf"
+  );
+  assert.is(
+    getCleanFilename("belegungen drucken (1).pdf"),
+    "belegungen drucken (1).pdf"
+  );
+});
+
 test("normalizeFilename normalizes cleaned filename", () => {
   assert.is(normalizeFilename("d9ihuvuqbbt08i08p1j0_Untitled.pdf"), "untitledpdf");
 });

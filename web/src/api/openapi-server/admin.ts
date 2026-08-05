@@ -318,6 +318,33 @@ export const adminAccountBanRemove = async (
 };
 
 /**
+ * Permanently delete an account. The account MUST already be suspended.
+Only site Administrators can perform this action.
+
+ */
+export type adminAccountDeleteResponse = {
+  data: NoContentResponse;
+  status: number;
+};
+
+export const getAdminAccountDeleteUrl = (accountHandle: string) => {
+  return `/admin/accounts/${accountHandle}`;
+};
+
+export const adminAccountDelete = async (
+  accountHandle: string,
+  options?: RequestInit,
+): Promise<adminAccountDeleteResponse> => {
+  return fetcher<Promise<adminAccountDeleteResponse>>(
+    getAdminAccountDeleteUrl(accountHandle),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+/**
  * List all access keys for the entire instance. This is only available to
 admin accounts and is used to manage access keys from other accounts.
 

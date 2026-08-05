@@ -23,6 +23,7 @@ type OperationPermissions interface {
 	ModerationActionCreate() (bool, *rbac.Permission)
 	AdminAccountBanCreate() (bool, *rbac.Permission)
 	AdminAccountBanRemove() (bool, *rbac.Permission)
+	AdminAccountDelete() (bool, *rbac.Permission)
 	AdminAccessKeyList() (bool, *rbac.Permission)
 	AdminAccessKeyDelete() (bool, *rbac.Permission)
 	AdminOAuthClientList() (bool, *rbac.Permission)
@@ -287,6 +288,8 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.AdminAccountBanCreate()
 	case "AdminAccountBanRemove":
 		return optable.AdminAccountBanRemove()
+	case "AdminAccountDelete":
+		return optable.AdminAccountDelete()
 	case "AdminAccessKeyList":
 		return optable.AdminAccessKeyList()
 	case "AdminAccessKeyDelete":

@@ -49,6 +49,7 @@ export const de: Translations = {
     editAndAccept: "Bearbeiten und genehmigen",
     reject: "Ablehnen",
     banMember: "Mitglied bannen",
+    deleteMember: "Mitglied löschen",
     invite: "Einladen",
     inviteSomeone: "Jemanden einladen",
     create: "Erstellen",

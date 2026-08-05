@@ -36,6 +36,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/resources/sortrule"
 	"github.com/Southclaws/storyden/app/resources/timerange"
+	"github.com/Southclaws/storyden/app/services/account/account_deletion"
 	"github.com/Southclaws/storyden/app/services/account/account_suspension"
 	"github.com/Southclaws/storyden/app/services/admin/settings_manager"
 	oauthservice "github.com/Southclaws/storyden/app/services/authentication/oauth"
@@ -57,6 +58,7 @@ type Admin struct {
 	emailQueueQuerier *email_queue_querier.Querier
 	emailQueueService *mailqueue.Queuer
 	as                account_suspension.Service
+	accountDeletion   account_deletion.Service
 	settingsManager   *settings_manager.Manager
 	akr               *access_key.Repository
 	oauth             *oauthservice.Service
@@ -73,6 +75,7 @@ func NewAdmin(
 	emailQueueQuerier *email_queue_querier.Querier,
 	emailQueueService *mailqueue.Queuer,
 	as account_suspension.Service,
+	accountDeletion account_deletion.Service,
 	settingsManager *settings_manager.Manager,
 	akr *access_key.Repository,
 	oauth *oauthservice.Service,
@@ -89,6 +92,7 @@ func NewAdmin(
 		emailQueueQuerier: emailQueueQuerier,
 		emailQueueService: emailQueueService,
 		as:                as,
+		accountDeletion:   accountDeletion,
 		settingsManager:   settingsManager,
 		akr:               akr,
 		oauth:             oauth,
@@ -615,6 +619,43 @@ func (i *Admin) AdminAccountBanRemove(ctx context.Context, request openapi.Admin
 			Body: serialiseAccount(acc),
 		},
 	}, nil
+}
+
+func (i *Admin) AdminAccountDelete(ctx context.Context, request openapi.AdminAccountDeleteRequestObject) (openapi.AdminAccountDeleteResponseObject, error) {
+	id, err := openapi.ResolveHandle(ctx, i.profileQuery, request.AccountHandle)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	accountID, err := session.GetAccountID(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	requester, err := i.accountQuery.GetByID(ctx, accountID)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if !requester.Admin {
+		return nil, fault.Wrap(errNotAuthorised, fctx.With(ctx), ftag.With(ftag.PermissionDenied))
+	}
+
+	if id == accountID {
+		return nil, fault.Wrap(
+			fault.New("administrators cannot delete their own account"),
+			ftag.With(ftag.InvalidArgument),
+			fctx.With(ctx),
+			fmsg.WithDesc("invalid action", "administrators cannot delete their own account"),
+		)
+	}
+
+	err = i.accountDeletion.Delete(ctx, id)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AdminAccountDelete204Response{}, nil
 }
 
 func (a *Admin) AccountList(ctx context.Context, request openapi.AccountListRequestObject) (openapi.AccountListResponseObject, error) {

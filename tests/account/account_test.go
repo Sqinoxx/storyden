@@ -116,3 +116,78 @@ func TestAccountAdmin(t *testing.T) {
 		}))
 	}))
 }
+
+func TestAccountDelete(t *testing.T) {
+	t.Parallel()
+
+	integration.Test(t, nil, e2e.Setup(), fx.Invoke(func(
+		lc fx.Lifecycle,
+		root context.Context,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		accountWrite *account_writer.Writer,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+
+			adminHandle := "ad-" + xid.New().String()
+			targetHandle := "tg-" + xid.New().String()
+			userHandle := "usr-" + xid.New().String()
+
+			adminRes, err := cl.AuthPasswordSignupWithResponse(root, nil, openapi.AuthPair{Identifier: adminHandle, Token: "password"})
+			r.NoError(err)
+			r.Equal(http.StatusOK, adminRes.StatusCode())
+			adminID := account.AccountID(utils.Must(xid.FromString(adminRes.JSON200.Id)))
+			adminSession := sh.WithSession(e2e.WithAccountID(root, adminID))
+			accountWrite.Update(root, adminID, account_writer.SetAdmin(true))
+
+			targetRes, err := cl.AuthPasswordSignupWithResponse(root, nil, openapi.AuthPair{Identifier: targetHandle, Token: "password"})
+			r.NoError(err)
+			r.Equal(http.StatusOK, targetRes.StatusCode())
+			targetID := account.AccountID(utils.Must(xid.FromString(targetRes.JSON200.Id)))
+			_ = targetID
+
+			userRes, err := cl.AuthPasswordSignupWithResponse(root, nil, openapi.AuthPair{Identifier: userHandle, Token: "password"})
+			r.NoError(err)
+			r.Equal(http.StatusOK, userRes.StatusCode())
+			userID := account.AccountID(utils.Must(xid.FromString(userRes.JSON200.Id)))
+			userSession := sh.WithSession(e2e.WithAccountID(root, userID))
+
+			// 1. Try deleting target account while active (not suspended) - fails (400 Bad Request)
+			delActive, err := cl.AdminAccountDeleteWithResponse(root, targetHandle, adminSession)
+			r.NoError(err)
+			r.Equal(http.StatusBadRequest, delActive.StatusCode())
+
+			// 2. Suspend target account
+			suspendRes, err := cl.AdminAccountBanCreateWithResponse(root, targetHandle, adminSession)
+			r.NoError(err)
+			r.Equal(http.StatusOK, suspendRes.StatusCode())
+
+			// 3. Try deleting suspended account without auth - fails (401)
+			delUnauth, err := cl.AdminAccountDeleteWithResponse(root, targetHandle)
+			r.NoError(err)
+			r.Equal(http.StatusUnauthorized, delUnauth.StatusCode())
+
+			// 4. Try deleting suspended account as normal user - fails (403)
+			delForbidden, err := cl.AdminAccountDeleteWithResponse(root, targetHandle, userSession)
+			r.NoError(err)
+			r.Equal(http.StatusForbidden, delForbidden.StatusCode())
+
+			// 5. Try deleting self as admin - fails (400)
+			delSelf, err := cl.AdminAccountDeleteWithResponse(root, adminHandle, adminSession)
+			r.NoError(err)
+			r.Equal(http.StatusBadRequest, delSelf.StatusCode())
+
+			// 6. Delete suspended account as admin - succeeds (204)
+			delSuccess, err := cl.AdminAccountDeleteWithResponse(root, targetHandle, adminSession)
+			r.NoError(err)
+			r.Equal(http.StatusNoContent, delSuccess.StatusCode())
+
+			// 7. Verify target profile can no longer be retrieved (404)
+			getProfile, err := cl.ProfileGetWithResponse(root, targetHandle)
+			r.NoError(err)
+			r.Equal(http.StatusNotFound, getProfile.StatusCode())
+		}))
+	}))
+}
+

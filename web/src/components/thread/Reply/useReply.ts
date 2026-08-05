@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -33,6 +34,7 @@ export function useReply({
   reply,
   currentPage,
 }: Props) {
+  const router = useRouter();
   const session = useSession(initialSession);
   const { resolveReport } = useReportContext();
   const { revalidate, updateReply, deleteReply } = useThreadMutations(
@@ -104,6 +106,7 @@ export function useReply({
         },
         cleanup: async () => {
           await revalidate();
+          router.refresh();
         },
       },
     );

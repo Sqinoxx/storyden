@@ -628,11 +628,20 @@ func TestThreads(t *testing.T) {
 			t.Run("pin_permission_required", func(t *testing.T) {
 				a := assert.New(t)
 
+				pinCat := tests.AssertRequest(
+					cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+						Colour:      "#123456",
+						Description: "pinning test cat",
+						Name:        "Pin Cat " + uuid.NewString(),
+					}, session1),
+				)(t, http.StatusOK)
+
 				threadCreate := tests.AssertRequest(
 					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
 						Body:       opt.New("<p>non-moderator thread</p>").Ptr(),
 						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
 						Title:      "Cannot pin thread",
+						Category:   opt.New(pinCat.JSON200.Id).Ptr(),
 					}, session2),
 				)(t, http.StatusOK)
 

@@ -43,8 +43,7 @@ export const fetcher = async <T>(
     // it's not the most efficient approach (ignoring server-side data cache)
     // but it's the best of a not-so-great situation. This should improve a lot
     // if Next.js adds support for HTTP Conditional Requests and ETag headers.
-    revalidate: 60,
-    cache: "force-cache",
+    cache: "no-store",
     ...requestInit,
   });
 

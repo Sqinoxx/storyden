@@ -190,4 +190,49 @@ describe("MemberIdent common permutations", () => {
     expect(getByText(profile.name)).toBeInTheDocument();
     expect(getByText(`@${profile.handle}`)).toBeInTheDocument();
   });
+
+  it("renders DeletedMemberIdent when profile is from a deleted account", () => {
+    const deletedProfile: ProfileReference = {
+      id: "acc_deleted",
+      handle: "deleted-acc_deleted",
+      name: "Deleted User",
+      joined: new Date().toISOString(),
+      suspended: new Date().toISOString(),
+      roles: [],
+    };
+
+    const { getByText, queryByText } = render(
+      <MemberIdent
+        profile={deletedProfile}
+        size="md"
+        name="full-horizontal"
+      />,
+    );
+
+    expect(getByText("Deleted user")).toBeInTheDocument();
+    expect(queryByText("@deleted-acc_deleted")).not.toBeInTheDocument();
+  });
+
+  it("does NOT render DeletedMemberIdent for suspended accounts", () => {
+    const suspendedProfile: ProfileReference = {
+      id: "acc_suspended",
+      handle: "john",
+      name: "John Doe",
+      joined: new Date().toISOString(),
+      suspended: new Date().toISOString(),
+      roles: [],
+    };
+
+    const { getByText, queryByText } = render(
+      <MemberIdent
+        profile={suspendedProfile}
+        size="md"
+        name="full-horizontal"
+      />,
+    );
+
+    expect(getByText("John Doe")).toBeInTheDocument();
+    expect(getByText("@john")).toBeInTheDocument();
+    expect(queryByText("Deleted user")).not.toBeInTheDocument();
+  });
 });

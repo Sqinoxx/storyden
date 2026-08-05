@@ -446,7 +446,33 @@ export function useContentComposer(props: ContentComposerProps) {
       uploadCounterRef.current += 1;
       const uploadId = `upload-${Date.now()}-${uploadCounterRef.current}`;
       const isAttachment = !f.type.startsWith("image/");
-      const nodeType = isAttachment ? fileAttachmentNode : imageNode;
+
+      if (isAttachment) {
+        // Non-image files (PDFs, docs, ZIPs) are attached at the bottom only, not inserted into the editor content.
+        const abortController = new AbortController();
+        setUploadingCount((prev) => prev + 1);
+
+        handle(
+          async () => {
+            const asset = await uploadWithProgress(
+              f,
+              () => {},
+              undefined,
+              abortController,
+            );
+            assets.push(asset);
+            props.onAssetUpload?.(asset);
+          },
+          {
+            cleanup: async () => {
+              setUploadingCount((prev) => prev - 1);
+            },
+          },
+        );
+        continue;
+      }
+
+      const nodeType = imageNode;
 
       // Create blob URL for immediate preview
       const blobUrl = URL.createObjectURL(f);
@@ -463,19 +489,12 @@ export function useContentComposer(props: ContentComposerProps) {
       });
 
       // Insert placeholder immediately
-      const attrs = isAttachment
-        ? {
-          href: blobUrl,
-          fileName: f.name,
-          "data-upload-id": uploadId,
-          "data-uploading": "true",
-        }
-        : {
-          src: blobUrl,
-          alt: f.name,
-          "data-upload-id": uploadId,
-          "data-uploading": "true",
-        };
+      const attrs = {
+        src: blobUrl,
+        alt: f.name,
+        "data-upload-id": uploadId,
+        "data-uploading": "true",
+      };
 
       const placeholderNode = nodeType.create(attrs);
 
@@ -502,7 +521,7 @@ export function useContentComposer(props: ContentComposerProps) {
 
           currentState.doc.descendants((node, pos) => {
             if (
-              (node.type.name === "image" || node.type.name === "fileAttachment") &&
+              node.type.name === "image" &&
               node.attrs["data-upload-id"] === uploadId
             ) {
               nodePos = pos;
@@ -512,24 +531,14 @@ export function useContentComposer(props: ContentComposerProps) {
           });
 
           if (nodePos !== null) {
-            const isPdfNode = currentState.doc.nodeAt(nodePos)?.type.name === "fileAttachment";
-            const newAttrs = isPdfNode
-              ? {
-                href: getAssetURL(asset.path),
-                fileName: f.name,
-                "data-upload-id": null,
-                "data-uploading": null,
-                "data-upload-error": null,
-                "data-upload-progress": null,
-              }
-              : {
-                src: getAssetURL(asset.path),
-                alt: f.name,
-                "data-upload-id": null,
-                "data-uploading": null,
-                "data-upload-error": null,
-                "data-upload-progress": null,
-              };
+            const newAttrs = {
+              src: getAssetURL(asset.path),
+              alt: f.name,
+              "data-upload-id": null,
+              "data-uploading": null,
+              "data-upload-error": null,
+              "data-upload-progress": null,
+            };
             // Update the node with the real URL and remove upload attrs
             const updateTransaction = currentState.tr.setNodeMarkup(
               nodePos,

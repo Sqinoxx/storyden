@@ -14,6 +14,7 @@ import type { AccountSignature } from "./accountSignature";
 import type { Identifier } from "./identifier";
 import type { MemberJoinedDate } from "./memberJoinedDate";
 import type { MemberSuspendedDate } from "./memberSuspendedDate";
+import type { Metadata } from "./metadata";
 
 /**
  * A minimal reference to an account.
@@ -22,6 +23,7 @@ export interface ProfileReference {
   handle: AccountHandle;
   id: Identifier;
   joined: MemberJoinedDate;
+  meta?: Metadata;
   name: AccountName;
   roles: AccountRoleRefList;
   signature?: AccountSignature;

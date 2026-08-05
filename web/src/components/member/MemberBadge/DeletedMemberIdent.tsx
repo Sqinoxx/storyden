@@ -4,6 +4,8 @@ import { Box, HStack, styled } from "@/styled-system/jsx";
 export type Props = {
   size: "xs" | "sm" | "md" | "lg";
   label?: string;
+  originalName?: string;
+  originalHandle?: string;
 };
 
 function iconSize(size: Props["size"]) {
@@ -19,8 +21,24 @@ function iconSize(size: Props["size"]) {
   }
 }
 
-export function DeletedMemberIdent({ size, label }: Props) {
+export function DeletedMemberIdent({
+  size,
+  label,
+  originalName,
+  originalHandle,
+}: Props) {
   const width = iconSize(size);
+
+  const baseLabel = label ?? "Deleted user";
+  const detailsParts = [
+    originalName,
+    originalHandle ? `@${originalHandle}` : null,
+  ].filter(Boolean);
+
+  const text =
+    detailsParts.length > 0
+      ? `${baseLabel} (${detailsParts.join(" / ")})`
+      : baseLabel;
 
   return (
     <HStack
@@ -45,7 +63,7 @@ export function DeletedMemberIdent({ size, label }: Props) {
         lineHeight="tight"
         color="fg.subtle"
       >
-        {label ?? "Deleted user"}
+        {text}
       </styled.p>
     </HStack>
   );

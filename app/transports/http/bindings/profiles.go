@@ -327,6 +327,7 @@ func serialiseProfileReference(a profile.Ref) openapi.ProfileReference {
 		Name:      a.Name,
 		Signature: opt.Map(a.Signature, func(s datagraph.Content) string { return s.HTML() }).Ptr(),
 		Roles:     serialiseHeldRoleRefList(a.Roles),
+		Meta:      (*openapi.Metadata)(&a.Metadata),
 	}
 }
 
@@ -339,6 +340,7 @@ func serialiseProfileReferenceFromAccount(a account.Account) openapi.ProfileRefe
 		Name:      a.Name,
 		Signature: opt.Map(a.Signature, func(s datagraph.Content) string { return s.HTML() }).Ptr(),
 		Roles:     serialiseHeldRoleRefList(a.Roles),
+		Meta:      (*openapi.Metadata)(&a.Metadata),
 	}
 }
 

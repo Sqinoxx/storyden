@@ -235,3 +235,7 @@ func (r *Repository) Delete(ctx context.Context, id account.AccountID) error {
 	return nil
 }
 
+func (r *Repository) InvalidateCache(ctx context.Context, id account.AccountID) {
+	r.accountCache.delete(ctx, xid.ID(id))
+}
+

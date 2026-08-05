@@ -9,6 +9,8 @@ import { HStack } from "@/styled-system/jsx";
 
 import { MemberOptionsMenu } from "../MemberOptions/MemberOptionsMenu";
 
+import { DeletedMemberIdent } from "./DeletedMemberIdent";
+import { isDeletedAccount } from "./isDeleted";
 import { MemberIdent } from "./MemberIdent";
 
 export type Props = {
@@ -37,6 +39,10 @@ export function MemberBadge({
   showRoles = "hidden",
   as = "menu",
 }: Props) {
+  if (isDeletedAccount(profile)) {
+    return <DeletedMemberIdent size={size} />;
+  }
+
   const permalink = `${WEB_ADDRESS}/m/${profile.handle}`;
 
   if (as === "menu") {

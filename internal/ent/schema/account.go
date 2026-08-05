@@ -81,8 +81,7 @@ func (Account) Edges() []ent.Edge {
 			Field("invited_by_id").
 			Unique(),
 
-		edge.To("posts", Post.Type).
-			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("posts", Post.Type),
 
 		edge.To("reacts", React.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),

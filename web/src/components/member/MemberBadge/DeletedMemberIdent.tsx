@@ -45,7 +45,7 @@ export function DeletedMemberIdent({ size, label }: Props) {
         lineHeight="tight"
         color="fg.subtle"
       >
-        {label ?? "@deleted"}
+        {label ?? "Deleted user"}
       </styled.p>
     </HStack>
   );

@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 
+	"github.com/Southclaws/opt"
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
@@ -145,7 +146,27 @@ func TestAccountDelete(t *testing.T) {
 			r.NoError(err)
 			r.Equal(http.StatusOK, targetRes.StatusCode())
 			targetID := account.AccountID(utils.Must(xid.FromString(targetRes.JSON200.Id)))
-			_ = targetID
+			targetSession := sh.WithSession(e2e.WithAccountID(root, targetID))
+
+			// Admin creates a category
+			catRes, err := cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+				Name: "General " + xid.New().String(),
+			}, adminSession)
+			r.NoError(err)
+			r.Equal(http.StatusOK, catRes.StatusCode())
+			catID := catRes.JSON200.Id
+
+			// Target user creates a thread post in category
+			bodyText := "<p>This content should remain after account deletion.</p>"
+			threadRes, err := cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+				Title: "Preserved Thread",
+				Body: &bodyText,
+				Category: &catID,
+				Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+			}, targetSession)
+			r.NoError(err)
+			r.Equal(http.StatusOK, threadRes.StatusCode())
+			threadSlug := threadRes.JSON200.Slug
 
 			userRes, err := cl.AuthPasswordSignupWithResponse(root, nil, openapi.AuthPair{Identifier: userHandle, Token: "password"})
 			r.NoError(err)
@@ -183,7 +204,13 @@ func TestAccountDelete(t *testing.T) {
 			r.NoError(err)
 			r.Equal(http.StatusNoContent, delSuccess.StatusCode())
 
-			// 7. Verify target profile can no longer be retrieved (404)
+			// 7. Verify the thread post still exists and author is "Deleted User"
+			getThread, err := cl.ThreadGetWithResponse(root, threadSlug, nil)
+			r.NoError(err)
+			r.Equal(http.StatusOK, getThread.StatusCode())
+			r.Equal("Deleted User", getThread.JSON200.Author.Name)
+
+			// 8. Verify target profile under old handle can no longer be retrieved (404)
 			getProfile, err := cl.ProfileGetWithResponse(root, targetHandle)
 			r.NoError(err)
 			r.Equal(http.StatusNotFound, getProfile.StatusCode())

@@ -4,6 +4,8 @@ import { parseRoleMetadata } from "@/lib/role/metadata";
 import { Flex, HStack, styled } from "@/styled-system/jsx";
 import { token } from "@/styled-system/tokens";
 
+import { DeletedMemberIdent } from "./DeletedMemberIdent";
+import { isDeletedAccount } from "./isDeleted";
 import { MemberAvatar } from "./MemberAvatar";
 
 export type Props = {
@@ -16,11 +18,15 @@ export type Props = {
 
 export function MemberIdent({
   profile,
-  size,
+  size = "md",
   name = "hidden",
   avatar = "visible",
   showRoles = "hidden",
 }: Props) {
+  if (isDeletedAccount(profile)) {
+    return <DeletedMemberIdent size={size} />;
+  }
+
   return (
     <HStack
       className="member-ident__container"

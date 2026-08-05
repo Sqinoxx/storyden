@@ -279,7 +279,7 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
       await handle(
         async () => {
           const asset = await upload(file, { filename: file.name });
-          props.onAssetUpload?.(asset);
+          props.onAssetUpload?.({ ...asset, filename: file.name });
         },
         {
           cleanup: async () => {

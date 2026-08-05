@@ -460,8 +460,9 @@ export function useContentComposer(props: ContentComposerProps) {
               undefined,
               abortController,
             );
-            assets.push(asset);
-            props.onAssetUpload?.(asset);
+            const assetWithFilename = { ...asset, filename: f.name };
+            assets.push(assetWithFilename);
+            props.onAssetUpload?.(assetWithFilename);
           },
           {
             cleanup: async () => {
@@ -555,8 +556,9 @@ export function useContentComposer(props: ContentComposerProps) {
               upload.status = "completed";
             }
 
-            assets.push(asset);
-            props.onAssetUpload?.(asset);
+            const assetWithFilename = { ...asset, filename: f.name };
+            assets.push(assetWithFilename);
+            props.onAssetUpload?.(assetWithFilename);
           }
         },
         {

@@ -25,7 +25,7 @@ export function getCleanFilename(filename?: string): string {
   // If the filename ends with a hyphenated extension like "-pdf", "-docx", etc., convert the last hyphen to a dot
   // (e.g. "belegungen-drucken-5-1-pdf" -> "belegungen-drucken-5-1.pdf")
   clean = clean.replace(
-    /-(pdf|doc|docx|xls|xlsx|ppt|pptx|zip|rar|7z|png|jpg|jpeg|gif|svg|txt|csv)$/i,
+    /-([a-zA-Z0-9]{1,6})$/,
     ".$1"
   );
 
@@ -37,6 +37,14 @@ export function getCleanFilename(filename?: string): string {
       /^([a-z0-9]{20,32}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})[-_.]/i,
       ""
     );
+  }
+
+  // Convert hyphens to spaces for slugified filenames that lack spaces (e.g. "belegungen-drucken-1.pdf" -> "belegungen drucken 1.pdf")
+  if (!clean.includes(" ")) {
+    const extIndex = clean.lastIndexOf(".");
+    const base = extIndex !== -1 ? clean.slice(0, extIndex) : clean;
+    const ext = extIndex !== -1 ? clean.slice(extIndex) : "";
+    clean = base.replace(/-/g, " ") + ext;
   }
 
   if (!clean) return filename;

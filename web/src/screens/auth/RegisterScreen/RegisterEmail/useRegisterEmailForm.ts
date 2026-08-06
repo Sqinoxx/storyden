@@ -1,15 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { handle } from "@/api/client";
-import { useAccountGet } from "@/api/openapi-client/accounts";
 import { authEmailPasswordSignup } from "@/api/openapi-client/auth";
 import { PasswordSchema, UsernameSchema } from "@/lib/auth/schemas";
-import { refreshFeed } from "@/lib/feed/refresh";
 import { deriveError } from "@/utils/error";
 
 const FormSchema = z.object({
@@ -24,12 +22,12 @@ type Props = {
 };
 
 export function useRegisterEmailForm({ invitationID }: Props) {
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnURL = searchParams.get("return_url") ?? "/d";
 
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
   });
-  const { mutate } = useAccountGet();
 
   const handleSubmit = form.handleSubmit(async (payload: Form) => {
     await handle(
@@ -38,10 +36,10 @@ export function useRegisterEmailForm({ invitationID }: Props) {
           invitation_id: invitationID,
         });
 
-        await refreshFeed();
-        await mutate();
-        router.push("/d");
-        router.refresh();
+        // Hard redirect: forces a full page reload so the server renders the
+        // authenticated state with the new session cookie immediately.
+        // Avoids the Next.js client-cache race condition that required a second click.
+        window.location.href = returnURL;
       },
       {
         errorToast: false,
@@ -59,3 +57,4 @@ export function useRegisterEmailForm({ invitationID }: Props) {
     },
   };
 }
+

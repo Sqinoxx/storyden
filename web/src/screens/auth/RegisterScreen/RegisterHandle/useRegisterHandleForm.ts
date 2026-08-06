@@ -1,17 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { useAccountGet } from "@/api/openapi-client/accounts";
 import { authPasswordSignup } from "@/api/openapi-client/auth";
 import { APIError } from "@/api/openapi-schema";
 import { passkeyRegister } from "@/components/auth/webauthn/utils";
 import { PasswordSchema, UsernameSchema } from "@/lib/auth/schemas";
 import { isWebauthnAvailable } from "@/lib/auth/webauthn";
-import { refreshFeed } from "@/lib/feed/refresh";
 import { deriveError } from "@/utils/error";
 
 export type Props = {
@@ -41,8 +39,8 @@ export function useRegisterHandleForm({ invitationID }: Props) {
   } = useForm<Form>({
     resolver: zodResolver(FormSchema),
   });
-  const { push, refresh } = useRouter();
-  const { mutate } = useAccountGet();
+  const searchParams = useSearchParams();
+  const returnURL = searchParams.get("return_url") ?? "/d";
 
   const isWebauthnEnabled = isWebauthnAvailable();
 
@@ -77,10 +75,10 @@ export function useRegisterHandleForm({ invitationID }: Props) {
 
     try {
       await authPasswordSignup(parsed.data, { invitation_id: invitationID });
-      await refreshFeed();
-      await mutate();
-      push("/d");
-      refresh();
+      // Hard redirect: forces a full page reload so the server renders the
+      // authenticated state with the new session cookie immediately.
+      // Avoids the Next.js client-cache race condition that required a second click.
+      window.location.href = returnURL;
     } catch (e) {
       setError("root", { message: deriveError(e as APIError) });
     }
@@ -89,10 +87,7 @@ export function useRegisterHandleForm({ invitationID }: Props) {
   async function handleWebauthn(payload: Form) {
     try {
       await passkeyRegister(payload.identifier);
-      await refreshFeed();
-      await mutate();
-      push("/d");
-      refresh();
+      window.location.href = returnURL;
     } catch (error) {
       setError("root", { message: deriveError(error) });
     }
@@ -109,3 +104,4 @@ export function useRegisterHandleForm({ invitationID }: Props) {
     },
   };
 }
+

@@ -1804,6 +1804,17 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorised" }
         "200": { $ref: "#/components/responses/AccountUpdateOK" }
 
+    delete:
+      operationId: AccountDelete
+      description: Delete the currently authenticated account.
+      tags: [accounts]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "204": { $ref: "#/components/responses/NoContent" }
+
+
   /accounts/{account_id}:
     get:
       operationId: AccountView

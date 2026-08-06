@@ -32,6 +32,7 @@ import (
 
 type Service interface {
 	Delete(ctx context.Context, id account.AccountID) error
+	SelfDelete(ctx context.Context, id account.AccountID) error
 }
 
 func Build() fx.Option {
@@ -75,6 +76,39 @@ func (s *service) Delete(ctx context.Context, id account.AccountID) error {
 		)
 	}
 
+	return s.anonymizeAndDelete(ctx, acc)
+}
+
+func (s *service) SelfDelete(ctx context.Context, id account.AccountID) error {
+	acc, err := s.account_querier.GetByID(ctx, id)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if acc.Admin {
+		otherAdminsCount, err := s.db.Account.Query().Where(
+			ent_account.AdminEQ(true),
+			ent_account.DeletedAtIsNil(),
+			ent_account.IDNEQ(xid.ID(id)),
+		).Count(ctx)
+		if err != nil {
+			return fault.Wrap(err, fctx.With(ctx))
+		}
+		if otherAdminsCount == 0 {
+			return fault.Wrap(
+				fault.New("cannot delete the only administrator account"),
+				ftag.With(ftag.PermissionDenied),
+				fctx.With(ctx),
+				fmsg.WithDesc("permission denied", "Als einziger Administrator kannst du dein Konto nicht löschen. Erstelle zuerst einen weiteren Administrator."),
+			)
+		}
+	}
+
+	return s.anonymizeAndDelete(ctx, acc)
+}
+
+func (s *service) anonymizeAndDelete(ctx context.Context, acc *account.AccountWithEdges) error {
+	id := acc.ID
 	xidID := xid.ID(id)
 
 	meta := map[string]any{}
@@ -93,6 +127,8 @@ func (s *service) Delete(ctx context.Context, id account.AccountID) error {
 		meta["original_email"] = acc.EmailAddresses[0].Email.Address
 	}
 
+
+
 	// Delete sensitive sub-records / credentials / sessions
 	_, _ = s.db.Session.Delete().Where(ent_session.HasAccountWith(ent_account.IDEQ(xidID))).Exec(ctx)
 	_, _ = s.db.Email.Delete().Where(ent_email.HasAccountWith(ent_account.IDEQ(xidID))).Exec(ctx)
@@ -105,7 +141,7 @@ func (s *service) Delete(ctx context.Context, id account.AccountID) error {
 
 	// Anonymize Account: change handle and name to "Deleted User" so posts are retained
 	newHandle := fmt.Sprintf("deleted-%s", id.String())
-	_, err = s.account_writer.Update(ctx, id,
+	_, err := s.account_writer.Update(ctx, id,
 		account_writer.SetHandle(newHandle),
 		account_writer.SetName("Deleted User"),
 		account_writer.SetBio(""),
@@ -124,3 +160,4 @@ func (s *service) Delete(ctx context.Context, id account.AccountID) error {
 
 	return nil
 }
+

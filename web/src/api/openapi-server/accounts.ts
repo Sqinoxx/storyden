@@ -159,6 +159,27 @@ export const accountUpdate = async (
 };
 
 /**
+ * Delete the currently authenticated account.
+ */
+export type accountDeleteResponse = {
+  data: NoContentResponse;
+  status: number;
+};
+
+export const getAccountDeleteUrl = () => {
+  return `/accounts`;
+};
+
+export const accountDelete = async (
+  options?: RequestInit,
+): Promise<accountDeleteResponse> => {
+  return fetcher<Promise<accountDeleteResponse>>(getAccountDeleteUrl(), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+/**
  * Get detailed account information by ID. Requires either the permissions
 VIEW_ACCOUNTS or ADMINISTRATOR. Users with VIEW_ACCOUNTS can view any
 account that is not ADMINISTRATOR including those with VIEW_ACCOUNTS.

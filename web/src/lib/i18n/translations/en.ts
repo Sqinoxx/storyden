@@ -295,6 +295,21 @@ export const en = {
     deletedSuccess: "Tag deleted successfully.",
     unauthorized: "Only visible for Moderators and Admins.",
   },
+  settings: {
+    accountTitle: "Account Settings",
+    accountSubtitle: "Manage your account options and status.",
+    dangerZoneTitle: "Danger Zone: Delete Account",
+    dangerZoneDescription: "If you delete your account, your credentials, emails, and sessions will be permanently removed. Your authored posts will remain anonymously attributed to Deleted User.",
+    deleteAccountButton: "Delete account...",
+    confirmDeleteTitle: "Delete Account Permanently?",
+    confirmDeleteDescription: "This action cannot be undone. Your profile will be anonymized and your credentials deleted.",
+    confirmDeleteInputLabel: 'Type "LÖSCHEN" to confirm:',
+    confirmDeleteInputHelper: 'Type "LÖSCHEN" in uppercase to enable deletion.',
+    confirmDeleteButton: "Permanently delete account",
+    deletingAccount: "Deleting account...",
+    accountDeletedSuccess: "Your account has been deleted successfully.",
+  },
 };
 
 export type Translations = typeof en;
+

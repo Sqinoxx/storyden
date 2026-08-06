@@ -82,6 +82,11 @@ func (m *Mapping) AdminAccountDelete() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionAdministrator
 }
 
+func (m *Mapping) AccountDelete() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+
 func (m *Mapping) AccountList() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionViewAccounts
 }
@@ -223,8 +228,9 @@ func (m *Mapping) RoleDelete() (bool, *rbac.Permission) {
 }
 
 func (m *Mapping) AuthProviderList() (bool, *rbac.Permission) {
-	return true, nil
+	return false, nil // Public
 }
+
 
 func (m *Mapping) AuthPasswordSignup() (bool, *rbac.Permission) {
 	return false, nil // Public

@@ -1,5 +1,6 @@
 import { PublicProfileList } from "@/api/openapi-schema";
 
+import { isDeletedAccount } from "@/components/member/MemberBadge/isDeleted";
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import { EmptyState } from "@/components/site/EmptyState";
 import { Timestamp } from "@/components/site/Timestamp";
@@ -8,10 +9,15 @@ import { Box, HStack, LStack, VStack, styled } from "@/styled-system/jsx";
 
 type Props = {
   profiles: PublicProfileList;
+  hideDeleted?: boolean;
 };
 
-export function MemberList({ profiles }: Props) {
-  if (profiles.length === 0) {
+export function MemberList({ profiles, hideDeleted }: Props) {
+  const visibleProfiles = hideDeleted
+    ? profiles.filter((p) => !isDeletedAccount(p))
+    : profiles;
+
+  if (visibleProfiles.length === 0) {
     return <EmptyState>no members were found</EmptyState>;
   }
 
@@ -30,7 +36,7 @@ export function MemberList({ profiles }: Props) {
           </Table.Head>
 
           <Table.Body>
-            {profiles.map((profile) => {
+            {visibleProfiles.map((profile) => {
               const isBanned = Boolean(profile.deletedAt);
 
               return (
@@ -71,7 +77,7 @@ export function MemberList({ profiles }: Props) {
 
       {/* Mobile Card View */}
       <VStack w="full" gap="3" display={{ base: "flex", lg: "none" }}>
-        {profiles.map((profile) => {
+        {visibleProfiles.map((profile) => {
           const isBanned = Boolean(profile.deletedAt);
 
           return (

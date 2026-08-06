@@ -158,6 +158,9 @@ export const en = {
     sortHandleDesc: "Handle (Z-A)",
     sortJoinedAsc: "Join date (oldest)",
     sortJoinedDesc: "Join date (newest)",
+    hideDeleted: "Hide deleted",
+    showDeleted: "Show deleted",
+    deletedAccounts: "Deleted accounts",
   },
   library: {
     createdBy: "Created by {name}",

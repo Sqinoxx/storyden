@@ -1,11 +1,13 @@
 import { Admonition } from "@/components/ui/admonition";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { VStack, styled } from "@/styled-system/jsx";
 
 import { usePasswordCreate } from "./usePasswordCreate";
 
 export function PasswordCreateForm() {
+  const { t } = useLanguage();
   const {
     form: { register, handlePasswordCreate, errors },
     success,
@@ -15,8 +17,8 @@ export function PasswordCreateForm() {
   return (
     <>
       <p>
-        Your account does not currently have a password. You can add a password
-        here.
+        {t.settings?.auth?.noPasswordDesc ||
+          "Your account does not currently have a password. You can add a password here."}
       </p>
       <styled.form
         display="flex"
@@ -29,7 +31,7 @@ export function PasswordCreateForm() {
           maxW="xs"
           type="password"
           autoComplete="new-password"
-          placeholder="new password"
+          placeholder={t.settings?.auth?.newPasswordPlaceholder || "new password"}
           disabled={success}
           {...register("newPassword")}
         />
@@ -40,7 +42,7 @@ export function PasswordCreateForm() {
           maxW="xs"
           type="password"
           autoComplete="new-password"
-          placeholder="confirm new password"
+          placeholder={t.settings?.auth?.confirmPasswordPlaceholder || "confirm new password"}
           disabled={success}
           {...register("confirmPassword")}
         />
@@ -52,16 +54,16 @@ export function PasswordCreateForm() {
         </styled.p>
         <VStack alignItems="start" w="full">
           <Button type="submit" disabled={success}>
-            Add password
+            {t.settings?.auth?.addPasswordButton || "Add password"}
           </Button>
           <Admonition
             value={success}
             onChange={handleCloseNotification}
             kind="success"
-            title="Success"
+            title={t.common?.yes ? "Erfolg" : "Success"}
           >
-            Your account now has a password! You can now use this to log in, but
-            you can continue to use your other authentication methods as well.
+            {t.settings?.auth?.passwordAddedSuccess ||
+              "Your account now has a password! You can now use this to log in, but you can continue to use your other authentication methods as well."}
           </Admonition>
         </VStack>
       </styled.form>

@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { Permission } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import * as Tabs from "@/components/ui/tabs";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Settings } from "@/lib/settings/settings";
 import { hasPermission } from "@/utils/permissions";
 
@@ -24,6 +25,7 @@ type Props = {
 };
 
 export function SettingsScreen({ initialSettings }: Props) {
+  const { t } = useLanguage();
   const session = useSession();
   const [tab, setTab] = useQueryState("tab", {
     defaultValue: DEFAULT_TAB,
@@ -64,14 +66,30 @@ export function SettingsScreen({ initialSettings }: Props) {
       onValueChange={handleTabChange}
     >
       <Tabs.List>
-        <Tabs.Trigger value="interface">Interface</Tabs.Trigger>
-        <Tabs.Trigger value="authentication">Authentication</Tabs.Trigger>
-        {emailEnabled && <Tabs.Trigger value="email">Email</Tabs.Trigger>}
-        {accessKeysEnabled && (
-          <Tabs.Trigger value="access_keys">Access keys</Tabs.Trigger>
+        <Tabs.Trigger value="interface">
+          {t.settings?.tabs?.interface || "Interface"}
+        </Tabs.Trigger>
+        <Tabs.Trigger value="authentication">
+          {t.settings?.tabs?.authentication || "Authentication"}
+        </Tabs.Trigger>
+        {emailEnabled && (
+          <Tabs.Trigger value="email">
+            {t.settings?.tabs?.email || "Email"}
+          </Tabs.Trigger>
         )}
-        <Tabs.Trigger value="account">Konto</Tabs.Trigger>
-        {oauthEnabled && <Tabs.Trigger value="oauth">OAuth</Tabs.Trigger>}
+        {accessKeysEnabled && (
+          <Tabs.Trigger value="access_keys">
+            {t.settings?.tabs?.accessKeys || "Access keys"}
+          </Tabs.Trigger>
+        )}
+        <Tabs.Trigger value="account">
+          {t.settings?.tabs?.account || "Konto"}
+        </Tabs.Trigger>
+        {oauthEnabled && (
+          <Tabs.Trigger value="oauth">
+            {t.settings?.tabs?.oauth || "OAuth"}
+          </Tabs.Trigger>
+        )}
         <Tabs.Indicator />
       </Tabs.List>
 

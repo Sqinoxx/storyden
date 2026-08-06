@@ -1,6 +1,6 @@
 import { Unready } from "@/components/site/Unready";
-
 import { Heading } from "@/components/ui/heading";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { CardBox, LStack } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
@@ -9,6 +9,7 @@ import { Password } from "./Password/Password";
 import { useAuthMethodSettings } from "./useAuthMethodSettings";
 
 export function AuthMethodSettings() {
+  const { t } = useLanguage();
   const { ready, error, data } = useAuthMethodSettings();
   if (!ready) {
     return <Unready error={error} />;
@@ -19,11 +20,10 @@ export function AuthMethodSettings() {
   return (
     <CardBox className={lstack()} gap="4">
       <LStack>
-        <Heading size="md">Authentication methods</Heading>
+        <Heading size="md">{t.settings?.auth?.title || "Authentication methods"}</Heading>
         <p>
-          We recommend you add more than one method of authentication to your
-          account. This will help you recover your account if you lose access to
-          one of your devices.
+          {t.settings?.auth?.description ||
+            "We recommend you add more than one method of authentication to your account. This will help you recover your account if you lose access to one of your devices."}
         </p>
       </LStack>
 

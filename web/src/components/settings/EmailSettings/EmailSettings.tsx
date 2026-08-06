@@ -7,6 +7,7 @@ import { AddIcon } from "@/components/ui/icons/Add";
 import { CardBox, LStack, WStack, styled } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { EmailCard } from "./EmailCard";
 import { EmailCreateForm } from "./EmailCreateForm";
 
@@ -43,34 +44,35 @@ export function useEmailSettings({ account }: Props) {
 }
 
 export function EmailSettings(props: Props) {
+  const { t } = useLanguage();
   const { data, handlers } = useEmailSettings(props);
 
   return (
     <CardBox className={lstack()} gap="4">
       <LStack>
-        <Heading size="md">Email settings</Heading>
+        <Heading size="md">{t.settings?.email?.title || "Email settings"}</Heading>
         <p>
-          Manage your email addresses here. You can add multiple email addresses
-          and use them to log in to your account. Emails are also used for
-          newsletters, notifications and other communications.
+          {t.settings?.email?.description ||
+            "Manage your email addresses here. You can add multiple email addresses and use them to log in to your account. Emails are also used for newsletters, notifications and other communications."}
         </p>
       </LStack>
 
       <LStack>
         <WStack>
-          <Heading size="sm">Email addresses</Heading>
+          <Heading size="sm">{t.settings?.email?.addresses || "Email addresses"}</Heading>
           <Button
             size="xs"
             variant="subtle"
             onClick={handlers.handleStartNewEmail}
           >
-            <AddIcon /> new email address
+            <AddIcon /> {t.settings?.email?.newEmail || "new email address"}
           </Button>
         </WStack>
 
         {data.emails.length === 0 ? (
           <styled.p color="fg.muted">
-            You do not have any email addresses associated with your account.
+            {t.settings?.email?.noEmails ||
+              "You do not have any email addresses associated with your account."}
           </styled.p>
         ) : (
           data.emails.map((email) => <EmailCard key={email.id} email={email} />)

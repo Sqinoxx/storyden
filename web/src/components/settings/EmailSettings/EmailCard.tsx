@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { DeleteIcon } from "@/components/ui/icons/Delete";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { CardBox, HStack, WStack } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
@@ -22,6 +23,7 @@ type Props = {
   email: AccountEmailAddress;
 };
 export function EmailCard({ email }: Props) {
+  const { t } = useLanguage();
   const { mutate } = useSWRConfig();
 
   async function handleRemove() {
@@ -34,8 +36,8 @@ export function EmailCard({ email }: Props) {
           await mutate(getAccountGetKey());
         },
         promiseToast: {
-          loading: "Deleting email address...",
-          success: "Email deleted",
+          loading: t.settings?.email?.deletingEmail || "Deleting email address...",
+          success: t.settings?.email?.emailDeleted || "Email deleted",
         },
       },
     );
@@ -55,12 +57,12 @@ export function EmailCard({ email }: Props) {
               backgroundColor="bg.success"
               color="fg.success"
             >
-              Verified
+              {t.settings?.email?.verified || "Verified"}
             </Badge>
           ) : (
             <Link href="/auth/verify/email?returnURL=/settings">
               <Badge borderColor="border.error" backgroundColor="bg.error" color="fg.error">
-                Verify this email
+                {t.settings?.email?.verifyThisEmail || "Verify this email"}
               </Badge>
             </Link>
           )}
@@ -77,10 +79,10 @@ export function EmailCard({ email }: Props) {
             onClick={handleConfirmAction}
           >
             {isConfirming ? (
-              "Are you sure?"
+              t.actions?.deleteConfirm || "Are you sure?"
             ) : (
               <>
-                <DeleteIcon /> delete email
+                <DeleteIcon /> {t.settings?.email?.deleteEmail || "delete email"}
               </>
             )}
           </Button>

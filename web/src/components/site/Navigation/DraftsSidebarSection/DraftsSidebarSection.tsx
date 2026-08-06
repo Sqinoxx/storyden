@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import { useNodeDraftList, useNodeList } from "@/api/openapi-client/nodes";
 import { useThreadList } from "@/api/openapi-client/threads";
@@ -19,6 +19,7 @@ export function DraftsSidebarSection() {
   const session = useSession();
   const t = useTranslation();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
@@ -115,91 +116,95 @@ export function DraftsSidebarSection() {
 
       {!isCollapsed && (
         <LStack gap="0.5" pl="5" w="full">
-        {threadDrafts.map((thread) => {
-          const href = `/d/${thread.category?.slug ?? "general"}/${thread.slug}`;
-          const isSelected = pathname === href;
-          return (
-            <Link
-              key={thread.id}
-              href={href}
-              className={itemLinkStyles}
-              style={{
-                background: isSelected
-                  ? "var(--colors-bg-selected)"
-                  : undefined,
-              }}
-            >
-              <BulletIcon />
-              <span
+          {threadDrafts.map((thread) => {
+            const href = `/new?id=${thread.id}`;
+            const isSelected =
+              pathname === "/new" && searchParams?.get("id") === thread.id;
+            return (
+              <Link
+                key={thread.id}
+                href={href}
+                className={itemLinkStyles}
                 style={{
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
+                  background: isSelected
+                    ? "var(--colors-bg-selected)"
+                    : undefined,
                 }}
               >
-                {thread.title || "Unbenannter Entwurf"}
-              </span>
-            </Link>
-          );
-        })}
+                <BulletIcon />
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {thread.title || "Unbenannter Entwurf"}
+                </span>
+              </Link>
+            );
+          })}
 
-        {nodeDrafts.map((node) => {
-          const href = `/l/${node.slug}`;
-          const isSelected = pathname === href;
-          return (
-            <Link
-              key={node.id}
-              href={href}
-              className={itemLinkStyles}
-              style={{
-                background: isSelected
-                  ? "var(--colors-bg-selected)"
-                  : undefined,
-              }}
-            >
-              <BulletIcon />
-              <span
+          {nodeDrafts.map((node) => {
+            const href = `/l/${node.slug}`;
+            const isSelected = pathname === href;
+            return (
+              <Link
+                key={node.id}
+                href={href}
+                className={itemLinkStyles}
                 style={{
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
+                  background: isSelected
+                    ? "var(--colors-bg-selected)"
+                    : undefined,
                 }}
               >
-                {node.name || "Unbenannte Seite"}
-              </span>
-            </Link>
-          );
-        })}
+                <BulletIcon />
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {node.name || "Unbenannte Seite"}
+                </span>
+              </Link>
+            );
+          })}
 
-        {versionDrafts.map((draft) => {
-          const href = `/l/${draft.node.slug}?version=${draft.id}`;
-          const isSelected = pathname === href;
-          return (
-            <Link
-              key={draft.id}
-              href={href}
-              className={itemLinkStyles}
-              style={{
-                background: isSelected
-                  ? "var(--colors-bg-selected)"
-                  : undefined,
-              }}
-            >
-              <BulletIcon />
-              <span
+          {versionDrafts.map((draft) => {
+            const href = `/l/${draft.node.slug}?version=${draft.id}`;
+            const isSelected =
+              pathname === `/l/${draft.node.slug}` &&
+              searchParams?.get("version") === draft.id;
+            return (
+              <Link
+                key={draft.id}
+                href={href}
+                className={itemLinkStyles}
                 style={{
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
+                  background: isSelected
+                    ? "var(--colors-bg-selected)"
+                    : undefined,
                 }}
               >
-                {draft.name || draft.node.name || "Unbenannte Version"}
-              </span>
-            </Link>
-          );
-        })}
-      </LStack>
+                <BulletIcon />
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {draft.name || draft.node.name || "Unbenannte Version"}
+                </span>
+              </Link>
+            );
+          })}
+        </LStack>
       )}
     </LStack>
   );
 }
+

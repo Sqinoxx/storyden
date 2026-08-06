@@ -12,7 +12,7 @@ export function ComposeScreen(props: Props) {
 
   return (
     <VStack alignItems="start" gap="2" w="full" h="full">
-      <ComposeForm {...props} initialDraft={draft} />
+      <ComposeForm key={props.editing || "new"} {...props} initialDraft={draft} />
     </VStack>
   );
 }

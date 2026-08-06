@@ -677,6 +677,56 @@
       description: |-
         The name of the Redis search index. Only used when `SEARCH_PROVIDER` is set to `redis`.
 
+- section: OCR features
+  description: |-
+    Configuration for Optical Character Recognition (OCR) text extraction from uploaded images and documents.
+  fields:
+    - env: "OCR_ENABLED"
+      name: OCREnabled
+      type: bool
+      default: "true"
+      description: |-
+        Whether OCR processing for uploaded images and documents is enabled.
+
+    - env: "OCR_PROVIDER"
+      name: OCRProvider
+      type: string
+      default: "tesseract"
+      description: |-
+        The OCR engine provider.
+        - `tesseract` for local Tesseract OCR CLI binary/bindings.
+        - `openai_vision` for OpenAI Vision API image text extraction.
+        - `http` for an external HTTP OCR microservice.
+        - `mock` for testing or development without external dependencies.
+
+    - env: "OCR_LANGUAGES"
+      name: OCRLanguages
+      type: "[]string"
+      default: "deu,eng"
+      description: |-
+        Comma-separated list of OCR languages to pass to the OCR engine (e.g. deu,eng).
+
+    - env: "OCR_MAX_FILE_SIZE_MB"
+      name: OCRMaxFileSizeMB
+      type: int
+      default: "10"
+      description: |-
+        Maximum file size in megabytes for assets to be processed by OCR.
+
+    - env: "TESSERACT_BINARY_PATH"
+      name: TesseractBinaryPath
+      type: string
+      default: "tesseract"
+      description: |-
+        Path or command name for the Tesseract executable.
+
+    - env: "OCR_HTTP_ENDPOINT"
+      name: OCRHTTPEndpoint
+      type: string
+      default: ""
+      description: |-
+        Endpoint URL when OCR_PROVIDER is set to `http`.
+
 - section: Message queue
   description: |-
     Configuration for message/job queue. This is not required for Storyden to run, but it can improve performance, reliability and reduce memory usage in larger deployments.
@@ -892,3 +942,37 @@
       type: string
       description: |-
         Same as above, but for the region. As with any third party providers, it's recommended to choose the region closest to both your Storyden deployment and your community members for best performance and experience.
+
+- section: OCR features
+  description: Settings for OCR image and document text extraction.
+  options:
+    - env: "OCR_ENABLED"
+      name: OCREnabled
+      type: bool
+      default: true
+      description: Enable automatic OCR text extraction for uploaded images and PDFs.
+
+    - env: "OCR_PROVIDER"
+      name: OCRProvider
+      type: string
+      default: tesseract
+      description: The OCR provider to use (tesseract, openai_vision, mock).
+
+    - env: "OCR_LANGUAGES"
+      name: OCRLanguages
+      type: "[]string"
+      default: [deu, eng]
+      description: Languages for Tesseract OCR.
+
+    - env: "OCR_MAX_FILE_SIZE_MB"
+      name: OCRMaxFileSizeMB
+      type: int
+      default: 10
+      description: Maximum file size in MB for OCR processing.
+
+    - env: "TESSERACT_BINARY_PATH"
+      name: TesseractBinaryPath
+      type: string
+      default: tesseract
+      description: Path to the tesseract CLI binary.
+

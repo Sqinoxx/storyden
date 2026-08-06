@@ -6042,39 +6042,43 @@ func (m *AccountRolesMutation) ResetEdge(name string) error {
 // AssetMutation represents an operation that mutates the Asset nodes in the graph.
 type AssetMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *xid.ID
-	created_at    *time.Time
-	updated_at    *time.Time
-	filename      *string
-	size          *int
-	addsize       *int
-	mime_type     *string
-	metadata      *map[string]interface{}
-	clearedFields map[string]struct{}
-	posts         map[xid.ID]struct{}
-	removedposts  map[xid.ID]struct{}
-	clearedposts  bool
-	nodes         map[xid.ID]struct{}
-	removednodes  map[xid.ID]struct{}
-	clearednodes  bool
-	links         map[xid.ID]struct{}
-	removedlinks  map[xid.ID]struct{}
-	clearedlinks  bool
-	owner         *xid.ID
-	clearedowner  bool
-	parent        *xid.ID
-	clearedparent bool
-	assets        map[xid.ID]struct{}
-	removedassets map[xid.ID]struct{}
-	clearedassets bool
-	event         map[xid.ID]struct{}
-	removedevent  map[xid.ID]struct{}
-	clearedevent  bool
-	done          bool
-	oldValue      func(context.Context) (*Asset, error)
-	predicates    []predicate.Asset
+	op               Op
+	typ              string
+	id               *xid.ID
+	created_at       *time.Time
+	updated_at       *time.Time
+	filename         *string
+	size             *int
+	addsize          *int
+	mime_type        *string
+	metadata         *map[string]interface{}
+	ocr_text         *string
+	ocr_status       *asset.OcrStatus
+	ocr_error        *string
+	ocr_processed_at *time.Time
+	clearedFields    map[string]struct{}
+	posts            map[xid.ID]struct{}
+	removedposts     map[xid.ID]struct{}
+	clearedposts     bool
+	nodes            map[xid.ID]struct{}
+	removednodes     map[xid.ID]struct{}
+	clearednodes     bool
+	links            map[xid.ID]struct{}
+	removedlinks     map[xid.ID]struct{}
+	clearedlinks     bool
+	owner            *xid.ID
+	clearedowner     bool
+	parent           *xid.ID
+	clearedparent    bool
+	assets           map[xid.ID]struct{}
+	removedassets    map[xid.ID]struct{}
+	clearedassets    bool
+	event            map[xid.ID]struct{}
+	removedevent     map[xid.ID]struct{}
+	clearedevent     bool
+	done             bool
+	oldValue         func(context.Context) (*Asset, error)
+	predicates       []predicate.Asset
 }
 
 var _ ent.Mutation = (*AssetMutation)(nil)
@@ -6428,6 +6432,189 @@ func (m *AssetMutation) MetadataCleared() bool {
 func (m *AssetMutation) ResetMetadata() {
 	m.metadata = nil
 	delete(m.clearedFields, asset.FieldMetadata)
+}
+
+// SetOcrText sets the "ocr_text" field.
+func (m *AssetMutation) SetOcrText(s string) {
+	m.ocr_text = &s
+}
+
+// OcrText returns the value of the "ocr_text" field in the mutation.
+func (m *AssetMutation) OcrText() (r string, exists bool) {
+	v := m.ocr_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOcrText returns the old "ocr_text" field's value of the Asset entity.
+// If the Asset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AssetMutation) OldOcrText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOcrText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOcrText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOcrText: %w", err)
+	}
+	return oldValue.OcrText, nil
+}
+
+// ClearOcrText clears the value of the "ocr_text" field.
+func (m *AssetMutation) ClearOcrText() {
+	m.ocr_text = nil
+	m.clearedFields[asset.FieldOcrText] = struct{}{}
+}
+
+// OcrTextCleared returns if the "ocr_text" field was cleared in this mutation.
+func (m *AssetMutation) OcrTextCleared() bool {
+	_, ok := m.clearedFields[asset.FieldOcrText]
+	return ok
+}
+
+// ResetOcrText resets all changes to the "ocr_text" field.
+func (m *AssetMutation) ResetOcrText() {
+	m.ocr_text = nil
+	delete(m.clearedFields, asset.FieldOcrText)
+}
+
+// SetOcrStatus sets the "ocr_status" field.
+func (m *AssetMutation) SetOcrStatus(as asset.OcrStatus) {
+	m.ocr_status = &as
+}
+
+// OcrStatus returns the value of the "ocr_status" field in the mutation.
+func (m *AssetMutation) OcrStatus() (r asset.OcrStatus, exists bool) {
+	v := m.ocr_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOcrStatus returns the old "ocr_status" field's value of the Asset entity.
+// If the Asset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AssetMutation) OldOcrStatus(ctx context.Context) (v asset.OcrStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOcrStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOcrStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOcrStatus: %w", err)
+	}
+	return oldValue.OcrStatus, nil
+}
+
+// ResetOcrStatus resets all changes to the "ocr_status" field.
+func (m *AssetMutation) ResetOcrStatus() {
+	m.ocr_status = nil
+}
+
+// SetOcrError sets the "ocr_error" field.
+func (m *AssetMutation) SetOcrError(s string) {
+	m.ocr_error = &s
+}
+
+// OcrError returns the value of the "ocr_error" field in the mutation.
+func (m *AssetMutation) OcrError() (r string, exists bool) {
+	v := m.ocr_error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOcrError returns the old "ocr_error" field's value of the Asset entity.
+// If the Asset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AssetMutation) OldOcrError(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOcrError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOcrError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOcrError: %w", err)
+	}
+	return oldValue.OcrError, nil
+}
+
+// ClearOcrError clears the value of the "ocr_error" field.
+func (m *AssetMutation) ClearOcrError() {
+	m.ocr_error = nil
+	m.clearedFields[asset.FieldOcrError] = struct{}{}
+}
+
+// OcrErrorCleared returns if the "ocr_error" field was cleared in this mutation.
+func (m *AssetMutation) OcrErrorCleared() bool {
+	_, ok := m.clearedFields[asset.FieldOcrError]
+	return ok
+}
+
+// ResetOcrError resets all changes to the "ocr_error" field.
+func (m *AssetMutation) ResetOcrError() {
+	m.ocr_error = nil
+	delete(m.clearedFields, asset.FieldOcrError)
+}
+
+// SetOcrProcessedAt sets the "ocr_processed_at" field.
+func (m *AssetMutation) SetOcrProcessedAt(t time.Time) {
+	m.ocr_processed_at = &t
+}
+
+// OcrProcessedAt returns the value of the "ocr_processed_at" field in the mutation.
+func (m *AssetMutation) OcrProcessedAt() (r time.Time, exists bool) {
+	v := m.ocr_processed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOcrProcessedAt returns the old "ocr_processed_at" field's value of the Asset entity.
+// If the Asset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AssetMutation) OldOcrProcessedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOcrProcessedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOcrProcessedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOcrProcessedAt: %w", err)
+	}
+	return oldValue.OcrProcessedAt, nil
+}
+
+// ClearOcrProcessedAt clears the value of the "ocr_processed_at" field.
+func (m *AssetMutation) ClearOcrProcessedAt() {
+	m.ocr_processed_at = nil
+	m.clearedFields[asset.FieldOcrProcessedAt] = struct{}{}
+}
+
+// OcrProcessedAtCleared returns if the "ocr_processed_at" field was cleared in this mutation.
+func (m *AssetMutation) OcrProcessedAtCleared() bool {
+	_, ok := m.clearedFields[asset.FieldOcrProcessedAt]
+	return ok
+}
+
+// ResetOcrProcessedAt resets all changes to the "ocr_processed_at" field.
+func (m *AssetMutation) ResetOcrProcessedAt() {
+	m.ocr_processed_at = nil
+	delete(m.clearedFields, asset.FieldOcrProcessedAt)
 }
 
 // SetAccountID sets the "account_id" field.
@@ -6899,7 +7086,7 @@ func (m *AssetMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AssetMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, asset.FieldCreatedAt)
 	}
@@ -6917,6 +7104,18 @@ func (m *AssetMutation) Fields() []string {
 	}
 	if m.metadata != nil {
 		fields = append(fields, asset.FieldMetadata)
+	}
+	if m.ocr_text != nil {
+		fields = append(fields, asset.FieldOcrText)
+	}
+	if m.ocr_status != nil {
+		fields = append(fields, asset.FieldOcrStatus)
+	}
+	if m.ocr_error != nil {
+		fields = append(fields, asset.FieldOcrError)
+	}
+	if m.ocr_processed_at != nil {
+		fields = append(fields, asset.FieldOcrProcessedAt)
 	}
 	if m.owner != nil {
 		fields = append(fields, asset.FieldAccountID)
@@ -6944,6 +7143,14 @@ func (m *AssetMutation) Field(name string) (ent.Value, bool) {
 		return m.MimeType()
 	case asset.FieldMetadata:
 		return m.Metadata()
+	case asset.FieldOcrText:
+		return m.OcrText()
+	case asset.FieldOcrStatus:
+		return m.OcrStatus()
+	case asset.FieldOcrError:
+		return m.OcrError()
+	case asset.FieldOcrProcessedAt:
+		return m.OcrProcessedAt()
 	case asset.FieldAccountID:
 		return m.AccountID()
 	case asset.FieldParentAssetID:
@@ -6969,6 +7176,14 @@ func (m *AssetMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldMimeType(ctx)
 	case asset.FieldMetadata:
 		return m.OldMetadata(ctx)
+	case asset.FieldOcrText:
+		return m.OldOcrText(ctx)
+	case asset.FieldOcrStatus:
+		return m.OldOcrStatus(ctx)
+	case asset.FieldOcrError:
+		return m.OldOcrError(ctx)
+	case asset.FieldOcrProcessedAt:
+		return m.OldOcrProcessedAt(ctx)
 	case asset.FieldAccountID:
 		return m.OldAccountID(ctx)
 	case asset.FieldParentAssetID:
@@ -7023,6 +7238,34 @@ func (m *AssetMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMetadata(v)
+		return nil
+	case asset.FieldOcrText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOcrText(v)
+		return nil
+	case asset.FieldOcrStatus:
+		v, ok := value.(asset.OcrStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOcrStatus(v)
+		return nil
+	case asset.FieldOcrError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOcrError(v)
+		return nil
+	case asset.FieldOcrProcessedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOcrProcessedAt(v)
 		return nil
 	case asset.FieldAccountID:
 		v, ok := value.(xid.ID)
@@ -7086,6 +7329,15 @@ func (m *AssetMutation) ClearedFields() []string {
 	if m.FieldCleared(asset.FieldMetadata) {
 		fields = append(fields, asset.FieldMetadata)
 	}
+	if m.FieldCleared(asset.FieldOcrText) {
+		fields = append(fields, asset.FieldOcrText)
+	}
+	if m.FieldCleared(asset.FieldOcrError) {
+		fields = append(fields, asset.FieldOcrError)
+	}
+	if m.FieldCleared(asset.FieldOcrProcessedAt) {
+		fields = append(fields, asset.FieldOcrProcessedAt)
+	}
 	if m.FieldCleared(asset.FieldParentAssetID) {
 		fields = append(fields, asset.FieldParentAssetID)
 	}
@@ -7105,6 +7357,15 @@ func (m *AssetMutation) ClearField(name string) error {
 	switch name {
 	case asset.FieldMetadata:
 		m.ClearMetadata()
+		return nil
+	case asset.FieldOcrText:
+		m.ClearOcrText()
+		return nil
+	case asset.FieldOcrError:
+		m.ClearOcrError()
+		return nil
+	case asset.FieldOcrProcessedAt:
+		m.ClearOcrProcessedAt()
 		return nil
 	case asset.FieldParentAssetID:
 		m.ClearParentAssetID()
@@ -7134,6 +7395,18 @@ func (m *AssetMutation) ResetField(name string) error {
 		return nil
 	case asset.FieldMetadata:
 		m.ResetMetadata()
+		return nil
+	case asset.FieldOcrText:
+		m.ResetOcrText()
+		return nil
+	case asset.FieldOcrStatus:
+		m.ResetOcrStatus()
+		return nil
+	case asset.FieldOcrError:
+		m.ResetOcrError()
+		return nil
+	case asset.FieldOcrProcessedAt:
+		m.ResetOcrProcessedAt()
 		return nil
 	case asset.FieldAccountID:
 		m.ResetAccountID()

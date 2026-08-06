@@ -371,6 +371,19 @@ export const de: Translations = {
     accountDeletedSuccess: "Dein Konto wurde erfolgreich gelöscht.",
     adminCannotDeleteOwnAccount: "Administratoren können ihr eigenes Konto nicht löschen.",
   },
+  ocr: {
+    textInImageFound: "Text in Bild gefunden",
+    showTextInImage: "Text im Bild anzeigen",
+    hideTextInImage: "Text im Bild verbergen",
+    extractedText: "Extrahierter Bildtext",
+    noTextFound: "Kein Text in diesem Bild erkannt.",
+    ocrStatus: "OCR-Status",
+    pending: "Ausstehend",
+    processing: "In Bearbeitung",
+    completed: "Abgeschlossen",
+    failed: "Fehlgeschlagen",
+    skipped: "Übersprungen",
+  },
 };
 
 

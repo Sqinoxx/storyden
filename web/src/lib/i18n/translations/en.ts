@@ -369,6 +369,19 @@ export const en = {
     accountDeletedSuccess: "Your account has been deleted successfully.",
     adminCannotDeleteOwnAccount: "Administrators cannot delete their own account.",
   },
+  ocr: {
+    textInImageFound: "Text in image found",
+    showTextInImage: "Show text in image",
+    hideTextInImage: "Hide text in image",
+    extractedText: "Extracted image text",
+    noTextFound: "No text found in this image.",
+    ocrStatus: "OCR Status",
+    pending: "Pending",
+    processing: "Processing",
+    completed: "Completed",
+    failed: "Failed",
+    skipped: "Skipped",
+  },
 };
 
 

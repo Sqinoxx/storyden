@@ -343,6 +343,16 @@ func (s *BleveSearcher) Index(ctx context.Context, item datagraph.Item) error {
 		doc.Tags = v.GetTags()
 	}
 
+	if v, ok := item.(datagraph.WithAssets); ok {
+		for _, a := range v.GetAssets() {
+			if a != nil {
+				if txt, ok := a.OCRText.Get(); ok && txt != "" {
+					doc.Content += "\n" + txt
+				}
+			}
+		}
+	}
+
 	err := s.client.Index(item.GetID().String(), doc)
 	if err != nil {
 		return fault.Wrap(err, fctx.With(ctx), fmsg.With(fmt.Sprintf("failed to index document in bleve %s", item.GetID())))

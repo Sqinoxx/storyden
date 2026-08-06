@@ -19,6 +19,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/visibility"
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_account "github.com/Southclaws/storyden/internal/ent/account"
+	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/ent/node"
 	ent_tag "github.com/Southclaws/storyden/internal/ent/tag"
 )
@@ -97,9 +98,14 @@ func (s *service) Search(ctx context.Context, params pagination.Parameters, opts
 	contentContains := strings.TrimSpace(q.contentContains)
 
 	if nameContains != "" || contentContains != "" {
+		searchTerm := contentContains
+		if searchTerm == "" {
+			searchTerm = nameContains
+		}
 		baseQuery = baseQuery.Where(node.Or(
 			node.NameContainsFold(nameContains),
 			node.ContentContainsFold(contentContains),
+			node.HasAssetsWith(ent_asset.OcrTextContainsFold(searchTerm)),
 		))
 	}
 

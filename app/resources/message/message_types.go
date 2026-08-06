@@ -87,3 +87,15 @@ type CommandScrapeLink struct {
 	URL  url.URL
 	Item *datagraph.Ref
 }
+
+// -
+// OCR commands & events
+// -
+
+type CommandProcessAssetOCR struct {
+	ID xid.ID
+}
+
+type EventAssetOCRCompleted struct {
+	AssetID xid.ID
+}

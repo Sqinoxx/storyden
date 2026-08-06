@@ -430,6 +430,29 @@ type Config struct {
 	RedisSearchIndexName string `default:"storyden" envconfig:"REDIS_SEARCH_INDEX_NAME"`
 
 	// -
+	// OCR features
+	// -
+
+	// Whether OCR processing for uploaded images and documents is enabled.
+	OCREnabled bool `default:"true" envconfig:"OCR_ENABLED"`
+	/*
+	   The OCR engine provider.
+	   - `tesseract` for local Tesseract OCR CLI binary/bindings.
+	   - `openai_vision` for OpenAI Vision API image text extraction.
+	   - `http` for an external HTTP OCR microservice.
+	   - `mock` for testing or development without external dependencies.
+	*/
+	OCRProvider string `default:"tesseract" envconfig:"OCR_PROVIDER"`
+	// Comma-separated list of OCR languages to pass to the OCR engine (e.g. deu,eng).
+	OCRLanguages []string `default:"deu,eng" envconfig:"OCR_LANGUAGES"`
+	// Maximum file size in megabytes for assets to be processed by OCR.
+	OCRMaxFileSizeMB int `default:"10" envconfig:"OCR_MAX_FILE_SIZE_MB"`
+	// Path or command name for the Tesseract executable.
+	TesseractBinaryPath string `default:"tesseract" envconfig:"TESSERACT_BINARY_PATH"`
+	// Endpoint URL when OCR_PROVIDER is set to `http`.
+	OCRHTTPEndpoint string `default:"" envconfig:"OCR_HTTP_ENDPOINT"`
+
+	// -
 	// Message queue
 	// -
 
@@ -569,4 +592,9 @@ type Config struct {
 	PineconeCloud string `envconfig:"PINECONE_CLOUD"`
 	// Same as above, but for the region. As with any third party providers, it's recommended to choose the region closest to both your Storyden deployment and your community members for best performance and experience.
 	PineconeRegion string `envconfig:"PINECONE_REGION"`
+
+	// -
+	// OCR features
+	// -
+
 }

@@ -54,6 +54,14 @@ func (m *Mapping) AdminSettingsUpdate() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageSettings
 }
 
+func (m *Mapping) AdminOCRStats() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
+func (m *Mapping) AdminOCRReindex() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
 func (m *Mapping) AuditEventList() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionAdministrator
 }

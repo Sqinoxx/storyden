@@ -29,6 +29,11 @@ func (Asset) Fields() []ent.Field {
 
 		field.JSON("metadata", map[string]any{}).Optional(),
 
+		field.Text("ocr_text").Optional().Nillable(),
+		field.Enum("ocr_status").Values("pending", "processing", "completed", "failed", "skipped").Default("pending"),
+		field.String("ocr_error").Optional().Nillable(),
+		field.Time("ocr_processed_at").Optional().Nillable(),
+
 		// Edges
 		field.String("account_id").GoType(xid.ID{}),
 		field.String("parent_asset_id").GoType(xid.ID{}).Optional().Nillable(),
@@ -38,6 +43,7 @@ func (Asset) Fields() []ent.Field {
 func (Asset) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("filename"),
+		index.Fields("ocr_status"),
 	}
 }
 

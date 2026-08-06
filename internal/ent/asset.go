@@ -32,6 +32,14 @@ type Asset struct {
 	MimeType string `json:"mime_type,omitempty"`
 	// Metadata holds the value of the "metadata" field.
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	// OcrText holds the value of the "ocr_text" field.
+	OcrText *string `json:"ocr_text,omitempty"`
+	// OcrStatus holds the value of the "ocr_status" field.
+	OcrStatus asset.OcrStatus `json:"ocr_status,omitempty"`
+	// OcrError holds the value of the "ocr_error" field.
+	OcrError *string `json:"ocr_error,omitempty"`
+	// OcrProcessedAt holds the value of the "ocr_processed_at" field.
+	OcrProcessedAt *time.Time `json:"ocr_processed_at,omitempty"`
 	// AccountID holds the value of the "account_id" field.
 	AccountID xid.ID `json:"account_id,omitempty"`
 	// ParentAssetID holds the value of the "parent_asset_id" field.
@@ -141,9 +149,9 @@ func (*Asset) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case asset.FieldSize:
 			values[i] = new(sql.NullInt64)
-		case asset.FieldFilename, asset.FieldMimeType:
+		case asset.FieldFilename, asset.FieldMimeType, asset.FieldOcrText, asset.FieldOcrStatus, asset.FieldOcrError:
 			values[i] = new(sql.NullString)
-		case asset.FieldCreatedAt, asset.FieldUpdatedAt:
+		case asset.FieldCreatedAt, asset.FieldUpdatedAt, asset.FieldOcrProcessedAt:
 			values[i] = new(sql.NullTime)
 		case asset.FieldID, asset.FieldAccountID:
 			values[i] = new(xid.ID)
@@ -205,6 +213,33 @@ func (_m *Asset) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &_m.Metadata); err != nil {
 					return fmt.Errorf("unmarshal field metadata: %w", err)
 				}
+			}
+		case asset.FieldOcrText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ocr_text", values[i])
+			} else if value.Valid {
+				_m.OcrText = new(string)
+				*_m.OcrText = value.String
+			}
+		case asset.FieldOcrStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ocr_status", values[i])
+			} else if value.Valid {
+				_m.OcrStatus = asset.OcrStatus(value.String)
+			}
+		case asset.FieldOcrError:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ocr_error", values[i])
+			} else if value.Valid {
+				_m.OcrError = new(string)
+				*_m.OcrError = value.String
+			}
+		case asset.FieldOcrProcessedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field ocr_processed_at", values[i])
+			} else if value.Valid {
+				_m.OcrProcessedAt = new(time.Time)
+				*_m.OcrProcessedAt = value.Time
 			}
 		case asset.FieldAccountID:
 			if value, ok := values[i].(*xid.ID); !ok {
@@ -307,6 +342,24 @@ func (_m *Asset) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("metadata=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Metadata))
+	builder.WriteString(", ")
+	if v := _m.OcrText; v != nil {
+		builder.WriteString("ocr_text=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("ocr_status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.OcrStatus))
+	builder.WriteString(", ")
+	if v := _m.OcrError; v != nil {
+		builder.WriteString("ocr_error=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.OcrProcessedAt; v != nil {
+		builder.WriteString("ocr_processed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("account_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.AccountID))

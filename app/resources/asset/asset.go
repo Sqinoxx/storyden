@@ -1,6 +1,8 @@
 package asset
 
 import (
+	"time"
+
 	"github.com/Southclaws/opt"
 	"github.com/rs/xid"
 
@@ -15,16 +17,35 @@ func NewID() AssetID {
 }
 
 type Asset struct {
-	ID       AssetID
-	Name     Filename
-	Size     int
-	MIME     mime.Type
-	Metadata Metadata
-	Parent   opt.Optional[Asset]
+	ID             AssetID
+	Name           Filename
+	Size           int
+	MIME           mime.Type
+	Metadata       Metadata
+	Parent         opt.Optional[Asset]
+	OCRText        opt.Optional[string]
+	OCRStatus      string
+	OCRError       opt.Optional[string]
+	OCRProcessedAt opt.Optional[time.Time]
 }
 
 func Map(a *ent.Asset) *Asset {
 	parent := opt.NewPtrMap(a.Edges.Parent, func(a ent.Asset) Asset { return *Map(&a) })
+
+	ocrText := opt.NewEmpty[string]()
+	if a.OcrText != nil {
+		ocrText = opt.New(*a.OcrText)
+	}
+
+	ocrError := opt.NewEmpty[string]()
+	if a.OcrError != nil {
+		ocrError = opt.New(*a.OcrError)
+	}
+
+	ocrProcessedAt := opt.NewEmpty[time.Time]()
+	if a.OcrProcessedAt != nil {
+		ocrProcessedAt = opt.New(*a.OcrProcessedAt)
+	}
 
 	return &Asset{
 		ID: AssetID(a.ID),
@@ -33,10 +54,14 @@ func Map(a *ent.Asset) *Asset {
 			name:  a.Filename,
 			hasID: true,
 		},
-		Size:     a.Size,
-		MIME:     mime.New(a.MimeType),
-		Metadata: a.Metadata,
-		Parent:   parent,
+		Size:           a.Size,
+		MIME:           mime.New(a.MimeType),
+		Metadata:       a.Metadata,
+		Parent:         parent,
+		OCRText:        ocrText,
+		OCRStatus:      string(a.OcrStatus),
+		OCRError:       ocrError,
+		OCRProcessedAt: ocrProcessedAt,
 	}
 }
 

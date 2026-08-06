@@ -18,6 +18,7 @@ import { EmailLogSettingsScreen } from "./EmailLogSettingsScreen/EmailLogSetting
 import { InterfaceSettingsScreen } from "./InterfaceSettingsScreen";
 import { ModerationSettingsScreen } from "./ModerationSettingsScreen";
 import { OAuthSettingsScreen } from "./OAuthSettingsScreen";
+import { OCRSettingsScreen } from "./OCRSettingsScreen/OCRSettingsScreen";
 import { PluginSettingsScreen } from "./PluginSettingsScreen";
 import { RobotsSettingsScreen } from "./RobotsSettingsScreen/RobotsSettingsScreen";
 import { SystemSettingsScreen } from "./SystemSettingsScreen";
@@ -76,6 +77,7 @@ export function AdminScreen() {
         <Tabs.Trigger value="brand">Brand</Tabs.Trigger>
         <Tabs.Trigger value="moderation">Moderation</Tabs.Trigger>
         <Tabs.Trigger value="system">System</Tabs.Trigger>
+        <Tabs.Trigger value="ocr">OCR & Bildtext</Tabs.Trigger>
         <Tabs.Trigger value="audit">Audit Log</Tabs.Trigger>
         {canViewEmailLog && <Tabs.Trigger value="email">Email</Tabs.Trigger>}
         <Tabs.Trigger value="interface">Interface</Tabs.Trigger>
@@ -97,6 +99,10 @@ export function AdminScreen() {
 
       <Tabs.Content value="system">
         <SystemSettingsScreen />
+      </Tabs.Content>
+
+      <Tabs.Content value="ocr">
+        <OCRSettingsScreen />
       </Tabs.Content>
 
       <Tabs.Content value="audit">

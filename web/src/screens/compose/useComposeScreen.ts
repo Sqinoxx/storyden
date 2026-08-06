@@ -12,12 +12,16 @@ export function useComposeScreen({ editing }: Props) {
   const [draft, setDraft] = useState<Thread | undefined>(undefined);
 
   useEffect(() => {
+    if (editing === undefined) {
+      setDraft(undefined);
+      setLoadingDraft(false);
+      return;
+    }
+
+    setLoadingDraft(true);
     handle(
       async () => {
-        if (editing === undefined) return;
-
         const thread = await threadGet(editing);
-
         setDraft(thread);
       },
       {

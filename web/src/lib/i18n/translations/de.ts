@@ -297,4 +297,19 @@ export const de: Translations = {
     deletedSuccess: "Tag erfolgreich gelöscht.",
     unauthorized: "Nur für Moderatoren und Admins sichtbar.",
   },
+  settings: {
+    accountTitle: "Konto-Einstellungen",
+    accountSubtitle: "Verwalte deine Kontoeinstellungen und deinen Kontostatus.",
+    dangerZoneTitle: "Gefahrenzone: Konto löschen",
+    dangerZoneDescription: "Wenn du dein Konto löschst, werden deine persönlichen Anmeldedaten, E-Mails und Sitzungen unwiderruflich entfernt. Deine verfassten Beiträge bleiben anonymisiert erhalten.",
+    deleteAccountButton: "Konto löschen...",
+    confirmDeleteTitle: "Konto unwiderruflich löschen?",
+    confirmDeleteDescription: "Diese Aktion kann nicht rückgängig gemacht werden. Dein Profil wird anonymisiert und deine Zugangsdaten gelöscht.",
+    confirmDeleteInputLabel: 'Gib zur Bestätigung "LÖSCHEN" ein:',
+    confirmDeleteInputHelper: 'Tippe "LÖSCHEN" in Großbuchstaben ein.',
+    confirmDeleteButton: "Konto endgültig löschen",
+    deletingAccount: "Konto wird gelöscht...",
+    accountDeletedSuccess: "Dein Konto wurde erfolgreich gelöscht.",
+  },
 };
+

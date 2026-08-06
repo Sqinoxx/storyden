@@ -110,6 +110,7 @@ var (
 	OperationIDAccountManageCreate                    = OperationID{`AccountManageCreate`}
 	OperationIDAccountGet                             = OperationID{`AccountGet`}
 	OperationIDAccountUpdate                          = OperationID{`AccountUpdate`}
+	OperationIDAccountDelete                          = OperationID{`AccountDelete`}
 	OperationIDAccountView                            = OperationID{`AccountView`}
 	OperationIDAccountManageUpdate                    = OperationID{`AccountManageUpdate`}
 	OperationIDAccountPasswordResetTokenGet           = OperationID{`AccountPasswordResetTokenGet`}
@@ -488,6 +489,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAccountGet, nil
 	case string(`AccountUpdate`):
 		return OperationIDAccountUpdate, nil
+	case string(`AccountDelete`):
+		return OperationIDAccountDelete, nil
 	case string(`AccountView`):
 		return OperationIDAccountView, nil
 	case string(`AccountManageUpdate`):

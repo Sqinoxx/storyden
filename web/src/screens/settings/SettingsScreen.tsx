@@ -11,6 +11,7 @@ import { Settings } from "@/lib/settings/settings";
 import { hasPermission } from "@/utils/permissions";
 
 import { MemberAccessKeysSettingsScreen } from "./MemberAccessKeysSettingsScreen";
+import { MemberAccountSettingsScreen } from "./MemberAccountSettingsScreen";
 import { MemberAuthenticationSettingsScreen } from "./MemberAuthenticationSettingsScreen";
 import { MemberEmailSettingsScreen } from "./MemberEmailSettingsScreen";
 import { MemberInterfaceSettingsScreen } from "./MemberInterfaceSettingsScreen";
@@ -69,6 +70,7 @@ export function SettingsScreen({ initialSettings }: Props) {
         {accessKeysEnabled && (
           <Tabs.Trigger value="access_keys">Access keys</Tabs.Trigger>
         )}
+        <Tabs.Trigger value="account">Konto</Tabs.Trigger>
         {oauthEnabled && <Tabs.Trigger value="oauth">OAuth</Tabs.Trigger>}
         <Tabs.Indicator />
       </Tabs.List>
@@ -93,6 +95,10 @@ export function SettingsScreen({ initialSettings }: Props) {
         </Tabs.Content>
       )}
 
+      <Tabs.Content value="account">
+        <MemberAccountSettingsScreen />
+      </Tabs.Content>
+
       {oauthEnabled && (
         <Tabs.Content value="oauth">
           <MemberOAuthSettingsScreen />
@@ -101,3 +107,4 @@ export function SettingsScreen({ initialSettings }: Props) {
     </Tabs.Root>
   );
 }
+

@@ -275,6 +275,54 @@ export const useAccountUpdate = <
   };
 };
 /**
+ * Delete the currently authenticated account.
+ */
+export const accountDelete = () => {
+  return fetcher<NoContentResponse>({ url: `/accounts`, method: "DELETE" });
+};
+
+export const getAccountDeleteMutationFetcher = () => {
+  return (_: Key, __: { arg: Arguments }): Promise<NoContentResponse> => {
+    return accountDelete();
+  };
+};
+export const getAccountDeleteMutationKey = () => [`/accounts`] as const;
+
+export type AccountDeleteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof accountDelete>>
+>;
+export type AccountDeleteMutationError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useAccountDelete = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof accountDelete>>,
+    TError,
+    Key,
+    Arguments,
+    Awaited<ReturnType<typeof accountDelete>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAccountDeleteMutationKey();
+  const swrFn = getAccountDeleteMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
  * Get detailed account information by ID. Requires either the permissions
 VIEW_ACCOUNTS or ADMINISTRATOR. Users with VIEW_ACCOUNTS can view any
 account that is not ADMINISTRATOR including those with VIEW_ACCOUNTS.

@@ -26,6 +26,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/rbac"
 	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/services/account/account_auth"
+	"github.com/Southclaws/storyden/app/services/account/account_deletion"
 	"github.com/Southclaws/storyden/app/services/account/account_email"
 	"github.com/Southclaws/storyden/app/services/account/account_manage"
 	"github.com/Southclaws/storyden/app/services/account/account_moderation_note"
@@ -57,6 +58,7 @@ type Accounts struct {
 	warnings              *warning_manager.Manager
 	tokenProvider         *password_reset.TokenProvider
 	emailResetter         *password_reset.EmailResetter
+	accountDeletion       account_deletion.Service
 	webAddress            url.URL
 }
 
@@ -77,6 +79,7 @@ func NewAccounts(
 	warnings *warning_manager.Manager,
 	tokenProvider *password_reset.TokenProvider,
 	emailResetter *password_reset.EmailResetter,
+	accountDeletion account_deletion.Service,
 ) Accounts {
 	return Accounts{
 		profile_cache:         profile_cache,
@@ -94,9 +97,11 @@ func NewAccounts(
 		warnings:              warnings,
 		tokenProvider:         tokenProvider,
 		emailResetter:         emailResetter,
+		accountDeletion:       accountDeletion,
 		webAddress:            cfg.PublicWebAddress,
 	}
 }
+
 
 var (
 	ErrSelfAdminRoleChange = fault.New("cannot change own admin role", ftag.With(ftag.InvalidArgument), fmsg.WithDesc("admin role", "You cannot change your own admin role."))
@@ -874,3 +879,18 @@ func (h *Accounts) AccountEmailPasswordReset(ctx context.Context, request openap
 
 	return openapi.AccountEmailPasswordReset204Response{}, nil
 }
+
+func (h *Accounts) AccountDelete(ctx context.Context, request openapi.AccountDeleteRequestObject) (openapi.AccountDeleteResponseObject, error) {
+	accountID, err := session.GetAccountID(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	err = h.accountDeletion.SelfDelete(ctx, accountID)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AccountDelete204Response{}, nil
+}
+

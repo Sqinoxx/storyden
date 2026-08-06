@@ -2,6 +2,7 @@ package asset_writer
 
 import (
 	"context"
+	"time"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
@@ -82,4 +83,42 @@ func (w *Writer) Remove(ctx context.Context, accountID xid.ID, id asset.Filename
 	}
 
 	return nil
+}
+
+func (w *Writer) UpdateOCRCompleted(ctx context.Context, id xid.ID, text string) (*asset.Asset, error) {
+	r, err := w.db.Asset.
+		UpdateOneID(id).
+		SetOcrStatus(ent_asset.OcrStatusCompleted).
+		SetOcrText(text).
+		SetOcrProcessedAt(time.Now()).
+		ClearOcrError().
+		Save(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	return asset.Map(r), nil
+}
+
+func (w *Writer) UpdateOCRFailed(ctx context.Context, id xid.ID, ocrErr string) (*asset.Asset, error) {
+	r, err := w.db.Asset.
+		UpdateOneID(id).
+		SetOcrStatus(ent_asset.OcrStatusFailed).
+		SetOcrError(ocrErr).
+		SetOcrProcessedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	return asset.Map(r), nil
+}
+
+func (w *Writer) UpdateOCRStatus(ctx context.Context, id xid.ID, status ent_asset.OcrStatus) (*asset.Asset, error) {
+	r, err := w.db.Asset.
+		UpdateOneID(id).
+		SetOcrStatus(status).
+		Save(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	return asset.Map(r), nil
 }

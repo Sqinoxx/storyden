@@ -300,6 +300,46 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorised" }
         "200": { $ref: "#/components/responses/AdminSettingsUpdateOK" }
 
+  /admin/ocr/stats:
+    get:
+      operationId: AdminOCRStats
+      description: Retrieve OCR processing statistics for file assets.
+      tags: [admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [total, pending, completed, failed, skipped]
+                properties:
+                  total: { type: integer }
+                  pending: { type: integer }
+                  completed: { type: integer }
+                  failed: { type: integer }
+                  skipped: { type: integer }
+
+  /admin/ocr/reindex:
+    post:
+      operationId: AdminOCRReindex
+      description: Trigger background OCR processing for pending file assets.
+      tags: [admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [reindexed]
+                properties:
+                  reindexed: { type: integer }
+
   /admin/accounts:
     get:
       operationId: AccountList

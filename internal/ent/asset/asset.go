@@ -3,6 +3,7 @@
 package asset
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -27,6 +28,14 @@ const (
 	FieldMimeType = "mime_type"
 	// FieldMetadata holds the string denoting the metadata field in the database.
 	FieldMetadata = "metadata"
+	// FieldOcrText holds the string denoting the ocr_text field in the database.
+	FieldOcrText = "ocr_text"
+	// FieldOcrStatus holds the string denoting the ocr_status field in the database.
+	FieldOcrStatus = "ocr_status"
+	// FieldOcrError holds the string denoting the ocr_error field in the database.
+	FieldOcrError = "ocr_error"
+	// FieldOcrProcessedAt holds the string denoting the ocr_processed_at field in the database.
+	FieldOcrProcessedAt = "ocr_processed_at"
 	// FieldAccountID holds the string denoting the account_id field in the database.
 	FieldAccountID = "account_id"
 	// FieldParentAssetID holds the string denoting the parent_asset_id field in the database.
@@ -95,6 +104,10 @@ var Columns = []string{
 	FieldSize,
 	FieldMimeType,
 	FieldMetadata,
+	FieldOcrText,
+	FieldOcrStatus,
+	FieldOcrError,
+	FieldOcrProcessedAt,
 	FieldAccountID,
 	FieldParentAssetID,
 }
@@ -134,6 +147,35 @@ var (
 	IDValidator func(string) error
 )
 
+// OcrStatus defines the type for the "ocr_status" enum field.
+type OcrStatus string
+
+// OcrStatusPending is the default value of the OcrStatus enum.
+const DefaultOcrStatus = OcrStatusPending
+
+// OcrStatus values.
+const (
+	OcrStatusPending    OcrStatus = "pending"
+	OcrStatusProcessing OcrStatus = "processing"
+	OcrStatusCompleted  OcrStatus = "completed"
+	OcrStatusFailed     OcrStatus = "failed"
+	OcrStatusSkipped    OcrStatus = "skipped"
+)
+
+func (os OcrStatus) String() string {
+	return string(os)
+}
+
+// OcrStatusValidator is a validator for the "ocr_status" field enum values. It is called by the builders before save.
+func OcrStatusValidator(os OcrStatus) error {
+	switch os {
+	case OcrStatusPending, OcrStatusProcessing, OcrStatusCompleted, OcrStatusFailed, OcrStatusSkipped:
+		return nil
+	default:
+		return fmt.Errorf("asset: invalid enum value for ocr_status field: %q", os)
+	}
+}
+
 // OrderOption defines the ordering options for the Asset queries.
 type OrderOption func(*sql.Selector)
 
@@ -165,6 +207,26 @@ func BySize(opts ...sql.OrderTermOption) OrderOption {
 // ByMimeType orders the results by the mime_type field.
 func ByMimeType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMimeType, opts...).ToFunc()
+}
+
+// ByOcrText orders the results by the ocr_text field.
+func ByOcrText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOcrText, opts...).ToFunc()
+}
+
+// ByOcrStatus orders the results by the ocr_status field.
+func ByOcrStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOcrStatus, opts...).ToFunc()
+}
+
+// ByOcrError orders the results by the ocr_error field.
+func ByOcrError(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOcrError, opts...).ToFunc()
+}
+
+// ByOcrProcessedAt orders the results by the ocr_processed_at field.
+func ByOcrProcessedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOcrProcessedAt, opts...).ToFunc()
 }
 
 // ByAccountID orders the results by the account_id field.

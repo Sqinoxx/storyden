@@ -10,6 +10,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 import type {
   AccountGetOKResponse,
   AdminAccessKeyListOKResponse,
+  AdminOCRReindex200,
+  AdminOCRStats200,
   AdminSettingsGetOKResponse,
   AdminSettingsUpdateBody,
   AdminSettingsUpdateOKResponse,
@@ -86,6 +88,48 @@ export const adminSettingsUpdate = async (
       body: JSON.stringify(adminSettingsUpdateBody),
     },
   );
+};
+
+/**
+ * Retrieve OCR processing statistics for file assets.
+ */
+export type adminOCRStatsResponse = {
+  data: AdminOCRStats200;
+  status: number;
+};
+
+export const getAdminOCRStatsUrl = () => {
+  return `/admin/ocr/stats`;
+};
+
+export const adminOCRStats = async (
+  options?: RequestInit,
+): Promise<adminOCRStatsResponse> => {
+  return fetcher<Promise<adminOCRStatsResponse>>(getAdminOCRStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+/**
+ * Trigger background OCR processing for pending file assets.
+ */
+export type adminOCRReindexResponse = {
+  data: AdminOCRReindex200;
+  status: number;
+};
+
+export const getAdminOCRReindexUrl = () => {
+  return `/admin/ocr/reindex`;
+};
+
+export const adminOCRReindex = async (
+  options?: RequestInit,
+): Promise<adminOCRReindexResponse> => {
+  return fetcher<Promise<adminOCRReindexResponse>>(getAdminOCRReindexUrl(), {
+    ...options,
+    method: "POST",
+  });
 };
 
 /**

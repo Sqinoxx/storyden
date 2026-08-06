@@ -13,8 +13,10 @@ import (
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/app/resources/asset/asset_writer"
 	"github.com/Southclaws/storyden/app/resources/library/node_writer"
+	"github.com/Southclaws/storyden/app/resources/message"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/internal/infrastructure/object"
+	"github.com/Southclaws/storyden/internal/infrastructure/pubsub"
 	"github.com/Southclaws/storyden/internal/mime"
 )
 
@@ -23,6 +25,7 @@ type Uploader struct {
 	nodewriter *node_writer.Writer
 	assets     *asset_writer.Writer
 	objects    object.Storer
+	bus        *pubsub.Bus
 }
 
 func New(
@@ -31,12 +34,14 @@ func New(
 	nodewriter *node_writer.Writer,
 	assets *asset_writer.Writer,
 	objects object.Storer,
+	bus *pubsub.Bus,
 ) *Uploader {
 	return &Uploader{
 		logger:     logger,
 		nodewriter: nodewriter,
 		assets:     assets,
 		objects:    objects,
+		bus:        bus,
 	}
 }
 
@@ -70,6 +75,12 @@ func (s *Uploader) Upload(ctx context.Context, or io.Reader, size int64, name as
 
 	if err := s.objects.Write(ctx, path, r, size); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if s.bus != nil {
+		if err := s.bus.SendCommand(ctx, &message.CommandProcessAssetOCR{ID: xid.ID(a.ID)}); err != nil {
+			s.logger.Warn("failed to dispatch OCR processing command for asset", slog.String("id", a.ID.String()), slog.String("error", err.Error()))
+		}
 	}
 
 	return a, nil

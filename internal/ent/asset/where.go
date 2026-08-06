@@ -81,6 +81,21 @@ func MimeType(v string) predicate.Asset {
 	return predicate.Asset(sql.FieldEQ(FieldMimeType, v))
 }
 
+// OcrText applies equality check predicate on the "ocr_text" field. It's identical to OcrTextEQ.
+func OcrText(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldOcrText, v))
+}
+
+// OcrError applies equality check predicate on the "ocr_error" field. It's identical to OcrErrorEQ.
+func OcrError(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldOcrError, v))
+}
+
+// OcrProcessedAt applies equality check predicate on the "ocr_processed_at" field. It's identical to OcrProcessedAtEQ.
+func OcrProcessedAt(v time.Time) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldOcrProcessedAt, v))
+}
+
 // AccountID applies equality check predicate on the "account_id" field. It's identical to AccountIDEQ.
 func AccountID(v xid.ID) predicate.Asset {
 	return predicate.Asset(sql.FieldEQ(FieldAccountID, v))
@@ -349,6 +364,226 @@ func MetadataIsNil() predicate.Asset {
 // MetadataNotNil applies the NotNil predicate on the "metadata" field.
 func MetadataNotNil() predicate.Asset {
 	return predicate.Asset(sql.FieldNotNull(FieldMetadata))
+}
+
+// OcrTextEQ applies the EQ predicate on the "ocr_text" field.
+func OcrTextEQ(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldOcrText, v))
+}
+
+// OcrTextNEQ applies the NEQ predicate on the "ocr_text" field.
+func OcrTextNEQ(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldNEQ(FieldOcrText, v))
+}
+
+// OcrTextIn applies the In predicate on the "ocr_text" field.
+func OcrTextIn(vs ...string) predicate.Asset {
+	return predicate.Asset(sql.FieldIn(FieldOcrText, vs...))
+}
+
+// OcrTextNotIn applies the NotIn predicate on the "ocr_text" field.
+func OcrTextNotIn(vs ...string) predicate.Asset {
+	return predicate.Asset(sql.FieldNotIn(FieldOcrText, vs...))
+}
+
+// OcrTextGT applies the GT predicate on the "ocr_text" field.
+func OcrTextGT(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldGT(FieldOcrText, v))
+}
+
+// OcrTextGTE applies the GTE predicate on the "ocr_text" field.
+func OcrTextGTE(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldGTE(FieldOcrText, v))
+}
+
+// OcrTextLT applies the LT predicate on the "ocr_text" field.
+func OcrTextLT(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldLT(FieldOcrText, v))
+}
+
+// OcrTextLTE applies the LTE predicate on the "ocr_text" field.
+func OcrTextLTE(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldLTE(FieldOcrText, v))
+}
+
+// OcrTextContains applies the Contains predicate on the "ocr_text" field.
+func OcrTextContains(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldContains(FieldOcrText, v))
+}
+
+// OcrTextHasPrefix applies the HasPrefix predicate on the "ocr_text" field.
+func OcrTextHasPrefix(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldHasPrefix(FieldOcrText, v))
+}
+
+// OcrTextHasSuffix applies the HasSuffix predicate on the "ocr_text" field.
+func OcrTextHasSuffix(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldHasSuffix(FieldOcrText, v))
+}
+
+// OcrTextIsNil applies the IsNil predicate on the "ocr_text" field.
+func OcrTextIsNil() predicate.Asset {
+	return predicate.Asset(sql.FieldIsNull(FieldOcrText))
+}
+
+// OcrTextNotNil applies the NotNil predicate on the "ocr_text" field.
+func OcrTextNotNil() predicate.Asset {
+	return predicate.Asset(sql.FieldNotNull(FieldOcrText))
+}
+
+// OcrTextEqualFold applies the EqualFold predicate on the "ocr_text" field.
+func OcrTextEqualFold(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEqualFold(FieldOcrText, v))
+}
+
+// OcrTextContainsFold applies the ContainsFold predicate on the "ocr_text" field.
+func OcrTextContainsFold(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldContainsFold(FieldOcrText, v))
+}
+
+// OcrStatusEQ applies the EQ predicate on the "ocr_status" field.
+func OcrStatusEQ(v OcrStatus) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldOcrStatus, v))
+}
+
+// OcrStatusNEQ applies the NEQ predicate on the "ocr_status" field.
+func OcrStatusNEQ(v OcrStatus) predicate.Asset {
+	return predicate.Asset(sql.FieldNEQ(FieldOcrStatus, v))
+}
+
+// OcrStatusIn applies the In predicate on the "ocr_status" field.
+func OcrStatusIn(vs ...OcrStatus) predicate.Asset {
+	return predicate.Asset(sql.FieldIn(FieldOcrStatus, vs...))
+}
+
+// OcrStatusNotIn applies the NotIn predicate on the "ocr_status" field.
+func OcrStatusNotIn(vs ...OcrStatus) predicate.Asset {
+	return predicate.Asset(sql.FieldNotIn(FieldOcrStatus, vs...))
+}
+
+// OcrErrorEQ applies the EQ predicate on the "ocr_error" field.
+func OcrErrorEQ(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldOcrError, v))
+}
+
+// OcrErrorNEQ applies the NEQ predicate on the "ocr_error" field.
+func OcrErrorNEQ(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldNEQ(FieldOcrError, v))
+}
+
+// OcrErrorIn applies the In predicate on the "ocr_error" field.
+func OcrErrorIn(vs ...string) predicate.Asset {
+	return predicate.Asset(sql.FieldIn(FieldOcrError, vs...))
+}
+
+// OcrErrorNotIn applies the NotIn predicate on the "ocr_error" field.
+func OcrErrorNotIn(vs ...string) predicate.Asset {
+	return predicate.Asset(sql.FieldNotIn(FieldOcrError, vs...))
+}
+
+// OcrErrorGT applies the GT predicate on the "ocr_error" field.
+func OcrErrorGT(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldGT(FieldOcrError, v))
+}
+
+// OcrErrorGTE applies the GTE predicate on the "ocr_error" field.
+func OcrErrorGTE(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldGTE(FieldOcrError, v))
+}
+
+// OcrErrorLT applies the LT predicate on the "ocr_error" field.
+func OcrErrorLT(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldLT(FieldOcrError, v))
+}
+
+// OcrErrorLTE applies the LTE predicate on the "ocr_error" field.
+func OcrErrorLTE(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldLTE(FieldOcrError, v))
+}
+
+// OcrErrorContains applies the Contains predicate on the "ocr_error" field.
+func OcrErrorContains(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldContains(FieldOcrError, v))
+}
+
+// OcrErrorHasPrefix applies the HasPrefix predicate on the "ocr_error" field.
+func OcrErrorHasPrefix(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldHasPrefix(FieldOcrError, v))
+}
+
+// OcrErrorHasSuffix applies the HasSuffix predicate on the "ocr_error" field.
+func OcrErrorHasSuffix(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldHasSuffix(FieldOcrError, v))
+}
+
+// OcrErrorIsNil applies the IsNil predicate on the "ocr_error" field.
+func OcrErrorIsNil() predicate.Asset {
+	return predicate.Asset(sql.FieldIsNull(FieldOcrError))
+}
+
+// OcrErrorNotNil applies the NotNil predicate on the "ocr_error" field.
+func OcrErrorNotNil() predicate.Asset {
+	return predicate.Asset(sql.FieldNotNull(FieldOcrError))
+}
+
+// OcrErrorEqualFold applies the EqualFold predicate on the "ocr_error" field.
+func OcrErrorEqualFold(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEqualFold(FieldOcrError, v))
+}
+
+// OcrErrorContainsFold applies the ContainsFold predicate on the "ocr_error" field.
+func OcrErrorContainsFold(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldContainsFold(FieldOcrError, v))
+}
+
+// OcrProcessedAtEQ applies the EQ predicate on the "ocr_processed_at" field.
+func OcrProcessedAtEQ(v time.Time) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldOcrProcessedAt, v))
+}
+
+// OcrProcessedAtNEQ applies the NEQ predicate on the "ocr_processed_at" field.
+func OcrProcessedAtNEQ(v time.Time) predicate.Asset {
+	return predicate.Asset(sql.FieldNEQ(FieldOcrProcessedAt, v))
+}
+
+// OcrProcessedAtIn applies the In predicate on the "ocr_processed_at" field.
+func OcrProcessedAtIn(vs ...time.Time) predicate.Asset {
+	return predicate.Asset(sql.FieldIn(FieldOcrProcessedAt, vs...))
+}
+
+// OcrProcessedAtNotIn applies the NotIn predicate on the "ocr_processed_at" field.
+func OcrProcessedAtNotIn(vs ...time.Time) predicate.Asset {
+	return predicate.Asset(sql.FieldNotIn(FieldOcrProcessedAt, vs...))
+}
+
+// OcrProcessedAtGT applies the GT predicate on the "ocr_processed_at" field.
+func OcrProcessedAtGT(v time.Time) predicate.Asset {
+	return predicate.Asset(sql.FieldGT(FieldOcrProcessedAt, v))
+}
+
+// OcrProcessedAtGTE applies the GTE predicate on the "ocr_processed_at" field.
+func OcrProcessedAtGTE(v time.Time) predicate.Asset {
+	return predicate.Asset(sql.FieldGTE(FieldOcrProcessedAt, v))
+}
+
+// OcrProcessedAtLT applies the LT predicate on the "ocr_processed_at" field.
+func OcrProcessedAtLT(v time.Time) predicate.Asset {
+	return predicate.Asset(sql.FieldLT(FieldOcrProcessedAt, v))
+}
+
+// OcrProcessedAtLTE applies the LTE predicate on the "ocr_processed_at" field.
+func OcrProcessedAtLTE(v time.Time) predicate.Asset {
+	return predicate.Asset(sql.FieldLTE(FieldOcrProcessedAt, v))
+}
+
+// OcrProcessedAtIsNil applies the IsNil predicate on the "ocr_processed_at" field.
+func OcrProcessedAtIsNil() predicate.Asset {
+	return predicate.Asset(sql.FieldIsNull(FieldOcrProcessedAt))
+}
+
+// OcrProcessedAtNotNil applies the NotNil predicate on the "ocr_processed_at" field.
+func OcrProcessedAtNotNil() predicate.Asset {
+	return predicate.Asset(sql.FieldNotNull(FieldOcrProcessedAt))
 }
 
 // AccountIDEQ applies the EQ predicate on the "account_id" field.

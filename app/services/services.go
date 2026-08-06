@@ -31,6 +31,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/moderation/action_dispatcher"
 	"github.com/Southclaws/storyden/app/services/moderation/warning_manager"
 	"github.com/Southclaws/storyden/app/services/notification"
+	"github.com/Southclaws/storyden/app/services/ocr"
 	"github.com/Southclaws/storyden/app/services/onboarding"
 	"github.com/Southclaws/storyden/app/services/plugin"
 	"github.com/Southclaws/storyden/app/services/profile/following"
@@ -92,6 +93,7 @@ func Build() fx.Option {
 		fx.Provide(following.New),
 		fx.Provide(autotagger.New),
 		fx.Provide(instance_info.New),
+		fx.Provide(ocr.NewProcessor),
 		fx.Provide(account_auth.New, account_email.New),
 		fx.Provide(settings_manager.New),
 	)

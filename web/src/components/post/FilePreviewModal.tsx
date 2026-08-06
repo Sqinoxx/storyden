@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Portal } from "@ark-ui/react";
-import { X, Download } from "lucide-react";
+import { X, Download, FileText } from "lucide-react";
 import { styled } from "@/styled-system/jsx";
 
 /** Mime types / extensions that can be previewed inline in the browser. */
@@ -58,6 +58,7 @@ interface FilePreviewModalProps {
   url: string;
   displayName: string;
   mimeType?: string;
+  ocrText?: string;
   onClose: () => void;
   onDownload: () => void;
 }
@@ -66,11 +67,13 @@ export function FilePreviewModal({
   url,
   displayName,
   mimeType,
+  ocrText,
   onClose,
   onDownload,
 }: FilePreviewModalProps) {
   const previewType = detectPreviewType(mimeType, displayName);
   const [textContent, setTextContent] = useState<string | null>(null);
+  const [showOcr, setShowOcr] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -175,6 +178,31 @@ export function FilePreviewModal({
           </styled.span>
 
           <styled.div display="flex" alignItems="center" gap="2" flexShrink="0">
+            {ocrText && (
+              <styled.button
+                type="button"
+                onClick={() => setShowOcr((prev) => !prev)}
+                title={showOcr ? "Bild anzeigen" : "Text im Bild anzeigen"}
+                display="inline-flex"
+                alignItems="center"
+                gap="1.5"
+                px="2.5"
+                py="1"
+                borderRadius="md"
+                fontSize="xs"
+                fontWeight="medium"
+                bgColor={showOcr ? "bg.muted" : "bg.subtle"}
+                color={showOcr ? "fg.default" : "fg.muted"}
+                borderWidth="thin"
+                borderColor="border.default"
+                _hover={{ bgColor: "bg.muted", color: "fg.default" }}
+                style={{ transition: "all 0.15s ease" }}
+              >
+                <FileText size={14} />
+                <span>{showOcr ? "Bild anzeigen" : "Text im Bild"}</span>
+              </styled.button>
+            )}
+
             {/* Download button */}
             <styled.button
               type="button"
@@ -215,36 +243,66 @@ export function FilePreviewModal({
 
         {/* Preview area */}
         <styled.div flex="1" overflow="hidden" position="relative">
-          {previewType === "pdf" && (
-            <iframe
-              src={url}
-              title={displayName}
-              style={{ width: "100%", height: "100%", border: "none" }}
-            />
-          )}
-
-          {previewType === "image" && (
+          {showOcr && ocrText ? (
             <styled.div
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
               w="full"
               h="full"
-              p="4"
               overflow="auto"
+              p="6"
               bgColor="bg.subtle"
             >
-              <styled.img
-                src={url}
-                alt={displayName}
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                  objectFit: "contain",
-                  borderRadius: "8px",
-                }}
-              />
+              <styled.h4 fontSize="xs" fontWeight="bold" textTransform="uppercase" color="fg.muted" mb="3">
+                Extrahierter Text (OCR)
+              </styled.h4>
+              <styled.pre
+                fontSize="sm"
+                fontFamily="mono"
+                color="fg.default"
+                whiteSpace="pre-wrap"
+                wordBreak="break-word"
+                p="4"
+                borderRadius="lg"
+                bgColor="bg.default"
+                borderWidth="thin"
+                borderColor="border.subtle"
+              >
+                {ocrText}
+              </styled.pre>
             </styled.div>
+          ) : (
+            <>
+              {previewType === "pdf" && (
+                <iframe
+                  src={url}
+                  title={displayName}
+                  style={{ width: "100%", height: "100%", border: "none" }}
+                />
+              )}
+
+              {previewType === "image" && (
+                <styled.div
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  w="full"
+                  h="full"
+                  p="4"
+                  overflow="auto"
+                  bgColor="bg.subtle"
+                >
+                  <styled.img
+                    src={url}
+                    alt={displayName}
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      objectFit: "contain",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </styled.div>
+              )}
+            </>
           )}
 
           {previewType === "text" && (

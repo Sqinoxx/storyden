@@ -123,6 +123,10 @@ var (
 		{Name: "size", Type: field.TypeInt, Default: "0"},
 		{Name: "mime_type", Type: field.TypeString, Default: "application/octet-stream"},
 		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "ocr_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "ocr_status", Type: field.TypeEnum, Enums: []string{"pending", "processing", "completed", "failed", "skipped"}, Default: "pending"},
+		{Name: "ocr_error", Type: field.TypeString, Nullable: true},
+		{Name: "ocr_processed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "account_id", Type: field.TypeString, Size: 20},
 		{Name: "parent_asset_id", Type: field.TypeString, Nullable: true, Size: 20},
 	}
@@ -134,13 +138,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "assets_accounts_assets",
-				Columns:    []*schema.Column{AssetsColumns[7]},
+				Columns:    []*schema.Column{AssetsColumns[11]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "assets_assets_assets",
-				Columns:    []*schema.Column{AssetsColumns[8]},
+				Columns:    []*schema.Column{AssetsColumns[12]},
 				RefColumns: []*schema.Column{AssetsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -150,6 +154,11 @@ var (
 				Name:    "asset_filename",
 				Unique:  false,
 				Columns: []*schema.Column{AssetsColumns[3]},
+			},
+			{
+				Name:    "asset_ocr_status",
+				Unique:  false,
+				Columns: []*schema.Column{AssetsColumns[8]},
 			},
 		},
 	}

@@ -84,6 +84,8 @@ export * from "./adminAccountsAdminQueryParameter";
 export * from "./adminAccountsAuthServicesQueryParameter";
 export * from "./adminAccountsKindQueryParameter";
 export * from "./adminAccountsSuspendedQueryParameter";
+export * from "./adminOCRReindex200";
+export * from "./adminOCRStats200";
 export * from "./adminSettingsGetOKResponse";
 export * from "./adminSettingsMutableProps";
 export * from "./adminSettingsProps";

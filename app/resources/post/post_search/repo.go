@@ -14,6 +14,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_account "github.com/Southclaws/storyden/internal/ent/account"
+	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	ent_post "github.com/Southclaws/storyden/internal/ent/post"
 	"github.com/Southclaws/storyden/internal/ent/predicate"
 	ent_tag "github.com/Southclaws/storyden/internal/ent/tag"
@@ -69,6 +70,7 @@ func WithKeywords(q string) Filter {
 					ent_post.TitleContainsFold(q),
 				),
 				ent_post.BodyContainsFold(q),
+				ent_post.HasAssetsWith(ent_asset.OcrTextContainsFold(q)),
 			))
 	}
 }

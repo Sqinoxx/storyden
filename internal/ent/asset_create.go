@@ -81,6 +81,62 @@ func (_c *AssetCreate) SetMetadata(v map[string]interface{}) *AssetCreate {
 	return _c
 }
 
+// SetOcrText sets the "ocr_text" field.
+func (_c *AssetCreate) SetOcrText(v string) *AssetCreate {
+	_c.mutation.SetOcrText(v)
+	return _c
+}
+
+// SetNillableOcrText sets the "ocr_text" field if the given value is not nil.
+func (_c *AssetCreate) SetNillableOcrText(v *string) *AssetCreate {
+	if v != nil {
+		_c.SetOcrText(*v)
+	}
+	return _c
+}
+
+// SetOcrStatus sets the "ocr_status" field.
+func (_c *AssetCreate) SetOcrStatus(v asset.OcrStatus) *AssetCreate {
+	_c.mutation.SetOcrStatus(v)
+	return _c
+}
+
+// SetNillableOcrStatus sets the "ocr_status" field if the given value is not nil.
+func (_c *AssetCreate) SetNillableOcrStatus(v *asset.OcrStatus) *AssetCreate {
+	if v != nil {
+		_c.SetOcrStatus(*v)
+	}
+	return _c
+}
+
+// SetOcrError sets the "ocr_error" field.
+func (_c *AssetCreate) SetOcrError(v string) *AssetCreate {
+	_c.mutation.SetOcrError(v)
+	return _c
+}
+
+// SetNillableOcrError sets the "ocr_error" field if the given value is not nil.
+func (_c *AssetCreate) SetNillableOcrError(v *string) *AssetCreate {
+	if v != nil {
+		_c.SetOcrError(*v)
+	}
+	return _c
+}
+
+// SetOcrProcessedAt sets the "ocr_processed_at" field.
+func (_c *AssetCreate) SetOcrProcessedAt(v time.Time) *AssetCreate {
+	_c.mutation.SetOcrProcessedAt(v)
+	return _c
+}
+
+// SetNillableOcrProcessedAt sets the "ocr_processed_at" field if the given value is not nil.
+func (_c *AssetCreate) SetNillableOcrProcessedAt(v *time.Time) *AssetCreate {
+	if v != nil {
+		_c.SetOcrProcessedAt(*v)
+	}
+	return _c
+}
+
 // SetAccountID sets the "account_id" field.
 func (_c *AssetCreate) SetAccountID(v xid.ID) *AssetCreate {
 	_c.mutation.SetAccountID(v)
@@ -263,6 +319,10 @@ func (_c *AssetCreate) defaults() {
 		v := asset.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.OcrStatus(); !ok {
+		v := asset.DefaultOcrStatus
+		_c.mutation.SetOcrStatus(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := asset.DefaultID()
 		_c.mutation.SetID(v)
@@ -285,6 +345,14 @@ func (_c *AssetCreate) check() error {
 	}
 	if _, ok := _c.mutation.MimeType(); !ok {
 		return &ValidationError{Name: "mime_type", err: errors.New(`ent: missing required field "Asset.mime_type"`)}
+	}
+	if _, ok := _c.mutation.OcrStatus(); !ok {
+		return &ValidationError{Name: "ocr_status", err: errors.New(`ent: missing required field "Asset.ocr_status"`)}
+	}
+	if v, ok := _c.mutation.OcrStatus(); ok {
+		if err := asset.OcrStatusValidator(v); err != nil {
+			return &ValidationError{Name: "ocr_status", err: fmt.Errorf(`ent: validator failed for field "Asset.ocr_status": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.AccountID(); !ok {
 		return &ValidationError{Name: "account_id", err: errors.New(`ent: missing required field "Asset.account_id"`)}
@@ -356,6 +424,22 @@ func (_c *AssetCreate) createSpec() (*Asset, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Metadata(); ok {
 		_spec.SetField(asset.FieldMetadata, field.TypeJSON, value)
 		_node.Metadata = value
+	}
+	if value, ok := _c.mutation.OcrText(); ok {
+		_spec.SetField(asset.FieldOcrText, field.TypeString, value)
+		_node.OcrText = &value
+	}
+	if value, ok := _c.mutation.OcrStatus(); ok {
+		_spec.SetField(asset.FieldOcrStatus, field.TypeEnum, value)
+		_node.OcrStatus = value
+	}
+	if value, ok := _c.mutation.OcrError(); ok {
+		_spec.SetField(asset.FieldOcrError, field.TypeString, value)
+		_node.OcrError = &value
+	}
+	if value, ok := _c.mutation.OcrProcessedAt(); ok {
+		_spec.SetField(asset.FieldOcrProcessedAt, field.TypeTime, value)
+		_node.OcrProcessedAt = &value
 	}
 	if nodes := _c.mutation.PostsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -595,6 +679,72 @@ func (u *AssetUpsert) ClearMetadata() *AssetUpsert {
 	return u
 }
 
+// SetOcrText sets the "ocr_text" field.
+func (u *AssetUpsert) SetOcrText(v string) *AssetUpsert {
+	u.Set(asset.FieldOcrText, v)
+	return u
+}
+
+// UpdateOcrText sets the "ocr_text" field to the value that was provided on create.
+func (u *AssetUpsert) UpdateOcrText() *AssetUpsert {
+	u.SetExcluded(asset.FieldOcrText)
+	return u
+}
+
+// ClearOcrText clears the value of the "ocr_text" field.
+func (u *AssetUpsert) ClearOcrText() *AssetUpsert {
+	u.SetNull(asset.FieldOcrText)
+	return u
+}
+
+// SetOcrStatus sets the "ocr_status" field.
+func (u *AssetUpsert) SetOcrStatus(v asset.OcrStatus) *AssetUpsert {
+	u.Set(asset.FieldOcrStatus, v)
+	return u
+}
+
+// UpdateOcrStatus sets the "ocr_status" field to the value that was provided on create.
+func (u *AssetUpsert) UpdateOcrStatus() *AssetUpsert {
+	u.SetExcluded(asset.FieldOcrStatus)
+	return u
+}
+
+// SetOcrError sets the "ocr_error" field.
+func (u *AssetUpsert) SetOcrError(v string) *AssetUpsert {
+	u.Set(asset.FieldOcrError, v)
+	return u
+}
+
+// UpdateOcrError sets the "ocr_error" field to the value that was provided on create.
+func (u *AssetUpsert) UpdateOcrError() *AssetUpsert {
+	u.SetExcluded(asset.FieldOcrError)
+	return u
+}
+
+// ClearOcrError clears the value of the "ocr_error" field.
+func (u *AssetUpsert) ClearOcrError() *AssetUpsert {
+	u.SetNull(asset.FieldOcrError)
+	return u
+}
+
+// SetOcrProcessedAt sets the "ocr_processed_at" field.
+func (u *AssetUpsert) SetOcrProcessedAt(v time.Time) *AssetUpsert {
+	u.Set(asset.FieldOcrProcessedAt, v)
+	return u
+}
+
+// UpdateOcrProcessedAt sets the "ocr_processed_at" field to the value that was provided on create.
+func (u *AssetUpsert) UpdateOcrProcessedAt() *AssetUpsert {
+	u.SetExcluded(asset.FieldOcrProcessedAt)
+	return u
+}
+
+// ClearOcrProcessedAt clears the value of the "ocr_processed_at" field.
+func (u *AssetUpsert) ClearOcrProcessedAt() *AssetUpsert {
+	u.SetNull(asset.FieldOcrProcessedAt)
+	return u
+}
+
 // SetAccountID sets the "account_id" field.
 func (u *AssetUpsert) SetAccountID(v xid.ID) *AssetUpsert {
 	u.Set(asset.FieldAccountID, v)
@@ -757,6 +907,83 @@ func (u *AssetUpsertOne) UpdateMetadata() *AssetUpsertOne {
 func (u *AssetUpsertOne) ClearMetadata() *AssetUpsertOne {
 	return u.Update(func(s *AssetUpsert) {
 		s.ClearMetadata()
+	})
+}
+
+// SetOcrText sets the "ocr_text" field.
+func (u *AssetUpsertOne) SetOcrText(v string) *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetOcrText(v)
+	})
+}
+
+// UpdateOcrText sets the "ocr_text" field to the value that was provided on create.
+func (u *AssetUpsertOne) UpdateOcrText() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateOcrText()
+	})
+}
+
+// ClearOcrText clears the value of the "ocr_text" field.
+func (u *AssetUpsertOne) ClearOcrText() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearOcrText()
+	})
+}
+
+// SetOcrStatus sets the "ocr_status" field.
+func (u *AssetUpsertOne) SetOcrStatus(v asset.OcrStatus) *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetOcrStatus(v)
+	})
+}
+
+// UpdateOcrStatus sets the "ocr_status" field to the value that was provided on create.
+func (u *AssetUpsertOne) UpdateOcrStatus() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateOcrStatus()
+	})
+}
+
+// SetOcrError sets the "ocr_error" field.
+func (u *AssetUpsertOne) SetOcrError(v string) *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetOcrError(v)
+	})
+}
+
+// UpdateOcrError sets the "ocr_error" field to the value that was provided on create.
+func (u *AssetUpsertOne) UpdateOcrError() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateOcrError()
+	})
+}
+
+// ClearOcrError clears the value of the "ocr_error" field.
+func (u *AssetUpsertOne) ClearOcrError() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearOcrError()
+	})
+}
+
+// SetOcrProcessedAt sets the "ocr_processed_at" field.
+func (u *AssetUpsertOne) SetOcrProcessedAt(v time.Time) *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetOcrProcessedAt(v)
+	})
+}
+
+// UpdateOcrProcessedAt sets the "ocr_processed_at" field to the value that was provided on create.
+func (u *AssetUpsertOne) UpdateOcrProcessedAt() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateOcrProcessedAt()
+	})
+}
+
+// ClearOcrProcessedAt clears the value of the "ocr_processed_at" field.
+func (u *AssetUpsertOne) ClearOcrProcessedAt() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearOcrProcessedAt()
 	})
 }
 
@@ -1094,6 +1321,83 @@ func (u *AssetUpsertBulk) UpdateMetadata() *AssetUpsertBulk {
 func (u *AssetUpsertBulk) ClearMetadata() *AssetUpsertBulk {
 	return u.Update(func(s *AssetUpsert) {
 		s.ClearMetadata()
+	})
+}
+
+// SetOcrText sets the "ocr_text" field.
+func (u *AssetUpsertBulk) SetOcrText(v string) *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetOcrText(v)
+	})
+}
+
+// UpdateOcrText sets the "ocr_text" field to the value that was provided on create.
+func (u *AssetUpsertBulk) UpdateOcrText() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateOcrText()
+	})
+}
+
+// ClearOcrText clears the value of the "ocr_text" field.
+func (u *AssetUpsertBulk) ClearOcrText() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearOcrText()
+	})
+}
+
+// SetOcrStatus sets the "ocr_status" field.
+func (u *AssetUpsertBulk) SetOcrStatus(v asset.OcrStatus) *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetOcrStatus(v)
+	})
+}
+
+// UpdateOcrStatus sets the "ocr_status" field to the value that was provided on create.
+func (u *AssetUpsertBulk) UpdateOcrStatus() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateOcrStatus()
+	})
+}
+
+// SetOcrError sets the "ocr_error" field.
+func (u *AssetUpsertBulk) SetOcrError(v string) *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetOcrError(v)
+	})
+}
+
+// UpdateOcrError sets the "ocr_error" field to the value that was provided on create.
+func (u *AssetUpsertBulk) UpdateOcrError() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateOcrError()
+	})
+}
+
+// ClearOcrError clears the value of the "ocr_error" field.
+func (u *AssetUpsertBulk) ClearOcrError() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearOcrError()
+	})
+}
+
+// SetOcrProcessedAt sets the "ocr_processed_at" field.
+func (u *AssetUpsertBulk) SetOcrProcessedAt(v time.Time) *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetOcrProcessedAt(v)
+	})
+}
+
+// UpdateOcrProcessedAt sets the "ocr_processed_at" field to the value that was provided on create.
+func (u *AssetUpsertBulk) UpdateOcrProcessedAt() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateOcrProcessedAt()
+	})
+}
+
+// ClearOcrProcessedAt clears the value of the "ocr_processed_at" field.
+func (u *AssetUpsertBulk) ClearOcrProcessedAt() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearOcrProcessedAt()
 	})
 }
 

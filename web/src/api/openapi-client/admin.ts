@@ -16,6 +16,8 @@ import { fetcher } from "../client";
 import type {
   AccountGetOKResponse,
   AdminAccessKeyListOKResponse,
+  AdminOCRReindex200,
+  AdminOCRStats200,
   AdminSettingsGetOKResponse,
   AdminSettingsUpdateBody,
   AdminSettingsUpdateOKResponse,
@@ -142,6 +144,96 @@ export const useAdminSettingsUpdate = <
 
   const swrKey = swrOptions?.swrKey ?? getAdminSettingsUpdateMutationKey();
   const swrFn = getAdminSettingsUpdateMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Retrieve OCR processing statistics for file assets.
+ */
+export const adminOCRStats = () => {
+  return fetcher<AdminOCRStats200>({ url: `/admin/ocr/stats`, method: "GET" });
+};
+
+export const getAdminOCRStatsKey = () => [`/admin/ocr/stats`] as const;
+
+export type AdminOCRStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminOCRStats>>
+>;
+export type AdminOCRStatsQueryError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAdminOCRStats = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRConfiguration<Awaited<ReturnType<typeof adminOCRStats>>, TError> & {
+    swrKey?: Key;
+    enabled?: boolean;
+  };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey =
+    swrOptions?.swrKey ?? (() => (isEnabled ? getAdminOCRStatsKey() : null));
+  const swrFn = () => adminOCRStats();
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Trigger background OCR processing for pending file assets.
+ */
+export const adminOCRReindex = () => {
+  return fetcher<AdminOCRReindex200>({
+    url: `/admin/ocr/reindex`,
+    method: "POST",
+  });
+};
+
+export const getAdminOCRReindexMutationFetcher = () => {
+  return (_: Key, __: { arg: Arguments }): Promise<AdminOCRReindex200> => {
+    return adminOCRReindex();
+  };
+};
+export const getAdminOCRReindexMutationKey = () =>
+  [`/admin/ocr/reindex`] as const;
+
+export type AdminOCRReindexMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminOCRReindex>>
+>;
+export type AdminOCRReindexMutationError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAdminOCRReindex = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof adminOCRReindex>>,
+    TError,
+    Key,
+    Arguments,
+    Awaited<ReturnType<typeof adminOCRReindex>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAdminOCRReindexMutationKey();
+  const swrFn = getAdminOCRReindexMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

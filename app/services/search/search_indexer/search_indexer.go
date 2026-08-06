@@ -25,6 +25,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/semdex"
 	"github.com/Southclaws/storyden/internal/config"
 	"github.com/Southclaws/storyden/internal/ent"
+	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/infrastructure/pubsub"
 	"github.com/Southclaws/storyden/lib/plugin/rpc"
 )
@@ -255,10 +256,51 @@ func newIndexer(
 			return err
 		}
 
+		_, err = pubsub.Subscribe(ctx, idx.bus, "search_indexer.asset_ocr_completed", func(ctx context.Context, evt *message.EventAssetOCRCompleted) error {
+			return idx.reindexAssetParents(ctx, evt.AssetID)
+		})
+		if err != nil {
+			return err
+		}
+
 		return nil
 	}))
 
 	return idx
+}
+
+func (idx *Indexer) reindexAssetParents(ctx context.Context, assetID xid.ID) error {
+	a, err := idx.db.Asset.Query().
+		Where(ent_asset.ID(assetID)).
+		WithPosts().
+		WithNodes().
+		First(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	for _, p := range a.Edges.Posts {
+		if p.RootPostID != nil {
+			if err := idx.bus.SendCommand(ctx, &message.CommandReplyIndex{ID: post.ID(p.ID)}); err != nil {
+				idx.logger.Warn("failed to reindex reply for OCR asset", slog.String("id", p.ID.String()))
+			}
+		} else {
+			if err := idx.bus.SendCommand(ctx, &message.CommandThreadIndex{ID: post.ID(p.ID)}); err != nil {
+				idx.logger.Warn("failed to reindex thread for OCR asset", slog.String("id", p.ID.String()))
+			}
+		}
+	}
+
+	for _, n := range a.Edges.Nodes {
+		if err := idx.bus.SendCommand(ctx, &message.CommandNodeIndex{ID: library.NodeID(n.ID)}); err != nil {
+			idx.logger.Warn("failed to reindex node for OCR asset", slog.String("id", n.ID.String()))
+		}
+	}
+
+	return nil
 }
 
 func (idx *Indexer) indexThread(ctx context.Context, id post.ID) error {

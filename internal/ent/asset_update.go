@@ -102,6 +102,80 @@ func (_u *AssetUpdate) ClearMetadata() *AssetUpdate {
 	return _u
 }
 
+// SetOcrText sets the "ocr_text" field.
+func (_u *AssetUpdate) SetOcrText(v string) *AssetUpdate {
+	_u.mutation.SetOcrText(v)
+	return _u
+}
+
+// SetNillableOcrText sets the "ocr_text" field if the given value is not nil.
+func (_u *AssetUpdate) SetNillableOcrText(v *string) *AssetUpdate {
+	if v != nil {
+		_u.SetOcrText(*v)
+	}
+	return _u
+}
+
+// ClearOcrText clears the value of the "ocr_text" field.
+func (_u *AssetUpdate) ClearOcrText() *AssetUpdate {
+	_u.mutation.ClearOcrText()
+	return _u
+}
+
+// SetOcrStatus sets the "ocr_status" field.
+func (_u *AssetUpdate) SetOcrStatus(v asset.OcrStatus) *AssetUpdate {
+	_u.mutation.SetOcrStatus(v)
+	return _u
+}
+
+// SetNillableOcrStatus sets the "ocr_status" field if the given value is not nil.
+func (_u *AssetUpdate) SetNillableOcrStatus(v *asset.OcrStatus) *AssetUpdate {
+	if v != nil {
+		_u.SetOcrStatus(*v)
+	}
+	return _u
+}
+
+// SetOcrError sets the "ocr_error" field.
+func (_u *AssetUpdate) SetOcrError(v string) *AssetUpdate {
+	_u.mutation.SetOcrError(v)
+	return _u
+}
+
+// SetNillableOcrError sets the "ocr_error" field if the given value is not nil.
+func (_u *AssetUpdate) SetNillableOcrError(v *string) *AssetUpdate {
+	if v != nil {
+		_u.SetOcrError(*v)
+	}
+	return _u
+}
+
+// ClearOcrError clears the value of the "ocr_error" field.
+func (_u *AssetUpdate) ClearOcrError() *AssetUpdate {
+	_u.mutation.ClearOcrError()
+	return _u
+}
+
+// SetOcrProcessedAt sets the "ocr_processed_at" field.
+func (_u *AssetUpdate) SetOcrProcessedAt(v time.Time) *AssetUpdate {
+	_u.mutation.SetOcrProcessedAt(v)
+	return _u
+}
+
+// SetNillableOcrProcessedAt sets the "ocr_processed_at" field if the given value is not nil.
+func (_u *AssetUpdate) SetNillableOcrProcessedAt(v *time.Time) *AssetUpdate {
+	if v != nil {
+		_u.SetOcrProcessedAt(*v)
+	}
+	return _u
+}
+
+// ClearOcrProcessedAt clears the value of the "ocr_processed_at" field.
+func (_u *AssetUpdate) ClearOcrProcessedAt() *AssetUpdate {
+	_u.mutation.ClearOcrProcessedAt()
+	return _u
+}
+
 // SetAccountID sets the "account_id" field.
 func (_u *AssetUpdate) SetAccountID(v xid.ID) *AssetUpdate {
 	_u.mutation.SetAccountID(v)
@@ -401,6 +475,11 @@ func (_u *AssetUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *AssetUpdate) check() error {
+	if v, ok := _u.mutation.OcrStatus(); ok {
+		if err := asset.OcrStatusValidator(v); err != nil {
+			return &ValidationError{Name: "ocr_status", err: fmt.Errorf(`ent: validator failed for field "Asset.ocr_status": %w`, err)}
+		}
+	}
 	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Asset.owner"`)
 	}
@@ -445,6 +524,27 @@ func (_u *AssetUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.MetadataCleared() {
 		_spec.ClearField(asset.FieldMetadata, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.OcrText(); ok {
+		_spec.SetField(asset.FieldOcrText, field.TypeString, value)
+	}
+	if _u.mutation.OcrTextCleared() {
+		_spec.ClearField(asset.FieldOcrText, field.TypeString)
+	}
+	if value, ok := _u.mutation.OcrStatus(); ok {
+		_spec.SetField(asset.FieldOcrStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.OcrError(); ok {
+		_spec.SetField(asset.FieldOcrError, field.TypeString, value)
+	}
+	if _u.mutation.OcrErrorCleared() {
+		_spec.ClearField(asset.FieldOcrError, field.TypeString)
+	}
+	if value, ok := _u.mutation.OcrProcessedAt(); ok {
+		_spec.SetField(asset.FieldOcrProcessedAt, field.TypeTime, value)
+	}
+	if _u.mutation.OcrProcessedAtCleared() {
+		_spec.ClearField(asset.FieldOcrProcessedAt, field.TypeTime)
 	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -818,6 +918,80 @@ func (_u *AssetUpdateOne) ClearMetadata() *AssetUpdateOne {
 	return _u
 }
 
+// SetOcrText sets the "ocr_text" field.
+func (_u *AssetUpdateOne) SetOcrText(v string) *AssetUpdateOne {
+	_u.mutation.SetOcrText(v)
+	return _u
+}
+
+// SetNillableOcrText sets the "ocr_text" field if the given value is not nil.
+func (_u *AssetUpdateOne) SetNillableOcrText(v *string) *AssetUpdateOne {
+	if v != nil {
+		_u.SetOcrText(*v)
+	}
+	return _u
+}
+
+// ClearOcrText clears the value of the "ocr_text" field.
+func (_u *AssetUpdateOne) ClearOcrText() *AssetUpdateOne {
+	_u.mutation.ClearOcrText()
+	return _u
+}
+
+// SetOcrStatus sets the "ocr_status" field.
+func (_u *AssetUpdateOne) SetOcrStatus(v asset.OcrStatus) *AssetUpdateOne {
+	_u.mutation.SetOcrStatus(v)
+	return _u
+}
+
+// SetNillableOcrStatus sets the "ocr_status" field if the given value is not nil.
+func (_u *AssetUpdateOne) SetNillableOcrStatus(v *asset.OcrStatus) *AssetUpdateOne {
+	if v != nil {
+		_u.SetOcrStatus(*v)
+	}
+	return _u
+}
+
+// SetOcrError sets the "ocr_error" field.
+func (_u *AssetUpdateOne) SetOcrError(v string) *AssetUpdateOne {
+	_u.mutation.SetOcrError(v)
+	return _u
+}
+
+// SetNillableOcrError sets the "ocr_error" field if the given value is not nil.
+func (_u *AssetUpdateOne) SetNillableOcrError(v *string) *AssetUpdateOne {
+	if v != nil {
+		_u.SetOcrError(*v)
+	}
+	return _u
+}
+
+// ClearOcrError clears the value of the "ocr_error" field.
+func (_u *AssetUpdateOne) ClearOcrError() *AssetUpdateOne {
+	_u.mutation.ClearOcrError()
+	return _u
+}
+
+// SetOcrProcessedAt sets the "ocr_processed_at" field.
+func (_u *AssetUpdateOne) SetOcrProcessedAt(v time.Time) *AssetUpdateOne {
+	_u.mutation.SetOcrProcessedAt(v)
+	return _u
+}
+
+// SetNillableOcrProcessedAt sets the "ocr_processed_at" field if the given value is not nil.
+func (_u *AssetUpdateOne) SetNillableOcrProcessedAt(v *time.Time) *AssetUpdateOne {
+	if v != nil {
+		_u.SetOcrProcessedAt(*v)
+	}
+	return _u
+}
+
+// ClearOcrProcessedAt clears the value of the "ocr_processed_at" field.
+func (_u *AssetUpdateOne) ClearOcrProcessedAt() *AssetUpdateOne {
+	_u.mutation.ClearOcrProcessedAt()
+	return _u
+}
+
 // SetAccountID sets the "account_id" field.
 func (_u *AssetUpdateOne) SetAccountID(v xid.ID) *AssetUpdateOne {
 	_u.mutation.SetAccountID(v)
@@ -1130,6 +1304,11 @@ func (_u *AssetUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *AssetUpdateOne) check() error {
+	if v, ok := _u.mutation.OcrStatus(); ok {
+		if err := asset.OcrStatusValidator(v); err != nil {
+			return &ValidationError{Name: "ocr_status", err: fmt.Errorf(`ent: validator failed for field "Asset.ocr_status": %w`, err)}
+		}
+	}
 	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Asset.owner"`)
 	}
@@ -1191,6 +1370,27 @@ func (_u *AssetUpdateOne) sqlSave(ctx context.Context) (_node *Asset, err error)
 	}
 	if _u.mutation.MetadataCleared() {
 		_spec.ClearField(asset.FieldMetadata, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.OcrText(); ok {
+		_spec.SetField(asset.FieldOcrText, field.TypeString, value)
+	}
+	if _u.mutation.OcrTextCleared() {
+		_spec.ClearField(asset.FieldOcrText, field.TypeString)
+	}
+	if value, ok := _u.mutation.OcrStatus(); ok {
+		_spec.SetField(asset.FieldOcrStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.OcrError(); ok {
+		_spec.SetField(asset.FieldOcrError, field.TypeString, value)
+	}
+	if _u.mutation.OcrErrorCleared() {
+		_spec.ClearField(asset.FieldOcrError, field.TypeString)
+	}
+	if value, ok := _u.mutation.OcrProcessedAt(); ok {
+		_spec.SetField(asset.FieldOcrProcessedAt, field.TypeTime, value)
+	}
+	if _u.mutation.OcrProcessedAtCleared() {
+		_spec.ClearField(asset.FieldOcrProcessedAt, field.TypeTime)
 	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -23,11 +23,13 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/account_search"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
 	"github.com/Southclaws/storyden/app/resources/account/authentication/access_key"
+	"github.com/Southclaws/storyden/app/resources/asset/asset_querier"
 	"github.com/Southclaws/storyden/app/resources/audit"
 	"github.com/Southclaws/storyden/app/resources/audit/audit_querier"
 	"github.com/Southclaws/storyden/app/resources/datagraph"
 	"github.com/Southclaws/storyden/app/resources/email_queue"
 	"github.com/Southclaws/storyden/app/resources/email_queue/email_queue_querier"
+	"github.com/Southclaws/storyden/app/resources/message"
 	oauthresource "github.com/Southclaws/storyden/app/resources/oauth"
 	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/profile/profile_querier"
@@ -44,8 +46,10 @@ import (
 	"github.com/Southclaws/storyden/app/services/comms/mailqueue"
 	"github.com/Southclaws/storyden/app/services/moderation/action_dispatcher"
 	"github.com/Southclaws/storyden/app/services/moderation/warning_manager"
+	"github.com/Southclaws/storyden/app/services/ocr"
 	"github.com/Southclaws/storyden/app/services/system/instance_info"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
+	"github.com/Southclaws/storyden/internal/infrastructure/pubsub"
 )
 
 var errNotAuthorised = fault.Wrap(fault.New("not authorised"), ftag.With(ftag.PermissionDenied))
@@ -65,6 +69,9 @@ type Admin struct {
 	actionDispatcher  *action_dispatcher.Service
 	warnings          *warning_manager.Manager
 	instanceInfo      *instance_info.Provider
+	assetQuerier      *asset_querier.Querier
+	bus               *pubsub.Bus
+	ocrProcessor      *ocr.Processor
 }
 
 func NewAdmin(
@@ -82,6 +89,9 @@ func NewAdmin(
 	actionDispatcher *action_dispatcher.Service,
 	warnings *warning_manager.Manager,
 	instanceInfo *instance_info.Provider,
+	assetQuerier *asset_querier.Querier,
+	bus *pubsub.Bus,
+	ocrProcessor *ocr.Processor,
 	router *echo.Echo,
 ) Admin {
 	a := Admin{
@@ -99,6 +109,9 @@ func NewAdmin(
 		actionDispatcher:  actionDispatcher,
 		warnings:          warnings,
 		instanceInfo:      instanceInfo,
+		assetQuerier:      assetQuerier,
+		bus:               bus,
+		ocrProcessor:      ocrProcessor,
 	}
 
 	router.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -121,6 +134,46 @@ func NewAdmin(
 	})
 
 	return a
+}
+
+func (a *Admin) AdminOCRStats(ctx context.Context, request openapi.AdminOCRStatsRequestObject) (openapi.AdminOCRStatsResponseObject, error) {
+	if err := session.Authorise(ctx, nil, rbac.PermissionAdministrator); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	stats, err := a.assetQuerier.GetOCRStats(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	return openapi.AdminOCRStats200JSONResponse{
+		Total:     stats.Total,
+		Pending:   stats.Pending,
+		Completed: stats.Completed,
+		Failed:    stats.Failed,
+		Skipped:   stats.Skipped,
+	}, nil
+}
+
+func (a *Admin) AdminOCRReindex(ctx context.Context, request openapi.AdminOCRReindexRequestObject) (openapi.AdminOCRReindexResponseObject, error) {
+	if err := session.Authorise(ctx, nil, rbac.PermissionAdministrator); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	pending, err := a.assetQuerier.GetPendingOCR(ctx, 1000)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	for _, item := range pending {
+		if a.bus != nil {
+			_ = a.bus.SendCommand(ctx, &message.CommandProcessAssetOCR{ID: xid.ID(item.ID)})
+		}
+	}
+	if a.ocrProcessor != nil {
+		go func() {
+			_, _ = a.ocrProcessor.ProcessAllPending(context.Background())
+		}()
+	}
+	return openapi.AdminOCRReindex200JSONResponse{
+		Reindexed: len(pending),
+	}, nil
 }
 
 func (a *Admin) AdminSettingsGet(ctx context.Context, request openapi.AdminSettingsGetRequestObject) (openapi.AdminSettingsGetResponseObject, error) {

@@ -160,6 +160,9 @@ export const de: Translations = {
     sortHandleDesc: "Benutzername (Z-A)",
     sortJoinedAsc: "Beitrittsdatum (älteste)",
     sortJoinedDesc: "Beitrittsdatum (neueste)",
+    hideDeleted: "Gelöschte ausblenden",
+    showDeleted: "Gelöschte anzeigen",
+    deletedAccounts: "Gelöschte Konten",
   },
   library: {
     createdBy: "Erstellt von {name}",

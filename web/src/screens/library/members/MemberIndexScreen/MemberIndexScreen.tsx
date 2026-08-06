@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { parseAsInteger, useQueryState } from "nuqs";
 
+import { HideDeletedFilter } from "@/components/library/members/MemberFilters/HideDeletedFilter";
 import { InvitedByFilter } from "@/components/library/members/MemberFilters/InvitedByFilter";
 import { JoinedDateFilter } from "@/components/library/members/MemberFilters/JoinedDateFilter";
 import { RoleFilter } from "@/components/library/members/MemberFilters/RoleFilter";
@@ -20,7 +21,7 @@ import { SearchInput } from "../SearchInput";
 import { Props, useMemberIndexScreen } from "./useMemberIndexScreen";
 
 export function MemberIndexScreen(props: Props) {
-  const { ready, data, error } = useMemberIndexScreen(props);
+  const { ready, data, error, hideDeleted } = useMemberIndexScreen(props);
   const searchParams = useSearchParams();
   const [page] = useQueryState(
     "page",
@@ -36,6 +37,7 @@ export function MemberIndexScreen(props: Props) {
     <VStack>
       <Group w="full">
         <SearchInput index="/m" initialQuery={props.query} />
+        <HideDeletedFilter />
         {props.adminModeAvailable && (
           <LinkButton
             size="md"
@@ -62,7 +64,7 @@ export function MemberIndexScreen(props: Props) {
         <SortMenu />
       </Flex>
 
-      <MemberList profiles={data.profiles} />
+      <MemberList profiles={data.profiles} hideDeleted={hideDeleted} />
 
       <PaginationControls
         path="/m"

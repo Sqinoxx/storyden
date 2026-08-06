@@ -24,9 +24,9 @@ export function MemberIdent({
   showRoles = "hidden",
 }: Props) {
   if (isDeletedAccount(profile)) {
-    const meta = profile.meta as Record<string, any> | undefined;
-    const originalName = meta?.original_name as string | undefined;
-    const originalHandle = meta?.original_handle as string | undefined;
+    const meta = profile.meta as Record<string, unknown> | undefined;
+    const originalName = meta?.["original_name"] as string | undefined;
+    const originalHandle = meta?.["original_handle"] as string | undefined;
     return (
       <DeletedMemberIdent
         size={size}

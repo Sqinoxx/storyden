@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { parseAsInteger, useQueryState } from "nuqs";
+import { parseAsBoolean, parseAsInteger, useQueryState } from "nuqs";
 
 import type { Account, ProfileReference } from "@/api/openapi-schema";
+import { HideDeletedFilter } from "@/components/library/members/MemberFilters/HideDeletedFilter";
 import { InvitedByFilter } from "@/components/library/members/MemberFilters/InvitedByFilter";
 import { JoinedDateFilter } from "@/components/library/members/MemberFilters/JoinedDateFilter";
 import { RoleFilter } from "@/components/library/members/MemberFilters/RoleFilter";
 import { SortMenu } from "@/components/library/members/MemberFilters/SortMenu";
+import { isDeletedAccount } from "@/components/member/MemberBadge/isDeleted";
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import { MemberIdent } from "@/components/member/MemberBadge/MemberIdent";
 import { EmptyState } from "@/components/site/EmptyState";
@@ -45,11 +47,25 @@ export function AdminMemberIndexScreen(props: Props) {
     "page",
     parseAsInteger.withDefault(props.page ?? 1),
   );
+  const [hideDeleted] = useQueryState(
+    "hide_deleted",
+    parseAsBoolean.withDefault(true),
+  );
   const currentParams = Object.fromEntries(searchParams.entries());
 
   if (!data) {
     return <Unready error={error} />;
   }
+
+  const visibleAccounts = hideDeleted
+    ? data.accounts.filter(
+        (acc) =>
+          !isDeletedAccount({
+            handle: acc.handle,
+            name: acc.name,
+          }),
+      )
+    : data.accounts;
 
   async function updateSingle(name: "admin" | "suspended", value: string) {
     if (value === "any") {
@@ -146,14 +162,15 @@ export function AdminMemberIndexScreen(props: Props) {
             selected={filters.kind ?? "any"}
             onSelect={updateKind}
           />
+          <HideDeletedFilter />
         </Flex>
       </VStack>
 
-      {data.accounts.length === 0 ? (
+      {visibleAccounts.length === 0 ? (
         <EmptyState>No accounts matched the current admin filters.</EmptyState>
       ) : (
         <VStack gap="4" alignItems="stretch">
-          {data.accounts.map((account) => {
+          {visibleAccounts.map((account) => {
             const authServices = dedupe(account.auth_services);
 
             return (
@@ -214,14 +231,16 @@ export function AdminMemberIndexScreen(props: Props) {
                       <InfoBlock label="Emails">
                         <VStack alignItems="stretch" gap="1.5">
                           {account.email_addresses.length === 0 ? (
-                            account.meta?.original_email ? (
+                            (account.meta as Record<string, unknown> | undefined)?.["original_email"] ? (
                               <HStack
                                 justifyContent="space-between"
                                 gap="2"
                                 flexWrap="wrap"
                               >
                                 <styled.span fontFamily="mono" fontSize="sm">
-                                  {account.meta.original_email as string}
+                                  {
+                                    (account.meta as Record<string, unknown>)["original_email"] as string
+                                  }
                                 </styled.span>
                                 <Badge variant="outline" colorPalette="gray">
                                   original (deleted)

@@ -1,4 +1,9 @@
-import { parseAsArrayOf, parseAsString, useQueryStates } from "nuqs";
+import {
+  parseAsArrayOf,
+  parseAsBoolean,
+  parseAsString,
+  useQueryStates,
+} from "nuqs";
 
 import { useProfileList } from "@/api/openapi-client/profiles";
 import { PublicProfileListResult } from "@/api/openapi-schema";
@@ -16,6 +21,7 @@ export function useMemberIndexScreen({ initialResult, query, page }: Props) {
     invited_by: parseAsArrayOf(parseAsString),
     joined: parseAsString,
     sort: parseAsString,
+    hide_deleted: parseAsBoolean.withDefault(true),
   });
 
   const { data, error } = useProfileList(
@@ -40,5 +46,6 @@ export function useMemberIndexScreen({ initialResult, query, page }: Props) {
   return {
     ready: true as const,
     data,
+    hideDeleted: filters.hide_deleted,
   };
 }

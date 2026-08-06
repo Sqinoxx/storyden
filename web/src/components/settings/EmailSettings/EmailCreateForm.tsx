@@ -13,6 +13,7 @@ import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { CancelIcon } from "@/components/ui/icons/Cancel";
 import { SaveIcon } from "@/components/ui/icons/Save";
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useProfileMutations } from "@/lib/profile/mutation";
 import { CardBox, HStack } from "@/styled-system/jsx";
 import { wstack } from "@/styled-system/patterns";
@@ -28,6 +29,7 @@ type Props = {
 };
 
 export function EmailCreateForm(props: Props) {
+  const { t } = useLanguage();
   const { mutate } = useSWRConfig();
   const form = useForm<Form>({ resolver: zodResolver(FormSchema) });
 
@@ -42,8 +44,8 @@ export function EmailCreateForm(props: Props) {
           await mutate(getAccountGetKey());
         },
         promiseToast: {
-          loading: "Adding email address...",
-          success: "Email added",
+          loading: t.settings?.email?.addingEmail || "Adding email address...",
+          success: t.settings?.email?.emailAdded || "Email added",
         },
       },
     );
@@ -60,13 +62,13 @@ export function EmailCreateForm(props: Props) {
       >
         <Input
           size="sm"
-          placeholder="Email address..."
+          placeholder={t.settings?.email?.placeholder || "Email address..."}
           {...form.register("email")}
         />
 
         <HStack gap="0">
           <Button size="sm" variant="solid" borderRightRadius="none">
-            <SaveIcon /> save
+            <SaveIcon /> {t.actions?.save || "save"}
           </Button>
           <Button
             type="button"
@@ -75,7 +77,7 @@ export function EmailCreateForm(props: Props) {
             borderLeftRadius="none"
             onClick={props.onCancel}
           >
-            <CancelIcon /> cancel
+            <CancelIcon /> {t.common?.cancel || "cancel"}
           </Button>
         </HStack>
       </form>

@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { AccountCommonProps, AuthMode, Permission } from "@/api/openapi-schema";
 import { Admonition } from "@/components/ui/admonition";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Settings } from "@/lib/settings/settings";
 import { Box } from "@/styled-system/jsx";
 import { hasPermission } from "@/utils/permissions";
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export function VerificationBanner({ session, settings }: Props) {
+  const { t } = useLanguage();
   const [visible, setVisible] = useState(true);
 
   if (!session) {
@@ -37,18 +39,18 @@ export function VerificationBanner({ session, settings }: Props) {
       <Admonition
         value={visible}
         kind="failure"
-        title="Email Verification Required"
+        title={t.verificationBanner?.title || "Email Verification Required"}
         onChange={setVisible}
       >
         <p>
-          Please{" "}
+          {t.verificationBanner?.textPrefix ?? "Please "}
           <Link
             href="/settings?tab=email"
             style={{ textDecoration: "underline" }}
           >
-            verify your email in settings
-          </Link>{" "}
-          to participate in this community.
+            {t.verificationBanner?.linkText ?? "verify your email in settings"}
+          </Link>
+          {t.verificationBanner?.textSuffix ?? " to participate in this community."}
         </p>
       </Admonition>
     </Box>

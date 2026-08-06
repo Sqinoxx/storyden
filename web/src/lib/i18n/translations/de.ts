@@ -310,6 +310,8 @@ export const de: Translations = {
     confirmDeleteButton: "Konto endgültig löschen",
     deletingAccount: "Konto wird gelöscht...",
     accountDeletedSuccess: "Dein Konto wurde erfolgreich gelöscht.",
+    adminCannotDeleteOwnAccount: "Administratoren können ihr eigenes Konto nicht löschen.",
   },
 };
+
 

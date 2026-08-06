@@ -86,23 +86,14 @@ func (s *service) SelfDelete(ctx context.Context, id account.AccountID) error {
 	}
 
 	if acc.Admin {
-		otherAdminsCount, err := s.db.Account.Query().Where(
-			ent_account.AdminEQ(true),
-			ent_account.DeletedAtIsNil(),
-			ent_account.IDNEQ(xid.ID(id)),
-		).Count(ctx)
-		if err != nil {
-			return fault.Wrap(err, fctx.With(ctx))
-		}
-		if otherAdminsCount == 0 {
-			return fault.Wrap(
-				fault.New("cannot delete the only administrator account"),
-				ftag.With(ftag.PermissionDenied),
-				fctx.With(ctx),
-				fmsg.WithDesc("permission denied", "Als einziger Administrator kannst du dein Konto nicht löschen. Erstelle zuerst einen weiteren Administrator."),
-			)
-		}
+		return fault.Wrap(
+			fault.New("administrators cannot delete their own account"),
+			ftag.With(ftag.PermissionDenied),
+			fctx.With(ctx),
+			fmsg.WithDesc("permission denied", "Administratoren können ihr eigenes Konto nicht löschen."),
+		)
 	}
+
 
 	return s.anonymizeAndDelete(ctx, acc)
 }

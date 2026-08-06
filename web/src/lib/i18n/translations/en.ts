@@ -308,8 +308,10 @@ export const en = {
     confirmDeleteButton: "Permanently delete account",
     deletingAccount: "Deleting account...",
     accountDeletedSuccess: "Your account has been deleted successfully.",
+    adminCannotDeleteOwnAccount: "Administrators cannot delete their own account.",
   },
 };
+
 
 export type Translations = typeof en;
 

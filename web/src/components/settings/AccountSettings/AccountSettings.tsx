@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSWRConfig } from "swr";
 
 import { fetcher, handle } from "@/api/client";
+import { useSession } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { FormControl } from "@/components/ui/form/FormControl";
 import { FormHelperText } from "@/components/ui/form/FormHelperText";
@@ -17,16 +18,18 @@ import { lstack } from "@/styled-system/patterns";
 
 export function AccountSettings() {
   const { t } = useLanguage();
+  const session = useSession();
   const { mutate } = useSWRConfig();
   const [isOpen, setIsOpen] = useState(false);
   const [confirmInput, setConfirmInput] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const isAdmin = session?.admin === true;
   const confirmWord = "LÖSCHEN";
   const isConfirmed = confirmInput.trim().toUpperCase() === confirmWord;
 
   async function handleDeleteAccount() {
-    if (!isConfirmed || isDeleting) return;
+    if (isAdmin || !isConfirmed || isDeleting) return;
 
     setIsDeleting(true);
     const res = await handle(
@@ -73,30 +76,35 @@ export function AccountSettings() {
                 p: "4",
                 borderRadius: "l2",
                 borderWidth: "thin",
-                borderColor: "red.8",
-                bg: "red.1",
-                _dark: { bg: "red.12", borderColor: "red.10" },
+                borderColor: isAdmin ? "border.subtle" : "red.8",
+                bg: isAdmin ? "bg.subtle" : "red.1",
+                _dark: { bg: isAdmin ? "bg.subtle" : "red.12", borderColor: isAdmin ? "border.subtle" : "red.10" },
               })}
             >
-
               <LStack gap="3">
-                <Heading size="sm" className={css({ color: "red.10", _dark: { color: "red.8" } })}>
+                <Heading size="sm" className={css({ color: isAdmin ? "fg.default" : "red.10", _dark: { color: isAdmin ? "fg.default" : "red.8" } })}>
                   {t.settings?.dangerZoneTitle || "Gefahrenzone: Konto löschen"}
                 </Heading>
                 <styled.p color="fg.muted">
-                  {t.settings?.dangerZoneDescription ||
-                    "Wenn du dein Konto löschst, werden deine persönlichen Anmeldedaten, E-Mails und Sitzungen unwiderruflich entfernt. Deine verfassten Beiträge bleiben anonymisiert erhalten."}
+                  {isAdmin
+                    ? (t.settings?.adminCannotDeleteOwnAccount || "Administratoren können ihr eigenes Konto nicht löschen.")
+                    : (t.settings?.dangerZoneDescription ||
+                      "Wenn du dein Konto löschst, werden deine persönlichen Anmeldedaten, E-Mails und Sitzungen unwiderruflich entfernt. Deine verfassten Beiträge bleiben anonymisiert erhalten.")}
                 </styled.p>
 
                 <div className={css({ alignSelf: "flex-start" })}>
                   <Button
                     variant="solid"
+                    disabled={isAdmin}
                     className={css({
-                      bg: "red.9",
-                      color: "white",
-                      _hover: { bg: "red.10" },
+                      bg: isAdmin ? "bg.disabled" : "red.9",
+                      color: isAdmin ? "fg.disabled" : "white",
+                      _hover: { bg: isAdmin ? "bg.disabled" : "red.10" },
+                      _disabled: { opacity: "5", cursor: "not-allowed" },
+
+
                     })}
-                    onClick={() => setIsOpen(true)}
+                    onClick={() => !isAdmin && setIsOpen(true)}
                   >
                     {t.settings?.deleteAccountButton || "Konto löschen..."}
                   </Button>
@@ -108,7 +116,7 @@ export function AccountSettings() {
       </CardBox>
 
       {/* Confirmation Dialog Overlay */}
-      {isOpen && (
+      {isOpen && !isAdmin && (
         <div
           style={{
             position: "fixed",

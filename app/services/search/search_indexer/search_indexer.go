@@ -26,6 +26,8 @@ import (
 	"github.com/Southclaws/storyden/internal/config"
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
+	"github.com/Southclaws/storyden/internal/ent/node"
+	ent_post "github.com/Southclaws/storyden/internal/ent/post"
 	"github.com/Southclaws/storyden/internal/infrastructure/pubsub"
 	"github.com/Southclaws/storyden/lib/plugin/rpc"
 )
@@ -280,6 +282,42 @@ func (idx *Indexer) reindexAssetParents(ctx context.Context, assetID xid.ID) err
 			return nil
 		}
 		return err
+	}
+
+	// Auto-link asset to referencing posts & nodes by asset ID or filename
+	assetIDStr := assetID.String()
+	filename := a.Filename
+
+	posts, err := idx.db.Post.Query().
+		Where(
+			ent_post.Or(
+				ent_post.BodyContains(assetIDStr),
+				ent_post.BodyContains(filename),
+			),
+			ent_post.Not(ent_post.HasAssetsWith(ent_asset.ID(assetID))),
+		).
+		All(ctx)
+	if err == nil {
+		for _, p := range posts {
+			_ = idx.db.Post.UpdateOne(p).AddAssetIDs(assetID).Exec(ctx)
+			a.Edges.Posts = append(a.Edges.Posts, p)
+		}
+	}
+
+	nodes, err := idx.db.Node.Query().
+		Where(
+			node.Or(
+				node.ContentContains(assetIDStr),
+				node.ContentContains(filename),
+			),
+			node.Not(node.HasAssetsWith(ent_asset.ID(assetID))),
+		).
+		All(ctx)
+	if err == nil {
+		for _, n := range nodes {
+			_ = idx.db.Node.UpdateOne(n).AddAssetIDs(assetID).Exec(ctx)
+			a.Edges.Nodes = append(a.Edges.Nodes, n)
+		}
 	}
 
 	for _, p := range a.Edges.Posts {

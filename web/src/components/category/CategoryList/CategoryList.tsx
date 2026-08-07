@@ -115,7 +115,7 @@ export function CategoryListTree({
       if (stored !== null) {
         setIsSectionCollapsed(stored === "true");
       }
-    } catch {}
+    } catch { }
   }, []);
 
   const handleToggleSectionCollapse = () => {
@@ -123,7 +123,7 @@ export function CategoryListTree({
       const next = !prev;
       try {
         localStorage.setItem("nav_section_collapsed_categories", String(next));
-      } catch {}
+      } catch { }
       return next;
     });
   };
@@ -192,29 +192,29 @@ export function CategoryListTree({
         expandedValue={expandedValue}
         onExpandedChange={handleExpandedChange}
       >
-          <ArkTreeView.Tree className={styles.tree}>
-            <SortableContext
-              items={rootNodes.map((child) => child.id)}
-              strategy={rectSortingStrategy}
-            >
-              {rootNodes.map((cat, index) => (
-                <CategoryTreeNode
-                  key={cat.id}
-                  fullTree={tree}
-                  currentCategorySlug={currentCategorySlug}
-                  parentID={null}
-                  category={cat}
-                  styles={styles}
-                  isRoot={true}
-                  indexPath={[]}
-                  positionInList={getPositionInList(rootNodes.length, index)}
-                  handleExpandNode={handleExpandNode}
-                  canManageCategories={canManageCategories}
-                />
-              ))}
-            </SortableContext>
-          </ArkTreeView.Tree>
-        </ArkTreeView.Root>
+        <ArkTreeView.Tree className={styles.tree}>
+          <SortableContext
+            items={rootNodes.map((child) => child.id)}
+            strategy={rectSortingStrategy}
+          >
+            {rootNodes.map((cat, index) => (
+              <CategoryTreeNode
+                key={cat.id}
+                fullTree={tree}
+                currentCategorySlug={currentCategorySlug}
+                parentID={null}
+                category={cat}
+                styles={styles}
+                isRoot={true}
+                indexPath={[]}
+                positionInList={getPositionInList(rootNodes.length, index)}
+                handleExpandNode={handleExpandNode}
+                canManageCategories={canManageCategories}
+              />
+            ))}
+          </SortableContext>
+        </ArkTreeView.Tree>
+      </ArkTreeView.Root>
     </LStack>
   );
 }

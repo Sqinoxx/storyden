@@ -157,13 +157,16 @@ func (a *Admin) AdminOCRReindex(ctx context.Context, request openapi.AdminOCRRei
 	if err := session.Authorise(ctx, nil, rbac.PermissionAdministrator); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
-	pending, err := a.assetQuerier.GetPendingOCR(ctx, 1000)
+	allAssets, err := a.assetQuerier.GetAll(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
-	for _, item := range pending {
+	for _, item := range allAssets {
 		if a.bus != nil {
-			_ = a.bus.SendCommand(ctx, &message.CommandProcessAssetOCR{ID: xid.ID(item.ID)})
+			a.bus.Publish(ctx, &message.EventAssetOCRCompleted{AssetID: xid.ID(item.ID)})
+			if item.OCRStatus == "pending" || item.OCRStatus == "failed" || item.OCRStatus == "" {
+				_ = a.bus.SendCommand(ctx, &message.CommandProcessAssetOCR{ID: xid.ID(item.ID)})
+			}
 		}
 	}
 	if a.ocrProcessor != nil {
@@ -172,7 +175,7 @@ func (a *Admin) AdminOCRReindex(ctx context.Context, request openapi.AdminOCRRei
 		}()
 	}
 	return openapi.AdminOCRReindex200JSONResponse{
-		Reindexed: len(pending),
+		Reindexed: len(allAssets),
 	}, nil
 }
 

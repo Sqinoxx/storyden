@@ -48,6 +48,18 @@ func (q *Querier) GetByID(ctx context.Context, id asset.AssetID) (*asset.Asset, 
 	return asset.Map(r), nil
 }
 
+func (q *Querier) GetAll(ctx context.Context) ([]*asset.Asset, error) {
+	assets, err := q.db.Asset.Query().All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	result := make([]*asset.Asset, len(assets))
+	for i, a := range assets {
+		result[i] = asset.Map(a)
+	}
+	return result, nil
+}
+
 func (q *Querier) GetPendingOCR(ctx context.Context, limit int) ([]*asset.Asset, error) {
 	assets, err := q.db.Asset.Query().
 		Where(

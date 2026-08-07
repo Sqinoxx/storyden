@@ -3,6 +3,7 @@ package search
 import (
 	"go.uber.org/fx"
 
+	"github.com/Southclaws/storyden/app/services/search/asset_match"
 	"github.com/Southclaws/storyden/app/services/search/bleve_search"
 	"github.com/Southclaws/storyden/app/services/search/redis_search"
 	"github.com/Southclaws/storyden/app/services/search/searcher"
@@ -53,6 +54,7 @@ func Build() fx.Option {
 			newSearcher,
 			newIndexer,
 			simplesearch.NewParallelSearcher,
+			asset_match.New,
 		),
 	)
 }

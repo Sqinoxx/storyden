@@ -24,6 +24,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/post/thread"
 	"github.com/Southclaws/storyden/app/resources/profile"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
+	"github.com/Southclaws/storyden/app/services/search/asset_match"
 	"github.com/Southclaws/storyden/app/services/search/searcher"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 )
@@ -31,16 +32,19 @@ import (
 type Datagraph struct {
 	searcher       searcher.Searcher
 	accountQuerier *account_querier.Querier
+	assetMatches   *asset_match.Annotator
 }
 
 func NewDatagraph(
 	searcher searcher.Searcher,
 	accountQuerier *account_querier.Querier,
+	assetMatches *asset_match.Annotator,
 	router *echo.Echo,
 ) Datagraph {
 	d := Datagraph{
 		searcher:       searcher,
 		accountQuerier: accountQuerier,
+		assetMatches:   assetMatches,
 	}
 
 	_ = router
@@ -85,15 +89,28 @@ func (d Datagraph) DatagraphSearch(ctx context.Context, request openapi.Datagrap
 		Tags:       tagFilter,
 	}
 
-	r, err := d.searcher.Search(ctx, opt.NewPtr(request.Params.Q).Or(""), pp, opts)
+	q := opt.NewPtr(request.Params.Q).Or("")
+
+	r, err := d.searcher.Search(ctx, q, pp, opts)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	// A failure to annotate matches must never break search itself.
+	matches, err := d.assetMatches.Annotate(ctx, q, r.Items)
+	if err != nil {
+		slog.Error("failed to annotate asset matches for search results", slog.String("error", err.Error()))
+		matches = nil
+	}
+
+	items := dt.Map(r.Items, func(item datagraph.Item) openapi.DatagraphItem {
+		return serialiseDatagraphItemWithMatches(item, matches[item.GetID()])
+	})
+
 	return openapi.DatagraphSearch200JSONResponse{
 		DatagraphSearchOKJSONResponse: openapi.DatagraphSearchOKJSONResponse{
 			CurrentPage: r.CurrentPage,
-			Items:       dt.Map(r.Items, serialiseDatagraphItem),
+			Items:       items,
 			NextPage:    r.NextPage.Ptr(),
 			PageSize:    r.Size,
 			Results:     r.Results,
@@ -181,21 +198,35 @@ func deserialiseTagList(names []openapi.TagName) ([]tag_ref.Name, error) {
 }
 
 func serialiseDatagraphItem(v datagraph.Item) openapi.DatagraphItem {
+	return serialiseDatagraphItemWithMatches(v, nil)
+}
+
+func serialiseDatagraphItemWithMatches(v datagraph.Item, matches []asset_match.Match) openapi.DatagraphItem {
 	out := openapi.DatagraphItem{}
 	var err error
 
+	assetMatches := serialiseDatagraphAssetMatchList(matches)
+
 	switch in := v.(type) {
 	case *post.Post:
-		err = out.FromDatagraphItemPost(serialiseDatagraphItemPost(in))
+		item := serialiseDatagraphItemPost(in)
+		item.AssetMatches = assetMatches
+		err = out.FromDatagraphItemPost(item)
 
 	case *thread.Thread:
-		err = out.FromDatagraphItemThread(serialiseDatagraphItemPostThread(in))
+		item := serialiseDatagraphItemPostThread(in)
+		item.AssetMatches = assetMatches
+		err = out.FromDatagraphItemThread(item)
 
 	case *reply.Reply:
-		err = out.FromDatagraphItemReply(serialiseDatagraphItemPostReply(in))
+		item := serialiseDatagraphItemPostReply(in)
+		item.AssetMatches = assetMatches
+		err = out.FromDatagraphItemReply(item)
 
 	case *library.Node:
-		err = out.FromDatagraphItemNode(serialiseDatagraphItemNode(in))
+		item := serialiseDatagraphItemNode(in)
+		item.AssetMatches = assetMatches
+		err = out.FromDatagraphItemNode(item)
 
 	case *profile.Public:
 		err = out.FromDatagraphItemProfile(serialiseDatagraphItemProfile(in))
@@ -209,6 +240,21 @@ func serialiseDatagraphItem(v datagraph.Item) openapi.DatagraphItem {
 	}
 
 	return out
+}
+
+func serialiseDatagraphAssetMatchList(matches []asset_match.Match) *openapi.DatagraphAssetMatchList {
+	if len(matches) == 0 {
+		return nil
+	}
+
+	out := dt.Map(matches, func(m asset_match.Match) openapi.DatagraphAssetMatch {
+		return openapi.DatagraphAssetMatch{
+			Asset:   serialiseAssetPtr(m.Asset),
+			Excerpt: m.Excerpt,
+		}
+	})
+
+	return &out
 }
 
 func serialiseDatagraphItemPost(in *post.Post) openapi.DatagraphItemPost {

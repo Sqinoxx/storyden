@@ -51,6 +51,17 @@ func (s *Manager) preMutation(ctx context.Context, p Partial, current opt.Option
 	p.Visibility.Call(func(value visibility.Visibility) { opts = append(opts, node_writer.WithVisibility(value)) })
 	p.HideChildren.Call(func(value bool) { opts = append(opts, node_writer.WithHideChildren(value)) })
 
+	// Link any assets referenced by URL within the content body (e.g. file
+	// attachments) that weren't already covered by an explicit AssetsAdd, so
+	// that node bodies are searchable via their attachments the same way
+	// threads and replies are. node_writer.WithAssets is additive, so this
+	// never wipes assets set elsewhere in this same mutation.
+	if content, ok := p.Content.Get(); ok {
+		if derived, err := s.assetLink.Resolve(ctx, content); err == nil && len(derived) > 0 {
+			opts = append(opts, node_writer.WithAssets(derived))
+		}
+	}
+
 	// If the mutation includes a parent node, we need to query it because the
 	// WithParent API only accepts a node ID, not a node mark (slug or ID).
 	if parentSlug, ok := p.Parent.Get(); ok {

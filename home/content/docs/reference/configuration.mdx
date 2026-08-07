@@ -889,7 +889,7 @@ The name of the Redis search index. Only used when `SEARCH_PROVIDER` is set to `
 
 ## OCR features
 
-Configuration for Optical Character Recognition (OCR) text extraction from uploaded images and documents.
+Configuration for Optical Character Recognition (OCR) and PDF text extraction from uploaded images and documents. Search results surface matches found inside attached PDFs/images alongside a text excerpt.
 
 ### `OCR_ENABLED`
 
@@ -898,7 +898,7 @@ Configuration for Optical Character Recognition (OCR) text extraction from uploa
 <tr><td>default</td><td>`true`</td></tr>
 </table>
 
-Whether OCR processing for uploaded images and documents is enabled.
+Whether text extraction processing for uploaded images and documents is enabled.
 
 ### `OCR_PROVIDER`
 
@@ -907,10 +907,10 @@ Whether OCR processing for uploaded images and documents is enabled.
 <tr><td>default</td><td>`tesseract`</td></tr>
 </table>
 
-The OCR engine provider.
-- `tesseract` for local Tesseract OCR CLI binary/bindings.
-- `openai_vision` for OpenAI Vision API image text extraction.
-- `http` for an external HTTP OCR microservice.
+The OCR engine provider used for images and for rasterised (scanned) PDF pages.
+- `tesseract` for local Tesseract OCR CLI binary, layered with pure-Go PDF text-layer extraction (no external binary required for digital PDFs).
+- `textlayer` disables the Tesseract/rasterisation fallback entirely and only extracts embedded PDF text layers. Useful when no OCR binaries are installed.
+- `openai_vision` for OpenAI Vision API image text extraction, layered the same way as `tesseract`.
 - `mock` for testing or development without external dependencies.
 
 ### `OCR_LANGUAGES`
@@ -931,6 +931,15 @@ Comma-separated list of OCR languages to pass to the OCR engine (e.g. deu,eng).
 
 Maximum file size in megabytes for assets to be processed by OCR.
 
+### `OCR_MAX_TEXT_LENGTH`
+
+<table>
+<tr><td>type</td><td>`integer` (number without decimal point)</td></tr>
+<tr><td>default</td><td>`200000`</td></tr>
+</table>
+
+Maximum number of characters of extracted text stored per asset. Longer results are truncated.
+
 ### `TESSERACT_BINARY_PATH`
 
 <table>
@@ -940,14 +949,68 @@ Maximum file size in megabytes for assets to be processed by OCR.
 
 Path or command name for the Tesseract executable.
 
-### `OCR_HTTP_ENDPOINT`
+### `OCR_PDF_RASTERIZE_ENABLED`
+
+<table>
+<tr><td>type</td><td>boolean (`true` or `false`, case sensitive)</td></tr>
+<tr><td>default</td><td>`true`</td></tr>
+</table>
+
+Whether to fall back to rasterising scanned PDFs (pages with no usable embedded text layer) into images and running them through the OCR engine. Requires `pdftoppm` (from poppler-utils) to be installed.
+
+### `PDFTOPPM_BINARY_PATH`
 
 <table>
 <tr><td>type</td><td>`string`</td></tr>
-<tr><td>default</td><td>(empty string)</td></tr>
+<tr><td>default</td><td>`pdftoppm`</td></tr>
 </table>
 
-Endpoint URL when OCR_PROVIDER is set to `http`.
+Path or command name for the `pdftoppm` (poppler-utils) executable, used to rasterise scanned PDF pages before OCR.
+
+### `OCR_PDF_MAX_PAGES`
+
+<table>
+<tr><td>type</td><td>`integer` (number without decimal point)</td></tr>
+<tr><td>default</td><td>`20`</td></tr>
+</table>
+
+Maximum number of pages to rasterise and OCR per PDF.
+
+### `OCR_PDF_DPI`
+
+<table>
+<tr><td>type</td><td>`integer` (number without decimal point)</td></tr>
+<tr><td>default</td><td>`200`</td></tr>
+</table>
+
+Resolution in DPI used when rasterising PDF pages for OCR.
+
+### `OCR_BACKFILL_ENABLED`
+
+<table>
+<tr><td>type</td><td>boolean (`true` or `false`, case sensitive)</td></tr>
+<tr><td>default</td><td>`true`</td></tr>
+</table>
+
+Whether to automatically process previously-uploaded assets that are still pending text extraction shortly after the server starts.
+
+### `OCR_BACKFILL_BATCH_SIZE`
+
+<table>
+<tr><td>type</td><td>`integer` (number without decimal point)</td></tr>
+<tr><td>default</td><td>`25`</td></tr>
+</table>
+
+Number of pending assets to process per batch during the startup backfill.
+
+### `OCR_STUCK_TIMEOUT`
+
+<table>
+<tr><td>type</td><td>duration (e.g. 1h, 1m, 1s)</td></tr>
+<tr><td>default</td><td>`15m`</td></tr>
+</table>
+
+Assets stuck in the `processing` status for longer than this duration (e.g. due to a crash mid-processing) are considered failed and picked up again.
 
 ## Message queue
 
@@ -1218,8 +1281,4 @@ Pinecone provides hosting on different cloud providers, see the Pinecone documen
 </table>
 
 Same as above, but for the region. As with any third party providers, it's recommended to choose the region closest to both your Storyden deployment and your community members for best performance and experience.
-
-## OCR features
-
-Settings for OCR image and document text extraction.
 

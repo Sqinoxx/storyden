@@ -229,6 +229,7 @@ func ItemRef(t *ent.Post) (datagraph.Item, error) {
 			CreatedAt:  t.CreatedAt,
 			UpdatedAt:  t.UpdatedAt,
 			DeletedAt:  opt.NewPtr(t.DeletedAt),
+			Assets:     dt.Map(t.Edges.Assets, asset.Map),
 		},
 
 		Title: t.Title,

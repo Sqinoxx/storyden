@@ -50,6 +50,7 @@ func (s *service) Create(ctx context.Context,
 	opts = append(opts,
 		thread_writer.WithMeta(meta),
 	)
+	opts = s.appendDerivedAssetOpts(ctx, opts, partial)
 
 	// Small hack: default to zero-value of content, which is actually not zero
 	// it's <body></body>. Why? who knows... oh, me, yes I should know. I don't.

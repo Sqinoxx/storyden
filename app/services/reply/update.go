@@ -66,6 +66,7 @@ func (s *Mutator) Update(ctx context.Context, replyID post.ID, partial Partial) 
 
 	oldVisibility := p.Visibility
 	opts := partial.Opts()
+	opts = s.appendDerivedAssetOpts(ctx, opts, partial)
 
 	if content, ok := partial.Content.Get(); ok && !userSetVisibility {
 		result, err := s.cpm.CheckContent(ctx, xid.ID(replyID), datagraph.KindReply, "", content)

@@ -20,6 +20,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_writer"
 	"github.com/Southclaws/storyden/app/resources/visibility"
+	"github.com/Southclaws/storyden/app/services/asset/asset_link"
 	"github.com/Southclaws/storyden/app/services/generative"
 	"github.com/Southclaws/storyden/app/services/link/fetcher"
 	"github.com/Southclaws/storyden/app/services/tag/autotagger"
@@ -70,6 +71,7 @@ type Manager struct {
 	summariser     generative.Summariser
 	cache          *node_cache.Cache
 	bus            *pubsub.Bus
+	assetLink      *asset_link.Resolver
 }
 
 func New(
@@ -88,6 +90,7 @@ func New(
 	summariser generative.Summariser,
 	cache *node_cache.Cache,
 	bus *pubsub.Bus,
+	assetLink *asset_link.Resolver,
 ) *Manager {
 	return &Manager{
 		logger:         logger,
@@ -105,5 +108,6 @@ func New(
 		summariser:     summariser,
 		cache:          cache,
 		bus:            bus,
+		assetLink:      assetLink,
 	}
 }

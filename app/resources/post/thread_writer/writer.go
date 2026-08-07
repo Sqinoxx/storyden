@@ -95,6 +95,18 @@ func WithAssets(a []asset.AssetID) Option {
 	}
 }
 
+// WithAssetsAdd links additional assets without clearing any that are
+// already attached. Used for assets derived from body content (e.g. file
+// attachments referenced by URL) so that they layer on top of whatever was
+// explicitly set via WithAssets, rather than replacing it.
+func WithAssetsAdd(a []asset.AssetID) Option {
+	return func(m *ent.PostMutation) {
+		if len(a) > 0 {
+			m.AddAssetIDs(a...)
+		}
+	}
+}
+
 func WithLink(id xid.ID) Option {
 	return func(pm *ent.PostMutation) {
 		pm.SetLinkID(id)

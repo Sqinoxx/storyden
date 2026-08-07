@@ -314,10 +314,11 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [total, pending, completed, failed, skipped]
+                required: [total, pending, processing, completed, failed, skipped]
                 properties:
                   total: { type: integer }
                   pending: { type: integer }
+                  processing: { type: integer }
                   completed: { type: integer }
                   failed: { type: integer }
                   skipped: { type: integer }
@@ -10415,6 +10416,7 @@ components:
         meta: { $ref: "#/components/schemas/Metadata" }
         visibility: { $ref: "#/components/schemas/Visibility" }
         url: { $ref: "#/components/schemas/URL" }
+        asset_ids: { $ref: "#/components/schemas/AssetIDs" }
 
     PostDescription:
       type: string
@@ -10600,6 +10602,7 @@ components:
         meta: { $ref: "#/components/schemas/Metadata" }
         reply_to: { $ref: "#/components/schemas/Identifier" }
         url: { $ref: "#/components/schemas/URL" }
+        asset_ids: { $ref: "#/components/schemas/AssetIDs" }
 
     PostLocation:
       type: object
@@ -11539,6 +11542,7 @@ components:
       properties:
         kind: { $ref: "#/components/schemas/DatagraphItemKind" }
         ref: { $ref: "#/components/schemas/Post" }
+        asset_matches: { $ref: "#/components/schemas/DatagraphAssetMatchList" }
 
     DatagraphItemThread:
       type: object
@@ -11546,6 +11550,7 @@ components:
       properties:
         kind: { $ref: "#/components/schemas/DatagraphItemKind" }
         ref: { $ref: "#/components/schemas/Thread" }
+        asset_matches: { $ref: "#/components/schemas/DatagraphAssetMatchList" }
 
     DatagraphItemReply:
       type: object
@@ -11553,6 +11558,7 @@ components:
       properties:
         kind: { $ref: "#/components/schemas/DatagraphItemKind" }
         ref: { $ref: "#/components/schemas/Reply" }
+        asset_matches: { $ref: "#/components/schemas/DatagraphAssetMatchList" }
 
     DatagraphItemNode:
       type: object
@@ -11560,6 +11566,7 @@ components:
       properties:
         kind: { $ref: "#/components/schemas/DatagraphItemKind" }
         ref: { $ref: "#/components/schemas/Node" }
+        asset_matches: { $ref: "#/components/schemas/DatagraphAssetMatchList" }
 
     DatagraphItemProfile:
       type: object
@@ -11567,6 +11574,23 @@ components:
       properties:
         kind: { $ref: "#/components/schemas/DatagraphItemKind" }
         ref: { $ref: "#/components/schemas/PublicProfile" }
+
+    DatagraphAssetMatch:
+      type: object
+      description: |
+        Indicates the search term was found inside the extracted text content
+        of an asset (e.g. a PDF or image) attached to this item, rather than
+        in the item's own body text.
+      required: [asset, excerpt]
+      properties:
+        asset: { $ref: "#/components/schemas/Asset" }
+        excerpt:
+          type: string
+          description: A short snippet of the asset's extracted text surrounding the first match.
+
+    DatagraphAssetMatchList:
+      type: array
+      items: { $ref: "#/components/schemas/DatagraphAssetMatch" }
 
     DatagraphMatch:
       type: object

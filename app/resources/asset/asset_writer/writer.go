@@ -122,3 +122,71 @@ func (w *Writer) UpdateOCRStatus(ctx context.Context, id xid.ID, status ent_asse
 	}
 	return asset.Map(r), nil
 }
+
+// UpdateOCRProcessing marks an asset as currently being processed. Setting
+// ocr_processed_at here (not only on completion) is what allows
+// asset_querier.GetPendingOCR to reclaim assets stuck in this state after a
+// crash mid-run.
+func (w *Writer) UpdateOCRProcessing(ctx context.Context, id xid.ID) (*asset.Asset, error) {
+	r, err := w.db.Asset.
+		UpdateOneID(id).
+		SetOcrStatus(ent_asset.OcrStatusProcessing).
+		SetOcrProcessedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	return asset.Map(r), nil
+}
+
+// UpdateOCRSkipped marks an asset as permanently skipped for a known reason
+// (unsupported type, oversized, engine unavailable) as distinct from a
+// transient failure. Skipped assets are not retried automatically.
+func (w *Writer) UpdateOCRSkipped(ctx context.Context, id xid.ID, reason string) (*asset.Asset, error) {
+	r, err := w.db.Asset.
+		UpdateOneID(id).
+		SetOcrStatus(ent_asset.OcrStatusSkipped).
+		SetOcrError(reason).
+		SetOcrProcessedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	return asset.Map(r), nil
+}
+
+// ResetOCRForReindex resets a bounded batch of previously-processed
+// (completed/failed/skipped) assets back to pending, clearing prior results,
+// so they are picked up by the backfill/processor again. Returns the IDs
+// that were reset.
+func (w *Writer) ResetOCRForReindex(ctx context.Context, limit int) ([]xid.ID, error) {
+	ids, err := w.db.Asset.Query().
+		Where(ent_asset.OcrStatusIn(
+			ent_asset.OcrStatusCompleted,
+			ent_asset.OcrStatusFailed,
+			ent_asset.OcrStatusSkipped,
+		)).
+		Order(ent.Asc(ent_asset.FieldID)).
+		Limit(limit).
+		IDs(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	_, err = w.db.Asset.Update().
+		Where(ent_asset.IDIn(ids...)).
+		SetOcrStatus(ent_asset.OcrStatusPending).
+		ClearOcrError().
+		ClearOcrText().
+		ClearOcrProcessedAt().
+		Save(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return ids, nil
+}

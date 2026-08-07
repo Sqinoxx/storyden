@@ -176,7 +176,7 @@ export function SearchScreen(props: Props) {
             totalPages={results.total_pages}
             pageSize={results.page_size}
           />
-          <DatagraphSearchResults result={results} />
+          <DatagraphSearchResults result={results} query={query} />
         </>
       ) : (
         <EmptyState hideContributionLabel>

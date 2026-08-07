@@ -210,6 +210,19 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 	}
 
 	path := asset.BuildAssetPath(a.Name)
+
+	exists, err := p.objects.Exists(ctx, path)
+	if err != nil {
+		p.logger.Error("failed to check asset existence for OCR", slog.String("id", id.String()), slog.String("error", err.Error()))
+		_, _ = p.assetWriter.UpdateOCRFailed(ctx, id, fmt.Sprintf("existence check failed: %v", err))
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+	if !exists {
+		p.logger.Warn("skipping OCR processing because asset file does not exist on disk", slog.String("id", id.String()), slog.String("path", path))
+		_, err := p.assetWriter.UpdateOCRSkipped(ctx, id, "asset file not found on disk")
+		return err
+	}
+
 	rc, _, err := p.objects.Read(ctx, path)
 	if err != nil {
 		p.logger.Error("failed to read asset object for OCR", slog.String("id", id.String()), slog.String("error", err.Error()))
@@ -288,7 +301,21 @@ func (p *Processor) handleExtractionError(ctx context.Context, id xid.ID, err er
 	}
 }
 
+// supportedOCRMIMETypes whitelists the exact formats Tesseract can handle.
+// Asset filenames are slugified on upload (BuildAssetPath strips extensions
+// entirely, e.g. "photo.png" -> "photo-png"), so filtering by filename
+// extension isn't viable here — the MIME type, sniffed from file content on
+// upload (see asset_upload.Uploader), is the only reliable signal. This is
+// deliberately narrower than a generic "image/*" prefix match: that would
+// still let image/svg+xml through, and Tesseract/Leptonica can't rasterise
+// vector formats ("Leptonica Error in pixRead: image file not found").
+var supportedOCRMIMETypes = map[string]bool{
+	"image/png":       true,
+	"image/jpeg":      true,
+	"application/pdf": true,
+}
+
 func (p *Processor) isSupportedMIME(m string) bool {
-	m = strings.ToLower(m)
-	return strings.HasPrefix(m, "image/") || strings.Contains(m, "pdf")
+	m = strings.ToLower(strings.TrimSpace(m))
+	return supportedOCRMIMETypes[m]
 }

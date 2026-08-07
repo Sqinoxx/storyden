@@ -1,5 +1,7 @@
 import { AuthMode, RegistrationMode } from "@/api/openapi-schema";
 import { authProviderList } from "@/api/openapi-server/auth";
+import * as Alert from "@/components/ui/alert";
+import { WarningIcon } from "@/components/ui/icons/Warning";
 import { VStack, styled } from "@/styled-system/jsx";
 
 import { RegisterEmailForm } from "./RegisterEmail/RegisterEmailForm";
@@ -46,7 +48,40 @@ export async function RegisterScreen({
     );
   }
 
-  switch (data.mode) {
+  const form = getForm(data.mode, invitationID);
+  if (!form) {
+    console.error("no authentication modes available");
+
+    return (
+      <VStack>
+        <p>This instance is private.</p>
+      </VStack>
+    );
+  }
+
+  return (
+    <VStack w="full" gap="4">
+      <Alert.Root>
+        <Alert.Icon asChild>
+          <WarningIcon />
+        </Alert.Icon>
+        <Alert.Content>
+          <Alert.Title>Bleib anonym</Alert.Title>
+          <Alert.Description>
+            Verwende bitte keinen Klarnamen und keine Uni-E-Mail-Adresse als
+            Benutzername oder Kontakt. Wähle nichts, das auf deine echte
+            Identität schließen lässt.
+          </Alert.Description>
+        </Alert.Content>
+      </Alert.Root>
+
+      {form}
+    </VStack>
+  );
+}
+
+function getForm(mode: AuthMode | undefined, invitationID: string | undefined) {
+  switch (mode) {
     case AuthMode.handle:
       return (
         <RegisterHandleForm webauthn={false} invitationID={invitationID} />
@@ -59,12 +94,6 @@ export async function RegisterScreen({
       return <RegisterPhoneForm />;
 
     default:
-      console.error("no authentication modes available");
-
-      return (
-        <VStack>
-          <p>This instance is private.</p>
-        </VStack>
-      );
+      return null;
   }
 }

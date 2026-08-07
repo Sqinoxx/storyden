@@ -4,9 +4,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { useSWRConfig } from "swr";
 import { z } from "zod";
 
 import { handle } from "@/api/client";
+import { getAccountGetKey } from "@/api/openapi-client/accounts";
 import { authEmailVerify } from "@/api/openapi-client/auth";
 import { Account } from "@/api/openapi-schema";
 import { Button } from "@/components/ui/button";
@@ -30,6 +32,7 @@ type Props = {
 
 export function EmailVerificationScreen(props: Props) {
   const router = useRouter();
+  const { mutate } = useSWRConfig();
   const probablyEmail = props.initialAccount?.email_addresses.find(
     (e) => e.verified === false,
   );
@@ -48,6 +51,8 @@ export function EmailVerificationScreen(props: Props) {
           email: data.email,
           code: data.code,
         });
+
+        await mutate(getAccountGetKey());
 
         router.push(props.returnURL ?? "/d");
       },

@@ -225,6 +225,7 @@ func ItemRef(t *ent.Post) (datagraph.Item, error) {
 			Author: profile.Ref{
 				ID: account.AccountID(t.AccountPosts),
 			},
+			Assets:     dt.Map(t.Edges.Assets, asset.Map),
 			Visibility: visibility.NewVisibilityFromEnt(t.Visibility),
 			CreatedAt:  t.CreatedAt,
 			UpdatedAt:  t.UpdatedAt,

@@ -58,6 +58,7 @@ func (p *Posts) PostUpdate(ctx context.Context, request openapi.PostUpdateReques
 		Content:    richContent,
 		Visibility: vis,
 		Meta:       opt.NewPtr((*map[string]any)(request.Body.Meta)),
+		Assets:     opt.NewPtrMap(request.Body.AssetIds, deserialiseAssetIDs),
 	}
 
 	post, err := p.replyMutator.Update(ctx, postID, partial)

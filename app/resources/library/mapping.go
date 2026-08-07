@@ -141,5 +141,6 @@ func ItemRef(c *ent.Node) (datagraph.Item, error) {
 		Visibility:     visibility.NewVisibilityFromEnt(c.Visibility),
 		SortKey:        c.Sort,
 		Metadata:       c.Metadata,
+		Assets:         dt.Map(c.Edges.Assets, asset.Map),
 	}, nil
 }

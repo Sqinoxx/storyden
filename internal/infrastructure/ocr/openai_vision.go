@@ -6,14 +6,17 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/Southclaws/fault"
+	"github.com/Southclaws/fault/fctx"
 )
 
+// OpenAIVisionClient extracts text from images using the OpenAI Vision API.
+// It only ever handles image MIME types — PDF handling belongs to the
+// layered client, which rasterises pages before handing them here.
 type OpenAIVisionClient struct {
 	apiKey string
 }
@@ -21,6 +24,8 @@ type OpenAIVisionClient struct {
 func NewOpenAIVisionClient(apiKey string) *OpenAIVisionClient {
 	return &OpenAIVisionClient{apiKey: apiKey}
 }
+
+func (o *OpenAIVisionClient) Available() bool { return o.apiKey != "" }
 
 type openAIChatMessage struct {
 	Role    string `json:"role"`
@@ -44,14 +49,13 @@ type openAIChatResponse struct {
 	} `json:"error,omitempty"`
 }
 
-func (o *OpenAIVisionClient) ExtractText(ctx context.Context, r io.Reader, mimeType string) (string, error) {
-	if o.apiKey == "" {
-		return "", fault.New("OpenAI API key is missing for Vision OCR")
+func (o *OpenAIVisionClient) ExtractText(ctx context.Context, data []byte, mimeType string) (Result, error) {
+	if !strings.HasPrefix(strings.ToLower(mimeType), "image/") {
+		return Result{}, fault.Wrap(ErrUnsupportedMIME, fctx.With(ctx))
 	}
 
-	data, err := io.ReadAll(r)
-	if err != nil {
-		return "", fault.Wrap(err)
+	if o.apiKey == "" {
+		return Result{}, fault.Wrap(ErrEngineUnavailable, fctx.With(ctx))
 	}
 
 	base64Image := base64.StdEncoding.EncodeToString(data)
@@ -73,12 +77,12 @@ func (o *OpenAIVisionClient) ExtractText(ctx context.Context, r io.Reader, mimeT
 
 	jsonBytes, err := json.Marshal(reqBody)
 	if err != nil {
-		return "", fault.Wrap(err)
+		return Result{}, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.openai.com/v1/chat/completions", bytes.NewReader(jsonBytes))
 	if err != nil {
-		return "", fault.Wrap(err)
+		return Result{}, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	httpReq.Header.Set("Content-Type", "application/json")
@@ -87,22 +91,25 @@ func (o *OpenAIVisionClient) ExtractText(ctx context.Context, r io.Reader, mimeT
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(httpReq)
 	if err != nil {
-		return "", fault.Wrap(err)
+		return Result{}, fault.Wrap(err, fctx.With(ctx))
 	}
 	defer resp.Body.Close()
 
 	var chatResp openAIChatResponse
 	if err := json.NewDecoder(resp.Body).Decode(&chatResp); err != nil {
-		return "", fault.Wrap(err)
+		return Result{}, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	if chatResp.Error != nil {
-		return "", fault.New(chatResp.Error.Message)
+		return Result{}, fault.New(chatResp.Error.Message)
 	}
 
 	if len(chatResp.Choices) == 0 {
-		return "", nil
+		return Result{Engine: "openai-vision"}, nil
 	}
 
-	return strings.TrimSpace(chatResp.Choices[0].Message.Content), nil
+	return Result{
+		Text:   strings.TrimSpace(chatResp.Choices[0].Message.Content),
+		Engine: "openai-vision",
+	}, nil
 }

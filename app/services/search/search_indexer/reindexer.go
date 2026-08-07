@@ -69,6 +69,7 @@ func (idx *Indexer) reindexThreads(ctx context.Context) (int, error) {
 				},
 			).
 			WithTags().
+			WithAssets().
 			Order(ent_post.ByUpdatedAt(), ent_post.ByID()).
 			Limit(idx.chunkSize).
 			All(ctx)
@@ -102,6 +103,7 @@ func (idx *Indexer) reindexReplies(ctx context.Context) (int, error) {
 					))
 				},
 			).
+			WithAssets().
 			Order(ent_post.ByUpdatedAt(), ent_post.ByID()).
 			Limit(idx.chunkSize).
 			All(ctx)
@@ -134,6 +136,7 @@ func (idx *Indexer) reindexNodes(ctx context.Context) (int, error) {
 					))
 				},
 			).
+			WithAssets().
 			Order(node.ByUpdatedAt(), node.ByID()).
 			Limit(idx.chunkSize).
 			All(ctx)

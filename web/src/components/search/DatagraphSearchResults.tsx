@@ -7,9 +7,10 @@ import { DatagraphItemCard } from "../datagraph/DatagraphItemCard";
 
 type Props = {
   result: DatagraphSearchResult;
+  query?: string;
 };
 
-export function DatagraphSearchResults({ result }: Props) {
+export function DatagraphSearchResults({ result, query }: Props) {
   if (!result.items?.length) {
     return (
       <EmptyState>
@@ -21,7 +22,7 @@ export function DatagraphSearchResults({ result }: Props) {
   return (
     <styled.ol width="full" display="flex" flexDirection="column" gap="4">
       {result.items.map((v) => (
-        <DatagraphItemCard key={v.ref.id} item={v} />
+        <DatagraphItemCard key={v.ref.id} item={v} query={query} />
       ))}
     </styled.ol>
   );

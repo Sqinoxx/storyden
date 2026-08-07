@@ -7,10 +7,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
+import type { DatagraphAssetMatchList } from "./datagraphAssetMatchList";
 import type { DatagraphItemReplyKind } from "./datagraphItemReplyKind";
 import type { Reply } from "./reply";
 
 export interface DatagraphItemReply {
+  asset_matches?: DatagraphAssetMatchList;
   kind: DatagraphItemReplyKind;
   ref: Reply;
 }

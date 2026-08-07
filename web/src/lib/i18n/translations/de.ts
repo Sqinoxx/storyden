@@ -407,6 +407,9 @@ export const de: Translations = {
     completed: "Abgeschlossen",
     failed: "Fehlgeschlagen",
     skipped: "Übersprungen",
+    matchInAttachment: "Treffer im Anhang",
+    matchInAttachmentPlural: "Treffer in Anhängen",
+    attachmentExcerptLabel: "Auszug",
   },
 };
 

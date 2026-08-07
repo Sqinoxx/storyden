@@ -51,6 +51,7 @@ func (p *Replies) ReplyCreate(ctx context.Context, request openapi.ReplyCreateRe
 		Content: opt.New(richContent),
 		ReplyTo: opt.Map(opt.NewPtr(request.Body.ReplyTo), deserialisePostID),
 		Meta:    opt.NewPtr((*map[string]any)(request.Body.Meta)),
+		Assets:  opt.NewPtrMap(request.Body.AssetIds, deserialiseAssetIDs),
 	}
 
 	post, err := p.replyMutator.Create(ctx,

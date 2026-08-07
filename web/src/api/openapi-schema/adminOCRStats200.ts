@@ -12,6 +12,7 @@ export type AdminOCRStats200 = {
   completed: number;
   failed: number;
   pending: number;
+  processing: number;
   skipped: number;
   total: number;
 };

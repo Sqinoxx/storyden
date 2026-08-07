@@ -24,6 +24,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
 	"github.com/Southclaws/storyden/app/resources/account/authentication/access_key"
 	"github.com/Southclaws/storyden/app/resources/asset/asset_querier"
+	"github.com/Southclaws/storyden/app/resources/asset/asset_writer"
 	"github.com/Southclaws/storyden/app/resources/audit"
 	"github.com/Southclaws/storyden/app/resources/audit/audit_querier"
 	"github.com/Southclaws/storyden/app/resources/datagraph"
@@ -46,7 +47,6 @@ import (
 	"github.com/Southclaws/storyden/app/services/comms/mailqueue"
 	"github.com/Southclaws/storyden/app/services/moderation/action_dispatcher"
 	"github.com/Southclaws/storyden/app/services/moderation/warning_manager"
-	"github.com/Southclaws/storyden/app/services/ocr"
 	"github.com/Southclaws/storyden/app/services/system/instance_info"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 	"github.com/Southclaws/storyden/internal/infrastructure/pubsub"
@@ -70,8 +70,8 @@ type Admin struct {
 	warnings          *warning_manager.Manager
 	instanceInfo      *instance_info.Provider
 	assetQuerier      *asset_querier.Querier
+	assetWriter       *asset_writer.Writer
 	bus               *pubsub.Bus
-	ocrProcessor      *ocr.Processor
 }
 
 func NewAdmin(
@@ -90,8 +90,8 @@ func NewAdmin(
 	warnings *warning_manager.Manager,
 	instanceInfo *instance_info.Provider,
 	assetQuerier *asset_querier.Querier,
+	assetWriter *asset_writer.Writer,
 	bus *pubsub.Bus,
-	ocrProcessor *ocr.Processor,
 	router *echo.Echo,
 ) Admin {
 	a := Admin{
@@ -110,8 +110,8 @@ func NewAdmin(
 		warnings:          warnings,
 		instanceInfo:      instanceInfo,
 		assetQuerier:      assetQuerier,
+		assetWriter:       assetWriter,
 		bus:               bus,
-		ocrProcessor:      ocrProcessor,
 	}
 
 	router.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -145,37 +145,38 @@ func (a *Admin) AdminOCRStats(ctx context.Context, request openapi.AdminOCRStats
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 	return openapi.AdminOCRStats200JSONResponse{
-		Total:     stats.Total,
-		Pending:   stats.Pending,
-		Completed: stats.Completed,
-		Failed:    stats.Failed,
-		Skipped:   stats.Skipped,
+		Total:      stats.Total,
+		Pending:    stats.Pending,
+		Processing: stats.Processing,
+		Completed:  stats.Completed,
+		Failed:     stats.Failed,
+		Skipped:    stats.Skipped,
 	}, nil
 }
+
+// adminOCRReindexBatchLimit bounds how many previously-processed assets are
+// reset to pending and re-queued per reindex request, so this stays a cheap
+// admin action rather than an unbounded table scan.
+const adminOCRReindexBatchLimit = 500
 
 func (a *Admin) AdminOCRReindex(ctx context.Context, request openapi.AdminOCRReindexRequestObject) (openapi.AdminOCRReindexResponseObject, error) {
 	if err := session.Authorise(ctx, nil, rbac.PermissionAdministrator); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
-	allAssets, err := a.assetQuerier.GetAll(ctx)
+
+	ids, err := a.assetWriter.ResetOCRForReindex(ctx, adminOCRReindexBatchLimit)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
-	for _, item := range allAssets {
-		if a.bus != nil {
-			a.bus.Publish(ctx, &message.EventAssetOCRCompleted{AssetID: xid.ID(item.ID)})
-			if item.OCRStatus == "pending" || item.OCRStatus == "failed" || item.OCRStatus == "" {
-				_ = a.bus.SendCommand(ctx, &message.CommandProcessAssetOCR{ID: xid.ID(item.ID)})
-			}
+
+	if a.bus != nil {
+		for _, id := range ids {
+			_ = a.bus.SendCommand(ctx, &message.CommandProcessAssetOCR{ID: id})
 		}
 	}
-	if a.ocrProcessor != nil {
-		go func() {
-			_, _ = a.ocrProcessor.ProcessAllPending(context.Background())
-		}()
-	}
+
 	return openapi.AdminOCRReindex200JSONResponse{
-		Reindexed: len(allAssets),
+		Reindexed: len(ids),
 	}, nil
 }
 

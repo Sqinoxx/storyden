@@ -93,7 +93,7 @@ func Build() fx.Option {
 		fx.Provide(following.New),
 		fx.Provide(autotagger.New),
 		fx.Provide(instance_info.New),
-		fx.Provide(ocr.NewProcessor),
+		ocr.Build(),
 		fx.Provide(account_auth.New, account_email.New),
 		fx.Provide(settings_manager.New),
 	)

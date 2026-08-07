@@ -21,6 +21,7 @@ import (
 	ent_account "github.com/Southclaws/storyden/internal/ent/account"
 	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/ent/node"
+	"github.com/Southclaws/storyden/internal/ent/predicate"
 	ent_tag "github.com/Southclaws/storyden/internal/ent/tag"
 )
 
@@ -102,11 +103,21 @@ func (s *service) Search(ctx context.Context, params pagination.Parameters, opts
 		if searchTerm == "" {
 			searchTerm = nameContains
 		}
-		baseQuery = baseQuery.Where(node.Or(
-			node.NameContainsFold(nameContains),
-			node.ContentContainsFold(contentContains),
+
+		// Only OR in predicates for terms that were actually supplied — an
+		// empty ContainsFold("") degenerates to LIKE '%%', which matches
+		// every row, so it must never be included unconditionally.
+		predicates := []predicate.Node{
 			node.HasAssetsWith(ent_asset.OcrTextContainsFold(searchTerm)),
-		))
+		}
+		if nameContains != "" {
+			predicates = append(predicates, node.NameContainsFold(nameContains))
+		}
+		if contentContains != "" {
+			predicates = append(predicates, node.ContentContainsFold(contentContains))
+		}
+
+		baseQuery = baseQuery.Where(node.Or(predicates...))
 	}
 
 	if len(q.authors) > 0 {

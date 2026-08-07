@@ -679,24 +679,24 @@
 
 - section: OCR features
   description: |-
-    Configuration for Optical Character Recognition (OCR) text extraction from uploaded images and documents.
+    Configuration for Optical Character Recognition (OCR) and PDF text extraction from uploaded images and documents. Search results surface matches found inside attached PDFs/images alongside a text excerpt.
   fields:
     - env: "OCR_ENABLED"
       name: OCREnabled
       type: bool
       default: "true"
       description: |-
-        Whether OCR processing for uploaded images and documents is enabled.
+        Whether text extraction processing for uploaded images and documents is enabled.
 
     - env: "OCR_PROVIDER"
       name: OCRProvider
       type: string
       default: "tesseract"
       description: |-
-        The OCR engine provider.
-        - `tesseract` for local Tesseract OCR CLI binary/bindings.
-        - `openai_vision` for OpenAI Vision API image text extraction.
-        - `http` for an external HTTP OCR microservice.
+        The OCR engine provider used for images and for rasterised (scanned) PDF pages.
+        - `tesseract` for local Tesseract OCR CLI binary, layered with pure-Go PDF text-layer extraction (no external binary required for digital PDFs).
+        - `textlayer` disables the Tesseract/rasterisation fallback entirely and only extracts embedded PDF text layers. Useful when no OCR binaries are installed.
+        - `openai_vision` for OpenAI Vision API image text extraction, layered the same way as `tesseract`.
         - `mock` for testing or development without external dependencies.
 
     - env: "OCR_LANGUAGES"
@@ -713,6 +713,13 @@
       description: |-
         Maximum file size in megabytes for assets to be processed by OCR.
 
+    - env: "OCR_MAX_TEXT_LENGTH"
+      name: OCRMaxTextLength
+      type: int
+      default: "200000"
+      description: |-
+        Maximum number of characters of extracted text stored per asset. Longer results are truncated.
+
     - env: "TESSERACT_BINARY_PATH"
       name: TesseractBinaryPath
       type: string
@@ -720,12 +727,54 @@
       description: |-
         Path or command name for the Tesseract executable.
 
-    - env: "OCR_HTTP_ENDPOINT"
-      name: OCRHTTPEndpoint
-      type: string
-      default: ""
+    - env: "OCR_PDF_RASTERIZE_ENABLED"
+      name: OCRPDFRasterizeEnabled
+      type: bool
+      default: "true"
       description: |-
-        Endpoint URL when OCR_PROVIDER is set to `http`.
+        Whether to fall back to rasterising scanned PDFs (pages with no usable embedded text layer) into images and running them through the OCR engine. Requires `pdftoppm` (from poppler-utils) to be installed.
+
+    - env: "PDFTOPPM_BINARY_PATH"
+      name: PDFToPPMBinaryPath
+      type: string
+      default: "pdftoppm"
+      description: |-
+        Path or command name for the `pdftoppm` (poppler-utils) executable, used to rasterise scanned PDF pages before OCR.
+
+    - env: "OCR_PDF_MAX_PAGES"
+      name: OCRPDFMaxPages
+      type: int
+      default: "20"
+      description: |-
+        Maximum number of pages to rasterise and OCR per PDF.
+
+    - env: "OCR_PDF_DPI"
+      name: OCRPDFDPI
+      type: int
+      default: "200"
+      description: |-
+        Resolution in DPI used when rasterising PDF pages for OCR.
+
+    - env: "OCR_BACKFILL_ENABLED"
+      name: OCRBackfillEnabled
+      type: bool
+      default: "true"
+      description: |-
+        Whether to automatically process previously-uploaded assets that are still pending text extraction shortly after the server starts.
+
+    - env: "OCR_BACKFILL_BATCH_SIZE"
+      name: OCRBackfillBatchSize
+      type: int
+      default: "25"
+      description: |-
+        Number of pending assets to process per batch during the startup backfill.
+
+    - env: "OCR_STUCK_TIMEOUT"
+      name: OCRStuckTimeout
+      type: time.Duration
+      default: "15m"
+      description: |-
+        Assets stuck in the `processing` status for longer than this duration (e.g. due to a crash mid-processing) are considered failed and picked up again.
 
 - section: Message queue
   description: |-
@@ -942,37 +991,4 @@
       type: string
       description: |-
         Same as above, but for the region. As with any third party providers, it's recommended to choose the region closest to both your Storyden deployment and your community members for best performance and experience.
-
-- section: OCR features
-  description: Settings for OCR image and document text extraction.
-  options:
-    - env: "OCR_ENABLED"
-      name: OCREnabled
-      type: bool
-      default: true
-      description: Enable automatic OCR text extraction for uploaded images and PDFs.
-
-    - env: "OCR_PROVIDER"
-      name: OCRProvider
-      type: string
-      default: tesseract
-      description: The OCR provider to use (tesseract, openai_vision, mock).
-
-    - env: "OCR_LANGUAGES"
-      name: OCRLanguages
-      type: "[]string"
-      default: [deu, eng]
-      description: Languages for Tesseract OCR.
-
-    - env: "OCR_MAX_FILE_SIZE_MB"
-      name: OCRMaxFileSizeMB
-      type: int
-      default: 10
-      description: Maximum file size in MB for OCR processing.
-
-    - env: "TESSERACT_BINARY_PATH"
-      name: TesseractBinaryPath
-      type: string
-      default: tesseract
-      description: Path to the tesseract CLI binary.
 

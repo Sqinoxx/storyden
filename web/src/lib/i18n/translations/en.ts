@@ -405,6 +405,9 @@ export const en = {
     completed: "Completed",
     failed: "Failed",
     skipped: "Skipped",
+    matchInAttachment: "Match in attachment",
+    matchInAttachmentPlural: "Matches in attachments",
+    attachmentExcerptLabel: "Excerpt",
   },
 };
 

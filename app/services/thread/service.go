@@ -24,6 +24,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_writer"
 	"github.com/Southclaws/storyden/app/resources/visibility"
+	"github.com/Southclaws/storyden/app/services/asset/asset_link"
 	"github.com/Southclaws/storyden/app/services/link/fetcher"
 	"github.com/Southclaws/storyden/app/services/mention/mentioner"
 	"github.com/Southclaws/storyden/app/services/moderation"
@@ -105,6 +106,7 @@ type service struct {
 	cpm            *moderation.Manager
 	cache          *thread_cache.Cache
 	systemReporter *system_report.Manager
+	assetLink      *asset_link.Resolver
 }
 
 func New(
@@ -122,6 +124,7 @@ func New(
 	cpm *moderation.Manager,
 	cache *thread_cache.Cache,
 	systemReporter *system_report.Manager,
+	assetLink *asset_link.Resolver,
 ) Service {
 	return &service{
 		logger: logger,
@@ -138,5 +141,32 @@ func New(
 		cpm:            cpm,
 		cache:          cache,
 		systemReporter: systemReporter,
+		assetLink:      assetLink,
 	}
+}
+
+// appendDerivedAssetOpts appends an additive asset-linking option derived
+// from body content (e.g. file attachments referenced by URL) only when the
+// caller did not explicitly set asset_ids. This must never fire alongside
+// an explicit Assets value: thread_writer.WithAssets clears existing edges
+// before re-adding, so appending an additive option after it is harmless,
+// but computing derived IDs when Assets is unset and Content is present is
+// what makes attachments in bodies without explicit asset_ids (e.g. replies
+// mirrored into threads, or clients that don't send asset_ids) searchable.
+func (s *service) appendDerivedAssetOpts(ctx context.Context, opts []thread_writer.Option, partial Partial) []thread_writer.Option {
+	if partial.Assets.Ok() {
+		return opts
+	}
+
+	content, ok := partial.Content.Get()
+	if !ok {
+		return opts
+	}
+
+	ids, err := s.assetLink.Resolve(ctx, content)
+	if err != nil || len(ids) == 0 {
+		return opts
+	}
+
+	return append(opts, thread_writer.WithAssetsAdd(ids))
 }

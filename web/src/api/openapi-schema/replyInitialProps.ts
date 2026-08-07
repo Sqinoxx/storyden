@@ -7,12 +7,14 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
+import type { AssetIDs } from "./assetIDs";
 import type { Identifier } from "./identifier";
 import type { Metadata } from "./metadata";
 import type { PostContent } from "./postContent";
 import type { Url } from "./url";
 
 export interface ReplyInitialProps {
+  asset_ids?: AssetIDs;
   body: PostContent;
   meta?: Metadata;
   reply_to?: Identifier;

@@ -63,6 +63,7 @@ func (s *service) Update(ctx context.Context, threadID post.ID, partial Partial)
 
 	oldVisibility := thr.Visibility
 	opts := partial.Opts()
+	opts = s.appendDerivedAssetOpts(ctx, opts, partial)
 
 	newContent, contentChanged := partial.Content.Get()
 	newTitle, titleChanged := partial.Title.Get()

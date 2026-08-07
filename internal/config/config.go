@@ -433,13 +433,13 @@ type Config struct {
 	// OCR features
 	// -
 
-	// Whether OCR processing for uploaded images and documents is enabled.
+	// Whether text extraction processing for uploaded images and documents is enabled.
 	OCREnabled bool `default:"true" envconfig:"OCR_ENABLED"`
 	/*
-	   The OCR engine provider.
-	   - `tesseract` for local Tesseract OCR CLI binary/bindings.
-	   - `openai_vision` for OpenAI Vision API image text extraction.
-	   - `http` for an external HTTP OCR microservice.
+	   The OCR engine provider used for images and for rasterised (scanned) PDF pages.
+	   - `tesseract` for local Tesseract OCR CLI binary, layered with pure-Go PDF text-layer extraction (no external binary required for digital PDFs).
+	   - `textlayer` disables the Tesseract/rasterisation fallback entirely and only extracts embedded PDF text layers. Useful when no OCR binaries are installed.
+	   - `openai_vision` for OpenAI Vision API image text extraction, layered the same way as `tesseract`.
 	   - `mock` for testing or development without external dependencies.
 	*/
 	OCRProvider string `default:"tesseract" envconfig:"OCR_PROVIDER"`
@@ -447,10 +447,24 @@ type Config struct {
 	OCRLanguages []string `default:"deu,eng" envconfig:"OCR_LANGUAGES"`
 	// Maximum file size in megabytes for assets to be processed by OCR.
 	OCRMaxFileSizeMB int `default:"10" envconfig:"OCR_MAX_FILE_SIZE_MB"`
+	// Maximum number of characters of extracted text stored per asset. Longer results are truncated.
+	OCRMaxTextLength int `default:"200000" envconfig:"OCR_MAX_TEXT_LENGTH"`
 	// Path or command name for the Tesseract executable.
 	TesseractBinaryPath string `default:"tesseract" envconfig:"TESSERACT_BINARY_PATH"`
-	// Endpoint URL when OCR_PROVIDER is set to `http`.
-	OCRHTTPEndpoint string `default:"" envconfig:"OCR_HTTP_ENDPOINT"`
+	// Whether to fall back to rasterising scanned PDFs (pages with no usable embedded text layer) into images and running them through the OCR engine. Requires `pdftoppm` (from poppler-utils) to be installed.
+	OCRPDFRasterizeEnabled bool `default:"true" envconfig:"OCR_PDF_RASTERIZE_ENABLED"`
+	// Path or command name for the `pdftoppm` (poppler-utils) executable, used to rasterise scanned PDF pages before OCR.
+	PDFToPPMBinaryPath string `default:"pdftoppm" envconfig:"PDFTOPPM_BINARY_PATH"`
+	// Maximum number of pages to rasterise and OCR per PDF.
+	OCRPDFMaxPages int `default:"20" envconfig:"OCR_PDF_MAX_PAGES"`
+	// Resolution in DPI used when rasterising PDF pages for OCR.
+	OCRPDFDPI int `default:"200" envconfig:"OCR_PDF_DPI"`
+	// Whether to automatically process previously-uploaded assets that are still pending text extraction shortly after the server starts.
+	OCRBackfillEnabled bool `default:"true" envconfig:"OCR_BACKFILL_ENABLED"`
+	// Number of pending assets to process per batch during the startup backfill.
+	OCRBackfillBatchSize int `default:"25" envconfig:"OCR_BACKFILL_BATCH_SIZE"`
+	// Assets stuck in the `processing` status for longer than this duration (e.g. due to a crash mid-processing) are considered failed and picked up again.
+	OCRStuckTimeout time.Duration `default:"15m" envconfig:"OCR_STUCK_TIMEOUT"`
 
 	// -
 	// Message queue
@@ -592,9 +606,4 @@ type Config struct {
 	PineconeCloud string `envconfig:"PINECONE_CLOUD"`
 	// Same as above, but for the region. As with any third party providers, it's recommended to choose the region closest to both your Storyden deployment and your community members for best performance and experience.
 	PineconeRegion string `envconfig:"PINECONE_REGION"`
-
-	// -
-	// OCR features
-	// -
-
 }

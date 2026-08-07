@@ -242,6 +242,8 @@ export * from "./createdAt";
 export * from "./credentialRequestOptions";
 export * from "./dataPart";
 export * from "./dataPartType";
+export * from "./datagraphAssetMatch";
+export * from "./datagraphAssetMatchList";
 export * from "./datagraphAuthorQueryParameter";
 export * from "./datagraphCategoryQueryParameter";
 export * from "./datagraphItem";

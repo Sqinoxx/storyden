@@ -35,6 +35,7 @@ func (s *Mutator) Create(
 
 	opts := partial.Opts()
 	opts = append(opts, reply_writer.WithVisibility(visibility.VisibilityPublished))
+	opts = s.appendDerivedAssetOpts(ctx, opts, partial)
 
 	if err := s.cache.Invalidate(ctx, xid.ID(parentID)); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to invalidate thread cache"))

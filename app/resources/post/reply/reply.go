@@ -270,6 +270,7 @@ func ItemRef(r *ent.Post) (datagraph.Item, error) {
 			CreatedAt:  r.CreatedAt,
 			UpdatedAt:  r.UpdatedAt,
 			DeletedAt:  opt.NewPtr(r.DeletedAt),
+			Assets:     dt.Map(r.Edges.Assets, asset.Map),
 		},
 		RootPostID: rootPostID,
 		Slug:       fmt.Sprintf("%s#%s", rootSlug, r.ID),

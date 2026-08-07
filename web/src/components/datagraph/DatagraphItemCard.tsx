@@ -9,11 +9,12 @@ import {
   DatagraphItemReply,
   DatagraphItemThread,
 } from "@/api/openapi-schema";
-import { HStack, WStack } from "@/styled-system/jsx";
+import { LStack, HStack, WStack } from "@/styled-system/jsx";
 import { ColorPalette } from "@/styled-system/tokens";
 import { getAssetURL } from "@/utils/asset";
 import { htmlToMarkdown } from "@/utils/markdown";
 
+import { AssetMatchList } from "../search/AssetMatchList/AssetMatchList";
 import { MemberBadge } from "../member/MemberBadge/MemberBadge";
 import { Timestamp } from "../site/Timestamp";
 import { Badge } from "../ui/badge";
@@ -21,21 +22,22 @@ import { Card } from "../ui/rich-card";
 
 type Props = {
   item: DatagraphItem;
+  query?: string;
 };
 
-export function DatagraphItemCard({ item }: Props) {
+export function DatagraphItemCard({ item, query }: Props) {
   switch (item.kind) {
     case DatagraphItemKind.post:
-      return <DatagraphItemPostGenericCard item={item} />;
+      return <DatagraphItemPostGenericCard item={item} query={query} />;
 
     case DatagraphItemKind.thread:
-      return <DatagraphItemPostGenericCard item={item} />;
+      return <DatagraphItemPostGenericCard item={item} query={query} />;
 
     case DatagraphItemKind.reply:
-      return <DatagraphItemReplyCard item={item} />;
+      return <DatagraphItemReplyCard item={item} query={query} />;
 
     case DatagraphItemKind.node:
-      return <DatagraphItemNodeCard item={item} />;
+      return <DatagraphItemNodeCard item={item} query={query} />;
 
     // case DatagraphItemKind.collection:
     //   return null;
@@ -50,86 +52,113 @@ export function DatagraphItemCard({ item }: Props) {
 
 export function DatagraphItemPostGenericCard({
   item,
+  query,
 }: {
   item: DatagraphItemPost | DatagraphItemThread;
+  query?: string;
 }) {
   const { ref } = item;
   const url = `/t/${ref.slug}`;
 
   return (
-    <Card
-      id={ref.id}
-      url={url}
-      title={ref.title || "(untitled post)"}
-      text={ref.description ?? htmlToMarkdown(ref.body)}
-      controls={
-        <WStack>
-          <HStack gap="1" minWidth="0" color="fg.subtle">
-            <MemberBadge
-              profile={ref.author}
-              size="sm"
-              name="full-horizontal"
-            />
-            <Timestamp created={ref.createdAt} />
-          </HStack>
+    <LStack gap="0" w="full">
+      <Card
+        id={ref.id}
+        url={url}
+        title={ref.title || "(untitled post)"}
+        text={ref.description ?? htmlToMarkdown(ref.body)}
+        controls={
+          <WStack>
+            <HStack gap="1" minWidth="0" color="fg.subtle">
+              <MemberBadge
+                profile={ref.author}
+                size="sm"
+                name="full-horizontal"
+              />
+              <Timestamp created={ref.createdAt} />
+            </HStack>
 
-          <DatagraphItemBadge kind={item.kind} />
-        </WStack>
-      }
-    />
+            <DatagraphItemBadge kind={item.kind} />
+          </WStack>
+        }
+      />
+      <AssetMatchList matches={item.asset_matches} query={query} />
+    </LStack>
   );
 }
 
-export function DatagraphItemReplyCard({ item }: { item: DatagraphItemReply }) {
+export function DatagraphItemReplyCard({
+  item,
+  query,
+}: {
+  item: DatagraphItemReply;
+  query?: string;
+}) {
   const { ref } = item;
   const url = `/t/locate/${ref.id}`;
 
   return (
-    <Card
-      id={ref.id}
-      url={url}
-      title={ref.title ? `Thread: ${ref.title}` : "(untitled thread)"}
-      text={ref.description ?? htmlToMarkdown(ref.body)}
-      controls={
-        <WStack>
-          <HStack gap="1" minWidth="0" color="fg.subtle">
-            <MemberBadge
-              profile={ref.author}
-              size="sm"
-              name="full-horizontal"
-            />
-            <Timestamp created={ref.createdAt} />
-          </HStack>
+    <LStack gap="0" w="full">
+      <Card
+        id={ref.id}
+        url={url}
+        title={ref.title ? `Thread: ${ref.title}` : "(untitled thread)"}
+        text={ref.description ?? htmlToMarkdown(ref.body)}
+        controls={
+          <WStack>
+            <HStack gap="1" minWidth="0" color="fg.subtle">
+              <MemberBadge
+                profile={ref.author}
+                size="sm"
+                name="full-horizontal"
+              />
+              <Timestamp created={ref.createdAt} />
+            </HStack>
 
-          <DatagraphItemBadge kind={item.kind} />
-        </WStack>
-      }
-    />
+            <DatagraphItemBadge kind={item.kind} />
+          </WStack>
+        }
+      />
+      <AssetMatchList matches={item.asset_matches} query={query} />
+    </LStack>
   );
 }
 
-export function DatagraphItemNodeCard({ item }: { item: DatagraphItemNode }) {
+export function DatagraphItemNodeCard({
+  item,
+  query,
+}: {
+  item: DatagraphItemNode;
+  query?: string;
+}) {
   const { ref } = item;
   const url = `/l/${ref.slug}`;
 
   return (
-    <Card
-      id={ref.id}
-      url={url}
-      title={ref.name}
-      text={ref.description}
-      image={getAssetURL(ref.primary_image?.path)}
-      controls={
-        <WStack>
-          <HStack gap="1" minWidth="0" color="fg.subtle">
-            <MemberBadge profile={ref.owner} size="sm" name="full-horizontal" />
-            <Timestamp created={ref.createdAt} />
-          </HStack>
+    <LStack gap="0" w="full">
+      <Card
+        id={ref.id}
+        url={url}
+        title={ref.name}
+        text={ref.description}
+        image={getAssetURL(ref.primary_image?.path)}
+        controls={
+          <WStack>
+            <HStack gap="1" minWidth="0" color="fg.subtle">
+              <MemberBadge
+                profile={ref.owner}
+                size="sm"
+                name="full-horizontal"
+              />
+              <Timestamp created={ref.createdAt} />
+            </HStack>
 
-          <DatagraphItemBadge kind={item.kind} />
-        </WStack>
-      }
-    />
+            <DatagraphItemBadge kind={item.kind} />
+          </WStack>
+        }
+      />
+      <AssetMatchList matches={item.asset_matches} query={query} />
+    </LStack>
   );
 }
 

@@ -1,4 +1,5 @@
 import { ModalDrawer } from "@/components/site/Modaldrawer/Modaldrawer";
+import { useTranslation } from "@/lib/i18n";
 import { UseDisclosureProps } from "@/utils/useDisclosure";
 
 import { AccountPurgeScreen } from "./AccountPurgeScreen";
@@ -11,12 +12,13 @@ export function AccountPurgeModal({
   onOpen,
   isOpen,
 }: UseDisclosureProps & Props) {
+  const t = useTranslation();
   return (
     <ModalDrawer
       onOpen={onOpen}
       isOpen={isOpen}
       onClose={onClose}
-      title={`Purge account content: ${handle}`}
+      title={t.profile.purgeTitle.replace("{handle}", handle)}
     >
       <AccountPurgeScreen
         accountId={accountId}

@@ -23,6 +23,7 @@ import { Unready } from "@/components/site/Unready";
 import { useConfirmation } from "@/components/site/useConfirmation";
 import { Button } from "@/components/ui/button";
 import { DeleteIcon } from "@/components/ui/icons/Delete";
+import { useTranslation } from "@/lib/i18n";
 import { Box, Flex, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 
 type WarningsPanelProps = {
@@ -36,6 +37,7 @@ export function WarningsPanel({
   profile,
   canManageWarnings = false,
 }: WarningsPanelProps) {
+  const t = useTranslation();
   const { data, error } = useAccountWarningList(accountId);
   if (!data) {
     return <Unready error={error} />;
@@ -46,7 +48,7 @@ export function WarningsPanel({
       {data.total === 0 || data.warnings.length === 0 ? (
         <Box borderWidth="thin" borderRadius="sm" p="2">
           <styled.p fontSize="sm" color="fg.subtle">
-            No warning history for this account yet.
+            {t.profile.noWarningHistory}
           </styled.p>
         </Box>
       ) : (
@@ -66,7 +68,7 @@ export function WarningsPanel({
         <WStack justifyContent="flex-end">
           <MemberWarningTrigger profile={profile}>
             <Button size="xs" colorPalette="orange" variant="subtle">
-              Issue warning
+              {t.profile.issueWarning}
             </Button>
           </MemberWarningTrigger>
         </WStack>

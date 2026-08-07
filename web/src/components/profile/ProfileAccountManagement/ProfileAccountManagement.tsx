@@ -1,4 +1,5 @@
 import { formatDate } from "date-fns";
+import { de, enUS } from "date-fns/locale";
 import { useMemo } from "react";
 import { match } from "ts-pattern";
 
@@ -11,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { AdminIcon } from "@/components/ui/icons/Admin";
 import { WarningIcon } from "@/components/ui/icons/Warning";
 import * as Tabs from "@/components/ui/tabs";
+import { useLanguage } from "@/lib/i18n";
 import {
   Box,
   CardBox,
@@ -31,6 +33,7 @@ type Props = {
 };
 
 function useProfileAccountManagement({ accountId }: Props) {
+  const { t } = useLanguage();
   const { data: account, error } = useAccountView(accountId);
   if (!account) {
     if (
@@ -40,8 +43,7 @@ function useProfileAccountManagement({ accountId }: Props) {
     ) {
       return {
         ready: false as const,
-        error:
-          "You do not have permission to view additional details for an administrator account.",
+        error: t.profile.noPermissionAdmin,
       };
     }
 
@@ -66,6 +68,7 @@ function useProfileAccountManagement({ accountId }: Props) {
 }
 
 export function ProfileAccountManagement({ accountId }: Props) {
+  const { t } = useLanguage();
   const { ready, error, account, emailVerifiedStatus } =
     useProfileAccountManagement({ accountId });
 
@@ -110,7 +113,7 @@ export function ProfileAccountManagement({ accountId }: Props) {
         >
           <HStack gap="1">
             <AdminIcon w="4" />
-            <p>Account information</p>
+            <p>{t.profile.accountInfo}</p>
           </HStack>
           <AccountPurgeTrigger accountId={account.id} handle={account.handle} />
         </HStack>
@@ -131,6 +134,8 @@ function ProfileAccountManagementTabs({
   account: Account;
   emailVerifiedStatus: string;
 }) {
+  const { language, t } = useLanguage();
+  const dateLocale = language === "de" ? de : enUS;
   const session = useSession();
   const canManageWarnings = hasPermission(session, Permission.MANAGE_WARNINGS);
   const isSelf = session?.id === account.id;
@@ -148,10 +153,10 @@ function ProfileAccountManagementTabs({
 
   const emailVerifiedStatusBadge = match(emailVerifiedStatus)
     .with("not_applicable", () => (
-      <Badge colorPalette="gray">No emails to verify</Badge>
+      <Badge colorPalette="gray">{t.profile.noEmailsToVerify}</Badge>
     ))
-    .with("verified", () => <Badge colorPalette="green">Verified</Badge>)
-    .with("not_verified", () => <Badge colorPalette="gray">Unverified</Badge>);
+    .with("verified", () => <Badge colorPalette="green">{t.profile.verified}</Badge>)
+    .with("not_verified", () => <Badge colorPalette="gray">{t.profile.unverified}</Badge>);
 
   return (
     <Tabs.Root
@@ -164,12 +169,12 @@ function ProfileAccountManagementTabs({
       lazyMount={true}
     >
       <Tabs.List>
-        <Tabs.Trigger value="overview">Overview</Tabs.Trigger>
+        <Tabs.Trigger value="overview">{t.profile.overview}</Tabs.Trigger>
         {canViewWarnings && (
-          <Tabs.Trigger value="warnings">Warnings</Tabs.Trigger>
+          <Tabs.Trigger value="warnings">{t.profile.warnings}</Tabs.Trigger>
         )}
         {hasModerationNotesAccess && (
-          <Tabs.Trigger value="moderator_notes">Moderator Notes</Tabs.Trigger>
+          <Tabs.Trigger value="moderator_notes">{t.profile.moderatorNotes}</Tabs.Trigger>
         )}
         <Tabs.Indicator />
       </Tabs.List>
@@ -183,27 +188,27 @@ function ProfileAccountManagementTabs({
           <LStack flex="1" gap="4" flexShrink="1" flexGrow="1" minW="0">
             <LStack gap="1">
               <styled.p fontSize="xs" fontWeight="semibold" color="fg.muted">
-                Account Status
+                {t.profile.accountStatus}
               </styled.p>
               <Box fontSize="sm">{emailVerifiedStatusBadge.run()}</Box>
             </LStack>
 
             <LStack gap="1">
               <styled.p fontSize="xs" fontWeight="semibold" color="fg.muted">
-                Joined at
+                {t.profile.joinedAt}
               </styled.p>
               <styled.p fontSize="sm">
-                {formatDate(new Date(account.joined), "PPPppp")}
+                {formatDate(new Date(account.joined), "PPPppp", { locale: dateLocale })}
               </styled.p>
             </LStack>
 
             {account.suspended && (
               <LStack gap="1">
                 <styled.p fontSize="xs" fontWeight="semibold" color="fg.muted">
-                  Suspended
+                  {t.profile.suspended}
                 </styled.p>
                 <styled.p fontSize="sm" color="fg.destructive">
-                  {formatDate(new Date(account.suspended), "PPPppp")}
+                  {formatDate(new Date(account.suspended), "PPPppp", { locale: dateLocale })}
                 </styled.p>
               </LStack>
             )}
@@ -211,7 +216,7 @@ function ProfileAccountManagementTabs({
             {account.invited_by && (
               <LStack gap="1">
                 <styled.p fontSize="xs" fontWeight="semibold" color="fg.muted">
-                  Invited By
+                  {t.members.invitedBy}
                 </styled.p>
                 <MemberIdent
                   size="sm"
@@ -224,7 +229,7 @@ function ProfileAccountManagementTabs({
 
           <LStack flex="1" gap="2" flexShrink="1" flexGrow="1" minW="0">
             <styled.p fontSize="xs" fontWeight="semibold" color="fg.muted">
-              Email Addresses
+              {t.profile.emailAddresses}
             </styled.p>
             {account.email_addresses.length > 0 ? (
               <LStack gap="2" minW="0">
@@ -248,11 +253,11 @@ function ProfileAccountManagementTabs({
                     </styled.code>
                     {email.verified ? (
                       <Badge colorPalette="green" size="sm">
-                        Verified
+                        {t.profile.verified}
                       </Badge>
                     ) : (
                       <Badge colorPalette="gray" size="sm">
-                        Unverified
+                        {t.profile.unverified}
                       </Badge>
                     )}
                   </HStack>
@@ -260,7 +265,7 @@ function ProfileAccountManagementTabs({
               </LStack>
             ) : (
               <styled.p fontSize="sm" color="fg.subtle">
-                No email addresses
+                {t.settings.email.noEmails}
               </styled.p>
             )}
           </LStack>

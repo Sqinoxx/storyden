@@ -19,6 +19,7 @@ import { Timestamp } from "@/components/site/Timestamp";
 import { useConfirmation } from "@/components/site/useConfirmation";
 import { Button } from "@/components/ui/button";
 import { DeleteIcon } from "@/components/ui/icons/Delete";
+import { useTranslation } from "@/lib/i18n";
 import { Box, Flex, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { deriveError } from "@/utils/error";
 
@@ -33,6 +34,7 @@ export function ModeratorNotesPanel({
   canManageModerationNotes,
   canViewModerationNotes,
 }: ModeratorNotesPanelProps) {
+  const t = useTranslation();
   const [noteDraft, setNoteDraft] = useState("");
 
   useEffect(() => {
@@ -76,8 +78,8 @@ export function ModeratorNotesPanel({
       },
       {
         promiseToast: {
-          loading: "Saving note...",
-          success: "Moderator note added.",
+          loading: t.profile.savingNote,
+          success: t.profile.noteAdded,
         },
       },
     );
@@ -90,8 +92,8 @@ export function ModeratorNotesPanel({
           <styled.textarea
             value={noteDraft}
             onChange={(e) => setNoteDraft(e.target.value)}
-            placeholder="Add an internal moderator note…"
-            aria-label="Internal moderator note"
+            placeholder={t.profile.addModeratorNote}
+            aria-label={t.profile.addModeratorNote}
             rows={3}
             maxLength={2000}
             borderWidth="thin"
@@ -109,7 +111,7 @@ export function ModeratorNotesPanel({
               disabled={!noteDraft.trim()}
               alignSelf="start"
             >
-              Add note
+              {t.profile.addNote}
             </Button>
           </WStack>
         </LStack>
@@ -129,11 +131,11 @@ export function ModeratorNotesPanel({
             </styled.p>
           ) : notesLoading ? (
             <styled.p fontSize="sm" color="fg.subtle">
-              Loading moderation notes...
+              {t.common.loading}
             </styled.p>
           ) : (notesData?.notes?.length ?? 0) === 0 ? (
             <styled.p fontSize="sm" color="fg.subtle">
-              No moderation notes yet.
+              {t.profile.noModeratorNotes}
             </styled.p>
           ) : (
             (notesData?.notes ?? []).map((note) => (
@@ -148,8 +150,7 @@ export function ModeratorNotesPanel({
         </LStack>
       ) : (
         <styled.p fontSize="sm" color="fg.subtle">
-          You can add notes, but you do not have permission to view note
-          history.
+          {t.profile.noModeratorNotes}
         </styled.p>
       )}
     </LStack>
@@ -167,6 +168,7 @@ function ModerationNoteCard({
   note,
   canManageModerationNotes,
 }: ModerationNoteCardProps) {
+  const t = useTranslation();
   const { mutate } = useSWRConfig();
   const {
     trigger: deleteNote,
@@ -236,7 +238,7 @@ function ModerationNoteCard({
                   onClick={handleConfirmAction}
                   loading={isMutating}
                 >
-                  Confirm delete
+                  {t.common.confirm}
                 </Button>
                 <Button
                   size="xs"
@@ -244,15 +246,15 @@ function ModerationNoteCard({
                   onClick={handleCancelAction}
                   disabled={isMutating}
                 >
-                  Cancel
+                  {t.common.cancel}
                 </Button>
               </HStack>
             ) : (
               <Button
                 size="xs"
                 variant="ghost"
-                aria-label="Delete moderation note"
-                title="Delete note"
+                aria-label={t.actions.delete}
+                title={t.actions.delete}
                 onClick={handleConfirmAction}
               >
                 <DeleteIcon />

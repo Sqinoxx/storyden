@@ -1,7 +1,9 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
+import { de, enUS } from "date-fns/locale";
 
+import { useLanguage } from "@/lib/i18n";
 import { Unready } from "@/components/site/Unready";
 
 import { ContentFormField } from "@/components/content/ContentComposer/ContentField";
@@ -32,6 +34,8 @@ import { Form, Props, useProfileScreen } from "./useProfileScreen";
 
 export function ProfileScreen(props: Props) {
   const { ready, error, form, state, data, handlers } = useProfileScreen(props);
+  const { language, t } = useLanguage();
+  const dateLocale = language === "de" ? de : enUS;
 
   if (!ready) {
     return <Unready error={error} />;
@@ -99,14 +103,14 @@ export function ProfileScreen(props: Props) {
             <HStack justify="end">
               {isSelf &&
                 (isEditing ? (
-                  <SaveAction size="sm">Save</SaveAction>
+                  <SaveAction size="sm">{t.actions.save}</SaveAction>
                 ) : (
                   <EditAction
                     size="sm"
                     variant="ghost"
                     onClick={handlers.handleSetEditing}
                   >
-                    Edit
+                    {t.actions.edit}
                   </EditAction>
                 ))}
               <MemberOptionsMenu profile={profile} asChild>
@@ -117,10 +121,11 @@ export function ProfileScreen(props: Props) {
 
           <HStack gap="1">
             <styled.p color="fg.muted" wordBreak="keep-all">
-              Joined{" "}
+              {t.members.joined}{" "}
               <styled.time textWrap="nowrap">
                 {formatDistanceToNow(new Date(profile.createdAt), {
                   addSuffix: true,
+                  locale: dateLocale,
                 })}
               </styled.time>
             </styled.p>
@@ -134,13 +139,16 @@ export function ProfileScreen(props: Props) {
               <Box flexShrink="0">
                 <LikeIcon w="4" />
               </Box>
-              <span>{profile.like_score} likes</span>
+              <span>
+                {profile.like_score}{" "}
+                {profile.like_score === 1 ? t.thread.like : t.thread.likes}
+              </span>
             </HStack>
           </HStack>
 
           {isEmpty && !isEditing ? (
             <styled.p color="fg.subtle" fontStyle="italic">
-              This profile has no bio yet...
+              {t.profile.noBio}
             </styled.p>
           ) : (
             <ContentFormField<Form>
@@ -148,14 +156,14 @@ export function ProfileScreen(props: Props) {
               name="bio"
               initialValue={profile.bio}
               disabled={!isEditing}
-              placeholder="This profile has no bio yet..."
+              placeholder={t.profile.noBio}
             />
           )}
 
           {signaturesEnabled &&
             (isSignatureEmpty && !isEditing ? (
               <styled.p color="fg.subtle" fontStyle="italic">
-                This profile has no signature yet...
+                {t.profile.noSignature}
               </styled.p>
             ) : (
               <ContentFormField<Form>
@@ -163,7 +171,7 @@ export function ProfileScreen(props: Props) {
                 name="signature"
                 initialValue={profile.signature ?? ""}
                 disabled={!isEditing}
-                placeholder="This profile has no signature yet..."
+                placeholder={t.profile.noSignature}
               />
             ))}
         </styled.form>

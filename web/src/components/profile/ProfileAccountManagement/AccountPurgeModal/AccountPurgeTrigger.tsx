@@ -2,6 +2,7 @@ import { Permission } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { WarningIcon } from "@/components/ui/icons/Warning";
+import { useTranslation } from "@/lib/i18n";
 import { hasPermission } from "@/utils/permissions";
 import { useDisclosure } from "@/utils/useDisclosure";
 
@@ -9,6 +10,7 @@ import { AccountPurgeModal } from "./AccountPurgeModal";
 import { Props } from "./useAccountPurge";
 
 export function AccountPurgeTrigger({ accountId, handle }: Props) {
+  const t = useTranslation();
   const session = useSession();
   const { onOpen, isOpen, onClose } = useDisclosure();
 
@@ -20,7 +22,7 @@ export function AccountPurgeTrigger({ accountId, handle }: Props) {
     <>
       <Button size="xs" variant="outline" colorPalette="red" onClick={onOpen}>
         <WarningIcon />
-        Purge Content
+        {t.profile.purgeContent}
       </Button>
 
       <AccountPurgeModal

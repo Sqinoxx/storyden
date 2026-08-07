@@ -26,9 +26,14 @@ import (
 	ent_notification "github.com/Southclaws/storyden/internal/ent/notification"
 	ent_oauthrefreshtoken "github.com/Southclaws/storyden/internal/ent/oauthrefreshtoken"
 	ent_oauthremoteconnection "github.com/Southclaws/storyden/internal/ent/oauthremoteconnection"
+	ent_post "github.com/Southclaws/storyden/internal/ent/post"
 	ent_session "github.com/Southclaws/storyden/internal/ent/session"
 	"github.com/Southclaws/storyden/internal/infrastructure/pubsub"
 )
+
+// deletedPlaceholderHandle identifies the single system account that authored
+// content is reassigned to when an account is permanently deleted by an admin.
+const deletedPlaceholderHandle = "deleted-user"
 
 type Service interface {
 	Delete(ctx context.Context, id account.AccountID) error
@@ -76,7 +81,7 @@ func (s *service) Delete(ctx context.Context, id account.AccountID) error {
 		)
 	}
 
-	return s.anonymizeAndDelete(ctx, acc)
+	return s.hardDelete(ctx, acc)
 }
 
 func (s *service) SelfDelete(ctx context.Context, id account.AccountID) error {
@@ -150,5 +155,67 @@ func (s *service) anonymizeAndDelete(ctx context.Context, acc *account.AccountWi
 	s.account_writer.InvalidateCache(ctx, id)
 
 	return nil
+}
+
+// hardDelete removes the account row entirely. Authored posts/threads/replies
+// are reassigned to a shared "Deleted User" placeholder account first, since
+// the required Post.author edge otherwise blocks deletion and would delete
+// content along with the account via cascade.
+func (s *service) hardDelete(ctx context.Context, acc *account.AccountWithEdges) error {
+	id := acc.ID
+	xidID := xid.ID(id)
+
+	placeholderID, err := s.getOrCreateDeletedPlaceholder(ctx)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if xidID == placeholderID {
+		return fault.Wrap(
+			fault.New("cannot delete the system placeholder account"),
+			ftag.With(ftag.InvalidArgument),
+			fctx.With(ctx),
+			fmsg.WithDesc("invalid action", "Dieses Systemkonto kann nicht gelöscht werden."),
+		)
+	}
+
+	_, err = s.db.Post.Update().
+		Where(ent_post.HasAuthorWith(ent_account.IDEQ(xidID))).
+		SetAccountPosts(placeholderID).
+		Save(ctx)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := s.db.Account.DeleteOneID(xidID).Exec(ctx); err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	s.account_writer.InvalidateCache(ctx, id)
+
+	return nil
+}
+
+func (s *service) getOrCreateDeletedPlaceholder(ctx context.Context) (xid.ID, error) {
+	existing, err := s.db.Account.Query().
+		Where(ent_account.HandleEQ(deletedPlaceholderHandle)).
+		Only(ctx)
+	if err == nil {
+		return existing.ID, nil
+	}
+	if !ent.IsNotFound(err) {
+		return xid.ID{}, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	created, err := s.db.Account.Create().
+		SetHandle(deletedPlaceholderHandle).
+		SetName("Deleted User").
+		SetDeletedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return xid.ID{}, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return created.ID, nil
 }
 

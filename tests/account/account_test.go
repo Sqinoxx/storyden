@@ -11,6 +11,7 @@ import (
 
 	"github.com/Southclaws/opt"
 	"github.com/Southclaws/storyden/app/resources/account"
+	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 	"github.com/Southclaws/storyden/internal/integration"
@@ -127,12 +128,14 @@ func TestAccountDelete(t *testing.T) {
 		cl *openapi.ClientWithResponses,
 		sh *e2e.SessionHelper,
 		accountWrite *account_writer.Writer,
+		accountQuery *account_querier.Querier,
 	) {
 		lc.Append(fx.StartHook(func() {
 			r := require.New(t)
 
 			adminHandle := "ad-" + xid.New().String()
 			targetHandle := "tg-" + xid.New().String()
+			target2Handle := "tg2-" + xid.New().String()
 			userHandle := "usr-" + xid.New().String()
 
 			adminRes, err := cl.AuthPasswordSignupWithResponse(root, nil, openapi.AuthPair{Identifier: adminHandle, Token: "password"})
@@ -147,6 +150,12 @@ func TestAccountDelete(t *testing.T) {
 			r.Equal(http.StatusOK, targetRes.StatusCode())
 			targetID := account.AccountID(utils.Must(xid.FromString(targetRes.JSON200.Id)))
 			targetSession := sh.WithSession(e2e.WithAccountID(root, targetID))
+
+			target2Res, err := cl.AuthPasswordSignupWithResponse(root, nil, openapi.AuthPair{Identifier: target2Handle, Token: "password"})
+			r.NoError(err)
+			r.Equal(http.StatusOK, target2Res.StatusCode())
+			target2ID := account.AccountID(utils.Must(xid.FromString(target2Res.JSON200.Id)))
+			target2Session := sh.WithSession(e2e.WithAccountID(root, target2ID))
 
 			// Admin creates a category
 			catRes, err := cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
@@ -167,6 +176,19 @@ func TestAccountDelete(t *testing.T) {
 			r.NoError(err)
 			r.Equal(http.StatusOK, threadRes.StatusCode())
 			threadSlug := threadRes.JSON200.Slug
+
+			// Second target user also creates a thread, to verify multiple
+			// deleted accounts' content shares the same placeholder author.
+			body2Text := "<p>This content should also remain after account deletion.</p>"
+			thread2Res, err := cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+				Title: "Also Preserved Thread",
+				Body: &body2Text,
+				Category: &catID,
+				Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+			}, target2Session)
+			r.NoError(err)
+			r.Equal(http.StatusOK, thread2Res.StatusCode())
+			thread2Slug := thread2Res.JSON200.Slug
 
 			userRes, err := cl.AuthPasswordSignupWithResponse(root, nil, openapi.AuthPair{Identifier: userHandle, Token: "password"})
 			r.NoError(err)
@@ -214,6 +236,31 @@ func TestAccountDelete(t *testing.T) {
 			getProfile, err := cl.ProfileGetWithResponse(root, targetHandle)
 			r.NoError(err)
 			r.Equal(http.StatusNotFound, getProfile.StatusCode())
+
+			// 9. Verify the account row itself is gone, not just anonymised in place.
+			_, err = accountQuery.GetByID(root, targetID)
+			r.Error(err)
+
+			// 10. Suspend and delete the second account too, to prove the
+			// shared placeholder is reused across multiple hard deletions.
+			suspend2Res, err := cl.AdminAccountBanCreateWithResponse(root, target2Handle, adminSession)
+			r.NoError(err)
+			r.Equal(http.StatusOK, suspend2Res.StatusCode())
+
+			delSuccess2, err := cl.AdminAccountDeleteWithResponse(root, target2Handle, adminSession)
+			r.NoError(err)
+			r.Equal(http.StatusNoContent, delSuccess2.StatusCode())
+
+			getThread2, err := cl.ThreadGetWithResponse(root, thread2Slug, nil)
+			r.NoError(err)
+			r.Equal(http.StatusOK, getThread2.StatusCode())
+			r.Equal("Deleted User", getThread2.JSON200.Author.Name)
+
+			// Both threads' authored-by placeholder must be the exact same account.
+			r.Equal(getThread.JSON200.Author.Id, getThread2.JSON200.Author.Id)
+
+			_, err = accountQuery.GetByID(root, target2ID)
+			r.Error(err)
 		}))
 	}))
 }

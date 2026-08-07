@@ -3,6 +3,7 @@ package search_test
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -26,7 +27,9 @@ func TestBleveThreadSearch(t *testing.T) {
 	bleveName := time.Now().Format(time.RFC3339) + t.Name()
 	cfg := &config.Config{
 		SearchProvider: "bleve",
-		BlevePath:      fmt.Sprintf("data/%s.bleve", bleveName),
+		BlevePath:      filepath.Join(t.TempDir(), fmt.Sprintf("%s.bleve", bleveName)),
+		OCREnabled:     true,
+		OCRProvider:    "mock",
 	}
 
 	integration.Test(t, cfg, e2e.Setup(), fx.Invoke(func(

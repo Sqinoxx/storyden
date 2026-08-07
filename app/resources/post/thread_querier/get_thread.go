@@ -148,6 +148,9 @@ func (d *Querier) Get(ctx context.Context, threadID post.ID, pageParams paginati
 				ent_post.ID(xid.ID(threadID)),
 			).
 			WithCategory().
+				WithAssets(func(aq *ent.AssetQuery) {
+					aq.Order(ent_asset.ByUpdatedAt(), ent_asset.ByCreatedAt())
+				}).
 			WithLink(func(lq *ent.LinkQuery) {
 				lq.WithFaviconImage().WithPrimaryImage()
 			}).

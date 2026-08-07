@@ -181,10 +181,10 @@ export function SearchScreen(props: Props) {
       ) : (
         <EmptyState hideContributionLabel>
           {query
-            ? results && page > results?.total_pages
+            ? results && results.total_pages > 0 && page > results.total_pages
               ? "You've gone past the last page! Nothing to see here."
-              : "No search results."
-            : "Go forth, seek far and wide."}
+              : "Keine Suchergebnisse gefunden."
+            : "Suchen Sie nach Beiträgen, Antworten oder Dokumenten."}
         </EmptyState>
       )}
     </styled.form>

@@ -5,6 +5,7 @@ import (
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/opt"
 
+	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/app/resources/collection/collection_item_status"
 	"github.com/Southclaws/storyden/app/resources/datagraph"
@@ -136,10 +137,14 @@ func ItemRef(c *ent.Node) (datagraph.Item, error) {
 		IndexedAt:      opt.NewPtr(c.IndexedAt),
 		Name:           c.Name,
 		CurrentVersion: opt.NewPtr(c.CurrentVersionID),
+		Assets:         dt.Map(c.Edges.Assets, asset.Map),
 		Content:        content,
 		Description:    opt.NewPtr(c.Description),
-		Visibility:     visibility.NewVisibilityFromEnt(c.Visibility),
-		SortKey:        c.Sort,
-		Metadata:       c.Metadata,
+		Owner: profile.Ref{
+			ID: account.AccountID(c.AccountID),
+		},
+		Visibility: visibility.NewVisibilityFromEnt(c.Visibility),
+		SortKey:    c.Sort,
+		Metadata:   c.Metadata,
 	}, nil
 }

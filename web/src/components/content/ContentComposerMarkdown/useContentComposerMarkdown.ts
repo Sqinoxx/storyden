@@ -223,6 +223,13 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
   }
 
   function handleDragEnter(e: React.DragEvent<HTMLTextAreaElement>) {
+    // Incremented unconditionally so it stays paired with every dragleave,
+    // including the ones fired by dragging a text selection around within
+    // the textarea itself — that carries text/plain, not a file, but the
+    // browser still fires enter/leave for it. See the identical comment in
+    // useContentComposerRich.ts for why gating this on hasFile is a bug.
+    dragCounterRef.current += 1;
+
     const items = Array.from(e.dataTransfer.items);
     const hasFile = items.some((item) => item.kind === "file");
 
@@ -231,7 +238,6 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
     }
 
     e.preventDefault();
-    dragCounterRef.current += 1;
     setIsDragging(true);
 
     const hasImage = hasImageFile(e.dataTransfer.items);
@@ -251,7 +257,7 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
   }
 
   function handleDragLeave() {
-    dragCounterRef.current -= 1;
+    dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
     if (dragCounterRef.current === 0) {
       setIsDragging(false);
       setIsDragError(false);

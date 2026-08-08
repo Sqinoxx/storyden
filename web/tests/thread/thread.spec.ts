@@ -1,85 +1,14 @@
-import { Page, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-const PASSWORD = "TestPassword123!";
-
-async function dismissOnboarding(page: Page) {
-  const skipButton = page.getByRole("button", { name: "Skip" });
-  if (await skipButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await skipButton.click();
-  }
-}
-
-async function registerUser(page: Page, username: string) {
-  await page.goto("/register");
-  await page.getByRole("textbox", { name: "username" }).fill(username);
-  await page.getByRole("textbox", { name: "password" }).fill(PASSWORD);
-  await page.getByRole("button", { name: "Register" }).click();
-  await expect(page).toHaveURL("/", { timeout: 10000 });
-  await expect(
-    page.getByRole("button", { name: "Account menu" }),
-  ).toBeVisible();
-  await dismissOnboarding(page);
-}
-
-async function logout(page: Page) {
-  await page.getByRole("button", { name: "Account menu" }).click();
-  await page.getByRole("menuitem", { name: "Logout" }).click();
-  await expect(page.getByRole("link", { name: "Login" })).toBeVisible();
-}
-
-async function login(page: Page, username: string) {
-  await page.goto("/login");
-  await page.getByRole("textbox", { name: "username" }).fill(username);
-  await page.getByRole("textbox", { name: "password" }).fill(PASSWORD);
-  await page.getByRole("button", { name: "Login" }).click();
-  await expect(page).toHaveURL("/", { timeout: 10000 });
-  await expect(
-    page.getByRole("button", { name: "Account menu" }),
-  ).toBeVisible();
-  await dismissOnboarding(page);
-}
-
-async function createThread(
-  page: Page,
-  title: string,
-  body: string,
-): Promise<string> {
-  await page.getByRole("link", { name: "Post", exact: true }).click();
-  await expect(page).toHaveURL("/new", { timeout: 5000 });
-
-  await page.locator("#title-input").fill(title);
-
-  const editor = page.locator(".ProseMirror").first();
-  await editor.click();
-  await editor.fill(body);
-
-  await page.getByRole("button", { name: "Post" }).click();
-
-  await expect(page).toHaveURL(/\/t\//, { timeout: 10000 });
-  await dismissOnboarding(page);
-
-  const url = page.url();
-  return url;
-}
-
-async function postReply(page: Page, body: string) {
-  const replyForm = page.locator("form").filter({ hasText: "Reply to" });
-  const replyEditor = replyForm.locator(".ProseMirror[contenteditable='true']");
-  await replyEditor.click();
-  await replyEditor.fill(body);
-
-  await replyForm.getByRole("button", { name: "Post" }).click();
-
-  await page
-    .locator("li")
-    .filter({ hasText: body })
-    .waitFor({ timeout: 10000 });
-}
-
-async function navigateToThread(page: Page, threadUrl: string) {
-  await page.goto(threadUrl);
-  await dismissOnboarding(page);
-}
+import {
+  createThread,
+  dismissOnboarding,
+  login,
+  logout,
+  navigateToThread,
+  postReply,
+  registerUser,
+} from "../helpers";
 
 test.describe("Thread Creation", () => {
   test("should create a thread with title and body", async ({ page }) => {

@@ -67,6 +67,15 @@ ENV NODE_ENV=production
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# OCR_PROVIDER=tesseract shells out to these binaries for image and scanned-PDF
+# text extraction. Without them the API falls back to text-layer-only mode.
+RUN apk add --no-cache \
+    ca-certificates \
+    tesseract-ocr \
+    tesseract-ocr-data-deu \
+    tesseract-ocr-data-eng \
+    poppler-utils
+
 RUN addgroup --system --gid 1001 storyden && \
     adduser --system --uid 1001 storyden && \
     chown storyden:storyden /storyden

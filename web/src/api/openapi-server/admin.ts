@@ -10,6 +10,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 import type {
   AccountGetOKResponse,
   AdminAccessKeyListOKResponse,
+  AdminDriveFolderCreateBody,
+  AdminDriveFolderUpdateBody,
   AdminOCRReindex200,
   AdminOCRStats200,
   AdminSettingsGetOKResponse,
@@ -19,6 +21,8 @@ import type {
   AuditEventGetOKResponse,
   AuditEventListOKResponse,
   AuditEventListParams,
+  DriveFolderGetOKResponse,
+  DriveFolderListOKResponse,
   EmailQueueGetOKResponse,
   EmailQueueListOKResponse,
   EmailQueueListParams,
@@ -130,6 +134,116 @@ export const adminOCRReindex = async (
     ...options,
     method: "POST",
   });
+};
+
+/**
+ * List every Google Drive folder registered on this installation,
+including those hidden from ordinary members.
+
+ */
+export type adminDriveFolderListResponse = {
+  data: DriveFolderListOKResponse;
+  status: number;
+};
+
+export const getAdminDriveFolderListUrl = () => {
+  return `/admin/drive/folders`;
+};
+
+export const adminDriveFolderList = async (
+  options?: RequestInit,
+): Promise<adminDriveFolderListResponse> => {
+  return fetcher<Promise<adminDriveFolderListResponse>>(
+    getAdminDriveFolderListUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * Register a Google Drive folder so members can browse it. The folder must
+already be shared with the installation's service account.
+
+ */
+export type adminDriveFolderCreateResponse = {
+  data: DriveFolderGetOKResponse;
+  status: number;
+};
+
+export const getAdminDriveFolderCreateUrl = () => {
+  return `/admin/drive/folders`;
+};
+
+export const adminDriveFolderCreate = async (
+  adminDriveFolderCreateBody: AdminDriveFolderCreateBody,
+  options?: RequestInit,
+): Promise<adminDriveFolderCreateResponse> => {
+  return fetcher<Promise<adminDriveFolderCreateResponse>>(
+    getAdminDriveFolderCreateUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(adminDriveFolderCreateBody),
+    },
+  );
+};
+
+/**
+ * Change a registered Google Drive folder.
+ */
+export type adminDriveFolderUpdateResponse = {
+  data: DriveFolderGetOKResponse;
+  status: number;
+};
+
+export const getAdminDriveFolderUpdateUrl = (driveFolderId: string) => {
+  return `/admin/drive/folders/${driveFolderId}`;
+};
+
+export const adminDriveFolderUpdate = async (
+  driveFolderId: string,
+  adminDriveFolderUpdateBody: AdminDriveFolderUpdateBody,
+  options?: RequestInit,
+): Promise<adminDriveFolderUpdateResponse> => {
+  return fetcher<Promise<adminDriveFolderUpdateResponse>>(
+    getAdminDriveFolderUpdateUrl(driveFolderId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(adminDriveFolderUpdateBody),
+    },
+  );
+};
+
+/**
+ * Withdraw a Google Drive folder from the site. Nothing is removed from
+Google Drive itself.
+
+ */
+export type adminDriveFolderDeleteResponse = {
+  data: void;
+  status: number;
+};
+
+export const getAdminDriveFolderDeleteUrl = (driveFolderId: string) => {
+  return `/admin/drive/folders/${driveFolderId}`;
+};
+
+export const adminDriveFolderDelete = async (
+  driveFolderId: string,
+  options?: RequestInit,
+): Promise<adminDriveFolderDeleteResponse> => {
+  return fetcher<Promise<adminDriveFolderDeleteResponse>>(
+    getAdminDriveFolderDeleteUrl(driveFolderId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
 };
 
 /**

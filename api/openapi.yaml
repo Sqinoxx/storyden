@@ -108,6 +108,8 @@ tags:
     description: Event scheduling, invites and management.
   - name: robots
     description: Robots (AI Agents)
+  - name: drive
+    description: Browsing Google Drive folders shared with the installation.
 
 #
 # 8888888b.     d8888 88888888888 888    888  .d8888b.
@@ -352,6 +354,116 @@ paths:
                 required: [reindexed]
                 properties:
                   reindexed: { type: integer }
+
+  #
+  #      888          d8b
+  #      888          Y8P
+  #      888
+  #  .d88888 888d888 888 888  888  .d88b.
+  # d88" 888 888P"   888 888  888 d8P  Y8b
+  # 888  888 888     888 888  888 88888888
+  # Y88b 888 888     888 Y88b 888 Y8b.
+  #  "Y88888 888     888  "Y88888  "Y8888
+  #                           888
+  #                      Y8b d88P
+  #                       "Y88P"
+  #
+
+  /admin/drive/folders:
+    get:
+      operationId: AdminDriveFolderList
+      description: |
+        List every Google Drive folder registered on this installation,
+        including those hidden from ordinary members.
+      tags: [drive, admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/DriveFolderListOK" }
+    post:
+      operationId: AdminDriveFolderCreate
+      description: |
+        Register a Google Drive folder so members can browse it. The folder must
+        already be shared with the installation's service account.
+      tags: [drive, admin]
+      requestBody: { $ref: "#/components/requestBodies/AdminDriveFolderCreate" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/DriveFolderGetOK" }
+
+  /admin/drive/folders/{drive_folder_id}:
+    parameters:
+      - $ref: "#/components/parameters/DriveFolderIDParam"
+    patch:
+      operationId: AdminDriveFolderUpdate
+      description: Change a registered Google Drive folder.
+      tags: [drive, admin]
+      requestBody: { $ref: "#/components/requestBodies/AdminDriveFolderUpdate" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/DriveFolderGetOK" }
+    delete:
+      operationId: AdminDriveFolderDelete
+      description: |
+        Withdraw a Google Drive folder from the site. Nothing is removed from
+        Google Drive itself.
+      tags: [drive, admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { description: OK }
+
+  /drive/folders:
+    get:
+      operationId: DriveFolderList
+      description: |
+        List the Google Drive folders the caller may browse. Folders are
+        filtered by the visibility an administrator assigned to each one.
+      tags: [drive]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "200": { $ref: "#/components/responses/DriveFolderListOK" }
+
+  /drive/folders/{drive_folder_id}/contents:
+    get:
+      operationId: DriveFolderContents
+      description: |
+        List the contents of a registered folder, or of a folder beneath it.
+        Any folder outside the registered root is reported as not found.
+      tags: [drive]
+      x-storyden: { rate-limit-cost: 3 }
+      parameters:
+        - $ref: "#/components/parameters/DriveFolderIDParam"
+        - $ref: "#/components/parameters/DriveChildIDQuery"
+        - $ref: "#/components/parameters/DrivePageTokenQuery"
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/DriveFolderContentsOK" }
+
+  /drive/folders/{drive_folder_id}/files/{drive_file_id}/content:
+    get:
+      operationId: DriveFileDownload
+      description: |
+        Stream a file's contents through the site. Google-native documents are
+        exported to a portable format first. Any file outside the registered
+        root is reported as not found.
+      tags: [drive]
+      x-storyden: { rate-limit-cost: 3 }
+      parameters:
+        - $ref: "#/components/parameters/DriveFolderIDParam"
+        - $ref: "#/components/parameters/DriveFileIDParam"
+        - $ref: "#/components/parameters/DriveDispositionQuery"
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/DriveFileDownloadOK" }
 
   /admin/accounts:
     get:
@@ -4863,6 +4975,52 @@ components:
       schema:
         type: string
 
+    DriveFolderIDParam:
+      description: Registered Google Drive folder ID.
+      name: drive_folder_id
+      in: path
+      required: true
+      schema:
+        $ref: "#/components/schemas/Identifier"
+
+    DriveFileIDParam:
+      description: Google Drive file ID.
+      name: drive_file_id
+      in: path
+      required: true
+      schema:
+        type: string
+
+    DriveChildIDQuery:
+      description: |
+        Google Drive ID of a folder beneath the registered root. Omit to list
+        the root itself.
+      name: child_id
+      in: query
+      required: false
+      schema:
+        type: string
+
+    DrivePageTokenQuery:
+      description: Opaque continuation token from a previous listing.
+      name: page_token
+      in: query
+      required: false
+      schema:
+        type: string
+
+    DriveDispositionQuery:
+      description: |
+        Whether the response should be rendered in the browser or downloaded.
+        Inline rendering is only honoured for file types that are safe to
+        display; anything else is served as an attachment regardless.
+      name: disposition
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [inline, attachment]
+
     AssetPathParam:
       description: Asset ID.
       name: asset_filename
@@ -5143,6 +5301,16 @@ components:
       content:
         application/json:
           schema: { $ref: "#/components/schemas/AdminSettingsMutableProps" }
+
+    AdminDriveFolderCreate:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/DriveFolderInitialProps" }
+
+    AdminDriveFolderUpdate:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/DriveFolderMutableProps" }
 
     ModerationActionCreate:
       content:
@@ -6365,6 +6533,41 @@ components:
             type: string
             format: binary
 
+    DriveFolderListOK:
+      description: Registered Google Drive folders.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DriveFolderListResult"
+
+    DriveFolderGetOK:
+      description: A registered Google Drive folder.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DriveFolder"
+
+    DriveFolderContentsOK:
+      description: The contents of a Google Drive folder.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DriveFolderContents"
+
+    DriveFileDownloadOK:
+      description: The contents of a Google Drive file.
+      headers:
+        Content-Disposition:
+          { $ref: "#/components/headers/Content-Disposition" }
+        X-Content-Type-Options:
+          { $ref: "#/components/headers/X-Content-Type-Options" }
+        Cache-Control: { $ref: "#/components/headers/Cache-Control" }
+      content:
+        "*/*":
+          schema:
+            type: string
+            format: binary
+
     AssetDownloadOK:
       description: The full contents of the asset.
       headers: { <<: *asset_response_headers }
@@ -6991,10 +7194,151 @@ components:
         - sms_client
         - oauth
         - robots
+        - drive
 
     InstanceCapabilityList:
       type: array
       items: { $ref: "#/components/schemas/InstanceCapability" }
+
+    DriveVisibility:
+      type: string
+      description: |
+        Who may browse a registered Google Drive folder. `public` includes
+        signed-out visitors, `member` requires an account, `admin` restricts the
+        folder to those who can manage settings.
+      enum:
+        - public
+        - member
+        - admin
+
+    DriveFolderCommonProps:
+      type: object
+      required: [name, visibility, sort]
+      properties:
+        name:
+          type: string
+          description: |
+            The name members see. Independent of the folder's name in Drive, so
+            renaming it in Google does not change it here.
+        description:
+          type: string
+        visibility: { $ref: "#/components/schemas/DriveVisibility" }
+        sort:
+          type: integer
+          description: Ordering weight, ascending.
+
+    DriveFolderAdditionalProps:
+      type: object
+      required: [drive_folder_id]
+      properties:
+        drive_folder_id:
+          type: string
+          description: The folder's ID within Google Drive.
+
+    DriveFolder:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CommonProperties"
+        - $ref: "#/components/schemas/DriveFolderCommonProps"
+        - $ref: "#/components/schemas/DriveFolderAdditionalProps"
+
+    DriveFolderList:
+      type: array
+      items: { $ref: "#/components/schemas/DriveFolder" }
+
+    DriveFolderListResult:
+      type: object
+      required: [folders, configured]
+      properties:
+        folders: { $ref: "#/components/schemas/DriveFolderList" }
+        configured:
+          type: boolean
+          description: |
+            Whether the installation holds Google Drive credentials. Folders can
+            be registered without them, but nothing inside can be read, so the
+            admin interface uses this to explain the missing setup step.
+
+    DriveFolderInitialProps:
+      type: object
+      required: [name, link]
+      properties:
+        name:
+          type: string
+        link:
+          type: string
+          description: |
+            A Google Drive folder share link, or the folder ID on its own.
+        description:
+          type: string
+        visibility: { $ref: "#/components/schemas/DriveVisibility" }
+        sort:
+          type: integer
+
+    DriveFolderMutableProps:
+      type: object
+      properties:
+        name:
+          type: string
+        link:
+          type: string
+        description:
+          type: string
+        visibility: { $ref: "#/components/schemas/DriveVisibility" }
+        sort:
+          type: integer
+
+    DriveEntry:
+      type: object
+      required: [id, name, mime_type, is_folder, previewable]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        mime_type:
+          type: string
+          description: |
+            The type the bytes are served as. Google-native documents report
+            their exported type, not the Drive type, because that is what a
+            download or preview actually receives.
+        size:
+          type: integer
+          format: int64
+          description: Absent for Google-native documents, whose size is unknown until exported.
+        modified_at:
+          type: string
+          format: date-time
+        is_folder:
+          type: boolean
+        previewable:
+          type: boolean
+          description: Whether the file can be rendered in the browser.
+
+    DriveEntryList:
+      type: array
+      items: { $ref: "#/components/schemas/DriveEntry" }
+
+    DriveCrumb:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+
+    DriveFolderContents:
+      type: object
+      required: [folder, breadcrumbs, entries]
+      properties:
+        folder: { $ref: "#/components/schemas/DriveFolder" }
+        breadcrumbs:
+          type: array
+          items: { $ref: "#/components/schemas/DriveCrumb" }
+          description: The trail from the registered root down to the listed folder.
+        entries: { $ref: "#/components/schemas/DriveEntryList" }
+        next_page_token:
+          type: string
 
     Visibility:
       type: string

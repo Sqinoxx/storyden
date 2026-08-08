@@ -615,4 +615,19 @@ type Config struct {
 	PineconeCloud string `envconfig:"PINECONE_CLOUD"`
 	// Same as above, but for the region. As with any third party providers, it's recommended to choose the region closest to both your Storyden deployment and your community members for best performance and experience.
 	PineconeRegion string `envconfig:"PINECONE_REGION"`
+
+	// -
+	// Google Drive
+	// -
+
+	/*
+	   The service account key, either as raw JSON or base64 encoded. Base64 is usually easier to pass through deployment tooling that dislikes multi-line values. Takes precedence over `GOOGLE_DRIVE_SERVICE_ACCOUNT_FILE`.
+
+	   Set to `mock` to browse a small in-memory folder tree instead of Google Drive. This is for local development and end-to-end tests; never use it in production.
+	*/
+	GoogleDriveServiceAccountJSON string `envconfig:"GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON"`
+	// Path to the service account key file on disk. An alternative to `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON` for deployments that mount secrets as files.
+	GoogleDriveServiceAccountFile string `envconfig:"GOOGLE_DRIVE_SERVICE_ACCOUNT_FILE"`
+	// How long folder listings are cached for. Drive enforces per-project API quotas and every navigation step would otherwise cost several requests. Lower this if folder contents change often and members need to see updates immediately.
+	GoogleDriveCacheTTL time.Duration `default:"1m" envconfig:"GOOGLE_DRIVE_CACHE_TTL"`
 }

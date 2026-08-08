@@ -31,6 +31,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/collection/collection_querier"
 	"github.com/Southclaws/storyden/app/resources/collection/collection_writer"
 	"github.com/Southclaws/storyden/app/resources/datagraph/hydrate"
+	"github.com/Southclaws/storyden/app/resources/drive"
 	"github.com/Southclaws/storyden/app/resources/email_queue/email_queue_querier"
 	"github.com/Southclaws/storyden/app/resources/email_queue/email_queue_repo"
 	"github.com/Southclaws/storyden/app/resources/event/event_querier"
@@ -151,6 +152,7 @@ func Build() fx.Option {
 			node_properties.New,
 			link_querier.New,
 			link_writer.New,
+			drive.New,
 			oauth_remote.New,
 			oauth_querier.New,
 			oauth_writer.New,

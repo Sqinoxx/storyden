@@ -14,6 +14,7 @@ import { AccessKeySettingsScreen } from "./AccessKeySettingsScreen";
 import { AuditLogSettingsScreen } from "./AuditLogSettingsScreen/AuditLogSettingsScreen";
 import { AuthenticationSettingsScreen } from "./AuthenticationSettingsScreen";
 import { BrandSettingsScreen } from "./BrandSettingsScreen";
+import { DriveSettingsScreen } from "./DriveSettingsScreen";
 import { EmailLogSettingsScreen } from "./EmailLogSettingsScreen/EmailLogSettingsScreen";
 import { InterfaceSettingsScreen } from "./InterfaceSettingsScreen";
 import { ModerationSettingsScreen } from "./ModerationSettingsScreen";
@@ -57,6 +58,7 @@ export function AdminScreen() {
     if (!canViewOAuth && tab === "oauth") {
       setTab(DEFAULT_TAB);
     }
+
   }, [canViewEmailLog, canViewOAuth, pluginsEnabled, tab, setTab]);
 
   function handleTabChange({ value }: TabsValueChangeDetails) {
@@ -85,6 +87,7 @@ export function AdminScreen() {
         <Tabs.Trigger value="access_keys">Access keys</Tabs.Trigger>
         {canViewOAuth && <Tabs.Trigger value="oauth">OAuth</Tabs.Trigger>}
         {pluginsEnabled && <Tabs.Trigger value="plugins">Plugins</Tabs.Trigger>}
+        <Tabs.Trigger value="drive">Drive</Tabs.Trigger>
         <Tabs.Trigger value="robots">Robots</Tabs.Trigger>
         <Tabs.Indicator />
       </Tabs.List>
@@ -138,6 +141,10 @@ export function AdminScreen() {
           <PluginSettingsScreen />
         </Tabs.Content>
       )}
+
+      <Tabs.Content value="drive">
+        <DriveSettingsScreen />
+      </Tabs.Content>
 
       <Tabs.Content value="robots">
         <RobotsSettingsScreen />

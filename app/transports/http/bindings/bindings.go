@@ -91,6 +91,7 @@ type Bindings struct {
 	Events
 	OAuth
 	Robots
+	Drive
 }
 
 // bindingsProviders provides to the application the necessary implementations
@@ -128,6 +129,7 @@ func bindingsProviders() fx.Option {
 		NewEvents,
 		NewOAuth,
 		NewRobots,
+		NewDrive,
 	)
 }
 

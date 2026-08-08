@@ -19,6 +19,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/auditlog"
 	"github.com/Southclaws/storyden/internal/ent/authentication"
 	"github.com/Southclaws/storyden/internal/ent/collection"
+	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/Southclaws/storyden/internal/ent/email"
 	"github.com/Southclaws/storyden/internal/ent/eventparticipant"
 	"github.com/Southclaws/storyden/internal/ent/invitation"
@@ -562,6 +563,21 @@ func (_u *AccountUpdate) AddOauthRemoteConnections(v ...*OAuthRemoteConnection) 
 		ids[i] = v[i].ID
 	}
 	return _u.AddOauthRemoteConnectionIDs(ids...)
+}
+
+// AddDriveFolderIDs adds the "drive_folders" edge to the DriveFolder entity by IDs.
+func (_u *AccountUpdate) AddDriveFolderIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.AddDriveFolderIDs(ids...)
+	return _u
+}
+
+// AddDriveFolders adds the "drive_folders" edges to the DriveFolder entity.
+func (_u *AccountUpdate) AddDriveFolders(v ...*DriveFolder) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDriveFolderIDs(ids...)
 }
 
 // AddClaimedOauthDeviceAuthorisationIDs adds the "claimed_oauth_device_authorisations" edge to the OAuthDeviceAuthorisation entity by IDs.
@@ -1317,6 +1333,27 @@ func (_u *AccountUpdate) RemoveOauthRemoteConnections(v ...*OAuthRemoteConnectio
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOauthRemoteConnectionIDs(ids...)
+}
+
+// ClearDriveFolders clears all "drive_folders" edges to the DriveFolder entity.
+func (_u *AccountUpdate) ClearDriveFolders() *AccountUpdate {
+	_u.mutation.ClearDriveFolders()
+	return _u
+}
+
+// RemoveDriveFolderIDs removes the "drive_folders" edge to DriveFolder entities by IDs.
+func (_u *AccountUpdate) RemoveDriveFolderIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.RemoveDriveFolderIDs(ids...)
+	return _u
+}
+
+// RemoveDriveFolders removes "drive_folders" edges to DriveFolder entities.
+func (_u *AccountUpdate) RemoveDriveFolders(v ...*DriveFolder) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDriveFolderIDs(ids...)
 }
 
 // ClearClaimedOauthDeviceAuthorisations clears all "claimed_oauth_device_authorisations" edges to the OAuthDeviceAuthorisation entity.
@@ -2838,6 +2875,51 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(oauthremoteconnection.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DriveFoldersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.DriveFoldersTable,
+			Columns: []string{account.DriveFoldersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDriveFoldersIDs(); len(nodes) > 0 && !_u.mutation.DriveFoldersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.DriveFoldersTable,
+			Columns: []string{account.DriveFoldersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DriveFoldersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.DriveFoldersTable,
+			Columns: []string{account.DriveFoldersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -4398,6 +4480,21 @@ func (_u *AccountUpdateOne) AddOauthRemoteConnections(v ...*OAuthRemoteConnectio
 	return _u.AddOauthRemoteConnectionIDs(ids...)
 }
 
+// AddDriveFolderIDs adds the "drive_folders" edge to the DriveFolder entity by IDs.
+func (_u *AccountUpdateOne) AddDriveFolderIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.AddDriveFolderIDs(ids...)
+	return _u
+}
+
+// AddDriveFolders adds the "drive_folders" edges to the DriveFolder entity.
+func (_u *AccountUpdateOne) AddDriveFolders(v ...*DriveFolder) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDriveFolderIDs(ids...)
+}
+
 // AddClaimedOauthDeviceAuthorisationIDs adds the "claimed_oauth_device_authorisations" edge to the OAuthDeviceAuthorisation entity by IDs.
 func (_u *AccountUpdateOne) AddClaimedOauthDeviceAuthorisationIDs(ids ...xid.ID) *AccountUpdateOne {
 	_u.mutation.AddClaimedOauthDeviceAuthorisationIDs(ids...)
@@ -5151,6 +5248,27 @@ func (_u *AccountUpdateOne) RemoveOauthRemoteConnections(v ...*OAuthRemoteConnec
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOauthRemoteConnectionIDs(ids...)
+}
+
+// ClearDriveFolders clears all "drive_folders" edges to the DriveFolder entity.
+func (_u *AccountUpdateOne) ClearDriveFolders() *AccountUpdateOne {
+	_u.mutation.ClearDriveFolders()
+	return _u
+}
+
+// RemoveDriveFolderIDs removes the "drive_folders" edge to DriveFolder entities by IDs.
+func (_u *AccountUpdateOne) RemoveDriveFolderIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.RemoveDriveFolderIDs(ids...)
+	return _u
+}
+
+// RemoveDriveFolders removes "drive_folders" edges to DriveFolder entities.
+func (_u *AccountUpdateOne) RemoveDriveFolders(v ...*DriveFolder) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDriveFolderIDs(ids...)
 }
 
 // ClearClaimedOauthDeviceAuthorisations clears all "claimed_oauth_device_authorisations" edges to the OAuthDeviceAuthorisation entity.
@@ -6702,6 +6820,51 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(oauthremoteconnection.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DriveFoldersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.DriveFoldersTable,
+			Columns: []string{account.DriveFoldersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDriveFoldersIDs(); len(nodes) > 0 && !_u.mutation.DriveFoldersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.DriveFoldersTable,
+			Columns: []string{account.DriveFoldersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DriveFoldersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.DriveFoldersTable,
+			Columns: []string{account.DriveFoldersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

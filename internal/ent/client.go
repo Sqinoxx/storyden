@@ -26,6 +26,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/collection"
 	"github.com/Southclaws/storyden/internal/ent/collectionnode"
 	"github.com/Southclaws/storyden/internal/ent/collectionpost"
+	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/Southclaws/storyden/internal/ent/email"
 	"github.com/Southclaws/storyden/internal/ent/emailqueue"
 	"github.com/Southclaws/storyden/internal/ent/event"
@@ -95,6 +96,8 @@ type Client struct {
 	CollectionNode *CollectionNodeClient
 	// CollectionPost is the client for interacting with the CollectionPost builders.
 	CollectionPost *CollectionPostClient
+	// DriveFolder is the client for interacting with the DriveFolder builders.
+	DriveFolder *DriveFolderClient
 	// Email is the client for interacting with the Email builders.
 	Email *EmailClient
 	// EmailQueue is the client for interacting with the EmailQueue builders.
@@ -196,6 +199,7 @@ func (c *Client) init() {
 	c.Collection = NewCollectionClient(c.config)
 	c.CollectionNode = NewCollectionNodeClient(c.config)
 	c.CollectionPost = NewCollectionPostClient(c.config)
+	c.DriveFolder = NewDriveFolderClient(c.config)
 	c.Email = NewEmailClient(c.config)
 	c.EmailQueue = NewEmailQueueClient(c.config)
 	c.Event = NewEventClient(c.config)
@@ -338,6 +342,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Collection:                   NewCollectionClient(cfg),
 		CollectionNode:               NewCollectionNodeClient(cfg),
 		CollectionPost:               NewCollectionPostClient(cfg),
+		DriveFolder:                  NewDriveFolderClient(cfg),
 		Email:                        NewEmailClient(cfg),
 		EmailQueue:                   NewEmailQueueClient(cfg),
 		Event:                        NewEventClient(cfg),
@@ -407,6 +412,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Collection:                   NewCollectionClient(cfg),
 		CollectionNode:               NewCollectionNodeClient(cfg),
 		CollectionPost:               NewCollectionPostClient(cfg),
+		DriveFolder:                  NewDriveFolderClient(cfg),
 		Email:                        NewEmailClient(cfg),
 		EmailQueue:                   NewEmailQueueClient(cfg),
 		Event:                        NewEventClient(cfg),
@@ -478,15 +484,16 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Account, c.AccountFollow, c.AccountRoles, c.Asset, c.AuditLog,
 		c.Authentication, c.Category, c.Collection, c.CollectionNode, c.CollectionPost,
-		c.Email, c.EmailQueue, c.Event, c.EventParticipant, c.Invitation, c.LikePost,
-		c.Link, c.MentionProfile, c.ModerationNote, c.Node, c.NodeVersion,
-		c.Notification, c.OAuthAuthorisationCode, c.OAuthAuthorisationRequest,
-		c.OAuthClient, c.OAuthDeviceAuthorisation, c.OAuthRefreshToken,
-		c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection, c.Plugin, c.Post,
-		c.PostRead, c.Property, c.PropertySchema, c.PropertySchemaField, c.React,
-		c.Report, c.Robot, c.RobotMCPServer, c.RobotMCPTool, c.RobotProviderModel,
-		c.RobotSession, c.RobotSessionMessage, c.RobotWorkspace,
-		c.RobotWorkspaceInstance, c.Role, c.Session, c.Setting, c.Tag, c.Warning,
+		c.DriveFolder, c.Email, c.EmailQueue, c.Event, c.EventParticipant,
+		c.Invitation, c.LikePost, c.Link, c.MentionProfile, c.ModerationNote, c.Node,
+		c.NodeVersion, c.Notification, c.OAuthAuthorisationCode,
+		c.OAuthAuthorisationRequest, c.OAuthClient, c.OAuthDeviceAuthorisation,
+		c.OAuthRefreshToken, c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection,
+		c.Plugin, c.Post, c.PostRead, c.Property, c.PropertySchema,
+		c.PropertySchemaField, c.React, c.Report, c.Robot, c.RobotMCPServer,
+		c.RobotMCPTool, c.RobotProviderModel, c.RobotSession, c.RobotSessionMessage,
+		c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role, c.Session, c.Setting,
+		c.Tag, c.Warning,
 	} {
 		n.Use(hooks...)
 	}
@@ -498,15 +505,16 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Account, c.AccountFollow, c.AccountRoles, c.Asset, c.AuditLog,
 		c.Authentication, c.Category, c.Collection, c.CollectionNode, c.CollectionPost,
-		c.Email, c.EmailQueue, c.Event, c.EventParticipant, c.Invitation, c.LikePost,
-		c.Link, c.MentionProfile, c.ModerationNote, c.Node, c.NodeVersion,
-		c.Notification, c.OAuthAuthorisationCode, c.OAuthAuthorisationRequest,
-		c.OAuthClient, c.OAuthDeviceAuthorisation, c.OAuthRefreshToken,
-		c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection, c.Plugin, c.Post,
-		c.PostRead, c.Property, c.PropertySchema, c.PropertySchemaField, c.React,
-		c.Report, c.Robot, c.RobotMCPServer, c.RobotMCPTool, c.RobotProviderModel,
-		c.RobotSession, c.RobotSessionMessage, c.RobotWorkspace,
-		c.RobotWorkspaceInstance, c.Role, c.Session, c.Setting, c.Tag, c.Warning,
+		c.DriveFolder, c.Email, c.EmailQueue, c.Event, c.EventParticipant,
+		c.Invitation, c.LikePost, c.Link, c.MentionProfile, c.ModerationNote, c.Node,
+		c.NodeVersion, c.Notification, c.OAuthAuthorisationCode,
+		c.OAuthAuthorisationRequest, c.OAuthClient, c.OAuthDeviceAuthorisation,
+		c.OAuthRefreshToken, c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection,
+		c.Plugin, c.Post, c.PostRead, c.Property, c.PropertySchema,
+		c.PropertySchemaField, c.React, c.Report, c.Robot, c.RobotMCPServer,
+		c.RobotMCPTool, c.RobotProviderModel, c.RobotSession, c.RobotSessionMessage,
+		c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role, c.Session, c.Setting,
+		c.Tag, c.Warning,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -535,6 +543,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CollectionNode.mutate(ctx, m)
 	case *CollectionPostMutation:
 		return c.CollectionPost.mutate(ctx, m)
+	case *DriveFolderMutation:
+		return c.DriveFolder.mutate(ctx, m)
 	case *EmailMutation:
 		return c.Email.mutate(ctx, m)
 	case *EmailQueueMutation:
@@ -1041,6 +1051,22 @@ func (c *AccountClient) QueryOauthRemoteConnections(_m *Account) *OAuthRemoteCon
 			sqlgraph.From(account.Table, account.FieldID, id),
 			sqlgraph.To(oauthremoteconnection.Table, oauthremoteconnection.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, account.OauthRemoteConnectionsTable, account.OauthRemoteConnectionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDriveFolders queries the drive_folders edge of a Account.
+func (c *AccountClient) QueryDriveFolders(_m *Account) *DriveFolderQuery {
+	query := (&DriveFolderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(drivefolder.Table, drivefolder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.DriveFoldersTable, account.DriveFoldersColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -2969,6 +2995,155 @@ func (c *CollectionPostClient) mutate(ctx context.Context, m *CollectionPostMuta
 		return (&CollectionPostDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown CollectionPost mutation op: %q", m.Op())
+	}
+}
+
+// DriveFolderClient is a client for the DriveFolder schema.
+type DriveFolderClient struct {
+	config
+}
+
+// NewDriveFolderClient returns a client for the DriveFolder from the given config.
+func NewDriveFolderClient(c config) *DriveFolderClient {
+	return &DriveFolderClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `drivefolder.Hooks(f(g(h())))`.
+func (c *DriveFolderClient) Use(hooks ...Hook) {
+	c.hooks.DriveFolder = append(c.hooks.DriveFolder, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `drivefolder.Intercept(f(g(h())))`.
+func (c *DriveFolderClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DriveFolder = append(c.inters.DriveFolder, interceptors...)
+}
+
+// Create returns a builder for creating a DriveFolder entity.
+func (c *DriveFolderClient) Create() *DriveFolderCreate {
+	mutation := newDriveFolderMutation(c.config, OpCreate)
+	return &DriveFolderCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DriveFolder entities.
+func (c *DriveFolderClient) CreateBulk(builders ...*DriveFolderCreate) *DriveFolderCreateBulk {
+	return &DriveFolderCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DriveFolderClient) MapCreateBulk(slice any, setFunc func(*DriveFolderCreate, int)) *DriveFolderCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DriveFolderCreateBulk{err: fmt.Errorf("calling to DriveFolderClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DriveFolderCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DriveFolderCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DriveFolder.
+func (c *DriveFolderClient) Update() *DriveFolderUpdate {
+	mutation := newDriveFolderMutation(c.config, OpUpdate)
+	return &DriveFolderUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DriveFolderClient) UpdateOne(_m *DriveFolder) *DriveFolderUpdateOne {
+	mutation := newDriveFolderMutation(c.config, OpUpdateOne, withDriveFolder(_m))
+	return &DriveFolderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DriveFolderClient) UpdateOneID(id xid.ID) *DriveFolderUpdateOne {
+	mutation := newDriveFolderMutation(c.config, OpUpdateOne, withDriveFolderID(id))
+	return &DriveFolderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DriveFolder.
+func (c *DriveFolderClient) Delete() *DriveFolderDelete {
+	mutation := newDriveFolderMutation(c.config, OpDelete)
+	return &DriveFolderDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DriveFolderClient) DeleteOne(_m *DriveFolder) *DriveFolderDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DriveFolderClient) DeleteOneID(id xid.ID) *DriveFolderDeleteOne {
+	builder := c.Delete().Where(drivefolder.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DriveFolderDeleteOne{builder}
+}
+
+// Query returns a query builder for DriveFolder.
+func (c *DriveFolderClient) Query() *DriveFolderQuery {
+	return &DriveFolderQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDriveFolder},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DriveFolder entity by its id.
+func (c *DriveFolderClient) Get(ctx context.Context, id xid.ID) (*DriveFolder, error) {
+	return c.Query().Where(drivefolder.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DriveFolderClient) GetX(ctx context.Context, id xid.ID) *DriveFolder {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAccount queries the account edge of a DriveFolder.
+func (c *DriveFolderClient) QueryAccount(_m *DriveFolder) *AccountQuery {
+	query := (&AccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(drivefolder.Table, drivefolder.FieldID, id),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, drivefolder.AccountTable, drivefolder.AccountColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DriveFolderClient) Hooks() []Hook {
+	return c.hooks.DriveFolder
+}
+
+// Interceptors returns the client interceptors.
+func (c *DriveFolderClient) Interceptors() []Interceptor {
+	return c.inters.DriveFolder
+}
+
+func (c *DriveFolderClient) mutate(ctx context.Context, m *DriveFolderMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DriveFolderCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DriveFolderUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DriveFolderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DriveFolderDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DriveFolder mutation op: %q", m.Op())
 	}
 }
 
@@ -10120,9 +10295,9 @@ func (c *WarningClient) mutate(ctx context.Context, m *WarningMutation) (Value, 
 type (
 	hooks struct {
 		Account, AccountFollow, AccountRoles, Asset, AuditLog, Authentication, Category,
-		Collection, CollectionNode, CollectionPost, Email, EmailQueue, Event,
-		EventParticipant, Invitation, LikePost, Link, MentionProfile, ModerationNote,
-		Node, NodeVersion, Notification, OAuthAuthorisationCode,
+		Collection, CollectionNode, CollectionPost, DriveFolder, Email, EmailQueue,
+		Event, EventParticipant, Invitation, LikePost, Link, MentionProfile,
+		ModerationNote, Node, NodeVersion, Notification, OAuthAuthorisationCode,
 		OAuthAuthorisationRequest, OAuthClient, OAuthDeviceAuthorisation,
 		OAuthRefreshToken, OAuthRemoteAuthorisationFlow, OAuthRemoteConnection, Plugin,
 		Post, PostRead, Property, PropertySchema, PropertySchemaField, React, Report,
@@ -10132,9 +10307,9 @@ type (
 	}
 	inters struct {
 		Account, AccountFollow, AccountRoles, Asset, AuditLog, Authentication, Category,
-		Collection, CollectionNode, CollectionPost, Email, EmailQueue, Event,
-		EventParticipant, Invitation, LikePost, Link, MentionProfile, ModerationNote,
-		Node, NodeVersion, Notification, OAuthAuthorisationCode,
+		Collection, CollectionNode, CollectionPost, DriveFolder, Email, EmailQueue,
+		Event, EventParticipant, Invitation, LikePost, Link, MentionProfile,
+		ModerationNote, Node, NodeVersion, Notification, OAuthAuthorisationCode,
 		OAuthAuthorisationRequest, OAuthClient, OAuthDeviceAuthorisation,
 		OAuthRefreshToken, OAuthRemoteAuthorisationFlow, OAuthRemoteConnection, Plugin,
 		Post, PostRead, Property, PropertySchema, PropertySchemaField, React, Report,

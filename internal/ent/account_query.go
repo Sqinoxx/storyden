@@ -19,6 +19,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/auditlog"
 	"github.com/Southclaws/storyden/internal/ent/authentication"
 	"github.com/Southclaws/storyden/internal/ent/collection"
+	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/Southclaws/storyden/internal/ent/email"
 	"github.com/Southclaws/storyden/internal/ent/eventparticipant"
 	"github.com/Southclaws/storyden/internal/ent/invitation"
@@ -80,6 +81,7 @@ type AccountQuery struct {
 	withOauthAuthorisationRequests        *OAuthAuthorisationRequestQuery
 	withOauthRefreshTokens                *OAuthRefreshTokenQuery
 	withOauthRemoteConnections            *OAuthRemoteConnectionQuery
+	withDriveFolders                      *DriveFolderQuery
 	withClaimedOauthDeviceAuthorisations  *OAuthDeviceAuthorisationQuery
 	withApprovedOauthDeviceAuthorisations *OAuthDeviceAuthorisationQuery
 	withTags                              *TagQuery
@@ -573,6 +575,28 @@ func (_q *AccountQuery) QueryOauthRemoteConnections() *OAuthRemoteConnectionQuer
 			sqlgraph.From(account.Table, account.FieldID, selector),
 			sqlgraph.To(oauthremoteconnection.Table, oauthremoteconnection.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, account.OauthRemoteConnectionsTable, account.OauthRemoteConnectionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDriveFolders chains the current query on the "drive_folders" edge.
+func (_q *AccountQuery) QueryDriveFolders() *DriveFolderQuery {
+	query := (&DriveFolderClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(drivefolder.Table, drivefolder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.DriveFoldersTable, account.DriveFoldersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1298,6 +1322,7 @@ func (_q *AccountQuery) Clone() *AccountQuery {
 		withOauthAuthorisationRequests:        _q.withOauthAuthorisationRequests.Clone(),
 		withOauthRefreshTokens:                _q.withOauthRefreshTokens.Clone(),
 		withOauthRemoteConnections:            _q.withOauthRemoteConnections.Clone(),
+		withDriveFolders:                      _q.withDriveFolders.Clone(),
 		withClaimedOauthDeviceAuthorisations:  _q.withClaimedOauthDeviceAuthorisations.Clone(),
 		withApprovedOauthDeviceAuthorisations: _q.withApprovedOauthDeviceAuthorisations.Clone(),
 		withTags:                              _q.withTags.Clone(),
@@ -1545,6 +1570,17 @@ func (_q *AccountQuery) WithOauthRemoteConnections(opts ...func(*OAuthRemoteConn
 		opt(query)
 	}
 	_q.withOauthRemoteConnections = query
+	return _q
+}
+
+// WithDriveFolders tells the query-builder to eager-load the nodes that are connected to
+// the "drive_folders" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithDriveFolders(opts ...func(*DriveFolderQuery)) *AccountQuery {
+	query := (&DriveFolderClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDriveFolders = query
 	return _q
 }
 
@@ -1879,7 +1915,7 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 	var (
 		nodes       = []*Account{}
 		_spec       = _q.querySpec()
-		loadedTypes = [43]bool{
+		loadedTypes = [44]bool{
 			_q.withSessions != nil,
 			_q.withPlugins != nil,
 			_q.withEmails != nil,
@@ -1900,6 +1936,7 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 			_q.withOauthAuthorisationRequests != nil,
 			_q.withOauthRefreshTokens != nil,
 			_q.withOauthRemoteConnections != nil,
+			_q.withDriveFolders != nil,
 			_q.withClaimedOauthDeviceAuthorisations != nil,
 			_q.withApprovedOauthDeviceAuthorisations != nil,
 			_q.withTags != nil,
@@ -2092,6 +2129,13 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 			func(n *Account, e *OAuthRemoteConnection) {
 				n.Edges.OauthRemoteConnections = append(n.Edges.OauthRemoteConnections, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDriveFolders; query != nil {
+		if err := _q.loadDriveFolders(ctx, query, nodes,
+			func(n *Account) { n.Edges.DriveFolders = []*DriveFolder{} },
+			func(n *Account, e *DriveFolder) { n.Edges.DriveFolders = append(n.Edges.DriveFolders, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -2894,6 +2938,36 @@ func (_q *AccountQuery) loadOauthRemoteConnections(ctx context.Context, query *O
 	}
 	query.Where(predicate.OAuthRemoteConnection(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(account.OauthRemoteConnectionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AddedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "added_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *AccountQuery) loadDriveFolders(ctx context.Context, query *DriveFolderQuery, nodes []*Account, init func(*Account), assign func(*Account, *DriveFolder)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[xid.ID]*Account)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(drivefolder.FieldAddedBy)
+	}
+	query.Where(predicate.DriveFolder(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(account.DriveFoldersColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

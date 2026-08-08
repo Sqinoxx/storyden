@@ -22,6 +22,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/collection"
 	"github.com/Southclaws/storyden/internal/ent/collectionnode"
 	"github.com/Southclaws/storyden/internal/ent/collectionpost"
+	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/Southclaws/storyden/internal/ent/email"
 	"github.com/Southclaws/storyden/internal/ent/emailqueue"
 	"github.com/Southclaws/storyden/internal/ent/event"
@@ -86,6 +87,7 @@ const (
 	TypeCollection                   = "Collection"
 	TypeCollectionNode               = "CollectionNode"
 	TypeCollectionPost               = "CollectionPost"
+	TypeDriveFolder                  = "DriveFolder"
 	TypeEmail                        = "Email"
 	TypeEmailQueue                   = "EmailQueue"
 	TypeEvent                        = "Event"
@@ -208,6 +210,9 @@ type AccountMutation struct {
 	oauth_remote_connections                    map[xid.ID]struct{}
 	removedoauth_remote_connections             map[xid.ID]struct{}
 	clearedoauth_remote_connections             bool
+	drive_folders                               map[xid.ID]struct{}
+	removeddrive_folders                        map[xid.ID]struct{}
+	cleareddrive_folders                        bool
 	claimed_oauth_device_authorisations         map[xid.ID]struct{}
 	removedclaimed_oauth_device_authorisations  map[xid.ID]struct{}
 	clearedclaimed_oauth_device_authorisations  bool
@@ -2050,6 +2055,60 @@ func (m *AccountMutation) ResetOauthRemoteConnections() {
 	m.removedoauth_remote_connections = nil
 }
 
+// AddDriveFolderIDs adds the "drive_folders" edge to the DriveFolder entity by ids.
+func (m *AccountMutation) AddDriveFolderIDs(ids ...xid.ID) {
+	if m.drive_folders == nil {
+		m.drive_folders = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.drive_folders[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDriveFolders clears the "drive_folders" edge to the DriveFolder entity.
+func (m *AccountMutation) ClearDriveFolders() {
+	m.cleareddrive_folders = true
+}
+
+// DriveFoldersCleared reports if the "drive_folders" edge to the DriveFolder entity was cleared.
+func (m *AccountMutation) DriveFoldersCleared() bool {
+	return m.cleareddrive_folders
+}
+
+// RemoveDriveFolderIDs removes the "drive_folders" edge to the DriveFolder entity by IDs.
+func (m *AccountMutation) RemoveDriveFolderIDs(ids ...xid.ID) {
+	if m.removeddrive_folders == nil {
+		m.removeddrive_folders = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.drive_folders, ids[i])
+		m.removeddrive_folders[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDriveFolders returns the removed IDs of the "drive_folders" edge to the DriveFolder entity.
+func (m *AccountMutation) RemovedDriveFoldersIDs() (ids []xid.ID) {
+	for id := range m.removeddrive_folders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DriveFoldersIDs returns the "drive_folders" edge IDs in the mutation.
+func (m *AccountMutation) DriveFoldersIDs() (ids []xid.ID) {
+	for id := range m.drive_folders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDriveFolders resets all changes to the "drive_folders" edge.
+func (m *AccountMutation) ResetDriveFolders() {
+	m.drive_folders = nil
+	m.cleareddrive_folders = false
+	m.removeddrive_folders = nil
+}
+
 // AddClaimedOauthDeviceAuthorisationIDs adds the "claimed_oauth_device_authorisations" edge to the OAuthDeviceAuthorisation entity by ids.
 func (m *AccountMutation) AddClaimedOauthDeviceAuthorisationIDs(ids ...xid.ID) {
 	if m.claimed_oauth_device_authorisations == nil {
@@ -3691,7 +3750,7 @@ func (m *AccountMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AccountMutation) AddedEdges() []string {
-	edges := make([]string, 0, 43)
+	edges := make([]string, 0, 44)
 	if m.sessions != nil {
 		edges = append(edges, account.EdgeSessions)
 	}
@@ -3751,6 +3810,9 @@ func (m *AccountMutation) AddedEdges() []string {
 	}
 	if m.oauth_remote_connections != nil {
 		edges = append(edges, account.EdgeOauthRemoteConnections)
+	}
+	if m.drive_folders != nil {
+		edges = append(edges, account.EdgeDriveFolders)
 	}
 	if m.claimed_oauth_device_authorisations != nil {
 		edges = append(edges, account.EdgeClaimedOauthDeviceAuthorisations)
@@ -3946,6 +4008,12 @@ func (m *AccountMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case account.EdgeDriveFolders:
+		ids := make([]ent.Value, 0, len(m.drive_folders))
+		for id := range m.drive_folders {
+			ids = append(ids, id)
+		}
+		return ids
 	case account.EdgeClaimedOauthDeviceAuthorisations:
 		ids := make([]ent.Value, 0, len(m.claimed_oauth_device_authorisations))
 		for id := range m.claimed_oauth_device_authorisations {
@@ -4090,7 +4158,7 @@ func (m *AccountMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AccountMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 43)
+	edges := make([]string, 0, 44)
 	if m.removedsessions != nil {
 		edges = append(edges, account.EdgeSessions)
 	}
@@ -4147,6 +4215,9 @@ func (m *AccountMutation) RemovedEdges() []string {
 	}
 	if m.removedoauth_remote_connections != nil {
 		edges = append(edges, account.EdgeOauthRemoteConnections)
+	}
+	if m.removeddrive_folders != nil {
+		edges = append(edges, account.EdgeDriveFolders)
 	}
 	if m.removedclaimed_oauth_device_authorisations != nil {
 		edges = append(edges, account.EdgeClaimedOauthDeviceAuthorisations)
@@ -4338,6 +4409,12 @@ func (m *AccountMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case account.EdgeDriveFolders:
+		ids := make([]ent.Value, 0, len(m.removeddrive_folders))
+		for id := range m.removeddrive_folders {
+			ids = append(ids, id)
+		}
+		return ids
 	case account.EdgeClaimedOauthDeviceAuthorisations:
 		ids := make([]ent.Value, 0, len(m.removedclaimed_oauth_device_authorisations))
 		for id := range m.removedclaimed_oauth_device_authorisations {
@@ -4482,7 +4559,7 @@ func (m *AccountMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AccountMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 43)
+	edges := make([]string, 0, 44)
 	if m.clearedsessions {
 		edges = append(edges, account.EdgeSessions)
 	}
@@ -4542,6 +4619,9 @@ func (m *AccountMutation) ClearedEdges() []string {
 	}
 	if m.clearedoauth_remote_connections {
 		edges = append(edges, account.EdgeOauthRemoteConnections)
+	}
+	if m.cleareddrive_folders {
+		edges = append(edges, account.EdgeDriveFolders)
 	}
 	if m.clearedclaimed_oauth_device_authorisations {
 		edges = append(edges, account.EdgeClaimedOauthDeviceAuthorisations)
@@ -4659,6 +4739,8 @@ func (m *AccountMutation) EdgeCleared(name string) bool {
 		return m.clearedoauth_refresh_tokens
 	case account.EdgeOauthRemoteConnections:
 		return m.clearedoauth_remote_connections
+	case account.EdgeDriveFolders:
+		return m.cleareddrive_folders
 	case account.EdgeClaimedOauthDeviceAuthorisations:
 		return m.clearedclaimed_oauth_device_authorisations
 	case account.EdgeApprovedOauthDeviceAuthorisations:
@@ -4783,6 +4865,9 @@ func (m *AccountMutation) ResetEdge(name string) error {
 		return nil
 	case account.EdgeOauthRemoteConnections:
 		m.ResetOauthRemoteConnections()
+		return nil
+	case account.EdgeDriveFolders:
+		m.ResetDriveFolders()
 		return nil
 	case account.EdgeClaimedOauthDeviceAuthorisations:
 		m.ResetClaimedOauthDeviceAuthorisations()
@@ -12617,6 +12702,914 @@ func (m *CollectionPostMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown CollectionPost edge %s", name)
+}
+
+// DriveFolderMutation represents an operation that mutates the DriveFolder nodes in the graph.
+type DriveFolderMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *xid.ID
+	created_at      *time.Time
+	updated_at      *time.Time
+	deleted_at      *time.Time
+	name            *string
+	description     *string
+	drive_folder_id *string
+	visibility      *drivefolder.Visibility
+	sort            *int
+	addsort         *int
+	clearedFields   map[string]struct{}
+	account         *xid.ID
+	clearedaccount  bool
+	done            bool
+	oldValue        func(context.Context) (*DriveFolder, error)
+	predicates      []predicate.DriveFolder
+}
+
+var _ ent.Mutation = (*DriveFolderMutation)(nil)
+
+// drivefolderOption allows management of the mutation configuration using functional options.
+type drivefolderOption func(*DriveFolderMutation)
+
+// newDriveFolderMutation creates new mutation for the DriveFolder entity.
+func newDriveFolderMutation(c config, op Op, opts ...drivefolderOption) *DriveFolderMutation {
+	m := &DriveFolderMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDriveFolder,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDriveFolderID sets the ID field of the mutation.
+func withDriveFolderID(id xid.ID) drivefolderOption {
+	return func(m *DriveFolderMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DriveFolder
+		)
+		m.oldValue = func(ctx context.Context) (*DriveFolder, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DriveFolder.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDriveFolder sets the old DriveFolder of the mutation.
+func withDriveFolder(node *DriveFolder) drivefolderOption {
+	return func(m *DriveFolderMutation) {
+		m.oldValue = func(context.Context) (*DriveFolder, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DriveFolderMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DriveFolderMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of DriveFolder entities.
+func (m *DriveFolderMutation) SetID(id xid.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DriveFolderMutation) ID() (id xid.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DriveFolderMutation) IDs(ctx context.Context) ([]xid.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []xid.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DriveFolder.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DriveFolderMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DriveFolderMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DriveFolder entity.
+// If the DriveFolder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DriveFolderMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DriveFolderMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DriveFolderMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DriveFolderMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DriveFolder entity.
+// If the DriveFolder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DriveFolderMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DriveFolderMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *DriveFolderMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *DriveFolderMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the DriveFolder entity.
+// If the DriveFolder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DriveFolderMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *DriveFolderMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[drivefolder.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *DriveFolderMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[drivefolder.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *DriveFolderMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, drivefolder.FieldDeletedAt)
+}
+
+// SetName sets the "name" field.
+func (m *DriveFolderMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *DriveFolderMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the DriveFolder entity.
+// If the DriveFolder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DriveFolderMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *DriveFolderMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *DriveFolderMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *DriveFolderMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the DriveFolder entity.
+// If the DriveFolder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DriveFolderMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *DriveFolderMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[drivefolder.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *DriveFolderMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[drivefolder.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *DriveFolderMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, drivefolder.FieldDescription)
+}
+
+// SetDriveFolderID sets the "drive_folder_id" field.
+func (m *DriveFolderMutation) SetDriveFolderID(s string) {
+	m.drive_folder_id = &s
+}
+
+// DriveFolderID returns the value of the "drive_folder_id" field in the mutation.
+func (m *DriveFolderMutation) DriveFolderID() (r string, exists bool) {
+	v := m.drive_folder_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDriveFolderID returns the old "drive_folder_id" field's value of the DriveFolder entity.
+// If the DriveFolder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DriveFolderMutation) OldDriveFolderID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDriveFolderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDriveFolderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDriveFolderID: %w", err)
+	}
+	return oldValue.DriveFolderID, nil
+}
+
+// ResetDriveFolderID resets all changes to the "drive_folder_id" field.
+func (m *DriveFolderMutation) ResetDriveFolderID() {
+	m.drive_folder_id = nil
+}
+
+// SetVisibility sets the "visibility" field.
+func (m *DriveFolderMutation) SetVisibility(d drivefolder.Visibility) {
+	m.visibility = &d
+}
+
+// Visibility returns the value of the "visibility" field in the mutation.
+func (m *DriveFolderMutation) Visibility() (r drivefolder.Visibility, exists bool) {
+	v := m.visibility
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVisibility returns the old "visibility" field's value of the DriveFolder entity.
+// If the DriveFolder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DriveFolderMutation) OldVisibility(ctx context.Context) (v drivefolder.Visibility, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVisibility is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVisibility requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVisibility: %w", err)
+	}
+	return oldValue.Visibility, nil
+}
+
+// ResetVisibility resets all changes to the "visibility" field.
+func (m *DriveFolderMutation) ResetVisibility() {
+	m.visibility = nil
+}
+
+// SetSort sets the "sort" field.
+func (m *DriveFolderMutation) SetSort(i int) {
+	m.sort = &i
+	m.addsort = nil
+}
+
+// Sort returns the value of the "sort" field in the mutation.
+func (m *DriveFolderMutation) Sort() (r int, exists bool) {
+	v := m.sort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSort returns the old "sort" field's value of the DriveFolder entity.
+// If the DriveFolder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DriveFolderMutation) OldSort(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSort: %w", err)
+	}
+	return oldValue.Sort, nil
+}
+
+// AddSort adds i to the "sort" field.
+func (m *DriveFolderMutation) AddSort(i int) {
+	if m.addsort != nil {
+		*m.addsort += i
+	} else {
+		m.addsort = &i
+	}
+}
+
+// AddedSort returns the value that was added to the "sort" field in this mutation.
+func (m *DriveFolderMutation) AddedSort() (r int, exists bool) {
+	v := m.addsort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSort resets all changes to the "sort" field.
+func (m *DriveFolderMutation) ResetSort() {
+	m.sort = nil
+	m.addsort = nil
+}
+
+// SetAddedBy sets the "added_by" field.
+func (m *DriveFolderMutation) SetAddedBy(x xid.ID) {
+	m.account = &x
+}
+
+// AddedBy returns the value of the "added_by" field in the mutation.
+func (m *DriveFolderMutation) AddedBy() (r xid.ID, exists bool) {
+	v := m.account
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAddedBy returns the old "added_by" field's value of the DriveFolder entity.
+// If the DriveFolder object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DriveFolderMutation) OldAddedBy(ctx context.Context) (v xid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAddedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAddedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAddedBy: %w", err)
+	}
+	return oldValue.AddedBy, nil
+}
+
+// ResetAddedBy resets all changes to the "added_by" field.
+func (m *DriveFolderMutation) ResetAddedBy() {
+	m.account = nil
+}
+
+// SetAccountID sets the "account" edge to the Account entity by id.
+func (m *DriveFolderMutation) SetAccountID(id xid.ID) {
+	m.account = &id
+}
+
+// ClearAccount clears the "account" edge to the Account entity.
+func (m *DriveFolderMutation) ClearAccount() {
+	m.clearedaccount = true
+	m.clearedFields[drivefolder.FieldAddedBy] = struct{}{}
+}
+
+// AccountCleared reports if the "account" edge to the Account entity was cleared.
+func (m *DriveFolderMutation) AccountCleared() bool {
+	return m.clearedaccount
+}
+
+// AccountID returns the "account" edge ID in the mutation.
+func (m *DriveFolderMutation) AccountID() (id xid.ID, exists bool) {
+	if m.account != nil {
+		return *m.account, true
+	}
+	return
+}
+
+// AccountIDs returns the "account" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AccountID instead. It exists only for internal usage by the builders.
+func (m *DriveFolderMutation) AccountIDs() (ids []xid.ID) {
+	if id := m.account; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAccount resets all changes to the "account" edge.
+func (m *DriveFolderMutation) ResetAccount() {
+	m.account = nil
+	m.clearedaccount = false
+}
+
+// Where appends a list predicates to the DriveFolderMutation builder.
+func (m *DriveFolderMutation) Where(ps ...predicate.DriveFolder) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DriveFolderMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DriveFolderMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DriveFolder, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DriveFolderMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DriveFolderMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DriveFolder).
+func (m *DriveFolderMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DriveFolderMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, drivefolder.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, drivefolder.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, drivefolder.FieldDeletedAt)
+	}
+	if m.name != nil {
+		fields = append(fields, drivefolder.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, drivefolder.FieldDescription)
+	}
+	if m.drive_folder_id != nil {
+		fields = append(fields, drivefolder.FieldDriveFolderID)
+	}
+	if m.visibility != nil {
+		fields = append(fields, drivefolder.FieldVisibility)
+	}
+	if m.sort != nil {
+		fields = append(fields, drivefolder.FieldSort)
+	}
+	if m.account != nil {
+		fields = append(fields, drivefolder.FieldAddedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DriveFolderMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case drivefolder.FieldCreatedAt:
+		return m.CreatedAt()
+	case drivefolder.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case drivefolder.FieldDeletedAt:
+		return m.DeletedAt()
+	case drivefolder.FieldName:
+		return m.Name()
+	case drivefolder.FieldDescription:
+		return m.Description()
+	case drivefolder.FieldDriveFolderID:
+		return m.DriveFolderID()
+	case drivefolder.FieldVisibility:
+		return m.Visibility()
+	case drivefolder.FieldSort:
+		return m.Sort()
+	case drivefolder.FieldAddedBy:
+		return m.AddedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DriveFolderMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case drivefolder.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case drivefolder.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case drivefolder.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case drivefolder.FieldName:
+		return m.OldName(ctx)
+	case drivefolder.FieldDescription:
+		return m.OldDescription(ctx)
+	case drivefolder.FieldDriveFolderID:
+		return m.OldDriveFolderID(ctx)
+	case drivefolder.FieldVisibility:
+		return m.OldVisibility(ctx)
+	case drivefolder.FieldSort:
+		return m.OldSort(ctx)
+	case drivefolder.FieldAddedBy:
+		return m.OldAddedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown DriveFolder field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DriveFolderMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case drivefolder.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case drivefolder.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case drivefolder.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case drivefolder.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case drivefolder.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case drivefolder.FieldDriveFolderID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDriveFolderID(v)
+		return nil
+	case drivefolder.FieldVisibility:
+		v, ok := value.(drivefolder.Visibility)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVisibility(v)
+		return nil
+	case drivefolder.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSort(v)
+		return nil
+	case drivefolder.FieldAddedBy:
+		v, ok := value.(xid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAddedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DriveFolder field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DriveFolderMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort != nil {
+		fields = append(fields, drivefolder.FieldSort)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DriveFolderMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case drivefolder.FieldSort:
+		return m.AddedSort()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DriveFolderMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case drivefolder.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSort(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DriveFolder numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DriveFolderMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(drivefolder.FieldDeletedAt) {
+		fields = append(fields, drivefolder.FieldDeletedAt)
+	}
+	if m.FieldCleared(drivefolder.FieldDescription) {
+		fields = append(fields, drivefolder.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DriveFolderMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DriveFolderMutation) ClearField(name string) error {
+	switch name {
+	case drivefolder.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	case drivefolder.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown DriveFolder nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DriveFolderMutation) ResetField(name string) error {
+	switch name {
+	case drivefolder.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case drivefolder.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case drivefolder.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case drivefolder.FieldName:
+		m.ResetName()
+		return nil
+	case drivefolder.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case drivefolder.FieldDriveFolderID:
+		m.ResetDriveFolderID()
+		return nil
+	case drivefolder.FieldVisibility:
+		m.ResetVisibility()
+		return nil
+	case drivefolder.FieldSort:
+		m.ResetSort()
+		return nil
+	case drivefolder.FieldAddedBy:
+		m.ResetAddedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown DriveFolder field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DriveFolderMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.account != nil {
+		edges = append(edges, drivefolder.EdgeAccount)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DriveFolderMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case drivefolder.EdgeAccount:
+		if id := m.account; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DriveFolderMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DriveFolderMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DriveFolderMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedaccount {
+		edges = append(edges, drivefolder.EdgeAccount)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DriveFolderMutation) EdgeCleared(name string) bool {
+	switch name {
+	case drivefolder.EdgeAccount:
+		return m.clearedaccount
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DriveFolderMutation) ClearEdge(name string) error {
+	switch name {
+	case drivefolder.EdgeAccount:
+		m.ClearAccount()
+		return nil
+	}
+	return fmt.Errorf("unknown DriveFolder unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DriveFolderMutation) ResetEdge(name string) error {
+	switch name {
+	case drivefolder.EdgeAccount:
+		m.ResetAccount()
+		return nil
+	}
+	return fmt.Errorf("unknown DriveFolder edge %s", name)
 }
 
 // EmailMutation represents an operation that mutates the Email nodes in the graph.

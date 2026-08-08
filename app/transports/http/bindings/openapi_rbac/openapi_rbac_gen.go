@@ -17,6 +17,13 @@ type OperationPermissions interface {
 	AdminSettingsUpdate() (bool, *rbac.Permission)
 	AdminOCRStats() (bool, *rbac.Permission)
 	AdminOCRReindex() (bool, *rbac.Permission)
+	AdminDriveFolderList() (bool, *rbac.Permission)
+	AdminDriveFolderCreate() (bool, *rbac.Permission)
+	AdminDriveFolderUpdate() (bool, *rbac.Permission)
+	AdminDriveFolderDelete() (bool, *rbac.Permission)
+	DriveFolderList() (bool, *rbac.Permission)
+	DriveFolderContents() (bool, *rbac.Permission)
+	DriveFileDownload() (bool, *rbac.Permission)
 	AccountList() (bool, *rbac.Permission)
 	AuditEventList() (bool, *rbac.Permission)
 	EmailQueueList() (bool, *rbac.Permission)
@@ -279,6 +286,20 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.AdminOCRStats()
 	case "AdminOCRReindex":
 		return optable.AdminOCRReindex()
+	case "AdminDriveFolderList":
+		return optable.AdminDriveFolderList()
+	case "AdminDriveFolderCreate":
+		return optable.AdminDriveFolderCreate()
+	case "AdminDriveFolderUpdate":
+		return optable.AdminDriveFolderUpdate()
+	case "AdminDriveFolderDelete":
+		return optable.AdminDriveFolderDelete()
+	case "DriveFolderList":
+		return optable.DriveFolderList()
+	case "DriveFolderContents":
+		return optable.DriveFolderContents()
+	case "DriveFileDownload":
+		return optable.DriveFileDownload()
 	case "AccountList":
 		return optable.AccountList()
 	case "AuditEventList":

@@ -115,6 +115,9 @@ func (Account) Edges() []ent.Edge {
 		edge.To("oauth_remote_connections", OAuthRemoteConnection.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 
+		edge.To("drive_folders", DriveFolder.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
+
 		edge.To("claimed_oauth_device_authorisations", OAuthDeviceAuthorisation.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 

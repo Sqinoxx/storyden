@@ -20,4 +20,5 @@ export const InstanceCapability = {
   sms_client: "sms_client",
   oauth: "oauth",
   robots: "robots",
+  drive: "drive",
 } as const;

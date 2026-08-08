@@ -62,6 +62,38 @@ func (m *Mapping) AdminOCRReindex() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionAdministrator
 }
 
+func (m *Mapping) AdminDriveFolderList() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageSettings
+}
+
+func (m *Mapping) AdminDriveFolderCreate() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageSettings
+}
+
+func (m *Mapping) AdminDriveFolderUpdate() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageSettings
+}
+
+func (m *Mapping) AdminDriveFolderDelete() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageSettings
+}
+
+// Browsing is open at the transport layer because a folder may be marked
+// public. drive_browse applies each folder's own visibility, which needs the
+// session that a blanket requirement here would have already rejected.
+
+func (m *Mapping) DriveFolderList() (bool, *rbac.Permission) {
+	return false, nil
+}
+
+func (m *Mapping) DriveFolderContents() (bool, *rbac.Permission) {
+	return false, nil
+}
+
+func (m *Mapping) DriveFileDownload() (bool, *rbac.Permission) {
+	return false, nil
+}
+
 func (m *Mapping) AuditEventList() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionAdministrator
 }

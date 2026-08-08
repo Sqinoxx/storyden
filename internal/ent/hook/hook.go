@@ -129,6 +129,18 @@ func (f CollectionPostFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CollectionPostMutation", m)
 }
 
+// The DriveFolderFunc type is an adapter to allow the use of ordinary
+// function as DriveFolder mutator.
+type DriveFolderFunc func(context.Context, *ent.DriveFolderMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DriveFolderFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DriveFolderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DriveFolderMutation", m)
+}
+
 // The EmailFunc type is an adapter to allow the use of ordinary
 // function as Email mutator.
 type EmailFunc func(context.Context, *ent.EmailMutation) (ent.Value, error)

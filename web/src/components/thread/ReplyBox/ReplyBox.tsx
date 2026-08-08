@@ -4,8 +4,8 @@ import { useId } from "react";
 import Link from "next/link";
 import { Controller, ControllerProps } from "react-hook-form";
 
-import { assetUpload } from "@/api/openapi-client/assets";
 import { Anchor } from "@/components/site/Anchor";
+import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
 import { ContentComposer } from "@/components/content/ContentComposer/ContentComposer";
 import { MemberIdent } from "@/components/member/MemberBadge/MemberIdent";
 import { Admonition } from "@/components/ui/admonition";
@@ -30,6 +30,7 @@ export function ReplyBox(props: Props) {
   const fileInputId = useId();
   const { replyTo, clearReplyTo } = useReplyContext();
   const t = useTranslation();
+  const { isUploading, upload } = useAttachmentUpload();
   const {
     isLoggedIn,
     isEmpty,
@@ -129,50 +130,41 @@ export function ReplyBox(props: Props) {
           alignItems="center"
         >
           <HStack gap="2">
-            <label
+            <styled.label
               className={button({ size: "sm", variant: "ghost" })}
               htmlFor={fileInputId}
               title={t.editor.uploadFile}
+              aria-disabled={isUploading}
+              opacity={isUploading ? "5" : "full"}
+              pointerEvents={isUploading ? "none" : "auto"}
             >
               📎 {t.editor.uploadFile}
-            </label>
+            </styled.label>
             <styled.input
               id={fileInputId}
               type="file"
               multiple
               display="none"
               accept="*"
+              disabled={isUploading}
               onChange={async (e) => {
                 const files = Array.from(e.currentTarget.files ?? []);
-                if (files.length === 0) return;
+                e.currentTarget.value = "";
 
-                for (const file of files) {
-                  try {
-                    const asset = await assetUpload(
-                      file,
-                      { filename: file.name },
-                    );
-                    const url = getAssetURL(asset.path);
-                    const isImage = /^image\//i.test(file.type);
-                    const safeName = file.name.replace(/"/g, "&quot;");
-                    const insertion = isImage
-                      ? `<img src="${url}" alt="${safeName}" />`
-                      : `<a href="${url}" data-type="file-attachment" data-filename="${safeName}" download="${safeName}">${file.name}</a>`;
+                const uploaded = await upload(files);
 
-                    const current = form.getValues("body") ?? "";
-                    const newBody = current && current !== "<p></p>"
-                      ? current + "<p>" + insertion + "</p>"
-                      : "<p>" + insertion + "</p>";
+                for (const { markup } of uploaded) {
+                  const current = form.getValues("body") ?? "";
+                  const newBody =
+                    current && current !== "<p></p>"
+                      ? current + "<p>" + markup + "</p>"
+                      : "<p>" + markup + "</p>";
 
-                    form.setValue("body", newBody, {
-                      shouldValidate: true,
-                      shouldDirty: true,
-                    });
-                  } catch {
-                    // ignore upload errors
-                  }
+                  form.setValue("body", newBody, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
                 }
-                e.target.value = "";
               }}
             />
 

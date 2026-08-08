@@ -370,6 +370,15 @@ type Config struct {
 	AssetStorageType string `envconfig:"ASSET_STORAGE_TYPE"`
 	// When `ASSET_STORAGE_TYPE` is set to `local`, this is the path to the directory where files will be stored.
 	AssetStorageLocalPath string `envconfig:"ASSET_STORAGE_LOCAL_PATH"`
+	/*
+	   The largest request body the API will accept, in megabytes. This bounds
+	   every upload: attachments, avatars, site icons and banners.
+
+	   Raise it if your community shares large documents or video, but bear in
+	   mind that image uploads are decoded in memory to be resized, so a very
+	   high value on a small VM can exhaust available RAM.
+	*/
+	MaxUploadSizeMB int `default:"50" envconfig:"MAX_UPLOAD_SIZE_MB"`
 	// When `ASSET_STORAGE_TYPE` is set to `s3`, this determines whether or not to use HTTPS for the S3 connection. You should always set this to `true` unless your S3-compatible storage provider is internally but not publicly accessible, such as in a Kubernetes cluster or running on the same host.
 	S3Secure bool `default:"true" envconfig:"S3_SECURE"`
 	// The endpoint for the S3-compatible storage provider. This is typically the base URL of the provider, such as `https://s3.amazonaws.com` for AWS S3, or `https://storage.googleapis.com` for Google Cloud Storage, etc.

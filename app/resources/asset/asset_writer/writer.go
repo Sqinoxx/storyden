@@ -64,10 +64,15 @@ func (w *Writer) AddVersion(ctx context.Context,
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	r, err = w.db.Asset.Query().Where(ent_asset.ID(r.ID)).WithParent().First(ctx)
+	// The row we just wrote is already complete; only the parent edge is
+	// missing. Loading that directly avoids re-reading the new row via an
+	// eager-loading query that would round-trip twice more.
+	p, err := w.db.Asset.Get(ctx, parent)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
+
+	r.Edges.Parent = p
 
 	return asset.Map(r), nil
 }

@@ -25,7 +25,9 @@ func main() {
 }
 
 func run(ctx context.Context, playwrightArgs []string) error {
-	timestamp := time.Now().Format(time.RFC3339)
+	// Not RFC3339: that layout contains colons, which are illegal in Windows
+	// path components, so creating the run directory fails before any test runs.
+	timestamp := time.Now().Format("20060102-150405")
 	e2eDir := filepath.Join("tests", "e2e-data")
 	dataDir := filepath.Join(e2eDir, timestamp)
 	relDir := "./" + dataDir

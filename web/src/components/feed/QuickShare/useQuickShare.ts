@@ -142,8 +142,11 @@ export function useQuickShare({ initialCategory }: Props) {
     }
   };
 
-  const handlePost = form.handleSubmit((data: Form) => {
-    handle(
+  // Awaited so react-hook-form keeps isSubmitting true for the whole request.
+  // Without it the submit button re-enables mid-flight and a second click posts
+  // the thread twice.
+  const handlePost = form.handleSubmit(async (data: Form) => {
+    await handle(
       async () => {
         const titleInput = data.title?.trim();
         const parsed = new DOMParser().parseFromString(
@@ -224,7 +227,7 @@ export function useQuickShare({ initialCategory }: Props) {
       },
       {
         async cleanup() {
-          revalidate();
+          await revalidate();
         },
       },
     );

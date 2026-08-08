@@ -16,6 +16,7 @@ type Info struct {
 	OperationID   string
 	UserAgent     useragent.UserAgent
 	CacheQuery    cachecontrol.Query
+	Range         opt.Optional[string]
 	ClientAddr    string
 	ClientAddrSSR string
 }
@@ -41,6 +42,7 @@ func WithRequestInfo(ctx context.Context, r *http.Request, opid string, clientAd
 		OperationID:   opid,
 		UserAgent:     ua,
 		CacheQuery:    cachecontrol.NewQuery(ifNoneMatch, ifModifiedSince),
+		Range:         opt.NewIf(r.Header.Get("Range"), notEmpty),
 		ClientAddr:    clientAddr,
 		ClientAddrSSR: clientAddrSSR,
 	}
@@ -63,6 +65,13 @@ func GetDeviceName(ctx context.Context) string {
 func GetCacheQuery(ctx context.Context) cachecontrol.Query {
 	i := getInfo(ctx)
 	return i.CacheQuery
+}
+
+// GetRange returns the raw Range request header, if any. Parsing is left to the
+// caller since only byte-range-capable endpoints care about the semantics.
+func GetRange(ctx context.Context) opt.Optional[string] {
+	i := getInfo(ctx)
+	return i.Range
 }
 
 func GetClientAddress(ctx context.Context) string {

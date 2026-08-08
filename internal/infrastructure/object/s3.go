@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"net/http"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
@@ -53,9 +54,9 @@ func NewS3Storer(ctx context.Context, cfg config.Config) (Storer, error) {
 func (s *s3Storer) Exists(ctx context.Context, path string) (bool, error) {
 	_, err := s.minioClient.StatObject(ctx, s.bucket, path, minio.GetObjectOptions{})
 	if err != nil {
-		// TODO: figure out if there's a way to differentiate between an error
-		// and an item just not existing. Ideally we want to treat actual
-		// transport errors and such as actual errors and non-existence as nil.
+		if isNotFound(err) {
+			return false, nil
+		}
 		return false, fault.Wrap(err, fctx.With(ctx))
 	}
 
@@ -70,13 +71,21 @@ func (s *s3Storer) Read(ctx context.Context, path string) (io.Reader, int64, err
 
 	info, err := obj.Stat()
 	if err != nil {
-		if minio.ToErrorResponse(err).StatusCode == 404 {
+		obj.Close()
+		if isNotFound(err) {
 			return nil, 0, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.NotFound))
 		}
 		return nil, 0, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	return obj, info.Size, nil
+}
+
+func isNotFound(err error) bool {
+	res := minio.ToErrorResponse(err)
+	return res.StatusCode == http.StatusNotFound ||
+		res.Code == "NoSuchKey" ||
+		res.Code == "NoSuchBucket"
 }
 
 func (s *s3Storer) Write(ctx context.Context, path string, stream io.Reader, size int64) error {

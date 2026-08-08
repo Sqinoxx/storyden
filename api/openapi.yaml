@@ -49,6 +49,18 @@ x-types:
     Last-Modified: { $ref: "#/components/headers/Last-Modified" }
     ETag: { $ref: "#/components/headers/ETag" }
 
+  # Asset downloads carry the cache validators plus the headers that make a
+  # public, unauthenticated binary endpoint safe to serve from a browser and
+  # seekable by PDF/media viewers.
+  asset_response_headers: &asset_response_headers
+    Cache-Control: { $ref: "#/components/headers/Cache-Control" }
+    Last-Modified: { $ref: "#/components/headers/Last-Modified" }
+    ETag: { $ref: "#/components/headers/ETag" }
+    Accept-Ranges: { $ref: "#/components/headers/Accept-Ranges" }
+    Content-Disposition: { $ref: "#/components/headers/Content-Disposition" }
+    X-Content-Type-Options:
+      { $ref: "#/components/headers/X-Content-Type-Options" }
+
 tags:
   - name: misc
     description: General metadata for the instance and uncategorised routes.
@@ -2872,7 +2884,10 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
-        "200": { $ref: "#/components/responses/AssetGetOK" }
+        "416": { $ref: "#/components/responses/AssetRangeNotSatisfiable" }
+        "304": { $ref: "#/components/responses/AssetNotModified" }
+        "206": { $ref: "#/components/responses/AssetDownloadPartial" }
+        "200": { $ref: "#/components/responses/AssetDownloadOK" }
 
   #
   # 888 d8b 888
@@ -6110,7 +6125,12 @@ components:
 
     AccountGetAvatar:
       description: OK
-      headers: { <<: *cache_response_headers }
+      # No ETag/Last-Modified: avatars live at a stable path that is overwritten
+      # in place and the storage layer exposes no modification time, so there is
+      # nothing truthful to validate against. Emitting empty validators is worse
+      # than emitting none.
+      headers:
+        Cache-Control: { $ref: "#/components/headers/Cache-Control" }
       content:
         image/png:
           schema:
@@ -6344,6 +6364,36 @@ components:
           schema:
             type: string
             format: binary
+
+    AssetDownloadOK:
+      description: The full contents of the asset.
+      headers: { <<: *asset_response_headers }
+      content:
+        "*/*":
+          schema:
+            type: string
+            format: binary
+
+    AssetDownloadPartial:
+      description: The requested byte range of the asset contents.
+      headers:
+        <<: *asset_response_headers
+        Content-Range: { $ref: "#/components/headers/Content-Range" }
+      content:
+        "*/*":
+          schema:
+            type: string
+            format: binary
+
+    AssetNotModified:
+      description: |
+        The asset has not changed since the version the client already holds.
+      headers: { <<: *cache_response_headers }
+
+    AssetRangeNotSatisfiable:
+      description: The requested byte range lies outside the asset.
+      headers:
+        Content-Range: { $ref: "#/components/headers/Content-Range" }
 
     LikePostGetOK:
       description: All likes for a post.
@@ -6769,6 +6819,18 @@ components:
         type: string
         format: RFC1123
     ETag:
+      schema:
+        type: string
+    Accept-Ranges:
+      schema:
+        type: string
+    Content-Range:
+      schema:
+        type: string
+    Content-Disposition:
+      schema:
+        type: string
+    X-Content-Type-Options:
       schema:
         type: string
     WWW-Authenticate:

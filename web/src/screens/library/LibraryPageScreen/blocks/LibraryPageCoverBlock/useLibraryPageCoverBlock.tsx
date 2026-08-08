@@ -33,7 +33,7 @@ export function useLibraryPageCoverBlock() {
           throw new Error("Asset URL could not be generated");
         }
 
-        const response = await fetch(assetURL);
+        const response = await fetch(assetURL, { credentials: "include" });
         if (!response.ok) {
           throw new Error("Failed to download asset");
         }

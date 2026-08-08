@@ -83,7 +83,7 @@ export function FilePreviewModal({
   // Load text files
   useEffect(() => {
     if (previewType === "text" && url) {
-      fetch(url)
+      fetch(url, { credentials: "include" })
         .then((r) => r.text())
         .then(setTextContent)
         .catch(() => setTextContent("(Datei konnte nicht geladen werden)"));

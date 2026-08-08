@@ -8,8 +8,50 @@
 #
 # Secrets: Kopiere .env.example nach .env und trage deine Werte ein.
 # Die .env-Datei wird automatisch von docker compose geladen und ist gitignored.
+#
+# ------------------------------------------------------------------
+# Einmalige Migration von SQLite nach PostgreSQL
+# ------------------------------------------------------------------
+# 1) Backup:      cp -r ./data ./data-backup
+# 2) DB starten:  docker compose up -d postgres
+# 3) Schema:      DATABASE_URL="postgresql://storyden:PASSWORT@localhost:5432/storyden?sslmode=disable" \
+#                   go run ./cmd/migrate
+# 4) Probelauf:   go run ./cmd/sqlite2postgres \
+#                   --source docker/compose/data/data.db \
+#                   --target "postgresql://storyden:PASSWORT@localhost:5432/storyden?sslmode=disable" \
+#                   --dry-run
+# 5) Echter Lauf: derselbe Befehl ohne --dry-run
+# 6) App starten: docker compose up -d --build
+#
+# Von aussen (Schritt 3-5) laeuft die Verbindung ueber localhost:5432,
+# aus dem Container heraus ueber den Servicenamen postgres:5432.
+#
+# Rollback: DATABASE_URL in .env auskommentieren, dann greift wieder der
+# eingebaute SQLite-Default. ./data/data.db bleibt unangetastet.
 
 services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    ports:
+      # Nur an localhost gebunden, nicht öffentlich erreichbar.
+      # Wird gebraucht, damit cmd/migrate und cmd/sqlite2postgres vom Host aus
+      # verbinden können.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-storyden}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-storyden}
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-storyden} -d ${POSTGRES_DB:-storyden}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
   storyden:
     build:
       context: ../.. # Projekt-Root (wo go.mod liegt)
@@ -18,11 +60,18 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./data:/storyden/data # SQLite-DB & Assets bleiben erhalten
+      - ./data:/storyden/data # Assets & Avatare bleiben erhalten
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       # --- Adressen ---
       - PUBLIC_WEB_ADDRESS=${PUBLIC_WEB_ADDRESS:-http://localhost:3000}
       - PUBLIC_API_ADDRESS=${PUBLIC_API_ADDRESS:-http://localhost:8000}
+
+      # --- Datenbank ---
+      # Ohne diese Variable fällt die App still auf SQLite zurück.
+      - DATABASE_URL=${DATABASE_URL}
 
       # --- JWT Secret (Pflicht für E-Mail-Auth & OAuth) ---
       - JWT_SECRET=${JWT_SECRET}
@@ -87,3 +136,6 @@ services:
       # --- Logging ---
       # - LOG_LEVEL=${LOG_LEVEL:-info}
       # - LOG_FORMAT=${LOG_FORMAT}
+
+volumes:
+  postgres-data:

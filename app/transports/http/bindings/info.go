@@ -10,6 +10,8 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
+	"github.com/Southclaws/storyden/app/resources/asset"
+	"github.com/Southclaws/storyden/app/resources/cachecontrol"
 	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/branding/banner"
@@ -93,14 +95,33 @@ func (i Info) IconGet(ctx context.Context, request openapi.IconGetRequestObject)
 			Body:          r,
 			ContentType:   a.MIME.String(),
 			ContentLength: int64(a.Size),
-			Headers: openapi.AssetGetOKResponseHeaders{
-				CacheControl: "public, max-age=31536000",
-			},
+			Headers:       brandingCacheHeaders(a, "public, max-age=31536000"),
 		},
 	}, nil
 }
 
+// brandingCacheHeaders derives cache validators from the asset's xid, which
+// embeds the time its row was created. Re-uploading branding inserts a new row
+// (and asset_querier serves the newest), so the validator changes exactly when
+// the bytes do. Without this the generated visitor emits empty ETag and
+// Last-Modified headers, which caches treat as invalid.
+func brandingCacheHeaders(a *asset.Asset, cacheControl string) openapi.AssetGetOKResponseHeaders {
+	etag := cachecontrol.NewETag(a.ID.Time())
+
+	return openapi.AssetGetOKResponseHeaders{
+		CacheControl: cacheControl,
+		ETag:         etag.String(),
+		LastModified: cachecontrol.HTTPDate(etag.Time),
+	}
+}
+
 func (i Info) IconUpload(ctx context.Context, request openapi.IconUploadRequestObject) (openapi.IconUploadResponseObject, error) {
+	// This route bypasses the OpenAPI validator so the body can be streamed,
+	// which means its authorisation must be applied here instead.
+	if err := AuthoriseOperation(ctx, "IconUpload"); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	err := i.is.Upload(ctx, request.Body)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -120,14 +141,18 @@ func (i Info) BannerGet(ctx context.Context, request openapi.BannerGetRequestObj
 			Body:          r,
 			ContentType:   a.MIME.String(),
 			ContentLength: int64(a.Size),
-			Headers: openapi.AssetGetOKResponseHeaders{
-				CacheControl: "public, max-age=3600",
-			},
+			Headers:       brandingCacheHeaders(a, "public, max-age=3600"),
 		},
 	}, nil
 }
 
 func (i Info) BannerUpload(ctx context.Context, request openapi.BannerUploadRequestObject) (openapi.BannerUploadResponseObject, error) {
+	// This route bypasses the OpenAPI validator so the body can be streamed,
+	// which means its authorisation must be applied here instead.
+	if err := AuthoriseOperation(ctx, "BannerUpload"); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	err := i.os.Upload(ctx, request.Body)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))

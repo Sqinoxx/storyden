@@ -631,6 +631,12 @@ func (i *Accounts) AccountGetAvatar(ctx context.Context, request openapi.Account
 }
 
 func (i *Accounts) AccountSetAvatar(ctx context.Context, request openapi.AccountSetAvatarRequestObject) (openapi.AccountSetAvatarResponseObject, error) {
+	// This route bypasses the OpenAPI validator so the body can be streamed,
+	// which means its authorisation must be applied here instead.
+	if err := AuthoriseOperation(ctx, "AccountSetAvatar"); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	accountID, err := session.GetAccountID(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))

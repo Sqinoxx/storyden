@@ -3,8 +3,8 @@ import { useId } from "react";
 import { match } from "ts-pattern";
 import { X } from "lucide-react";
 
-import { Asset, LinkReference } from "@/api/openapi-schema";
-import { assetUpload } from "@/api/openapi-client/assets";
+import { LinkReference } from "@/api/openapi-schema";
+import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
 import { CategorySelect } from "@/components/category/CategorySelect/CategorySelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { FileAttachmentBadge } from "@/components/post/FileAttachmentList";
@@ -25,6 +25,7 @@ import { Props, useQuickShare } from "./useQuickShare";
 
 export function QuickShare(props: Props) {
   const fileInputId = useId();
+  const { isUploading, upload } = useAttachmentUpload();
 
   const {
     form,
@@ -99,48 +100,37 @@ export function QuickShare(props: Props) {
           </HStack>
 
           <HStack gap="2" ml="auto" flexShrink={0}>
-            <label
+            <styled.label
               className={button({ size: "sm", variant: "ghost" })}
               htmlFor={fileInputId}
               title={t.editor.uploadFile}
+              aria-disabled={isUploading}
+              opacity={isUploading ? "5" : "full"}
+              pointerEvents={isUploading ? "none" : "auto"}
             >
               📎 {t.editor.uploadFile}
-            </label>
+            </styled.label>
             <styled.input
               id={fileInputId}
               type="file"
               multiple
               display="none"
               accept="*"
+              disabled={isUploading}
               onChange={async (e) => {
                 const files = Array.from(e.currentTarget.files ?? []);
-                if (files.length === 0) return;
+                e.currentTarget.value = "";
 
-                const newAssets: Asset[] = [];
-                for (const file of files) {
-                  try {
-                    const asset = await assetUpload(
-                      file,
-                      { filename: file.name },
-                    );
-                    newAssets.push({ ...asset, filename: file.name });
+                const uploaded = await upload(files);
 
-                    const url = getAssetURL(asset.path);
-                    const isImage = /^image\//i.test(file.type);
-                    const insertion = isImage
-                      ? `<img src="${url}" alt="${file.name}" />`
-                      : `<a href="${url}" data-type="file-attachment" data-filename="${file.name}" download="${file.name}">${file.name}</a>`;
-
-                    const current = form.getValues("body") ?? "";
-                    form.setValue("body", current + "<p>" + insertion + "</p>");
-                  } catch {
-                    // ignore upload errors silently
-                  }
+                for (const { markup } of uploaded) {
+                  const current = form.getValues("body") ?? "";
+                  form.setValue("body", current + "<p>" + markup + "</p>");
                 }
-                if (newAssets.length > 0) {
-                  handlers.handleAddAssets(newAssets);
+
+                if (uploaded.length > 0) {
+                  handlers.handleAddAssets(uploaded.map((u) => u.asset));
                 }
-                e.target.value = "";
               }}
             />
 

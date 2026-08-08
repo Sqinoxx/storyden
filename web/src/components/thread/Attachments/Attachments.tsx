@@ -1,6 +1,8 @@
+"use client";
+
 import { Download } from "lucide-react";
 import { Asset } from "@/api/openapi-schema";
-import { getAssetURL, getCleanFilename } from "@/utils/asset";
+import { downloadAsset, getAssetURL, getCleanFilename } from "@/utils/asset";
 import { HStack, styled } from "@/styled-system/jsx";
 
 export function Attachments({ assets }: { assets: Asset[] }) {
@@ -14,13 +16,22 @@ export function Attachments({ assets }: { assets: Asset[] }) {
     <HStack w="full" flexWrap="wrap" gap="2">
       {files.map((a) => {
         const displayName = getCleanFilename(a.filename);
+        const url = getAssetURL(a.path);
         return (
           <styled.a
             key={a.id}
-            href={getAssetURL(a.path)}
+            href={url}
             download={displayName}
             target="_blank"
             rel="noreferrer"
+            // The plain href is kept as a fallback for middle-click and "save
+            // link as", but the click path goes through downloadAsset so the
+            // request carries session credentials across origins.
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+              e.preventDefault();
+              void downloadAsset(url, displayName);
+            }}
             display="inline-flex"
             alignItems="center"
             gap="2"

@@ -676,6 +676,15 @@ export function useContentComposer(props: ContentComposerProps) {
   }
 
   function handleDragEnter(e: React.DragEvent) {
+    // Incremented unconditionally so it stays paired with every dragleave,
+    // including the ones fired by dragging existing content (e.g. an image)
+    // around within the editor — those carry text/html, not a file, but the
+    // browser still fires enter/leave for them. Gating the increment on
+    // hasFile while the decrement below stays unconditional would drift the
+    // counter negative, and the drop overlay would ultimately depend on this
+    // value never reliably reaching zero again for the rest of the session.
+    dragCounterRef.current += 1;
+
     const items = Array.from(e.dataTransfer.items);
     const hasFile = items.some((item) => item.kind === "file");
 
@@ -684,7 +693,6 @@ export function useContentComposer(props: ContentComposerProps) {
     }
 
     e.preventDefault();
-    dragCounterRef.current += 1;
     setIsDragging(true);
 
     const hasAsset = hasAssetFile(e.dataTransfer.items);
@@ -704,7 +712,7 @@ export function useContentComposer(props: ContentComposerProps) {
   }
 
   function handleDragLeave() {
-    dragCounterRef.current -= 1;
+    dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
     if (dragCounterRef.current === 0) {
       setIsDragging(false);
       setIsDragError(false);
@@ -718,9 +726,6 @@ export function useContentComposer(props: ContentComposerProps) {
 
     dragCounterRef.current = 0;
     setIsDragging(false);
-    setIsDragError(false);
-    setDragErrorMessage("");
-    setDragFileCount(0);
 
     if (!editor) {
       throw new Error("Unable to access text editor state.");
@@ -730,8 +735,33 @@ export function useContentComposer(props: ContentComposerProps) {
     const assets = files.filter((file) => isSupportedAsset(file.type));
 
     if (assets.length > 0) {
+      setIsDragError(false);
+      setDragErrorMessage("");
+      setDragFileCount(0);
       await handleFiles(editor.view, assets);
+      return;
     }
+
+    // A non-file drop (repositioning content within the editor, dropping a
+    // link/text) legitimately has no files — only surface an error when the
+    // drag was actually carrying files but none survived to the drop event,
+    // otherwise this would flag normal in-editor drag-and-drop as broken.
+    const wasFileDrag = Array.from(e.dataTransfer.types).includes("Files");
+    if (!wasFileDrag) {
+      return;
+    }
+
+    setIsDragError(true);
+    setDragErrorMessage(
+      files.length > 0 ? ERROR_UNSUPPORTED_FILE_TYPE : "Drop not recognised, please try again",
+    );
+    setDragFileCount(0);
+    setIsDragging(true);
+    setTimeout(() => {
+      setIsDragging(false);
+      setIsDragError(false);
+      setDragErrorMessage("");
+    }, 2000);
   }
 
   return {

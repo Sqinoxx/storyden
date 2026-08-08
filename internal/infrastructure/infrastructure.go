@@ -9,7 +9,6 @@ import (
 	"github.com/Southclaws/storyden/internal/infrastructure/db"
 	"github.com/Southclaws/storyden/internal/infrastructure/endec/jwt"
 	"github.com/Southclaws/storyden/internal/infrastructure/frontend"
-	"github.com/Southclaws/storyden/internal/infrastructure/gdrive"
 	"github.com/Southclaws/storyden/internal/infrastructure/instrumentation"
 	"github.com/Southclaws/storyden/internal/infrastructure/logger"
 	"github.com/Southclaws/storyden/internal/infrastructure/mailer"
@@ -35,7 +34,6 @@ func Build() fx.Option {
 		fx.Provide(webauthn.New),
 		object.Build(),
 		frontend.Build(),
-		gdrive.Build(),
 		pinecone.Build(),
 		fx.Provide(ai.New),
 		jwt.Build(),

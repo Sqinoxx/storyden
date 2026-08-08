@@ -64,6 +64,7 @@ type ServiceSettings struct {
 	RateLimit  opt.Optional[RateLimitServiceSettings]
 	Moderation opt.Optional[ModerationServiceSettings]
 	Robots     opt.Optional[RobotServiceSettings]
+	Drive      opt.Optional[DriveServiceSettings]
 }
 
 type ClientIPServiceSettings struct {
@@ -97,6 +98,15 @@ type RobotServiceSettings struct {
 type RobotProviderSettings struct {
 	Enabled opt.Optional[bool]
 	APIKey  opt.Optional[string]
+}
+
+// DriveServiceSettings holds a Google service account key uploaded via the
+// admin interface. It takes precedence over the
+// GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON/_FILE environment configuration, which
+// remains available as a deploy-time alternative for installations without an
+// admin willing to hold the key in the database.
+type DriveServiceSettings struct {
+	ServiceAccountJSON opt.Optional[string]
 }
 
 // Merge will combine "updated" into "s" while overwriting any new values.

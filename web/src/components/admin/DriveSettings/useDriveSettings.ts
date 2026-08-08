@@ -1,15 +1,20 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { handle } from "@/api/client";
 import {
+  adminDriveCredentialsDelete,
+  adminDriveCredentialsUpload,
   adminDriveFolderCreate,
   adminDriveFolderDelete,
   adminDriveFolderUpdate,
+  useAdminDriveCredentialsGet,
   useAdminDriveFolderList,
 } from "@/api/openapi-client/drive";
 import { DriveFolder, DriveVisibility } from "@/api/openapi-schema";
+import { deriveError } from "@/utils/error";
 
 export const FormSchema = z.object({
   name: z.string().min(1, "Give the folder a name members will recognise."),
@@ -29,6 +34,56 @@ const DEFAULTS: Form = {
 
 export function useDriveSettings() {
   const { data, error, mutate } = useAdminDriveFolderList();
+  const {
+    data: credentials,
+    error: credentialsError,
+    mutate: mutateCredentials,
+  } = useAdminDriveCredentialsGet();
+  const [isUploadingCredentials, setIsUploadingCredentials] = useState(false);
+  const [credentialsUploadError, setCredentialsUploadError] = useState<
+    string | null
+  >(null);
+
+  async function handleCredentialsUpload(file: File) {
+    setIsUploadingCredentials(true);
+    setCredentialsUploadError(null);
+
+    await handle(
+      async () => {
+        await adminDriveCredentialsUpload(file);
+        await mutateCredentials();
+        await mutate();
+      },
+      {
+        promiseToast: {
+          loading: "Uploading service account key...",
+          success: "Service account key uploaded",
+        },
+        async onError(err) {
+          setCredentialsUploadError(deriveError(err));
+        },
+        cleanup: async () => {
+          setIsUploadingCredentials(false);
+        },
+      },
+    );
+  }
+
+  async function handleCredentialsRemove() {
+    await handle(
+      async () => {
+        await adminDriveCredentialsDelete();
+        await mutateCredentials();
+        await mutate();
+      },
+      {
+        promiseToast: {
+          loading: "Removing service account key...",
+          success: "Service account key removed",
+        },
+      },
+    );
+  }
 
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
@@ -96,10 +151,10 @@ export function useDriveSettings() {
     );
   }
 
-  if (!data) {
+  if (!data || !credentials) {
     return {
       ready: false as const,
-      error,
+      error: error ?? credentialsError,
     };
   }
 
@@ -107,6 +162,11 @@ export function useDriveSettings() {
     ready: true as const,
     folders: data.folders,
     configured: data.configured,
+    credentials,
+    isUploadingCredentials,
+    credentialsUploadError,
+    handleCredentialsUpload,
+    handleCredentialsRemove,
     form,
     onSubmit,
     handleVisibilityChange,

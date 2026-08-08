@@ -30,6 +30,9 @@ var (
 	OperationIDAdminDriveFolderCreate                 = OperationID{`AdminDriveFolderCreate`}
 	OperationIDAdminDriveFolderUpdate                 = OperationID{`AdminDriveFolderUpdate`}
 	OperationIDAdminDriveFolderDelete                 = OperationID{`AdminDriveFolderDelete`}
+	OperationIDAdminDriveCredentialsGet               = OperationID{`AdminDriveCredentialsGet`}
+	OperationIDAdminDriveCredentialsUpload            = OperationID{`AdminDriveCredentialsUpload`}
+	OperationIDAdminDriveCredentialsDelete            = OperationID{`AdminDriveCredentialsDelete`}
 	OperationIDDriveFolderList                        = OperationID{`DriveFolderList`}
 	OperationIDDriveFolderContents                    = OperationID{`DriveFolderContents`}
 	OperationIDDriveFileDownload                      = OperationID{`DriveFileDownload`}
@@ -338,6 +341,12 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAdminDriveFolderUpdate, nil
 	case string(`AdminDriveFolderDelete`):
 		return OperationIDAdminDriveFolderDelete, nil
+	case string(`AdminDriveCredentialsGet`):
+		return OperationIDAdminDriveCredentialsGet, nil
+	case string(`AdminDriveCredentialsUpload`):
+		return OperationIDAdminDriveCredentialsUpload, nil
+	case string(`AdminDriveCredentialsDelete`):
+		return OperationIDAdminDriveCredentialsDelete, nil
 	case string(`DriveFolderList`):
 		return OperationIDDriveFolderList, nil
 	case string(`DriveFolderContents`):

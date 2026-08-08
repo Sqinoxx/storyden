@@ -95,7 +95,13 @@ func (p *Provider) Get(ctx context.Context) (*Info, error) {
 		caps = append(caps, CapabilityPlugins)
 	}
 
-	if p.config.GoogleDriveServiceAccountJSON != "" || p.config.GoogleDriveServiceAccountFile != "" {
+	driveConfigured := p.config.GoogleDriveServiceAccountJSON != "" || p.config.GoogleDriveServiceAccountFile != ""
+	if services, ok := settings.Services.Get(); ok {
+		if drive, ok := services.Drive.Get(); ok && drive.ServiceAccountJSON.Or("") != "" {
+			driveConfigured = true
+		}
+	}
+	if driveConfigured {
 		caps = append(caps, CapabilityDrive)
 	}
 

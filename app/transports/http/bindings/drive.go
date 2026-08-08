@@ -3,20 +3,29 @@ package bindings
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/Southclaws/dt"
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
+	"github.com/Southclaws/fault/fmsg"
+	"github.com/Southclaws/fault/ftag"
 	"github.com/Southclaws/opt"
 	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/drive"
 	"github.com/Southclaws/storyden/app/services/drive/drive_browse"
+	"github.com/Southclaws/storyden/app/services/drive/drive_credentials"
 	"github.com/Southclaws/storyden/app/services/drive/drive_manage"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 	"github.com/Southclaws/storyden/internal/infrastructure/gdrive"
 )
+
+// driveCredentialsMaxBytes bounds the uploaded key well above any real
+// service account key (a few KB) while still rejecting anything absurd
+// before it's read fully into memory.
+const driveCredentialsMaxBytes = 1 << 20 // 1MiB
 
 // driveCacheControl is short and private. Listings come from an external
 // service that can change at any moment, and folders may be restricted to
@@ -24,12 +33,13 @@ import (
 const driveCacheControl = "private, max-age=60"
 
 type Drive struct {
-	manager *drive_manage.Manager
-	browser *drive_browse.Browser
+	manager     *drive_manage.Manager
+	browser     *drive_browse.Browser
+	credentials *drive_credentials.Resolver
 }
 
-func NewDrive(manager *drive_manage.Manager, browser *drive_browse.Browser) Drive {
-	return Drive{manager: manager, browser: browser}
+func NewDrive(manager *drive_manage.Manager, browser *drive_browse.Browser, credentials *drive_credentials.Resolver) Drive {
+	return Drive{manager: manager, browser: browser, credentials: credentials}
 }
 
 func (d *Drive) AdminDriveFolderList(ctx context.Context, request openapi.AdminDriveFolderListRequestObject) (openapi.AdminDriveFolderListResponseObject, error) {
@@ -107,6 +117,67 @@ func (d *Drive) AdminDriveFolderDelete(ctx context.Context, request openapi.Admi
 	}
 
 	return openapi.AdminDriveFolderDelete200Response{}, nil
+}
+
+func (d *Drive) AdminDriveCredentialsGet(ctx context.Context, request openapi.AdminDriveCredentialsGetRequestObject) (openapi.AdminDriveCredentialsGetResponseObject, error) {
+	status, err := d.credentials.Status(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AdminDriveCredentialsGet200JSONResponse{
+		DriveCredentialsStatusOKJSONResponse: serialiseDriveCredentialsStatus(status),
+	}, nil
+}
+
+func (d *Drive) AdminDriveCredentialsUpload(ctx context.Context, request openapi.AdminDriveCredentialsUploadRequestObject) (openapi.AdminDriveCredentialsUploadResponseObject, error) {
+	// This route bypasses the OpenAPI validator so the body can be streamed,
+	// which means its authorisation must be applied here instead.
+	if err := AuthoriseOperation(ctx, "AdminDriveCredentialsUpload"); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	limited := io.LimitReader(request.Body, driveCredentialsMaxBytes+1)
+
+	credentials, err := io.ReadAll(limited)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	if len(credentials) > driveCredentialsMaxBytes {
+		return nil, fault.New("service account key too large",
+			fctx.With(ctx),
+			ftag.With(ftag.InvalidArgument),
+			fmsg.WithDesc("key too large", "The service account key file is too large."))
+	}
+
+	status, err := d.credentials.Upload(ctx, credentials)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AdminDriveCredentialsUpload200JSONResponse{
+		DriveCredentialsStatusOKJSONResponse: serialiseDriveCredentialsStatus(status),
+	}, nil
+}
+
+func (d *Drive) AdminDriveCredentialsDelete(ctx context.Context, request openapi.AdminDriveCredentialsDeleteRequestObject) (openapi.AdminDriveCredentialsDeleteResponseObject, error) {
+	status, err := d.credentials.Remove(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AdminDriveCredentialsDelete200JSONResponse{
+		DriveCredentialsStatusOKJSONResponse: serialiseDriveCredentialsStatus(status),
+	}, nil
+}
+
+func serialiseDriveCredentialsStatus(s drive_credentials.Status) openapi.DriveCredentialsStatusOKJSONResponse {
+	return openapi.DriveCredentialsStatusOKJSONResponse{
+		Configured:          s.Configured,
+		Source:              openapi.DriveCredentialsSource(s.Source),
+		ServiceAccountEmail: opt.NewSafe(s.ServiceAccountEmail, s.ServiceAccountEmail != "").Ptr(),
+	}
 }
 
 func (d *Drive) DriveFolderList(ctx context.Context, request openapi.DriveFolderListRequestObject) (openapi.DriveFolderListResponseObject, error) {

@@ -34,6 +34,7 @@ export function LinkButton({
       href={href}
       target={target}
       onClick={props.onClick}
+      suppressHydrationWarning
     >
       <styled.span
         display="flex"

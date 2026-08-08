@@ -60,6 +60,17 @@ export function DriveContentsTable({ folderID, entries }: Props) {
                           {entry.name}
                         </Link>
                       </styled.span>
+                    ) : entry.previewable ? (
+                      <styled.button
+                        type="button"
+                        truncate
+                        textAlign="left"
+                        cursor="pointer"
+                        _hover={{ textDecoration: "underline" }}
+                        onClick={() => setPreviewing(entry)}
+                      >
+                        {entry.name}
+                      </styled.button>
                     ) : (
                       <styled.span truncate>{entry.name}</styled.span>
                     )}

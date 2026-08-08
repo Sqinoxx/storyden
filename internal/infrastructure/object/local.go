@@ -62,6 +62,7 @@ func (s *localStorer) Read(ctx context.Context, path string) (io.Reader, int64, 
 
 	info, err := f.Stat()
 	if err != nil {
+		f.Close()
 		return nil, 0, fault.Wrap(err, fctx.With(ctx))
 	}
 
@@ -78,7 +79,7 @@ func (s *localStorer) Write(ctx context.Context, path string, r io.Reader, size 
 
 	f, err := os.OpenFile(fullpath,
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0o755,
+		0o644,
 	)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -89,6 +90,7 @@ func (s *localStorer) Write(ctx context.Context, path string, r io.Reader, size 
 
 	_, err = io.Copy(f, r)
 	if err != nil {
+		f.Close()
 		return fault.Wrap(err, fctx.With(ctx))
 	}
 

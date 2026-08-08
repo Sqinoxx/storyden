@@ -229,6 +229,25 @@ export function useContentComposer(props: ContentComposerProps) {
     editor.setEditable(!props.disabled, false);
   }, [editor, props.disabled]);
 
+  // Navigating away mid-upload otherwise leaves the XHRs running against a
+  // composer that no longer exists, and leaks every placeholder's object URL for
+  // the lifetime of the document. Uploads that already completed are left alone
+  // — their blob URL has been swapped for the asset URL and revoking is handled
+  // at that point.
+  useEffect(() => {
+    const uploads = activeUploadsRef.current;
+
+    return () => {
+      uploads.forEach((upload) => {
+        if (upload.status === "uploading") {
+          upload.abortController.abort("composer unmounted");
+        }
+        URL.revokeObjectURL(upload.blobUrl);
+      });
+      uploads.clear();
+    };
+  }, []);
+
   // -
   // Image uploading logic.
   // -
@@ -440,7 +459,11 @@ export function useContentComposer(props: ContentComposerProps) {
     }
 
     const assets: Asset[] = [];
-    const insertPos = selection.$head.pos;
+
+    // Advances past each placeholder as it is inserted. Reusing the original
+    // offset for every file would stack them all at the same point, so a
+    // multi-file drop would come out in reverse order.
+    let insertPos = selection.$head.pos;
 
     for (const f of files) {
       uploadCounterRef.current += 1;
@@ -507,6 +530,8 @@ export function useContentComposer(props: ContentComposerProps) {
         placeholderNode,
       );
       view.dispatch(insertTransaction);
+
+      insertPos += placeholderNode.nodeSize;
 
       setUploadingCount((prev) => prev + 1);
 

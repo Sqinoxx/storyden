@@ -18,7 +18,7 @@ import { ProgressCircle } from "@/components/ui/progress";
 import { Download, Eye, Trash2 } from "lucide-react";
 import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
-import { getCleanFilename } from "@/utils/asset";
+import { downloadAsset, getCleanFilename } from "@/utils/asset";
 import { FilePreviewModal, isPreviewableAsset } from "@/components/post/FilePreviewModal";
 
 export interface FileAttachmentOptions {
@@ -72,26 +72,7 @@ function Component(props: NodeViewProps) {
     if (isUploading) { e.preventDefault(); return; }
     if (href) {
       e.preventDefault();
-      try {
-        const res = await fetch(href);
-        if (!res.ok) throw new Error("Download failed");
-        const blob = await res.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(blobUrl);
-      } catch {
-        const link = document.createElement("a");
-        link.href = href;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      }
+      await downloadAsset(href, fileName);
     }
   }, [href, fileName, isUploading]);
 

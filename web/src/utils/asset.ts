@@ -83,4 +83,67 @@ export function normalizeFilename(name?: string | null): string {
   return clean.replace(/[^a-z0-9]/g, "");
 }
 
+/**
+ * Mirrors the backend's MAX_UPLOAD_SIZE_MB default. Checking client-side turns a
+ * failed request into an immediate, explainable rejection.
+ */
+export const MAX_ASSET_UPLOAD_BYTES = 50 * 1024 * 1024;
+
+export function escapeHTML(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * Builds the editor markup for an uploaded attachment. Filenames are user
+ * controlled and end up inside both attribute values and element text, so every
+ * interpolation has to be escaped — an unescaped one lets a crafted filename
+ * break out of the attribute and inject markup into the post body.
+ */
+export function buildAttachmentMarkup(assetPath: string, file: File): string {
+  const url = escapeHTML(getAssetURL(assetPath));
+  const name = escapeHTML(file.name);
+
+  if (/^image\//i.test(file.type)) {
+    return `<img src="${url}" alt="${name}" />`;
+  }
+
+  return `<a href="${url}" data-type="file-attachment" data-filename="${name}" download="${name}">${name}</a>`;
+}
+
+/**
+ * Downloads an asset without opening a blank tab.
+ *
+ * Credentials are included because getAssetURL points at API_ADDRESS, which is a
+ * different origin in any non-fullstack deployment — without them the session
+ * cookie is dropped and private assets 401. Revoking the object URL is deferred
+ * by a tick because Firefox and Safari abort a download whose blob URL is
+ * revoked in the same task as the click.
+ */
+export async function downloadAsset(url: string, filename: string) {
+  const click = (href: string) => {
+    const link = document.createElement("a");
+    link.href = href;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  try {
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) throw new Error(`Download failed with status ${res.status}`);
+
+    const blobUrl = URL.createObjectURL(await res.blob());
+    click(blobUrl);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 0);
+  } catch {
+    click(url);
+  }
+}
+
 

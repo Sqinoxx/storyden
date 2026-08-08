@@ -14,7 +14,10 @@ import type { SWRMutationConfiguration } from "swr/mutation";
 
 import { fetcher } from "../client";
 import type {
-  AssetGetOKResponse,
+  AssetDownloadOKResponse,
+  AssetDownloadPartialResponse,
+  AssetNotModifiedResponse,
+  AssetRangeNotSatisfiableResponse,
   AssetUploadBody,
   AssetUploadOKResponse,
   AssetUploadParams,
@@ -87,7 +90,7 @@ export const useAssetUpload = <
  * Download an asset by its ID.
  */
 export const assetGet = (assetFilename: string) => {
-  return fetcher<AssetGetOKResponse>({
+  return fetcher<AssetDownloadOKResponse | AssetDownloadPartialResponse>({
     url: `/assets/${assetFilename}`,
     method: "GET",
   });
@@ -100,14 +103,18 @@ export type AssetGetQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetGet>>
 >;
 export type AssetGetQueryError =
+  | AssetNotModifiedResponse
   | UnauthorisedResponse
   | NotFoundResponse
+  | AssetRangeNotSatisfiableResponse
   | InternalServerErrorResponse;
 
 export const useAssetGet = <
   TError =
+    | AssetNotModifiedResponse
     | UnauthorisedResponse
     | NotFoundResponse
+    | AssetRangeNotSatisfiableResponse
     | InternalServerErrorResponse,
 >(
   assetFilename: string,

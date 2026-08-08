@@ -22,11 +22,14 @@ import (
 )
 
 const (
-	RateLimitLimit      = "X-RateLimit-Limit"
-	RateLimitRemaining  = "X-RateLimit-Remaining"
-	RateLimitReset      = "X-RateLimit-Reset"
-	RetryAfter          = "Retry-After"
-	MaxRequestSizeBytes = 50 * 1024 * 1024
+	RateLimitLimit     = "X-RateLimit-Limit"
+	RateLimitRemaining = "X-RateLimit-Remaining"
+	RateLimitReset     = "X-RateLimit-Reset"
+	RetryAfter         = "Retry-After"
+
+	// DefaultMaxRequestSizeBytes applies when MAX_UPLOAD_SIZE_MB is unset or
+	// nonsensical. It bounds every request body, uploads included.
+	DefaultMaxRequestSizeBytes = 50 * 1024 * 1024
 )
 
 type Middleware struct {
@@ -60,7 +63,7 @@ func New(
 		configPeriod:    cfg.RateLimitPeriod,
 		configBucket:    cfg.RateLimitBucket,
 		configGuestCost: cfg.RateLimitGuestCost,
-		sizeLimit:       MaxRequestSizeBytes,
+		sizeLimit:       maxRequestSize(cfg),
 		settingsRepo:    settingsRepo,
 		logger:          logger,
 	}
@@ -76,6 +79,14 @@ func New(
 	}))
 
 	return m
+}
+
+func maxRequestSize(cfg config.Config) int64 {
+	if cfg.MaxUploadSizeMB <= 0 {
+		return DefaultMaxRequestSizeBytes
+	}
+
+	return int64(cfg.MaxUploadSizeMB) * 1024 * 1024
 }
 
 func (m *Middleware) getConfiguration(ctx context.Context) (limit int, period time.Duration, bucket time.Duration, guestCost int) {

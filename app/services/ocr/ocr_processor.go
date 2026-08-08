@@ -145,12 +145,12 @@ func (p *Processor) processPendingBatch(ctx context.Context) (int, error) {
 		return 0, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	for _, a := range pending {
+	for _, id := range pending {
 		if ctx.Err() != nil {
 			return 0, nil
 		}
-		if err := p.ProcessAsset(ctx, xid.ID(a.ID)); err != nil {
-			p.logger.Warn("OCR backfill failed to process asset", slog.String("id", a.ID.String()), slog.String("error", err.Error()))
+		if err := p.ProcessAsset(ctx, xid.ID(id)); err != nil {
+			p.logger.Warn("OCR backfill failed to process asset", slog.String("id", id.String()), slog.String("error", err.Error()))
 		}
 	}
 
@@ -167,8 +167,8 @@ func (p *Processor) ProcessAllPending(ctx context.Context, limit int) (int, erro
 	}
 
 	processed := 0
-	for _, a := range pending {
-		if err := p.ProcessAsset(ctx, xid.ID(a.ID)); err == nil {
+	for _, id := range pending {
+		if err := p.ProcessAsset(ctx, xid.ID(id)); err == nil {
 			processed++
 		}
 	}
@@ -315,7 +315,13 @@ var supportedOCRMIMETypes = map[string]bool{
 	"application/pdf": true,
 }
 
+// IsSupportedMIME reports whether an asset of this content type is worth
+// enqueueing for text extraction at all. Upload sites use it to avoid
+// dispatching commands that this package would immediately mark as skipped.
+func IsSupportedMIME(m string) bool {
+	return supportedOCRMIMETypes[strings.ToLower(strings.TrimSpace(m))]
+}
+
 func (p *Processor) isSupportedMIME(m string) bool {
-	m = strings.ToLower(strings.TrimSpace(m))
-	return supportedOCRMIMETypes[m]
+	return IsSupportedMIME(m)
 }

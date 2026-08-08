@@ -757,6 +757,20 @@ Either:
 
 When `ASSET_STORAGE_TYPE` is set to `local`, this is the path to the directory where files will be stored.
 
+### `MAX_UPLOAD_SIZE_MB`
+
+<table>
+<tr><td>type</td><td>`integer` (number without decimal point)</td></tr>
+<tr><td>default</td><td>`50`</td></tr>
+</table>
+
+The largest request body the API will accept, in megabytes. This bounds
+every upload: attachments, avatars, site icons and banners.
+
+Raise it if your community shares large documents or video, but bear in
+mind that image uploads are decoded in memory to be resized, so a very
+high value on a small VM can exhaust available RAM.
+
 ### `S3_SECURE`
 
 <table>

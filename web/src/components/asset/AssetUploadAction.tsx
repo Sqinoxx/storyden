@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import * as FileUpload from "@/components/ui/file-upload";
 import { MediaAddIcon, MediaIcon } from "@/components/ui/icons/Media";
 import { ButtonVariantProps, button } from "@/styled-system/recipes";
+import { MAX_ASSET_UPLOAD_BYTES } from "@/utils/asset";
 import { getExtensionsForMimeTypes } from "@/utils/mime-types";
 
 type AssetUploadActionProps = {
@@ -36,14 +37,17 @@ export function AssetUploadAction({
   const acceptedMIMEs = getMIMEs(props.accept);
 
   async function handleFile({ files }: FileUploadFileAcceptDetails) {
-    console.log("handleFile called", files); // TEMP DEBUG
     await handle(async () => {
       // NOTE: For some reason (Zag bug?) this is called for rejected files too.
-      
       const file = files[0];
       if (!file) {
-        console.error("handleFile: no file was provided", files);
         return;
+      }
+
+      if (file.size > MAX_ASSET_UPLOAD_BYTES) {
+        throw new Error(
+          `File is larger than the ${Math.floor(MAX_ASSET_UPLOAD_BYTES / 1024 / 1024)}MB upload limit.`,
+        );
       }
 
       const asset = await assetUpload(file, {
@@ -51,22 +55,20 @@ export function AssetUploadAction({
         parent_asset_id: parentAssetID,
       });
 
-      onFinish({ ...asset, filename: file.name });
+      // Awaited so a failure in the caller's follow-up work (a draft save, a
+      // revalidation) is reported by the enclosing handle instead of escaping
+      // as an unhandled rejection.
+      await onFinish({ ...asset, filename: file.name });
     });
   }
 
   async function handleFileReject({ files }: FileUploadFileRejectDetails) {
-    console.log("handleFileReject called", files); // TEMP DEBUG
     if (files.length === 0) {
       return;
     }
-    
 
     const file = files[0];
     if (!file) {
-      console.error(
-        "handleFileReject: files list non-empty but first file is falsy",
-      );
       return;
     }
 
@@ -101,6 +103,7 @@ export function AssetUploadAction({
     <FileUpload.Root
       w="min"
       maxFiles={1}
+      maxFileSize={MAX_ASSET_UPLOAD_BYTES}
       onFileAccept={handleFile}
       onFileReject={handleFileReject}
       {...fileUploadProps}

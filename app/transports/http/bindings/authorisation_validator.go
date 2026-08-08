@@ -108,6 +108,33 @@ func (i *Authorisation) validator(oapictx context.Context, ai *openapi3filter.Au
 	return nil
 }
 
+// AuthoriseOperation applies the same session, suspension and permission checks
+// the OpenAPI validator performs, for handlers that bypass it. Binary upload
+// routes are skipped by the validator (see binaryUploadPaths) so that request
+// bodies can be streamed, which also skips its AuthenticationFunc — without
+// this they would be entirely unauthenticated.
+func AuthoriseOperation(ctx context.Context, operationID string) error {
+	sessionRequired, perm := GetPermissionForOperation(operationID)
+
+	if acc, ok := session.GetOptAccount(ctx).Get(); ok {
+		if err := acc.RejectSuspended(); err != nil {
+			return fault.Wrap(err, fctx.With(ctx))
+		}
+	} else if sessionRequired {
+		return fault.New("session required for operation", fctx.With(ctx), ftag.With(ftag.Unauthenticated))
+	}
+
+	if perm == nil {
+		return nil
+	}
+
+	if err := session.Authorise(ctx, nil, *perm, rbac.PermissionAdministrator); err != nil {
+		return fault.New("required role not held", fctx.With(ctx), ftag.With(ftag.PermissionDenied))
+	}
+
+	return nil
+}
+
 func effectiveSecurityRequirements(ai *openapi3filter.AuthenticationInput) *openapi3.SecurityRequirements {
 	if security := ai.RequestValidationInput.Route.Operation.Security; security != nil {
 		return security

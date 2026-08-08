@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"ariga.io/atlas/sql/migrate"
 	atlas_schema "ariga.io/atlas/sql/schema"
@@ -46,6 +47,13 @@ func Build() fx.Option {
 	)
 }
 
+const (
+	maxOpenConns    = 25
+	maxIdleConns    = 10
+	connMaxLifetime = time.Hour
+	connMaxIdleTime = 5 * time.Minute
+)
+
 func newSQL(cfg config.Config) (*sql.DB, *sqlx.DB, error) {
 	driver, path, err := getDriver(cfg.DatabaseURL)
 	if err != nil {
@@ -55,6 +63,16 @@ func newSQL(cfg config.Config) (*sql.DB, *sqlx.DB, error) {
 	d, err := sql.Open(driver, path)
 	if err != nil {
 		return nil, nil, fault.Wrap(err, fmsg.With("failed to open driver"))
+	}
+
+	// database/sql defaults to unlimited open connections, which a server-based
+	// database will not tolerate — Postgres allows 100 by default and rejects
+	// everything beyond it. File-backed drivers have no such ceiling.
+	if driver == "pgx" {
+		d.SetMaxOpenConns(maxOpenConns)
+		d.SetMaxIdleConns(maxIdleConns)
+		d.SetConnMaxLifetime(connMaxLifetime)
+		d.SetConnMaxIdleTime(connMaxIdleTime)
 	}
 
 	if err := d.Ping(); err != nil {

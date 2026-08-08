@@ -157,6 +157,16 @@ func bindings(s Bindings) openapi.StrictServerInterface {
 
 // mounts the OpenAPI routes and middleware onto the /api path. Everything that
 // is outside of the `/api` path is considered separate from the OpenAPI spec.
+// binaryUploadPaths are the routes whose request body is a raw octet stream
+// handed straight to a storage writer. Running them through the OpenAPI
+// validator would buffer the entire upload in memory first.
+var binaryUploadPaths = map[string]bool{
+	"/api/assets":               true,
+	"/api/info/icon":            true,
+	"/api/info/banner":          true,
+	"/api/accounts/self/avatar": true,
+}
+
 func mount(
 	logger *slog.Logger,
 	cfg config.Config,
@@ -176,11 +186,11 @@ func mount(
 			return true
 		}
 
-		// Skip validation for asset upload. This is due to the fact that the
+		// Skip validation for binary uploads. This is due to the fact that the
 		// OpenAPI validator performs an io.ReadAll on the request body which
 		// will cause memory usage issues for large file uploads since it will
 		// completely remove the ability to stream request body to the uploader.
-		if c.Path() == "/api/assets" && c.Request().Method == http.MethodPost {
+		if c.Request().Method == http.MethodPost && binaryUploadPaths[c.Path()] {
 			return true
 		}
 

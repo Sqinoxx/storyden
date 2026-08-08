@@ -419,6 +419,45 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "200": { description: OK }
 
+  /admin/drive/credentials:
+    get:
+      operationId: AdminDriveCredentialsGet
+      description: |
+        Get the status of the Google Drive service account credentials
+        configured on this installation, whether set via the admin interface
+        or via the `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON`/`_FILE` environment
+        configuration.
+      tags: [drive, admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/DriveCredentialsStatusOK" }
+    post:
+      operationId: AdminDriveCredentialsUpload
+      description: |
+        Upload a Google service account key (JSON) so this installation can
+        read Google Drive folders shared with it. This overrides any
+        credentials set via environment configuration. The key is validated
+        before it is stored.
+      tags: [drive, admin]
+      requestBody: { $ref: "#/components/requestBodies/AdminDriveCredentialsUpload" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/DriveCredentialsStatusOK" }
+    delete:
+      operationId: AdminDriveCredentialsDelete
+      description: |
+        Remove the service account key uploaded via the admin interface. If
+        `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON` or `_FILE` is set in the
+        environment, the installation falls back to that.
+      tags: [drive, admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/DriveCredentialsStatusOK" }
+
   /drive/folders:
     get:
       operationId: DriveFolderList
@@ -5312,6 +5351,14 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/DriveFolderMutableProps" }
 
+    AdminDriveCredentialsUpload:
+      description: A Google service account key file (JSON).
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
+
     ModerationActionCreate:
       content:
         application/json:
@@ -6547,6 +6594,13 @@ components:
           schema:
             $ref: "#/components/schemas/DriveFolder"
 
+    DriveCredentialsStatusOK:
+      description: The status of the Google Drive service account credentials.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/DriveCredentialsStatus"
+
     DriveFolderContentsOK:
       description: The contents of a Google Drive folder.
       content:
@@ -7257,6 +7311,29 @@ components:
             Whether the installation holds Google Drive credentials. Folders can
             be registered without them, but nothing inside can be read, so the
             admin interface uses this to explain the missing setup step.
+
+    DriveCredentialsSource:
+      type: string
+      enum: [none, environment, upload]
+      description: |
+        Where the active Google Drive service account credentials came from,
+        if any: not configured at all, the environment configuration
+        (`GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON`/`_FILE`), or uploaded via the
+        admin interface. An upload takes precedence over the environment.
+
+    DriveCredentialsStatus:
+      type: object
+      required: [configured, source]
+      properties:
+        configured:
+          type: boolean
+        source: { $ref: "#/components/schemas/DriveCredentialsSource" }
+        service_account_email:
+          type: string
+          description: |
+            The service account's email address. Share a Google Drive folder
+            with this address to make it reachable. Absent when not
+            configured.
 
     DriveFolderInitialProps:
       type: object

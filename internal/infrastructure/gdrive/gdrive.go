@@ -6,6 +6,7 @@ package gdrive
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"io"
 	"os"
 	"strings"
@@ -15,7 +16,6 @@ import (
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/fault/fmsg"
 	"github.com/Southclaws/fault/ftag"
-	"go.uber.org/fx"
 
 	"github.com/Southclaws/storyden/internal/config"
 )
@@ -109,23 +109,61 @@ type Client interface {
 	Open(ctx context.Context, f *File) (io.ReadCloser, string, error)
 }
 
-func Build() fx.Option {
-	return fx.Provide(func(ctx context.Context, cfg config.Config) (Client, error) {
-		if strings.TrimSpace(cfg.GoogleDriveServiceAccountJSON) == MockCredentialsValue {
-			return &mock{}, nil
-		}
+// NewFromConfig builds a Client from static, environment-sourced configuration.
+// It never returns a nil Client: an installation with no credentials at all
+// gets a disabled Client rather than an error, so callers can defer to a
+// dynamically-configured source (such as an admin-uploaded key) instead.
+func NewFromConfig(ctx context.Context, cfg config.Config) (Client, error) {
+	if strings.TrimSpace(cfg.GoogleDriveServiceAccountJSON) == MockCredentialsValue {
+		return &mock{}, nil
+	}
 
-		credentials, err := readCredentials(cfg)
-		if err != nil {
-			return nil, err
-		}
+	credentials, err := readCredentials(cfg)
+	if err != nil {
+		return nil, err
+	}
 
-		if credentials == nil {
-			return &disabled{}, nil
-		}
+	if credentials == nil {
+		return &disabled{}, nil
+	}
 
-		return newGoogleClient(ctx, credentials)
-	})
+	return newGoogleClient(ctx, credentials)
+}
+
+// NewClient builds a Client directly from a service account key's raw JSON
+// bytes, as uploaded through the admin interface rather than read from disk
+// or the environment.
+func NewClient(ctx context.Context, credentials []byte) (Client, error) {
+	return newGoogleClient(ctx, credentials)
+}
+
+type serviceAccountKey struct {
+	ClientEmail string `json:"client_email"`
+	Type        string `json:"type"`
+}
+
+// ServiceAccountEmail extracts the client_email field from a service account
+// key's raw JSON, so the admin interface can show which address a folder must
+// be shared with. It validates that the key at least looks like a service
+// account key in the process.
+func ServiceAccountEmail(ctx context.Context, credentials []byte) (string, error) {
+	var key serviceAccountKey
+	if err := json.Unmarshal(credentials, &key); err != nil {
+		return "", fault.Wrap(err,
+			fctx.With(ctx),
+			fmsg.WithDesc("parse service account key",
+				"The uploaded file is not valid JSON."))
+	}
+
+	if key.Type != "service_account" || key.ClientEmail == "" {
+		return "", fault.New("not a service account key",
+			fctx.With(ctx),
+			ftag.With(ftag.InvalidArgument),
+			fmsg.WithDesc("not a service account key",
+				"This does not look like a Google service account key file."))
+	}
+
+	return key.ClientEmail, nil
 }
 
 func readCredentials(cfg config.Config) ([]byte, error) {

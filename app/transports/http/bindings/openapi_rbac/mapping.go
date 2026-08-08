@@ -78,6 +78,18 @@ func (m *Mapping) AdminDriveFolderDelete() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageSettings
 }
 
+func (m *Mapping) AdminDriveCredentialsGet() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageSettings
+}
+
+func (m *Mapping) AdminDriveCredentialsUpload() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageSettings
+}
+
+func (m *Mapping) AdminDriveCredentialsDelete() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageSettings
+}
+
 // Browsing is open at the transport layer because a folder may be marked
 // public. drive_browse applies each folder's own visibility, which needs the
 // session that a blanket requirement here would have already rejected.
@@ -125,7 +137,6 @@ func (m *Mapping) AdminAccountDelete() (bool, *rbac.Permission) {
 func (m *Mapping) AccountDelete() (bool, *rbac.Permission) {
 	return true, nil
 }
-
 
 func (m *Mapping) AccountList() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionViewAccounts
@@ -270,7 +281,6 @@ func (m *Mapping) RoleDelete() (bool, *rbac.Permission) {
 func (m *Mapping) AuthProviderList() (bool, *rbac.Permission) {
 	return false, nil // Public
 }
-
 
 func (m *Mapping) AuthPasswordSignup() (bool, *rbac.Permission) {
 	return false, nil // Public

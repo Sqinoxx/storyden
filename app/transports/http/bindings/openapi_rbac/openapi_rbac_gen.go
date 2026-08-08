@@ -21,6 +21,9 @@ type OperationPermissions interface {
 	AdminDriveFolderCreate() (bool, *rbac.Permission)
 	AdminDriveFolderUpdate() (bool, *rbac.Permission)
 	AdminDriveFolderDelete() (bool, *rbac.Permission)
+	AdminDriveCredentialsGet() (bool, *rbac.Permission)
+	AdminDriveCredentialsUpload() (bool, *rbac.Permission)
+	AdminDriveCredentialsDelete() (bool, *rbac.Permission)
 	DriveFolderList() (bool, *rbac.Permission)
 	DriveFolderContents() (bool, *rbac.Permission)
 	DriveFileDownload() (bool, *rbac.Permission)
@@ -294,6 +297,12 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.AdminDriveFolderUpdate()
 	case "AdminDriveFolderDelete":
 		return optable.AdminDriveFolderDelete()
+	case "AdminDriveCredentialsGet":
+		return optable.AdminDriveCredentialsGet()
+	case "AdminDriveCredentialsUpload":
+		return optable.AdminDriveCredentialsUpload()
+	case "AdminDriveCredentialsDelete":
+		return optable.AdminDriveCredentialsDelete()
 	case "DriveFolderList":
 		return optable.DriveFolderList()
 	case "DriveFolderContents":

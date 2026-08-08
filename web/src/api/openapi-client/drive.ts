@@ -14,9 +14,11 @@ import type { SWRMutationConfiguration } from "swr/mutation";
 
 import { fetcher } from "../client";
 import type {
+  AdminDriveCredentialsUploadBody,
   AdminDriveFolderCreateBody,
   AdminDriveFolderUpdateBody,
   BadRequestResponse,
+  DriveCredentialsStatusOKResponse,
   DriveFileDownloadOKResponse,
   DriveFileDownloadParams,
   DriveFolderContentsOKResponse,
@@ -258,6 +260,176 @@ export const useAdminDriveFolderDelete = <
   const swrKey =
     swrOptions?.swrKey ?? getAdminDriveFolderDeleteMutationKey(driveFolderId);
   const swrFn = getAdminDriveFolderDeleteMutationFetcher(driveFolderId);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Get the status of the Google Drive service account credentials
+configured on this installation, whether set via the admin interface
+or via the `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON`/`_FILE` environment
+configuration.
+
+ */
+export const adminDriveCredentialsGet = () => {
+  return fetcher<DriveCredentialsStatusOKResponse>({
+    url: `/admin/drive/credentials`,
+    method: "GET",
+  });
+};
+
+export const getAdminDriveCredentialsGetKey = () =>
+  [`/admin/drive/credentials`] as const;
+
+export type AdminDriveCredentialsGetQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminDriveCredentialsGet>>
+>;
+export type AdminDriveCredentialsGetQueryError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAdminDriveCredentialsGet = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRConfiguration<
+    Awaited<ReturnType<typeof adminDriveCredentialsGet>>,
+    TError
+  > & { swrKey?: Key; enabled?: boolean };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() => (isEnabled ? getAdminDriveCredentialsGetKey() : null));
+  const swrFn = () => adminDriveCredentialsGet();
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Upload a Google service account key (JSON) so this installation can
+read Google Drive folders shared with it. This overrides any
+credentials set via environment configuration. The key is validated
+before it is stored.
+
+ */
+export const adminDriveCredentialsUpload = (
+  adminDriveCredentialsUploadBody: AdminDriveCredentialsUploadBody,
+) => {
+  return fetcher<DriveCredentialsStatusOKResponse>({
+    url: `/admin/drive/credentials`,
+    method: "POST",
+    headers: { "Content-Type": "application/octet-stream" },
+    data: adminDriveCredentialsUploadBody,
+  });
+};
+
+export const getAdminDriveCredentialsUploadMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: AdminDriveCredentialsUploadBody },
+  ): Promise<DriveCredentialsStatusOKResponse> => {
+    return adminDriveCredentialsUpload(arg);
+  };
+};
+export const getAdminDriveCredentialsUploadMutationKey = () =>
+  [`/admin/drive/credentials`] as const;
+
+export type AdminDriveCredentialsUploadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminDriveCredentialsUpload>>
+>;
+export type AdminDriveCredentialsUploadMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAdminDriveCredentialsUpload = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof adminDriveCredentialsUpload>>,
+    TError,
+    Key,
+    AdminDriveCredentialsUploadBody,
+    Awaited<ReturnType<typeof adminDriveCredentialsUpload>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey =
+    swrOptions?.swrKey ?? getAdminDriveCredentialsUploadMutationKey();
+  const swrFn = getAdminDriveCredentialsUploadMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Remove the service account key uploaded via the admin interface. If
+`GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON` or `_FILE` is set in the
+environment, the installation falls back to that.
+
+ */
+export const adminDriveCredentialsDelete = () => {
+  return fetcher<DriveCredentialsStatusOKResponse>({
+    url: `/admin/drive/credentials`,
+    method: "DELETE",
+  });
+};
+
+export const getAdminDriveCredentialsDeleteMutationFetcher = () => {
+  return (
+    _: Key,
+    __: { arg: Arguments },
+  ): Promise<DriveCredentialsStatusOKResponse> => {
+    return adminDriveCredentialsDelete();
+  };
+};
+export const getAdminDriveCredentialsDeleteMutationKey = () =>
+  [`/admin/drive/credentials`] as const;
+
+export type AdminDriveCredentialsDeleteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminDriveCredentialsDelete>>
+>;
+export type AdminDriveCredentialsDeleteMutationError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAdminDriveCredentialsDelete = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof adminDriveCredentialsDelete>>,
+    TError,
+    Key,
+    Arguments,
+    Awaited<ReturnType<typeof adminDriveCredentialsDelete>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey =
+    swrOptions?.swrKey ?? getAdminDriveCredentialsDeleteMutationKey();
+  const swrFn = getAdminDriveCredentialsDeleteMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

@@ -8,8 +8,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 import type {
+  AdminDriveCredentialsUploadBody,
   AdminDriveFolderCreateBody,
   AdminDriveFolderUpdateBody,
+  DriveCredentialsStatusOKResponse,
   DriveFileDownloadOKResponse,
   DriveFileDownloadParams,
   DriveFolderContentsOKResponse,
@@ -122,6 +124,95 @@ export const adminDriveFolderDelete = async (
 ): Promise<adminDriveFolderDeleteResponse> => {
   return fetcher<Promise<adminDriveFolderDeleteResponse>>(
     getAdminDriveFolderDeleteUrl(driveFolderId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+/**
+ * Get the status of the Google Drive service account credentials
+configured on this installation, whether set via the admin interface
+or via the `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON`/`_FILE` environment
+configuration.
+
+ */
+export type adminDriveCredentialsGetResponse = {
+  data: DriveCredentialsStatusOKResponse;
+  status: number;
+};
+
+export const getAdminDriveCredentialsGetUrl = () => {
+  return `/admin/drive/credentials`;
+};
+
+export const adminDriveCredentialsGet = async (
+  options?: RequestInit,
+): Promise<adminDriveCredentialsGetResponse> => {
+  return fetcher<Promise<adminDriveCredentialsGetResponse>>(
+    getAdminDriveCredentialsGetUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * Upload a Google service account key (JSON) so this installation can
+read Google Drive folders shared with it. This overrides any
+credentials set via environment configuration. The key is validated
+before it is stored.
+
+ */
+export type adminDriveCredentialsUploadResponse = {
+  data: DriveCredentialsStatusOKResponse;
+  status: number;
+};
+
+export const getAdminDriveCredentialsUploadUrl = () => {
+  return `/admin/drive/credentials`;
+};
+
+export const adminDriveCredentialsUpload = async (
+  adminDriveCredentialsUploadBody: AdminDriveCredentialsUploadBody,
+  options?: RequestInit,
+): Promise<adminDriveCredentialsUploadResponse> => {
+  return fetcher<Promise<adminDriveCredentialsUploadResponse>>(
+    getAdminDriveCredentialsUploadUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/octet-stream",
+        ...options?.headers,
+      },
+      body: JSON.stringify(adminDriveCredentialsUploadBody),
+    },
+  );
+};
+
+/**
+ * Remove the service account key uploaded via the admin interface. If
+`GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON` or `_FILE` is set in the
+environment, the installation falls back to that.
+
+ */
+export type adminDriveCredentialsDeleteResponse = {
+  data: DriveCredentialsStatusOKResponse;
+  status: number;
+};
+
+export const getAdminDriveCredentialsDeleteUrl = () => {
+  return `/admin/drive/credentials`;
+};
+
+export const adminDriveCredentialsDelete = async (
+  options?: RequestInit,
+): Promise<adminDriveCredentialsDeleteResponse> => {
+  return fetcher<Promise<adminDriveCredentialsDeleteResponse>>(
+    getAdminDriveCredentialsDeleteUrl(),
     {
       ...options,
       method: "DELETE",

@@ -2,7 +2,7 @@
 
 import { createListCollection } from "@ark-ui/react";
 
-import { DriveFolder, DriveVisibility } from "@/api/openapi-schema";
+import { DriveCredentialsStatus, DriveFolder, DriveVisibility } from "@/api/openapi-schema";
 import { DeleteWithConfirmationButton } from "@/components/site/DeleteConfirmationButton";
 import { Unready } from "@/components/site/Unready";
 import { Admonition } from "@/components/ui/admonition";
@@ -20,6 +20,7 @@ import * as Table from "@/components/ui/table";
 import { CardBox, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
+import { DriveCredentialsUpload } from "./DriveCredentialsUpload";
 import { useDriveSettings } from "./useDriveSettings";
 
 const VISIBILITY_COLLECTION = createListCollection({
@@ -37,7 +38,11 @@ export function DriveSettings() {
 
   const {
     folders,
-    configured,
+    credentials,
+    isUploadingCredentials,
+    credentialsUploadError,
+    handleCredentialsUpload,
+    handleCredentialsRemove,
     form,
     onSubmit,
     handleVisibilityChange,
@@ -46,15 +51,23 @@ export function DriveSettings() {
 
   return (
     <LStack gap="4">
+      <DriveCredentialsCard
+        credentials={credentials}
+        isUploading={isUploadingCredentials}
+        uploadError={credentialsUploadError}
+        onUpload={handleCredentialsUpload}
+        onRemove={handleCredentialsRemove}
+      />
+
       <Admonition
-        value={!configured}
+        value={!credentials.configured}
         kind="neutral"
         title="Google Drive is not configured"
       >
         <styled.p fontSize="sm">
-          Set <styled.code>GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON</styled.code> to a
-          Google service account key and restart the server. Until then, folders
-          added here cannot be read.
+          Upload a service account key above, or set{" "}
+          <styled.code>GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON</styled.code> and
+          restart the server. Until then, folders added here cannot be read.
         </styled.p>
       </Admonition>
 
@@ -164,6 +177,78 @@ export function DriveSettings() {
         </CardBox>
       </styled.form>
     </LStack>
+  );
+}
+
+function DriveCredentialsCard({
+  credentials,
+  isUploading,
+  uploadError,
+  onUpload,
+  onRemove,
+}: {
+  credentials: DriveCredentialsStatus;
+  isUploading: boolean;
+  uploadError: string | null;
+  onUpload: (file: File) => void;
+  onRemove: () => Promise<void>;
+}) {
+  return (
+    <CardBox className={lstack()}>
+      <Heading size="md">Google Drive access</Heading>
+
+      {credentials.configured ? (
+        <LStack gap="2">
+          <WStack alignItems="start">
+            <LStack gap="0">
+              <styled.p fontSize="sm">
+                {credentials.source === "upload"
+                  ? "Using an uploaded service account key."
+                  : "Using the service account key from environment configuration."}
+              </styled.p>
+              {credentials.service_account_email && (
+                <styled.p fontSize="sm" color="fg.muted">
+                  Share Drive folders with{" "}
+                  <styled.code>
+                    {credentials.service_account_email}
+                  </styled.code>{" "}
+                  to make them reachable.
+                </styled.p>
+              )}
+            </LStack>
+
+            {credentials.source === "upload" && (
+              <DeleteWithConfirmationButton
+                size="xs"
+                variant="outline"
+                onDelete={onRemove}
+              >
+                Remove key
+              </DeleteWithConfirmationButton>
+            )}
+          </WStack>
+
+          {credentials.source === "environment" && (
+            <styled.p fontSize="sm" color="fg.muted">
+              Upload a key below to override the environment configuration.
+            </styled.p>
+          )}
+        </LStack>
+      ) : (
+        <styled.p fontSize="sm" color="fg.muted">
+          Upload the JSON key for a Google service account to let this
+          installation read shared Drive folders.
+        </styled.p>
+      )}
+
+      <DriveCredentialsUpload
+        disabled={isUploading}
+        buttonLabel={isUploading ? "Uploading..." : "Select File"}
+        onFileChange={onUpload}
+      />
+
+      {uploadError && <FormErrorText>{uploadError}</FormErrorText>}
+    </CardBox>
   );
 }
 

@@ -22,6 +22,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/collection"
 	"github.com/Southclaws/storyden/app/services/comms"
 	"github.com/Southclaws/storyden/app/services/drive/drive_browse"
+	"github.com/Southclaws/storyden/app/services/drive/drive_credentials"
 	"github.com/Southclaws/storyden/app/services/drive/drive_manage"
 	"github.com/Southclaws/storyden/app/services/event"
 	"github.com/Southclaws/storyden/app/services/generative"
@@ -96,6 +97,7 @@ func Build() fx.Option {
 		fx.Provide(autotagger.New),
 		fx.Provide(instance_info.New),
 		ocr.Build(),
+		drive_credentials.Build(),
 		fx.Provide(drive_manage.New, drive_browse.New),
 		fx.Provide(account_auth.New, account_email.New),
 		fx.Provide(settings_manager.New),

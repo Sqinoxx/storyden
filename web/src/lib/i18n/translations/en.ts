@@ -6,6 +6,7 @@ export const en = {
     library: "Library",
     members: "Members",
     collections: "Collections",
+    drive: "Drive",
     search: "Search",
     compose: "Post",
     post: "Post",

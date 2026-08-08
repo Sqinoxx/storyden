@@ -1004,3 +1004,32 @@
       description: |-
         Same as above, but for the region. As with any third party providers, it's recommended to choose the region closest to both your Storyden deployment and your community members for best performance and experience.
 
+
+- section: Google Drive
+  description: |-
+    Storyden can expose Google Drive folders to members through its own interface, so files are browsed, previewed and downloaded without leaving the site and without a Google account.
+
+    Access is granted through a Google Cloud service account. Create one with the Drive API enabled, download its JSON key, and share each folder you want to expose with the service account's email address. Administrators then register those folders in the admin panel.
+
+    The feature stays dormant until either of the credential values below is set.
+  fields:
+    - env: "GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON"
+      name: GoogleDriveServiceAccountJSON
+      type: string
+      description: |-
+        The service account key, either as raw JSON or base64 encoded. Base64 is usually easier to pass through deployment tooling that dislikes multi-line values. Takes precedence over `GOOGLE_DRIVE_SERVICE_ACCOUNT_FILE`.
+
+        Set to `mock` to browse a small in-memory folder tree instead of Google Drive. This is for local development and end-to-end tests; never use it in production.
+
+    - env: "GOOGLE_DRIVE_SERVICE_ACCOUNT_FILE"
+      name: GoogleDriveServiceAccountFile
+      type: string
+      description: |-
+        Path to the service account key file on disk. An alternative to `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON` for deployments that mount secrets as files.
+
+    - env: "GOOGLE_DRIVE_CACHE_TTL"
+      name: GoogleDriveCacheTTL
+      type: time.Duration
+      default: 1m
+      description: |-
+        How long folder listings are cached for. Drive enforces per-project API quotas and every navigation step would otherwise cost several requests. Lower this if folder contents change often and members need to see updates immediately.

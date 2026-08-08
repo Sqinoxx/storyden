@@ -1176,6 +1176,29 @@ func HasOauthRemoteConnectionsWith(preds ...predicate.OAuthRemoteConnection) pre
 	})
 }
 
+// HasDriveFolders applies the HasEdge predicate on the "drive_folders" edge.
+func HasDriveFolders() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DriveFoldersTable, DriveFoldersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDriveFoldersWith applies the HasEdge predicate on the "drive_folders" edge with a given conditions (other predicates).
+func HasDriveFoldersWith(preds ...predicate.DriveFolder) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newDriveFoldersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasClaimedOauthDeviceAuthorisations applies the HasEdge predicate on the "claimed_oauth_device_authorisations" edge.
 func HasClaimedOauthDeviceAuthorisations() predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {

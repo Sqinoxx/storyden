@@ -16,6 +16,8 @@ import { fetcher } from "../client";
 import type {
   AccountGetOKResponse,
   AdminAccessKeyListOKResponse,
+  AdminDriveFolderCreateBody,
+  AdminDriveFolderUpdateBody,
   AdminOCRReindex200,
   AdminOCRStats200,
   AdminSettingsGetOKResponse,
@@ -26,6 +28,8 @@ import type {
   AuditEventListOKResponse,
   AuditEventListParams,
   BadRequestResponse,
+  DriveFolderGetOKResponse,
+  DriveFolderListOKResponse,
   EmailQueueGetOKResponse,
   EmailQueueListOKResponse,
   EmailQueueListParams,
@@ -234,6 +238,244 @@ export const useAdminOCRReindex = <
 
   const swrKey = swrOptions?.swrKey ?? getAdminOCRReindexMutationKey();
   const swrFn = getAdminOCRReindexMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * List every Google Drive folder registered on this installation,
+including those hidden from ordinary members.
+
+ */
+export const adminDriveFolderList = () => {
+  return fetcher<DriveFolderListOKResponse>({
+    url: `/admin/drive/folders`,
+    method: "GET",
+  });
+};
+
+export const getAdminDriveFolderListKey = () =>
+  [`/admin/drive/folders`] as const;
+
+export type AdminDriveFolderListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminDriveFolderList>>
+>;
+export type AdminDriveFolderListQueryError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAdminDriveFolderList = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRConfiguration<
+    Awaited<ReturnType<typeof adminDriveFolderList>>,
+    TError
+  > & { swrKey?: Key; enabled?: boolean };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() => (isEnabled ? getAdminDriveFolderListKey() : null));
+  const swrFn = () => adminDriveFolderList();
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Register a Google Drive folder so members can browse it. The folder must
+already be shared with the installation's service account.
+
+ */
+export const adminDriveFolderCreate = (
+  adminDriveFolderCreateBody: AdminDriveFolderCreateBody,
+) => {
+  return fetcher<DriveFolderGetOKResponse>({
+    url: `/admin/drive/folders`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: adminDriveFolderCreateBody,
+  });
+};
+
+export const getAdminDriveFolderCreateMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: AdminDriveFolderCreateBody },
+  ): Promise<DriveFolderGetOKResponse> => {
+    return adminDriveFolderCreate(arg);
+  };
+};
+export const getAdminDriveFolderCreateMutationKey = () =>
+  [`/admin/drive/folders`] as const;
+
+export type AdminDriveFolderCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminDriveFolderCreate>>
+>;
+export type AdminDriveFolderCreateMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAdminDriveFolderCreate = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof adminDriveFolderCreate>>,
+    TError,
+    Key,
+    AdminDriveFolderCreateBody,
+    Awaited<ReturnType<typeof adminDriveFolderCreate>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAdminDriveFolderCreateMutationKey();
+  const swrFn = getAdminDriveFolderCreateMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Change a registered Google Drive folder.
+ */
+export const adminDriveFolderUpdate = (
+  driveFolderId: string,
+  adminDriveFolderUpdateBody: AdminDriveFolderUpdateBody,
+) => {
+  return fetcher<DriveFolderGetOKResponse>({
+    url: `/admin/drive/folders/${driveFolderId}`,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    data: adminDriveFolderUpdateBody,
+  });
+};
+
+export const getAdminDriveFolderUpdateMutationFetcher = (
+  driveFolderId: string,
+) => {
+  return (
+    _: Key,
+    { arg }: { arg: AdminDriveFolderUpdateBody },
+  ): Promise<DriveFolderGetOKResponse> => {
+    return adminDriveFolderUpdate(driveFolderId, arg);
+  };
+};
+export const getAdminDriveFolderUpdateMutationKey = (driveFolderId: string) =>
+  [`/admin/drive/folders/${driveFolderId}`] as const;
+
+export type AdminDriveFolderUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminDriveFolderUpdate>>
+>;
+export type AdminDriveFolderUpdateMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | NotFoundResponse
+  | InternalServerErrorResponse;
+
+export const useAdminDriveFolderUpdate = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | NotFoundResponse
+    | InternalServerErrorResponse,
+>(
+  driveFolderId: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof adminDriveFolderUpdate>>,
+      TError,
+      Key,
+      AdminDriveFolderUpdateBody,
+      Awaited<ReturnType<typeof adminDriveFolderUpdate>>
+    > & { swrKey?: string };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey =
+    swrOptions?.swrKey ?? getAdminDriveFolderUpdateMutationKey(driveFolderId);
+  const swrFn = getAdminDriveFolderUpdateMutationFetcher(driveFolderId);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Withdraw a Google Drive folder from the site. Nothing is removed from
+Google Drive itself.
+
+ */
+export const adminDriveFolderDelete = (driveFolderId: string) => {
+  return fetcher<void>({
+    url: `/admin/drive/folders/${driveFolderId}`,
+    method: "DELETE",
+  });
+};
+
+export const getAdminDriveFolderDeleteMutationFetcher = (
+  driveFolderId: string,
+) => {
+  return (_: Key, __: { arg: Arguments }): Promise<void> => {
+    return adminDriveFolderDelete(driveFolderId);
+  };
+};
+export const getAdminDriveFolderDeleteMutationKey = (driveFolderId: string) =>
+  [`/admin/drive/folders/${driveFolderId}`] as const;
+
+export type AdminDriveFolderDeleteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminDriveFolderDelete>>
+>;
+export type AdminDriveFolderDeleteMutationError =
+  | UnauthorisedResponse
+  | NotFoundResponse
+  | InternalServerErrorResponse;
+
+export const useAdminDriveFolderDelete = <
+  TError =
+    | UnauthorisedResponse
+    | NotFoundResponse
+    | InternalServerErrorResponse,
+>(
+  driveFolderId: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof adminDriveFolderDelete>>,
+      TError,
+      Key,
+      Arguments,
+      Awaited<ReturnType<typeof adminDriveFolderDelete>>
+    > & { swrKey?: string };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey =
+    swrOptions?.swrKey ?? getAdminDriveFolderDeleteMutationKey(driveFolderId);
+  const swrFn = getAdminDriveFolderDeleteMutationFetcher(driveFolderId);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

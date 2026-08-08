@@ -36,6 +36,9 @@ type CollectionNode func(*sql.Selector)
 // CollectionPost is the predicate function for collectionpost builders.
 type CollectionPost func(*sql.Selector)
 
+// DriveFolder is the predicate function for drivefolder builders.
+type DriveFolder func(*sql.Selector)
+
 // Email is the predicate function for email builders.
 type Email func(*sql.Selector)
 

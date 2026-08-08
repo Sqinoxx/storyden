@@ -55,6 +55,7 @@ func run(ctx context.Context, playwrightArgs []string) error {
 		"RATE_LIMIT_PERIOD=1m",
 		"RATE_LIMIT_EXPIRE=1s",
 		"LANGUAGE_MODEL_PROVIDER=mock",
+		"GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON=mock",
 	}
 	backendCmd.Stdout = os.Stdout
 	backendCmd.Stderr = os.Stderr

@@ -19,6 +19,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/auditlog"
 	"github.com/Southclaws/storyden/internal/ent/authentication"
 	"github.com/Southclaws/storyden/internal/ent/collection"
+	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/Southclaws/storyden/internal/ent/email"
 	"github.com/Southclaws/storyden/internal/ent/eventparticipant"
 	"github.com/Southclaws/storyden/internal/ent/invitation"
@@ -527,6 +528,21 @@ func (_c *AccountCreate) AddOauthRemoteConnections(v ...*OAuthRemoteConnection) 
 		ids[i] = v[i].ID
 	}
 	return _c.AddOauthRemoteConnectionIDs(ids...)
+}
+
+// AddDriveFolderIDs adds the "drive_folders" edge to the DriveFolder entity by IDs.
+func (_c *AccountCreate) AddDriveFolderIDs(ids ...xid.ID) *AccountCreate {
+	_c.mutation.AddDriveFolderIDs(ids...)
+	return _c
+}
+
+// AddDriveFolders adds the "drive_folders" edges to the DriveFolder entity.
+func (_c *AccountCreate) AddDriveFolders(v ...*DriveFolder) *AccountCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDriveFolderIDs(ids...)
 }
 
 // AddClaimedOauthDeviceAuthorisationIDs adds the "claimed_oauth_device_authorisations" edge to the OAuthDeviceAuthorisation entity by IDs.
@@ -1392,6 +1408,22 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(oauthremoteconnection.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DriveFoldersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.DriveFoldersTable,
+			Columns: []string{account.DriveFoldersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

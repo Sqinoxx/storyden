@@ -95,6 +95,10 @@ func (p *Provider) Get(ctx context.Context) (*Info, error) {
 		caps = append(caps, CapabilityPlugins)
 	}
 
+	if p.config.GoogleDriveServiceAccountJSON != "" || p.config.GoogleDriveServiceAccountFile != "" {
+		caps = append(caps, CapabilityDrive)
+	}
+
 	return &Info{
 		Settings:         settings,
 		OnboardingStatus: status,

@@ -4,11 +4,20 @@
  * out of order so this won't work. Instead, we create an admin account via the
  * e2e runner and that account creates an access key which is passed/used here.
  */
-import { BrowserContext, Page } from "@playwright/test";
+import { BrowserContext, Page, expect } from "@playwright/test";
 
 import { authPasswordSignup } from "../src/api/openapi-client/auth";
 
 import { createAccessKeyClient, type AccessKeyClient } from "./admin_client";
+
+// Where a successful sign-in lands is a product decision that has changed
+// before, so wait for the signed-in state itself rather than a fixed route.
+async function expectSignedIn(page: Page) {
+  await expect(page).not.toHaveURL(/\/(login|register)/, { timeout: 10000 });
+  await expect(page.getByRole("button", { name: "Account menu" })).toBeVisible({
+    timeout: 10000,
+  });
+}
 
 const DEFAULT_ROLE_ADMIN_ID = "00000000000000000a00";
 
@@ -43,7 +52,7 @@ export async function registerUser(
   await page.getByRole("textbox", { name: "username" }).fill(username);
   await page.getByRole("textbox", { name: "password" }).fill(password);
   await page.getByRole("button", { name: "Register" }).click();
-  await page.waitForURL("/", { timeout: 10000 });
+  await expectSignedIn(page);
 }
 
 // Registers for an account via the API (no browser navigation) then uses the
@@ -84,7 +93,7 @@ export async function login(page: Page, username: string, password: string) {
   await page.getByRole("textbox", { name: "username" }).fill(username);
   await page.getByRole("textbox", { name: "password" }).fill(password);
   await page.getByRole("button", { name: "login" }).click();
-  await page.waitForURL("/", { timeout: 10000 });
+  await expectSignedIn(page);
 }
 
 export async function logout(page: Page) {

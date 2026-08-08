@@ -363,6 +363,40 @@ var (
 			},
 		},
 	}
+	// DriveFoldersColumns holds the columns for the "drive_folders" table.
+	DriveFoldersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 20},
+		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "drive_folder_id", Type: field.TypeString},
+		{Name: "visibility", Type: field.TypeEnum, Enums: []string{"public", "member", "admin"}, Default: "member"},
+		{Name: "sort", Type: field.TypeInt, Default: 0},
+		{Name: "added_by", Type: field.TypeString, Size: 20},
+	}
+	// DriveFoldersTable holds the schema information for the "drive_folders" table.
+	DriveFoldersTable = &schema.Table{
+		Name:       "drive_folders",
+		Columns:    DriveFoldersColumns,
+		PrimaryKey: []*schema.Column{DriveFoldersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "drive_folders_accounts_drive_folders",
+				Columns:    []*schema.Column{DriveFoldersColumns[9]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "drivefolder_drive_folder_id",
+				Unique:  false,
+				Columns: []*schema.Column{DriveFoldersColumns[6]},
+			},
+		},
+	}
 	// EmailsColumns holds the columns for the "emails" table.
 	EmailsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Size: 20},
@@ -1979,6 +2013,7 @@ var (
 		CollectionsTable,
 		CollectionNodesTable,
 		CollectionPostsTable,
+		DriveFoldersTable,
 		EmailsTable,
 		EmailQueuesTable,
 		EventsTable,
@@ -2048,6 +2083,7 @@ func init() {
 	CollectionNodesTable.ForeignKeys[1].RefTable = NodesTable
 	CollectionPostsTable.ForeignKeys[0].RefTable = CollectionsTable
 	CollectionPostsTable.ForeignKeys[1].RefTable = PostsTable
+	DriveFoldersTable.ForeignKeys[0].RefTable = AccountsTable
 	EmailsTable.ForeignKeys[0].RefTable = AccountsTable
 	EventsTable.ForeignKeys[0].RefTable = AssetsTable
 	EventsTable.ForeignKeys[1].RefTable = PostsTable

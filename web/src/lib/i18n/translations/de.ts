@@ -8,6 +8,7 @@ export const de: Translations = {
     library: "Altklausuren-Bibliothek",
     members: "Mitglieder",
     collections: "Meine Sammlungen",
+    drive: "Google Drive",
     search: "Suche",
     compose: "Neuer Post",
     post: "Posten",

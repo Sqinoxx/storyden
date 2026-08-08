@@ -5,11 +5,12 @@ export type Route = {
   label: string;
 };
 
-type RouteName = "index" | "library" | "admin" | "settings";
+type RouteName = "index" | "library" | "drive" | "admin" | "settings";
 
 const routeLabels: Record<RouteName, string> = {
   index: "Home",
   library: "Library",
+  drive: "Drive",
   admin: "Admin",
   settings: "Settings",
 };
@@ -18,6 +19,7 @@ const mapping: Record<string, RouteName> = {
   "/": "index",
   "/d": "index",
   "/l": "library",
+  "/drive": "drive",
   "/admin": "admin",
   "/settings": "settings",
 };

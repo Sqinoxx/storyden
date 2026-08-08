@@ -34,6 +34,8 @@ type Tx struct {
 	CollectionNode *CollectionNodeClient
 	// CollectionPost is the client for interacting with the CollectionPost builders.
 	CollectionPost *CollectionPostClient
+	// DriveFolder is the client for interacting with the DriveFolder builders.
+	DriveFolder *DriveFolderClient
 	// Email is the client for interacting with the Email builders.
 	Email *EmailClient
 	// EmailQueue is the client for interacting with the EmailQueue builders.
@@ -255,6 +257,7 @@ func (tx *Tx) init() {
 	tx.Collection = NewCollectionClient(tx.config)
 	tx.CollectionNode = NewCollectionNodeClient(tx.config)
 	tx.CollectionPost = NewCollectionPostClient(tx.config)
+	tx.DriveFolder = NewDriveFolderClient(tx.config)
 	tx.Email = NewEmailClient(tx.config)
 	tx.EmailQueue = NewEmailQueueClient(tx.config)
 	tx.Event = NewEventClient(tx.config)

@@ -7,6 +7,7 @@ import { LStack, styled } from "@/styled-system/jsx";
 import { hasPermission, isModeratorOrAdmin } from "@/utils/permissions";
 
 import { CollectionsAnchor } from "../Anchors/Collections";
+import { DriveAnchor, useHasDriveFolders } from "../Anchors/Drive";
 import { LinksAnchor } from "../Anchors/Link";
 import { MembersAnchor } from "../Anchors/Members";
 import { RolesAnchor } from "../Anchors/Roles";
@@ -25,6 +26,7 @@ export function ContentNavigationList(props: Props) {
   const session = useSession();
   const isStaff = isModeratorOrAdmin(session);
   const isAdmin = hasPermission(session, Permission.ADMINISTRATOR);
+  const hasDriveFolders = useHasDriveFolders();
 
   return (
     <styled.nav
@@ -62,6 +64,7 @@ export function ContentNavigationList(props: Props) {
 
       <LStack gap="1">
         <CollectionsAnchor />
+        {hasDriveFolders && <DriveAnchor />}
         {isAdmin && <LinksAnchor />}
         {isStaff && (
           <>

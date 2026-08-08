@@ -26,6 +26,13 @@ var (
 	OperationIDAdminSettingsUpdate                    = OperationID{`AdminSettingsUpdate`}
 	OperationIDAdminOCRStats                          = OperationID{`AdminOCRStats`}
 	OperationIDAdminOCRReindex                        = OperationID{`AdminOCRReindex`}
+	OperationIDAdminDriveFolderList                   = OperationID{`AdminDriveFolderList`}
+	OperationIDAdminDriveFolderCreate                 = OperationID{`AdminDriveFolderCreate`}
+	OperationIDAdminDriveFolderUpdate                 = OperationID{`AdminDriveFolderUpdate`}
+	OperationIDAdminDriveFolderDelete                 = OperationID{`AdminDriveFolderDelete`}
+	OperationIDDriveFolderList                        = OperationID{`DriveFolderList`}
+	OperationIDDriveFolderContents                    = OperationID{`DriveFolderContents`}
+	OperationIDDriveFileDownload                      = OperationID{`DriveFileDownload`}
 	OperationIDAccountList                            = OperationID{`AccountList`}
 	OperationIDAuditEventList                         = OperationID{`AuditEventList`}
 	OperationIDEmailQueueList                         = OperationID{`EmailQueueList`}
@@ -323,6 +330,20 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAdminOCRStats, nil
 	case string(`AdminOCRReindex`):
 		return OperationIDAdminOCRReindex, nil
+	case string(`AdminDriveFolderList`):
+		return OperationIDAdminDriveFolderList, nil
+	case string(`AdminDriveFolderCreate`):
+		return OperationIDAdminDriveFolderCreate, nil
+	case string(`AdminDriveFolderUpdate`):
+		return OperationIDAdminDriveFolderUpdate, nil
+	case string(`AdminDriveFolderDelete`):
+		return OperationIDAdminDriveFolderDelete, nil
+	case string(`DriveFolderList`):
+		return OperationIDDriveFolderList, nil
+	case string(`DriveFolderContents`):
+		return OperationIDDriveFolderContents, nil
+	case string(`DriveFileDownload`):
+		return OperationIDDriveFileDownload, nil
 	case string(`AccountList`):
 		return OperationIDAccountList, nil
 	case string(`AuditEventList`):

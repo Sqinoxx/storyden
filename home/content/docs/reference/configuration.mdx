@@ -1296,3 +1296,40 @@ Pinecone provides hosting on different cloud providers, see the Pinecone documen
 
 Same as above, but for the region. As with any third party providers, it's recommended to choose the region closest to both your Storyden deployment and your community members for best performance and experience.
 
+## Google Drive
+
+Storyden can expose Google Drive folders to members through its own interface, so files are browsed, previewed and downloaded without leaving the site and without a Google account.
+
+Access is granted through a Google Cloud service account. Create one with the Drive API enabled, download its JSON key, and share each folder you want to expose with the service account's email address. Administrators then register those folders in the admin panel.
+
+The feature stays dormant until either of the credential values below is set.
+
+### `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON`
+
+<table>
+<tr><td>type</td><td>`string`</td></tr>
+<tr><td>default</td><td>none</td></tr>
+</table>
+
+The service account key, either as raw JSON or base64 encoded. Base64 is usually easier to pass through deployment tooling that dislikes multi-line values. Takes precedence over `GOOGLE_DRIVE_SERVICE_ACCOUNT_FILE`.
+
+Set to `mock` to browse a small in-memory folder tree instead of Google Drive. This is for local development and end-to-end tests; never use it in production.
+
+### `GOOGLE_DRIVE_SERVICE_ACCOUNT_FILE`
+
+<table>
+<tr><td>type</td><td>`string`</td></tr>
+<tr><td>default</td><td>none</td></tr>
+</table>
+
+Path to the service account key file on disk. An alternative to `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON` for deployments that mount secrets as files.
+
+### `GOOGLE_DRIVE_CACHE_TTL`
+
+<table>
+<tr><td>type</td><td>duration (e.g. 1h, 1m, 1s)</td></tr>
+<tr><td>default</td><td>`1m`</td></tr>
+</table>
+
+How long folder listings are cached for. Drive enforces per-project API quotas and every navigation step would otherwise cost several requests. Lower this if folder contents change often and members need to see updates immediately.
+

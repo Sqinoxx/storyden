@@ -16,6 +16,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/collection"
 	"github.com/Southclaws/storyden/internal/ent/collectionnode"
 	"github.com/Southclaws/storyden/internal/ent/collectionpost"
+	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/Southclaws/storyden/internal/ent/email"
 	"github.com/Southclaws/storyden/internal/ent/emailqueue"
 	"github.com/Southclaws/storyden/internal/ent/event"
@@ -494,6 +495,57 @@ func init() {
 	collectionpostDescMembershipType := collectionpostFields[2].Descriptor()
 	// collectionpost.DefaultMembershipType holds the default value on creation for the membership_type field.
 	collectionpost.DefaultMembershipType = collectionpostDescMembershipType.Default.(string)
+	drivefolderMixin := schema.DriveFolder{}.Mixin()
+	drivefolderMixinFields0 := drivefolderMixin[0].Fields()
+	_ = drivefolderMixinFields0
+	drivefolderMixinFields1 := drivefolderMixin[1].Fields()
+	_ = drivefolderMixinFields1
+	drivefolderMixinFields2 := drivefolderMixin[2].Fields()
+	_ = drivefolderMixinFields2
+	drivefolderFields := schema.DriveFolder{}.Fields()
+	_ = drivefolderFields
+	// drivefolderDescCreatedAt is the schema descriptor for created_at field.
+	drivefolderDescCreatedAt := drivefolderMixinFields1[0].Descriptor()
+	// drivefolder.DefaultCreatedAt holds the default value on creation for the created_at field.
+	drivefolder.DefaultCreatedAt = drivefolderDescCreatedAt.Default.(func() time.Time)
+	// drivefolderDescUpdatedAt is the schema descriptor for updated_at field.
+	drivefolderDescUpdatedAt := drivefolderMixinFields2[0].Descriptor()
+	// drivefolder.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	drivefolder.DefaultUpdatedAt = drivefolderDescUpdatedAt.Default.(func() time.Time)
+	// drivefolder.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	drivefolder.UpdateDefaultUpdatedAt = drivefolderDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// drivefolderDescName is the schema descriptor for name field.
+	drivefolderDescName := drivefolderFields[0].Descriptor()
+	// drivefolder.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	drivefolder.NameValidator = drivefolderDescName.Validators[0].(func(string) error)
+	// drivefolderDescDriveFolderID is the schema descriptor for drive_folder_id field.
+	drivefolderDescDriveFolderID := drivefolderFields[2].Descriptor()
+	// drivefolder.DriveFolderIDValidator is a validator for the "drive_folder_id" field. It is called by the builders before save.
+	drivefolder.DriveFolderIDValidator = drivefolderDescDriveFolderID.Validators[0].(func(string) error)
+	// drivefolderDescSort is the schema descriptor for sort field.
+	drivefolderDescSort := drivefolderFields[4].Descriptor()
+	// drivefolder.DefaultSort holds the default value on creation for the sort field.
+	drivefolder.DefaultSort = drivefolderDescSort.Default.(int)
+	// drivefolderDescID is the schema descriptor for id field.
+	drivefolderDescID := drivefolderMixinFields0[0].Descriptor()
+	// drivefolder.DefaultID holds the default value on creation for the id field.
+	drivefolder.DefaultID = drivefolderDescID.Default.(func() xid.ID)
+	// drivefolder.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	drivefolder.IDValidator = func() func(string) error {
+		validators := drivefolderDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	emailMixin := schema.Email{}.Mixin()
 	emailMixinFields0 := emailMixin[0].Fields()
 	_ = emailMixinFields0

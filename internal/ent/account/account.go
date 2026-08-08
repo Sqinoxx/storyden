@@ -84,6 +84,8 @@ const (
 	EdgeOauthRefreshTokens = "oauth_refresh_tokens"
 	// EdgeOauthRemoteConnections holds the string denoting the oauth_remote_connections edge name in mutations.
 	EdgeOauthRemoteConnections = "oauth_remote_connections"
+	// EdgeDriveFolders holds the string denoting the drive_folders edge name in mutations.
+	EdgeDriveFolders = "drive_folders"
 	// EdgeClaimedOauthDeviceAuthorisations holds the string denoting the claimed_oauth_device_authorisations edge name in mutations.
 	EdgeClaimedOauthDeviceAuthorisations = "claimed_oauth_device_authorisations"
 	// EdgeApprovedOauthDeviceAuthorisations holds the string denoting the approved_oauth_device_authorisations edge name in mutations.
@@ -270,6 +272,13 @@ const (
 	OauthRemoteConnectionsInverseTable = "oauth_remote_connections"
 	// OauthRemoteConnectionsColumn is the table column denoting the oauth_remote_connections relation/edge.
 	OauthRemoteConnectionsColumn = "added_by"
+	// DriveFoldersTable is the table that holds the drive_folders relation/edge.
+	DriveFoldersTable = "drive_folders"
+	// DriveFoldersInverseTable is the table name for the DriveFolder entity.
+	// It exists in this package in order to avoid circular dependency with the "drivefolder" package.
+	DriveFoldersInverseTable = "drive_folders"
+	// DriveFoldersColumn is the table column denoting the drive_folders relation/edge.
+	DriveFoldersColumn = "added_by"
 	// ClaimedOauthDeviceAuthorisationsTable is the table that holds the claimed_oauth_device_authorisations relation/edge.
 	ClaimedOauthDeviceAuthorisationsTable = "oauth_device_authorisations"
 	// ClaimedOauthDeviceAuthorisationsInverseTable is the table name for the OAuthDeviceAuthorisation entity.
@@ -882,6 +891,20 @@ func ByOauthRemoteConnections(term sql.OrderTerm, terms ...sql.OrderTerm) OrderO
 	}
 }
 
+// ByDriveFoldersCount orders the results by drive_folders count.
+func ByDriveFoldersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDriveFoldersStep(), opts...)
+	}
+}
+
+// ByDriveFolders orders the results by drive_folders terms.
+func ByDriveFolders(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDriveFoldersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByClaimedOauthDeviceAuthorisationsCount orders the results by claimed_oauth_device_authorisations count.
 func ByClaimedOauthDeviceAuthorisationsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1341,6 +1364,13 @@ func newOauthRemoteConnectionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OauthRemoteConnectionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OauthRemoteConnectionsTable, OauthRemoteConnectionsColumn),
+	)
+}
+func newDriveFoldersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DriveFoldersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DriveFoldersTable, DriveFoldersColumn),
 	)
 }
 func newClaimedOauthDeviceAuthorisationsStep() *sqlgraph.Step {

@@ -50,22 +50,47 @@ kopieren oder zu starten.
 
 Diesen Block löschen, sobald die Seite läuft.
 
+Dieses Verzeichnis war zwischenzeitlich nur in einem git worktree
+(`.claude/worktrees/website-raspberry-pi-deployment-d6bb73/...`); der Branch
+ist inzwischen nach `main` gemergt. Ab jetzt hier weiterarbeiten:
+
+```
+F:\Zahnmedizin\Forum\storyden\docker\compose\raspberrypi
+```
+
+`transfer/` ist gitignored und beim Merge nicht mitgekommen — Image, Dump und
+Uploads wurden von Hand aus dem Worktree hierher kopiert, kein erneuter Build
+nötig.
+
 | | Schritt | Stand |
 | - | ------- | ----- |
-| ☐ | 1. Pi: 64 Bit prüfen | **offen** — `uname -m` muss `aarch64` sein |
+| ☑ | 1. Pi: 64 Bit prüfen | bestätigt |
 | ☑ | 2. Ports freimachen | apache2 deaktiviert, `ss` liefert nichts mehr |
 | ☑ | 3a. Öffentliche IPv4 | `91.135.163.168`, kein DS-Lite |
-| ☐ | 3b. Portfreigaben | **prüfen: extern 443, nicht 433** |
+| ☑ | 3b. Portfreigaben | bestätigt: extern 443 → Pi 8443 |
 | ☑ | 3c. A-Record bei name.com | zeigt auf die öffentliche IP |
 | ☑ | 3d. AdGuard DNS-Rewrite | `dig` auf dem Pi liefert `192.168.178.30` |
 | ☑ | 4. Daten exportieren | `transfer/` enthält Dump, Uploads und `.env` |
 | ☑ | 5. Image bauen | arm64, getestet, `transfer/storyden-arm64.tar` |
+| ☐ | **`transfer/.env`: `ACME_EMAIL=` ausfüllen** | **noch leer — vor Schritt 6 nachholen** |
 | **→** | **6. Auf den Pi kopieren** | **hier weitermachen** |
 | ☐ | 7. Auf dem Pi starten | |
 | ☐ | 8. Prüfen | |
 
-Vor Schritt 6 noch `ACME_EMAIL=` in `transfer/.env` ausfüllen — ohne den Wert
-bricht Compose auf dem Pi mit `ACME_EMAIL fehlt in .env` ab.
+**Vor Schritt 6 außerdem noch einmal kurz durchgehen — leicht zu vergessen:**
+
+- **`transfer\.env` einmal komplett durchlesen**, nicht nur `ACME_EMAIL`. Die
+  Datei wurde automatisch aus dem alten Setup befüllt; `SITE_DOMAIN` und die
+  beiden `PUBLIC_*`-Zeilen darin auf Tippfehler prüfen (`unidentists.social`
+  mit **s**, nicht `unidentist.social`) — ein falscher Wert dort loggt später
+  alle Nutzer aus.
+- **name.com-API-Token besorgt?** Wird erst in Schritt 7 gebraucht
+  (`ddns/config.json`), aber jetzt schon holen spart später einen
+  Tab-Wechsel: [name.com → Account → API](https://www.name.com/account/settings/api).
+- **SSH-Key statt Passwort** — optional, aber `copy-to-pi.ps1` fragt sonst bei
+  jeder Datei einzeln nach dem Passwort. Befehl steht unten bei Schritt 6.
+- Auf dem Pi läuft evtl. noch ein **certbot-Timer** von der alten Seite (siehe
+  Schritt 2) — der scheitert jetzt an Port 80/443 und mailt Fehler.
 
 ---
 

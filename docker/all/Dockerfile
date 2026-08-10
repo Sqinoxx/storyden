@@ -2,7 +2,13 @@
 # BACKEND API LAYER
 #
 
-FROM docker.io/golang:1.26.4-alpine AS api-builder
+# Runs on the build machine's native architecture and cross-compiles for the
+# target instead of running the Go toolchain under QEMU. Matters for arm64
+# builds on an amd64 host (Raspberry Pi deployments) where emulating the
+# compiler costs 10-20 minutes.
+FROM --platform=$BUILDPLATFORM docker.io/golang:1.26.4-alpine AS api-builder
+
+ARG TARGETARCH
 
 WORKDIR /server
 
@@ -18,8 +24,15 @@ COPY ./cmd ./cmd
 COPY ./internal ./internal
 
 RUN --mount=type=cache,target=/go/pkg/mod/ \
-    --mount=type=cache,target="/root/.cache/go-build" \
-    CGO_ENABLED=0 GOOS=linux go build -o /server/storyden-api ./cmd/backend
+    --mount=type=cache,target="/root/.cache/go-build",id=go-build-$TARGETARCH \
+    CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -o /server/storyden-api ./cmd/backend
+
+# Dependency install and Next.js build also stay on the build machine's
+# architecture. Their output is plain JS that any Node can serve, while
+# Turbopack under QEMU dies on its internal IPC deadlines ("Failed to write app
+# endpoint", "deadline has elapsed"). Only the runtime image below is built for
+# the target platform.
+FROM --platform=$BUILDPLATFORM docker.io/node:24.17.0-alpine3.24 AS build-base
 
 FROM docker.io/node:24.17.0-alpine3.24 AS base
 
@@ -27,7 +40,7 @@ FROM docker.io/node:24.17.0-alpine3.24 AS base
 # DEPENDENCIES LAYER
 #
 
-FROM base AS deps
+FROM build-base AS deps
 
 RUN apk add --no-cache libc6-compat
 WORKDIR /storyden
@@ -41,7 +54,7 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 # BUILDER LAYER
 #
 
-FROM base AS builder
+FROM build-base AS builder
 WORKDIR /storyden
 COPY --from=deps /storyden/node_modules ./node_modules
 COPY ./web .

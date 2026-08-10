@@ -1,0 +1,75 @@
+{
+	email {$ACME_EMAIL}
+
+	# https_port 8443 heisst: Caddy bedient HTTPS und die
+	# TLS-ALPN-Challenge auf 8443. Weil die FRITZ!Box extern 443 auf 8443
+	# weiterleitet, kommt Let's Encrypt dort an und Port 80 ist fuer das
+	# Zertifikat nicht zwingend noetig.
+	http_port 80
+	https_port 8443
+
+	# Zum Testen ohne Rate-Limit-Risiko: naechste Zeile einkommentieren, dann
+	# stellt die Staging-CA aus (Zertifikat ist im Browser nicht vertrauens-
+	# wuerdig, aber die Ausstellung selbst wird durchgespielt).
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+{$SITE_DOMAIN}:8443 {
+	tls {
+		issuer acme {
+			email {$ACME_EMAIL}
+
+			# Standard: Caddy versucht beide Challenge-Typen, TLS-ALPN ueber
+			# 443->8443 und HTTP-01 ueber Port 80. Je nachdem, welche
+			# Portfreigabe fehlt, eine der Zeilen einkommentieren - dann
+			# scheitert Caddy nicht erst am nicht erreichbaren Weg:
+			#
+			# nur 443->8443 freigegeben:  disable_http_challenge
+			# nur 80->80 freigegeben:     disable_tlsalpn_challenge
+		}
+	}
+
+	encode zstd gzip
+
+	# Muss >= MAX_UPLOAD_SIZE_MB sein, sonst bricht Caddy grosse Uploads ab,
+	# bevor die App eine saubere Fehlermeldung liefern kann.
+	request_body {
+		max_size 64MB
+	}
+
+	header {
+		# Erst aktiv lassen, wenn HTTPS einmal sauber funktioniert hat. Setzt
+		# die Domain fuer ein Jahr auf HTTPS-only fest.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy storyden:8000 {
+		# Uploads und OCR koennen auf dem Pi deutlich laenger dauern als der
+		# Default erlaubt.
+		transport http {
+			read_timeout 300s
+			write_timeout 300s
+		}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
+
+# Aufrufe ueber http:// landen auf der echten Adresse. Die ACME-Challenge auf
+# /.well-known/acme-challenge/ behandelt Caddy trotz dieses Blocks selbst.
+http://{$SITE_DOMAIN} {
+	redir {$PUBLIC_WEB_ADDRESS}{uri} permanent
+}
+
+# www nur einkommentieren, wenn ein A-Record fuer www.<domain> existiert -
+# sonst scheitert Caddy dauerhaft an der Zertifikatsausstellung dafuer.
+# www.{$SITE_DOMAIN}:8443 {
+# 	redir {$PUBLIC_WEB_ADDRESS}{uri} permanent
+# }

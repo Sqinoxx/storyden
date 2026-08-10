@@ -1,0 +1,12 @@
+{
+  "settings": [
+    {
+      "provider": "name.com",
+      "domain": "unidentists.social",
+      "username": "DEIN-NAME.COM-BENUTZERNAME",
+      "token": "DEIN-NAME.COM-API-TOKEN",
+      "ttl": 300,
+      "ip_version": "ipv4"
+    }
+  ]
+}

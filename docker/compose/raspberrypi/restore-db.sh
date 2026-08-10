@@ -43,11 +43,17 @@ docker compose up -d postgres
 # probieren, statt nach einem einzelnen pg_isready-Erfolg blind fortzufahren.
 echo -n "Warte auf Datenbank"
 TABLES=""
-LAST_ERROR=""
+OUTPUT=""
+RC=0
 for _ in $(seq 1 60); do
-  if LAST_ERROR="$(docker compose exec -T postgres psql -U "$PG_USER" -d "$PG_DB" -tAc \
-    "select count(*) from information_schema.tables where table_schema = 'public'" 2>&1 >/tmp/.restore-db-tables)"; then
-    TABLES="$(tr -d '[:space:]' </tmp/.restore-db-tables)"
+  set +e
+  OUTPUT="$(docker compose exec -T postgres psql -U "$PG_USER" -d "$PG_DB" -tAc \
+    "select count(*) from information_schema.tables where table_schema = 'public'" 2>&1)"
+  RC=$?
+  set -e
+
+  if [ "$RC" -eq 0 ]; then
+    TABLES="$(echo "$OUTPUT" | tr -d '[:space:]')"
     if [ -n "$TABLES" ]; then
       echo " - bereit."
       break
@@ -61,8 +67,8 @@ done
 if [ -z "$TABLES" ]; then
   echo "" >&2
   echo "Datenbank ist nicht hochgekommen. Letzter Fehler:" >&2
-  echo "$LAST_ERROR" >&2
-  if echo "$LAST_ERROR" | grep -q "role .* does not exist"; then
+  echo "$OUTPUT" >&2
+  if echo "$OUTPUT" | grep -q "role .* does not exist"; then
     echo "" >&2
     echo "Der Server laeuft, aber die Rolle '$PG_USER' fehlt im Cluster - kein" >&2
     echo "Timing-Problem, sondern ein Volume, das nicht zur aktuellen .env passt" >&2

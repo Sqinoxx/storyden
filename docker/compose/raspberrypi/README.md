@@ -663,6 +663,17 @@ A-Record existiert bei name.com noch nicht (der Updater ändert nur, er legt
 nicht an), das Token ist abgelaufen, oder `ddns/` gehört nicht UID 1000 —
 dann kann der Container seinen Status nicht schreiben.
 
+**`ddns` ist als `unhealthy` markiert, oder aktualisiert bei jedem Zyklus
+neu, obwohl sich die IP nicht geändert hat.** ddns-updater prüft per
+DNS-Lookup, ob der Record aktuell ist — auch für seinen eingebauten
+Docker-Healthcheck. Läuft die Auflösung über AdGuard Home mit dem
+LAN-Rewrite aus Schritt 3d, sieht der Container dauerhaft die interne
+`192.168.178.30` statt der echten öffentlichen IP und hält den Record für
+veraltet. Der `ddns`-Service im `docker-compose.yml` setzt deshalb `dns:`
+auf öffentliche Resolver (1.1.1.1, 9.9.9.9), die den LAN-Rewrite umgehen.
+Fehlt diese Zeile noch (älterer Stand): `docker-compose.yml` neu von der
+git-Quelle holen, dann `docker compose up -d ddns`.
+
 **Uploads schlagen bei großen Dateien fehl.** `MAX_UPLOAD_SIZE_MB` in `.env`
 und `max_size` im `Caddyfile` angleichen.
 

@@ -35,24 +35,32 @@ PG_DB="$(env_value POSTGRES_DB storyden)"
 echo "Starte Postgres ..."
 docker compose up -d postgres
 
+# pg_isready allein reicht nicht: bei einem frischen Volume laeuft erst ein
+# interner initdb-Server, der ebenfalls kurz auf dem Socket antwortet und
+# sich dann selbst herunterfaehrt ("the database system is shutting down"),
+# bevor der eigentliche Server startet. Deshalb hier direkt mit einer echten
+# Abfrage pruefen und bei jedem Fehler (auch "shutting down") weiter
+# probieren, statt nach einem einzelnen pg_isready-Erfolg blind fortzufahren.
 echo -n "Warte auf Datenbank"
+TABLES=""
 for _ in $(seq 1 60); do
-  if docker compose exec -T postgres pg_isready -U "$PG_USER" -d "$PG_DB" >/dev/null 2>&1; then
-    echo " - bereit."
-    break
+  if TABLES="$(docker compose exec -T postgres psql -U "$PG_USER" -d "$PG_DB" -tAc \
+    "select count(*) from information_schema.tables where table_schema = 'public'" 2>/dev/null | tr -d '[:space:]')"; then
+    if [ -n "$TABLES" ]; then
+      echo " - bereit."
+      break
+    fi
   fi
+  TABLES=""
   echo -n "."
   sleep 2
 done
 
-if ! docker compose exec -T postgres pg_isready -U "$PG_USER" -d "$PG_DB" >/dev/null 2>&1; then
+if [ -z "$TABLES" ]; then
   echo "" >&2
   echo "Datenbank ist nicht hochgekommen. Logs: docker compose logs postgres" >&2
   exit 1
 fi
-
-TABLES="$(docker compose exec -T postgres psql -U "$PG_USER" -d "$PG_DB" -tAc \
-  "select count(*) from information_schema.tables where table_schema = 'public'" | tr -d '[:space:]')"
 
 if [ "$TABLES" != "0" ] && [ "$FORCE" != "--force" ]; then
   echo "" >&2

@@ -1,0 +1,181 @@
+# Storyden auf einem Raspberry Pi 4 (arm64), HTTPS auf Port 8443.
+#
+# Das Image wird NICHT hier gebaut, sondern auf dem Windows-PC (siehe
+# build-image.ps1) und per "docker load" eingespielt. Der Pi hat zu wenig RAM
+# fuer den Next.js-Build.
+#
+# Reihenfolge beim ersten Start (Details in README.md):
+#   1) .env ausfuellen
+#   2) docker compose up -d postgres
+#   3) bash restore-db.sh db.sql       <- Datenbank vom PC einspielen
+#   4) docker compose up -d
+#
+# Logs:    docker compose logs -f storyden
+# Update:  neues Image laden, dann docker compose up -d
+
+# Fest gesetzt, damit die Volumes unabhaengig vom Verzeichnisnamen immer
+# storyden_postgres-data und storyden_caddy_data heissen.
+name: storyden
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    logging: *default-logging
+    ports:
+      # Nur an localhost gebunden, nicht aus dem LAN erreichbar. Wird fuer
+      # Backups und den einmaligen Restore vom Host aus gebraucht.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-storyden}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD fehlt in .env}
+      - POSTGRES_DB=${POSTGRES_DB:-storyden}
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-storyden} -d ${POSTGRES_DB:-storyden}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  storyden:
+    # Kommt per "docker load" aus dem Transfer vom PC. pull_policy: never
+    # verhindert, dass Compose stattdessen in einer Registry sucht und mit einer
+    # verwirrenden 404-Meldung abbricht.
+    image: ${STORYDEN_IMAGE:-storyden-rpi:latest}
+    pull_policy: never
+    restart: unless-stopped
+    logging: *default-logging
+    expose:
+      - "8000"
+    volumes:
+      # Assets, Avatare und Uploads. Gehoert dem Container-User 1001:
+      #   mkdir -p data && sudo chown -R 1001:1001 data
+      - ./data:/storyden/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      # Der Pi braucht beim Kaltstart deutlich laenger als eine Cloud-VM,
+      # bis Next.js oben ist.
+      retries: 5
+      start_period: 120s
+    environment:
+      # --- Adressen ---
+      # Muessen exakt der URL entsprechen, die im Browser aufgerufen wird,
+      # inklusive Port. Falsche Werte brechen Login, Cookies, E-Mail-Links
+      # und Passkeys.
+      - PUBLIC_WEB_ADDRESS=${PUBLIC_WEB_ADDRESS:?PUBLIC_WEB_ADDRESS fehlt in .env}
+      - PUBLIC_API_ADDRESS=${PUBLIC_API_ADDRESS:?PUBLIC_API_ADDRESS fehlt in .env}
+
+      # --- Datenbank ---
+      # Ohne diese Variable faellt die App still auf SQLite zurueck.
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL fehlt in .env}
+
+      # --- JWT Secret ---
+      # Muss der Wert aus dem alten Setup sein, sonst sind alle bestehenden
+      # Sessions ungueltig.
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET fehlt in .env}
+
+      # --- E-Mail (Brevo ueber SMTP) ---
+      - EMAIL_PROVIDER=${EMAIL_PROVIDER:-smtp}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-Unidentists}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
+
+      # --- Uploads ---
+      # Muss <= max_size im Caddyfile (64MB) bleiben.
+      - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-50}
+
+      # --- OCR / Volltextsuche in Dateien ---
+      # tesseract und pdftoppm sind im Image installiert. Der Backfill ist auf
+      # dem Pi standardmaessig aus: er wuerde nach jedem Neustart alle alten
+      # Uploads erneut durch OCR schicken und die vier Kerne minutenlang
+      # blockieren.
+      - OCR_ENABLED=${OCR_ENABLED:-true}
+      - OCR_PROVIDER=${OCR_PROVIDER:-tesseract}
+      - OCR_LANGUAGES=${OCR_LANGUAGES:-deu,eng}
+      - OCR_MAX_FILE_SIZE_MB=${OCR_MAX_FILE_SIZE_MB:-10}
+      - OCR_PDF_MAX_PAGES=${OCR_PDF_MAX_PAGES:-20}
+      - OCR_BACKFILL_ENABLED=${OCR_BACKFILL_ENABLED:-false}
+
+      # --- Google Drive Bibliothek ---
+      - GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON=${GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON}
+      - GOOGLE_DRIVE_CACHE_TTL=${GOOGLE_DRIVE_CACHE_TTL:-1m}
+
+      # --- Rate Limiting ---
+      - RATE_LIMIT=${RATE_LIMIT:-5000}
+      - RATE_LIMIT_PERIOD=${RATE_LIMIT_PERIOD:-1h}
+
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    logging: *default-logging
+    ports:
+      # Port 80: Weiterleitung http -> https und HTTP-01-Challenge als
+      # Rueckfallweg. Setzt voraus, dass auf dem Host nichts anderes auf 80
+      # lauscht (apache2 vorher deaktivieren).
+      - "80:80"
+      # Caddy selbst lauscht auf 8443. Zusaetzlich auf Host-Port 443
+      # veroeffentlicht, damit dieselbe URL ohne :8443 auch aus dem LAN
+      # funktioniert (die FRITZ!Box leitet von aussen 443 auf 8443 weiter,
+      # innerhalb des LAN greift diese Weiterleitung nicht).
+      # Nicht gewuenscht? Zeile loeschen - dann ist die Seite im LAN nur
+      # ueber https://<domain>:8443 erreichbar.
+      - "443:8443"
+      - "8443:8443"
+      - "8443:8443/udp" # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - SITE_DOMAIN=${SITE_DOMAIN:?SITE_DOMAIN fehlt in .env}
+      - ACME_EMAIL=${ACME_EMAIL:?ACME_EMAIL fehlt in .env}
+      - PUBLIC_WEB_ADDRESS=${PUBLIC_WEB_ADDRESS}
+    depends_on:
+      - storyden
+
+  # Haelt den A-Record der Domain bei name.com auf der aktuellen
+  # Anschluss-IP. Die FRITZ!Box kann name.com nicht selbst aktualisieren: ihr
+  # DynDNS spricht nur einfache GET-URLs, die name.com-API braucht JSON-PUT.
+  #
+  # Vor dem ersten Start:
+  #   mkdir -p ddns && cp ddns-config.example.json ddns/config.json
+  #   nano ddns/config.json          # Benutzername + API-Token eintragen
+  #   sudo chown -R 1000:1000 ddns
+  #
+  # Wer stattdessen MyFRITZ! plus ANAME-Record bei name.com nutzt, kann
+  # diesen Service loeschen.
+  ddns:
+    image: qmcgaw/ddns-updater:latest
+    restart: unless-stopped
+    logging: *default-logging
+    volumes:
+      - ./ddns:/updater/data
+    environment:
+      - PERIOD=${DDNS_PERIOD:-5m}
+      - TZ=${TZ:-Europe/Berlin}
+
+volumes:
+  postgres-data:
+  caddy_data:
+  caddy_config:

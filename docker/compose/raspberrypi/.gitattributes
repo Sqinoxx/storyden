@@ -1,0 +1,9 @@
+# Diese Dateien werden auf den Pi kopiert und dort von bash bzw. Docker
+# gelesen. Mit core.autocrlf=true wuerde git sie beim Checkout unter Windows
+# auf CRLF umstellen, und die Shell-Skripte brechen dann mit
+# "$'\r': command not found" ab.
+*.sh text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+Caddyfile text eol=lf
+.env.example text eol=lf

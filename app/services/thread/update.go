@@ -7,6 +7,7 @@ import (
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/fault/fmsg"
+	"github.com/Southclaws/fault/ftag"
 	"github.com/Southclaws/opt"
 	"github.com/rs/xid"
 	"github.com/samber/lo"
@@ -15,6 +16,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/datagraph"
 	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/post"
+	"github.com/Southclaws/storyden/app/resources/post/category"
 	"github.com/Southclaws/storyden/app/resources/post/thread"
 	"github.com/Southclaws/storyden/app/resources/post/thread_writer"
 	"github.com/Southclaws/storyden/app/resources/rbac"
@@ -48,6 +50,10 @@ func (s *service) Update(ctx context.Context, threadID post.ID, partial Partial)
 	}
 
 	if err := authoriseMutation(ctx, partial); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := s.authoriseCategoryForUpdate(ctx, thr, partial); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
@@ -135,4 +141,44 @@ func (s *service) Update(ctx context.Context, threadID post.ID, partial Partial)
 	}
 
 	return thr, nil
+}
+
+// authoriseCategoryForUpdate enforces the same leaf-category rule as thread
+// creation (see authoriseCategoryForCreate) so that a non-privileged user
+// cannot bypass the "category required" rule by removing the category from
+// an already-created thread during an update.
+func (s *service) authoriseCategoryForUpdate(ctx context.Context, thr *thread.Thread, partial Partial) error {
+	if err := session.Authorise(ctx, nil, rbac.PermissionManageCategories); err == nil {
+		return nil
+	}
+
+	catID, ok := partial.Category.Get()
+	if !ok {
+		catID = thr.GetCategory()
+	}
+
+	if catID == xid.NilID() {
+		return fault.New(
+			"a category is required",
+			fctx.With(ctx),
+			ftag.With(ftag.InvalidArgument),
+			fmsg.WithDesc("category required", "You must select a category before creating a thread."),
+		)
+	}
+
+	isLeaf, err := s.categoryRepo.IsLeaf(ctx, category.CategoryID(catID))
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if !isLeaf {
+		return fault.New(
+			"category is not a leaf category",
+			fctx.With(ctx),
+			ftag.With(ftag.InvalidArgument),
+			fmsg.WithDesc("not a leaf category", "Threads can only be created in the deepest subcategory. Please select a subcategory that has no further sub-categories."),
+		)
+	}
+
+	return nil
 }

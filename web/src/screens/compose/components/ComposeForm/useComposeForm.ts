@@ -14,6 +14,9 @@ import {
 
 import { handle } from "@/api/client";
 import { NO_CATEGORY_VALUE } from "@/components/category/CategorySelect/useCategorySelect";
+import { Permission } from "@/api/openapi-schema";
+import { useSession } from "@/auth";
+import { hasPermission } from "@/utils/permissions";
 
 import { normalizeAssetPath } from "@/utils/asset";
 
@@ -30,6 +33,11 @@ export type FormShape = z.infer<typeof FormShapeSchema>;
 
 export function useComposeForm({ initialDraft, editing }: Props) {
   const router = useRouter();
+  const session = useSession();
+  const canPostUncategorised = hasPermission(
+    session,
+    Permission.MANAGE_CATEGORIES,
+  );
 
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -79,6 +87,13 @@ export function useComposeForm({ initialDraft, editing }: Props) {
     if (title.length < 1) {
       form.setError("title", {
         message: "Your post must have a title to be published",
+      });
+      return;
+    }
+
+    if (!canPostUncategorised && (!category || category === NO_CATEGORY_VALUE)) {
+      form.setError("category", {
+        message: "You must select a category before publishing",
       });
       return;
     }

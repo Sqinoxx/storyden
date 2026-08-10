@@ -659,6 +659,60 @@ func TestThreads(t *testing.T) {
 				a.Equal(1, threadUpdate.JSON200.Pinned)
 			})
 
+			t.Run("category_required_for_non_admin_thread_update", func(t *testing.T) {
+				a := assert.New(t)
+
+				reqCat := tests.AssertRequest(
+					cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+						Colour:      "#654321",
+						Description: "category requirement test",
+						Name:        "Category Required " + uuid.NewString(),
+					}, session1),
+				)(t, http.StatusOK)
+
+				// Non-admin cannot create a thread without a category.
+				tests.AssertRequest(
+					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>no category</p>").Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      "No category thread " + uuid.NewString(),
+					}, session2),
+				)(t, http.StatusBadRequest)
+
+				// Non-admin creates a thread with a valid category.
+				threadCreate := tests.AssertRequest(
+					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>has category</p>").Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      "Category required thread " + uuid.NewString(),
+						Category:   opt.New(reqCat.JSON200.Id).Ptr(),
+					}, session2),
+				)(t, http.StatusOK)
+
+				// Non-admin cannot remove the category via update.
+				tests.AssertRequest(
+					cl.ThreadUpdateWithResponse(root, threadCreate.JSON200.Slug, openapi.ThreadMutableProps{
+						Category: lo.ToPtr(openapi.Identifier("")),
+					}, session2),
+				)(t, http.StatusBadRequest)
+
+				// The category must remain unchanged after the rejected update.
+				threadGet := tests.AssertRequest(
+					cl.ThreadGetWithResponse(root, threadCreate.JSON200.Slug, nil),
+				)(t, http.StatusOK)
+				if a.NotNil(threadGet.JSON200.Category) {
+					a.Equal(reqCat.JSON200.Id, threadGet.JSON200.Category.Id)
+				}
+
+				// An admin (has ManageCategories) can remove the category via update.
+				threadUpdate := tests.AssertRequest(
+					cl.ThreadUpdateWithResponse(root, threadCreate.JSON200.Slug, openapi.ThreadMutableProps{
+						Category: lo.ToPtr(openapi.Identifier("")),
+					}, session1),
+				)(t, http.StatusOK)
+				a.Nil(threadUpdate.JSON200.Category)
+			})
+
 			t.Run("thread_with_russian_slug", func(t *testing.T) {
 				a := assert.New(t)
 

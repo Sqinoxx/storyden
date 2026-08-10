@@ -4,10 +4,7 @@ import {
   TreeView as ArkTreeView,
   createTreeCollection,
 } from "@ark-ui/react/tree-view";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { CSSProperties, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { KeyedMutator } from "swr";
 
 import { handle } from "@/api/client";
@@ -19,7 +16,6 @@ import {
   Category,
   CategoryListOKResponse,
   CategoryUpdatePositionBody,
-  Identifier,
 } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { CategoryMenu } from "@/components/category/CategoryMenu/CategoryMenu";
@@ -30,17 +26,8 @@ import { Unready } from "@/components/site/Unready";
 import { BulletIcon } from "@/components/ui/icons/Bullet";
 import { ChevronRightIcon } from "@/components/ui/icons/Chevron";
 import { DiscussionIcon } from "@/components/ui/icons/Discussion";
-import { useCategoryEvent } from "@/lib/category/events";
-import {
-  CategoryTree,
-  buildCategoryTree,
-  isDescendant,
-} from "@/lib/category/tree";
-import {
-  DragItemCategory,
-  DragItemCategoryDivider,
-  DragItemData,
-} from "@/lib/dragdrop/provider";
+import { useCategoryEvent, useEmitCategoryEvent } from "@/lib/category/events";
+import { CategoryTree, buildCategoryTree } from "@/lib/category/tree";
 import { css, cx } from "@/styled-system/css";
 import { HStack, LStack } from "@/styled-system/jsx";
 import { treeView } from "@/styled-system/recipes";
@@ -53,8 +40,6 @@ export type Props = {
   initialCategoryList?: CategoryListOKResponse;
   currentCategorySlug?: string;
 };
-
-type PositionInList = "top" | "in" | "bottom" | "only";
 
 export function CategoryList({
   initialCategoryList,
@@ -132,9 +117,7 @@ export function CategoryListTree({
     setExpandedValue(details.expandedValue);
   };
 
-  const handleExpandNode = (id: string) => {
-    setExpandedValue((prev) => (prev.includes(id) ? prev : [...prev, id]));
-  };
+  const emitCategoryEvent = useEmitCategoryEvent();
 
   useCategoryEvent(
     "category:reorder-category",
@@ -193,26 +176,20 @@ export function CategoryListTree({
         onExpandedChange={handleExpandedChange}
       >
         <ArkTreeView.Tree className={styles.tree}>
-          <SortableContext
-            items={rootNodes.map((child) => child.id)}
-            strategy={rectSortingStrategy}
-          >
-            {rootNodes.map((cat, index) => (
-              <CategoryTreeNode
-                key={cat.id}
-                fullTree={tree}
-                currentCategorySlug={currentCategorySlug}
-                parentID={null}
-                category={cat}
-                styles={styles}
-                isRoot={true}
-                indexPath={[]}
-                positionInList={getPositionInList(rootNodes.length, index)}
-                handleExpandNode={handleExpandNode}
-                canManageCategories={canManageCategories}
-              />
-            ))}
-          </SortableContext>
+          {rootNodes.map((cat, index) => (
+            <CategoryTreeNode
+              key={cat.id}
+              currentCategorySlug={currentCategorySlug}
+              parent={null}
+              category={cat}
+              styles={styles}
+              indexPath={[]}
+              siblings={rootNodes}
+              siblingIndex={index}
+              canManageCategories={canManageCategories}
+              emitCategoryEvent={emitCategoryEvent}
+            />
+          ))}
         </ArkTreeView.Tree>
       </ArkTreeView.Root>
     </LStack>
@@ -220,150 +197,69 @@ export function CategoryListTree({
 }
 
 type TreeNodeProps = {
-  fullTree: CategoryTree[];
   currentCategorySlug: string | undefined;
-  parentID: Identifier | null;
+  parent: CategoryTree | null;
   category: CategoryTree;
   styles: any;
-  isRoot: boolean;
   indexPath: number[];
-  positionInList: PositionInList;
-  handleExpandNode: (id: string) => void;
+  siblings: CategoryTree[];
+  siblingIndex: number;
   canManageCategories: boolean;
+  emitCategoryEvent: ReturnType<typeof useEmitCategoryEvent>;
 };
 
 function CategoryTreeNode({
-  fullTree,
   currentCategorySlug,
-  parentID,
+  parent,
   category,
   styles,
-  isRoot,
   indexPath,
-  positionInList,
-  handleExpandNode,
+  siblings,
+  siblingIndex,
   canManageCategories,
+  emitCategoryEvent,
 }: TreeNodeProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef: setDraggableNodeRef,
-    transform,
-    isDragging,
-    active,
-    over,
-  } = useDraggable({
-    id: category.id,
-    disabled: !canManageCategories,
-    data: {
-      type: "category",
-      categoryID: category.id,
-      category: category,
-      hasChildren: category.children.length > 0,
-    } satisfies DragItemCategory,
-  });
-
-  const dragged = active?.data.current as DragItemCategory | undefined;
-  const draggedID = dragged?.categoryID;
-
-  const isDescendantOfDragged = draggedID
-    ? isDescendant(fullTree, draggedID, category.id)
-    : false;
-
-  const { setNodeRef: setDroppableNodeRef } = useDroppable({
-    id: category.id,
-    disabled:
-      !canManageCategories ||
-      isInvalidDropTarget(draggedID ?? null, category.id, fullTree),
-    data: {
-      type: "category",
-      categoryID: category.id,
-      category: category,
-      hasChildren: category.children.length > 0,
-    } satisfies DragItemCategory,
-  });
-
-  const overItem = over?.data.current as DragItemData | undefined;
-
-  const isDraggingOver =
-    !isDescendantOfDragged &&
-    overItem?.type === "category" &&
-    dragged?.type === "category" &&
-    overItem?.categoryID === category.id &&
-    !isDragging;
-
-  // handle drag-over to expand
-  const expandTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (!canManageCategories) return;
-
-    if (isDraggingOver) {
-      expandTimeout.current = setTimeout(() => {
-        handleExpandNode(category.id);
-      }, 600);
-    } else if (expandTimeout.current) {
-      clearTimeout(expandTimeout.current);
-      expandTimeout.current = null;
-    }
-
-    return () => {
-      if (expandTimeout.current) {
-        clearTimeout(expandTimeout.current);
-        expandTimeout.current = null;
-      }
-    };
-  }, [canManageCategories, handleExpandNode, isDraggingOver, category.id]);
-
-  function handleLinkClick(e: React.MouseEvent) {
-    if (isDragging) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }
-
-  function handleLinkTouchStart(e: React.TouchEvent) {
-    if (isDragging) {
-      e.preventDefault();
-    }
-  }
-
-  const branchControlDragStyles: CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
-    ...(isDragging
-      ? {
-        pointerEvents: "none",
-      }
-      : {
-        pointerEvents: "unset",
-      }),
-  };
-
-  const showTopDivider =
-    overItem?.type === "category-divider" &&
-    overItem?.siblingCategoryID === category.id &&
-    overItem?.direction === "above";
-  const showBottomDivider =
-    overItem?.type === "category-divider" &&
-    overItem?.siblingCategoryID === category.id &&
-    overItem?.direction === "below";
-
   const isHighlighted = category.slug === currentCategorySlug;
-
-  const draggingOverStyles = isDraggingOver
-    ? css({
-      borderRadius: "md",
-      colorPalette: "accent",
-      outlineWidth: "thin",
-      outlineStyle: "dashed",
-      outlineColor: "colorPalette.6",
-      outlineOffset: "-0.5",
-    })
-    : "";
 
   const highlightStyles = css({
     background: isHighlighted ? "bg.selected" : undefined,
   });
+
+  const previousSibling = siblings[siblingIndex - 1];
+  const nextSibling = siblings[siblingIndex + 1];
+
+  const onMoveUp = previousSibling
+    ? () => {
+      emitCategoryEvent("category:reorder-category", {
+        categorySlug: category.slug,
+        targetCategory: previousSibling.id,
+        direction: "above",
+        newParent: parent?.id ?? null,
+      });
+    }
+    : undefined;
+
+  const onMoveDown = nextSibling
+    ? () => {
+      emitCategoryEvent("category:reorder-category", {
+        categorySlug: category.slug,
+        targetCategory: nextSibling.id,
+        direction: "below",
+        newParent: parent?.id ?? null,
+      });
+    }
+    : undefined;
+
+  const onPromote = parent
+    ? () => {
+      emitCategoryEvent("category:reorder-category", {
+        categorySlug: category.slug,
+        targetCategory: parent.id,
+        direction: "above",
+        newParent: parent.parent ?? null,
+      });
+    }
+    : undefined;
 
   return (
     <ArkTreeView.NodeProvider
@@ -371,40 +267,9 @@ function CategoryTreeNode({
       node={category}
       indexPath={indexPath}
     >
-      <DropIndicator
-        categoryID={category.id}
-        parentCategoryID={category.parent}
-        active={showTopDivider}
-        direction="above"
-        positionInList={positionInList}
-        canManageCategories={canManageCategories}
-      />
-
-      <ArkTreeView.Branch
-        ref={setDroppableNodeRef}
-        className={cx(
-          styles.branch,
-          // branchIndentClass,
-          // css({
-          //   // "&[data-drag-over=true]": {
-          //   //   outline: "1px dashed var(--colors-border.emphasized)",
-          //   // },
-          // }),
-        )}
-        data-drag-over={isDraggingOver}
-        data-position={positionInList}
-      >
+      <ArkTreeView.Branch className={cx(styles.branch)}>
         <ArkTreeView.BranchControl
-          className={cx(
-            "group",
-            styles.branchControl,
-            highlightStyles,
-            draggingOverStyles,
-          )}
-          ref={setDraggableNodeRef}
-          style={branchControlDragStyles}
-          {...attributes}
-          {...listeners}
+          className={cx("group", styles.branchControl, highlightStyles)}
         >
           <ArkTreeView.BranchIndicator className={styles.branchIndicator}>
             {category.children.length > 0 ? (
@@ -437,154 +302,33 @@ function CategoryTreeNode({
                 _groupHover: "full",
               }}
             >
-              <CategoryMenu category={category} />
+              <CategoryMenu
+                category={category}
+                onMoveUp={onMoveUp}
+                onMoveDown={onMoveDown}
+                onPromote={onPromote}
+              />
             </HStack>
           )}
         </ArkTreeView.BranchControl>
 
         <ArkTreeView.BranchContent className={styles.branchContent}>
-          <SortableContext
-            items={category.children.map((child) => child.id)}
-            strategy={rectSortingStrategy}
-          >
-            {category.children.map((child, childIndex) => (
-              <CategoryTreeNode
-                key={child.id}
-                fullTree={fullTree}
-                currentCategorySlug={currentCategorySlug}
-                parentID={category.parent ?? null}
-                category={child}
-                indexPath={[...indexPath, childIndex]}
-                isRoot={false}
-                styles={styles}
-                positionInList={getPositionInList(
-                  category.children.length,
-                  childIndex,
-                )}
-                handleExpandNode={handleExpandNode}
-                canManageCategories={canManageCategories}
-              />
-            ))}
-          </SortableContext>
+          {category.children.map((child, childIndex) => (
+            <CategoryTreeNode
+              key={child.id}
+              currentCategorySlug={currentCategorySlug}
+              parent={category}
+              category={child}
+              indexPath={[...indexPath, childIndex]}
+              styles={styles}
+              siblings={category.children}
+              siblingIndex={childIndex}
+              canManageCategories={canManageCategories}
+              emitCategoryEvent={emitCategoryEvent}
+            />
+          ))}
         </ArkTreeView.BranchContent>
       </ArkTreeView.Branch>
-
-      <DropIndicator
-        categoryID={category.id}
-        parentCategoryID={category.parent}
-        direction="below"
-        active={showBottomDivider}
-        positionInList={positionInList}
-        canManageCategories={canManageCategories}
-      />
     </ArkTreeView.NodeProvider>
   );
-}
-
-type DropIndicatorProps = {
-  categoryID: string;
-  parentCategoryID: string | undefined;
-  direction: "above" | "below";
-  active: boolean;
-  positionInList: PositionInList;
-  canManageCategories: boolean;
-};
-
-function DropIndicator({
-  categoryID,
-  parentCategoryID,
-  direction,
-  active,
-  positionInList,
-  canManageCategories,
-}: DropIndicatorProps) {
-  const { setNodeRef } = useDroppable({
-    id: `${categoryID}_${direction}`,
-    disabled: false,
-    data: {
-      type: "category-divider",
-      direction,
-      siblingCategoryID: categoryID,
-      parentID: parentCategoryID ?? null,
-    } satisfies DragItemCategoryDivider,
-  });
-
-  if (!canManageCategories) {
-    return null;
-  }
-
-  const shouldRender =
-    direction === "above"
-      ? positionInList === "top" ||
-      positionInList === "in" ||
-      positionInList === "only"
-      : positionInList === "bottom" ||
-      positionInList === "in" ||
-      positionInList === "only";
-
-  if (!shouldRender) {
-    return null;
-  }
-
-  return (
-    <div
-      data-divider-category-id={categoryID}
-      data-divider-parent-category-id={parentCategoryID}
-      data-divider-direction={direction}
-      data-divider-active={active}
-      data-divider-position={positionInList}
-      style={{
-        position: "relative",
-        height: "1px",
-        marginInlineStart: "calc(((var(--depth)) * 22px) + 22px)",
-      }}
-    >
-      <div
-        ref={setNodeRef}
-        style={{
-          position: "absolute",
-          top: "-1px",
-          left: 0,
-          right: 0,
-          height: "3px",
-          background: active ? "var(--colors-bg-muted)" : "transparent",
-          opacity: active ? 1 : 0,
-          transition: "opacity 0.2s",
-          pointerEvents: "none",
-        }}
-      />
-    </div>
-  );
-}
-
-function isInvalidDropTarget(
-  activeId: string | null,
-  targetId: string,
-  tree: CategoryTree[],
-) {
-  if (!activeId) {
-    return false;
-  }
-
-  if (activeId === targetId) {
-    return true;
-  }
-
-  return isDescendant(tree, activeId, targetId);
-}
-
-function getPositionInList(length: number, index: number): PositionInList {
-  if (length === 1) {
-    return "only";
-  }
-
-  if (index === 0) {
-    return "top";
-  }
-
-  if (index === length - 1) {
-    return "bottom";
-  }
-
-  return "in";
 }

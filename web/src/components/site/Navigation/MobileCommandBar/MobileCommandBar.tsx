@@ -23,7 +23,18 @@ type Props = {
 };
 
 export function MobileCommandBar({ canRegister }: Props) {
-  const { isExpanded, onExpand, onClose, account } = useMobileCommandBar();
+  const {
+    isExpanded,
+    onExpand,
+    onClose,
+    account,
+    isAccountMenuOpen,
+    onAccountMenuOpenChange,
+  } = useMobileCommandBar();
+
+  function handleAccountMenuOpenChange(details: { open: boolean }) {
+    onAccountMenuOpenChange(details.open);
+  }
 
   return (
     <CommandDock
@@ -37,7 +48,12 @@ export function MobileCommandBar({ canRegister }: Props) {
         {isExpanded ? (
           <>
             {account ? (
-              <AccountMenu account={account} size="sm" />
+              <AccountMenu
+                account={account}
+                size="sm"
+                open={isAccountMenuOpen}
+                onOpenChange={handleAccountMenuOpenChange}
+              />
             ) : (
               <SiteIcon borderRadius="md" w="8" h="8" />
             )}
@@ -47,7 +63,12 @@ export function MobileCommandBar({ canRegister }: Props) {
         ) : (
           <>
             {account ? (
-              <AccountMenu account={account} size="sm" />
+              <AccountMenu
+                account={account}
+                size="sm"
+                open={isAccountMenuOpen}
+                onOpenChange={handleAccountMenuOpenChange}
+              />
             ) : (
               <SiteIcon borderRadius="md" w="8" h="8" />
             )}

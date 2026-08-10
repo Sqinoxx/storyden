@@ -14,14 +14,13 @@ import { SortableData } from "@dnd-kit/sortable";
 import { useState } from "react";
 
 import { handle } from "@/api/client";
-import { Category, Identifier, NodeWithChildren } from "@/api/openapi-schema";
+import { Identifier, NodeWithChildren } from "@/api/openapi-schema";
 import { BulletIcon } from "@/components/ui/icons/Bullet";
 import { ChevronRightIcon } from "@/components/ui/icons/Chevron";
 import { cx } from "@/styled-system/css";
 import { Box } from "@/styled-system/jsx";
 import { treeView } from "@/styled-system/recipes";
 
-import { useEmitCategoryEvent } from "../category/events";
 import { useEmitLibraryBlockEvent } from "../library/events";
 import { useLibraryMutation } from "../library/library";
 import { LibraryPageBlockType } from "../library/metadata";
@@ -39,20 +38,6 @@ export type DragItemNode = {
   context: "sidebar" | "node-children";
 };
 
-export type DragItemCategory = {
-  type: "category";
-  categoryID: Identifier;
-  category: Category;
-  hasChildren: boolean;
-};
-
-export type DragItemCategoryDivider = {
-  type: "category-divider";
-  parentID: Identifier | null;
-  siblingCategoryID: Identifier;
-  direction: "above" | "below";
-};
-
 export type DragItemDivider = {
   type: "divider";
   parentID: Identifier | null;
@@ -61,17 +46,11 @@ export type DragItemDivider = {
   context: "sidebar";
 };
 
-export type DragItemData =
-  | DragItemNode
-  | DragItemDivider
-  | DragItemNodeBlock
-  | DragItemCategory
-  | DragItemCategoryDivider;
+export type DragItemData = DragItemNode | DragItemDivider | DragItemNodeBlock;
 
 export function DndProvider({ children }: { children: React.ReactNode }) {
   const { moveNode, revalidate } = useLibraryMutation();
   const emitLibraryBlockEvent = useEmitLibraryBlockEvent();
-  const emitCategoryEvent = useEmitCategoryEvent();
   const [activeItem, setActiveItem] = useState<DragItemData | null>(null);
 
   const sensors = useSensors(
@@ -231,35 +210,6 @@ export function DndProvider({ children }: { children: React.ReactNode }) {
         overId: target.block,
       });
     }
-
-    if (activeData.type === "category") {
-      const active = activeData as DragItemCategory;
-      const target = targetData as DragItemCategoryDivider | DragItemCategory;
-      if (
-        targetData.type !== "category" &&
-        targetData.type !== "category-divider"
-      ) {
-        return;
-      }
-
-      const direction =
-        target.type === "category-divider" ? target.direction : "inside";
-      const targetCategory =
-        target.type === "category-divider"
-          ? target.siblingCategoryID
-          : target.categoryID;
-      const newParent =
-        target.type === "category-divider"
-          ? target.parentID
-          : target.categoryID;
-
-      emitCategoryEvent("category:reorder-category", {
-        categorySlug: active.category.slug,
-        targetCategory,
-        direction,
-        newParent,
-      });
-    }
   };
 
   return (
@@ -289,29 +239,9 @@ function DragOverlaySwitch({ activeItem }: DragOverlaySwitchProps) {
     case "node":
       return <DragOverlayNavigationNode activeItem={activeItem} />;
 
-    case "category":
-      return <DragOverlayNavigationCategory activeItem={activeItem} />;
-
     default:
       return null;
   }
-}
-
-function DragOverlayNavigationCategory({
-  activeItem,
-}: {
-  activeItem: DragItemCategory;
-}) {
-  const styles = treeView();
-  return (
-    <Box className={cx(styles.branchControl)} opacity="5">
-      <Box className={styles.branchIndicator}>
-        {activeItem?.hasChildren ? <ChevronRightIcon /> : <BulletIcon />}
-      </Box>
-
-      <Box className={styles.branchText}>{activeItem.category.name}</Box>
-    </Box>
-  );
 }
 
 function DragOverlayNavigationNode({

@@ -99,6 +99,9 @@ export const de: Translations = {
     subcategories: "Unterkategorien",
     filesInThisCategory: "Dateien",
     slug: "Slug",
+    moveUp: "Nach oben verschieben",
+    moveDown: "Nach unten verschieben",
+    promoteToParentLevel: "Auf Ebene des Überordners verschieben",
   },
   search: {
     placeholder: "Suchen...",

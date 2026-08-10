@@ -43,9 +43,11 @@ docker compose up -d postgres
 # probieren, statt nach einem einzelnen pg_isready-Erfolg blind fortzufahren.
 echo -n "Warte auf Datenbank"
 TABLES=""
+LAST_ERROR=""
 for _ in $(seq 1 60); do
-  if TABLES="$(docker compose exec -T postgres psql -U "$PG_USER" -d "$PG_DB" -tAc \
-    "select count(*) from information_schema.tables where table_schema = 'public'" 2>/dev/null | tr -d '[:space:]')"; then
+  if LAST_ERROR="$(docker compose exec -T postgres psql -U "$PG_USER" -d "$PG_DB" -tAc \
+    "select count(*) from information_schema.tables where table_schema = 'public'" 2>&1 >/tmp/.restore-db-tables)"; then
+    TABLES="$(tr -d '[:space:]' </tmp/.restore-db-tables)"
     if [ -n "$TABLES" ]; then
       echo " - bereit."
       break
@@ -58,7 +60,22 @@ done
 
 if [ -z "$TABLES" ]; then
   echo "" >&2
-  echo "Datenbank ist nicht hochgekommen. Logs: docker compose logs postgres" >&2
+  echo "Datenbank ist nicht hochgekommen. Letzter Fehler:" >&2
+  echo "$LAST_ERROR" >&2
+  if echo "$LAST_ERROR" | grep -q "role .* does not exist"; then
+    echo "" >&2
+    echo "Der Server laeuft, aber die Rolle '$PG_USER' fehlt im Cluster - kein" >&2
+    echo "Timing-Problem, sondern ein Volume, das nicht zur aktuellen .env passt" >&2
+    echo "(z.B. von einem abgebrochenen frueheren Versuch). initdb legt die Rolle" >&2
+    echo "nur beim allerersten Start eines Volumes an; ein erneuter Start aendert" >&2
+    echo "daran nichts. Sauber neu aufsetzen:" >&2
+    echo "  docker compose down" >&2
+    echo "  docker volume rm storyden_postgres-data" >&2
+    echo "  bash restore-db.sh $DUMP" >&2
+  else
+    echo "" >&2
+    echo "Vollstaendige Logs: docker compose logs postgres" >&2
+  fi
   exit 1
 fi
 

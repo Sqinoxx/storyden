@@ -46,6 +46,29 @@ kopieren oder zu starten.
 
 ---
 
+## Aktueller Stand (10.08.2026)
+
+Diesen Block löschen, sobald die Seite läuft.
+
+| | Schritt | Stand |
+| - | ------- | ----- |
+| ☐ | 1. Pi: 64 Bit prüfen | **offen** — `uname -m` muss `aarch64` sein |
+| ☑ | 2. Ports freimachen | apache2 deaktiviert, `ss` liefert nichts mehr |
+| ☑ | 3a. Öffentliche IPv4 | `91.135.163.168`, kein DS-Lite |
+| ☐ | 3b. Portfreigaben | **prüfen: extern 443, nicht 433** |
+| ☑ | 3c. A-Record bei name.com | zeigt auf die öffentliche IP |
+| ☑ | 3d. AdGuard DNS-Rewrite | `dig` auf dem Pi liefert `192.168.178.30` |
+| ☑ | 4. Daten exportieren | `transfer/` enthält Dump, Uploads und `.env` |
+| ☑ | 5. Image bauen | arm64, getestet, `transfer/storyden-arm64.tar` |
+| **→** | **6. Auf den Pi kopieren** | **hier weitermachen** |
+| ☐ | 7. Auf dem Pi starten | |
+| ☐ | 8. Prüfen | |
+
+Vor Schritt 6 noch `ACME_EMAIL=` in `transfer/.env` ausfüllen — ohne den Wert
+bricht Compose auf dem Pi mit `ACME_EMAIL fehlt in .env` ab.
+
+---
+
 ## 1. Pi vorbereiten
 
 Einloggen (Benutzername ggf. anpassen):
@@ -124,6 +147,20 @@ Kontrolle — der Befehl darf jetzt keine Zeile mehr ausgeben:
 
 ```bash
 sudo ss -tulpn | grep -E ':(80|443|8443)\s'
+```
+
+Hatte die alte Seite ein Let's-Encrypt-Zertifikat, läuft im Hintergrund
+wahrscheinlich noch ein certbot-Timer. Der versucht weiter zu verlängern,
+scheitert an Port 80 (den hat jetzt Caddy) und schickt Fehlermails:
+
+```bash
+systemctl list-timers | grep -i certbot
+```
+
+Falls vorhanden und nicht mehr gebraucht:
+
+```bash
+sudo systemctl disable --now certbot.timer
 ```
 
 ### Die anderen Container bleiben, wo sie sind
@@ -343,7 +380,7 @@ docker rm -f storyden-smoke
 
 ---
 
-## 6. Alles auf den Pi kopieren
+## 6. Alles auf den Pi kopieren  ← hier weitermachen
 
 ```powershell
 .\copy-to-pi.ps1 -PiUser pi

@@ -4,6 +4,10 @@ Gebaut wird auf dem **Windows-PC**, laufen tut es auf dem **Pi** (`192.168.178.3
 Der Pi baut nichts selbst — der Next.js-Build braucht mehr RAM als 4 GB
 zuverlässig hergeben, dort hängt sich der Pi auf.
 
+Läuft die Seite bereits? Für den laufenden Betrieb (Code-Updates, Backups,
+Domain/IP ändern, Secrets rotieren) siehe [WARTUNG.md](WARTUNG.md) — dieses
+Dokument hier ist die einmalige Ersteinrichtung.
+
 | Container  | Aufgabe                                                    |
 | ---------- | ---------------------------------------------------------- |
 | `caddy`    | HTTPS auf Port 8443, Let's-Encrypt-Zertifikat automatisch   |

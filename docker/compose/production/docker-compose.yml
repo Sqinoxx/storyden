@@ -1,0 +1,164 @@
+# Produktions-Setup fuer unidentists.social auf einer einzelnen VM
+# (z.B. Oracle Cloud Free Tier / Hetzner / beliebiger Linux-Server).
+#
+# Enthaelt: Postgres, Storyden (Fullstack-Image aus Source gebaut, Backend +
+# Next.js in einem Container) und Caddy als Reverse Proxy mit automatischem
+# Let's-Encrypt-HTTPS.
+#
+# Setup:
+#   cp .env.example .env    und alle Pflichtwerte eintragen
+#   mkdir -p data && sudo chown -R 1001:1001 data
+#   docker compose build
+#   docker compose up -d
+#
+# Update nach Code-Aenderungen:
+#   git pull && docker compose build && docker compose up -d
+#
+# Logs:
+#   docker compose logs -f storyden
+#
+# WICHTIG: Der DNS-A-Record muss VOR dem ersten Start auf die Server-IP
+# zeigen, sonst schlaegt die Let's-Encrypt-Ausstellung durch Caddy fehl.
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    logging: *default-logging
+    ports:
+      # Nur an localhost gebunden, nicht oeffentlich erreichbar. Wird fuer
+      # Backups und die einmalige SQLite-Migration vom Host aus gebraucht.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-storyden}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD fehlt in .env}
+      - POSTGRES_DB=${POSTGRES_DB:-storyden}
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-storyden} -d ${POSTGRES_DB:-storyden}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  storyden:
+    build:
+      context: ../../.. # Projekt-Root (wo go.mod liegt)
+      dockerfile: docker/all/Dockerfile
+    image: storyden-unidentists:latest
+    restart: unless-stopped
+    logging: *default-logging
+    expose:
+      - "8000"
+    volumes:
+      # Assets, Avatare und hochgeladene Dateien. Gehoert dem Container-User
+      # 1001, siehe chown-Hinweis oben.
+      - ./data:/storyden/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    environment:
+      # --- Adressen ---
+      # Beide zeigen auf dieselbe Domain: der Fullstack-Container proxyt die
+      # Frontend-Requests intern an den Next.js-Prozess.
+      - PUBLIC_WEB_ADDRESS=${PUBLIC_WEB_ADDRESS:?PUBLIC_WEB_ADDRESS fehlt in .env}
+      - PUBLIC_API_ADDRESS=${PUBLIC_API_ADDRESS:?PUBLIC_API_ADDRESS fehlt in .env}
+
+      # --- Datenbank ---
+      # Ohne diese Variable faellt die App still auf SQLite zurueck.
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL fehlt in .env}
+
+      # --- JWT Secret (Pflicht fuer E-Mail-Auth & OAuth) ---
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET fehlt in .env}
+
+      # --- E-Mail (SMTP) ---
+      - EMAIL_PROVIDER=${EMAIL_PROVIDER:-smtp}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-Unidentists}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
+
+      # --- Uploads ---
+      # Muss <= der max_size im Caddyfile bleiben.
+      - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-50}
+
+      # --- OCR / Volltextsuche in Dateien ---
+      # tesseract + pdftoppm sind im Image installiert (docker/all/Dockerfile).
+      - OCR_ENABLED=${OCR_ENABLED:-true}
+      - OCR_PROVIDER=${OCR_PROVIDER:-tesseract}
+      - OCR_LANGUAGES=${OCR_LANGUAGES:-deu,eng}
+      - OCR_MAX_FILE_SIZE_MB=${OCR_MAX_FILE_SIZE_MB:-10}
+      - OCR_PDF_MAX_PAGES=${OCR_PDF_MAX_PAGES:-20}
+      # Auf kleinen VMs (1-2 vCPU) sinnvoll aus, sonst frisst der Backfill nach
+      # jedem Neustart minutenlang CPU.
+      - OCR_BACKFILL_ENABLED=${OCR_BACKFILL_ENABLED:-true}
+
+      # --- Google Drive Bibliothek ---
+      # Alternativ ueber die Admin-Oberflaeche konfigurierbar; diese Variable
+      # ist nur noetig, wenn der Service-Account per Deployment gesetzt wird.
+      - GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON=${GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON}
+      - GOOGLE_DRIVE_CACHE_TTL=${GOOGLE_DRIVE_CACHE_TTL:-1m}
+
+      # --- Rate Limiting ---
+      - RATE_LIMIT=${RATE_LIMIT:-5000}
+      - RATE_LIMIT_PERIOD=${RATE_LIMIT_PERIOD:-1h}
+
+      # --- OAuth / SSO (optional) ---
+      # - OAUTH_GOOGLE_ENABLED=${OAUTH_GOOGLE_ENABLED:-false}
+      # - OAUTH_GOOGLE_CLIENT_ID=${OAUTH_GOOGLE_CLIENT_ID}
+      # - OAUTH_GOOGLE_CLIENT_SECRET=${OAUTH_GOOGLE_CLIENT_SECRET}
+
+      # --- Datei-/Asset-Speicher (Standard: lokal, siehe Volume oben) ---
+      # - ASSET_STORAGE_TYPE=${ASSET_STORAGE_TYPE:-local}
+      # - S3_ENDPOINT=${S3_ENDPOINT}
+      # - S3_BUCKET=${S3_BUCKET}
+      # - S3_REGION=${S3_REGION}
+      # - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      # - S3_SECRET_KEY=${S3_SECRET_KEY}
+
+      # --- Monitoring / Sentry (optional) ---
+      # - OTEL_PROVIDER=${OTEL_PROVIDER}
+      # - SENTRY_DSN=${SENTRY_DSN}
+
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    logging: *default-logging
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - SITE_DOMAIN=${SITE_DOMAIN:?SITE_DOMAIN fehlt in .env}
+      - ACME_EMAIL=${ACME_EMAIL:?ACME_EMAIL fehlt in .env}
+    depends_on:
+      - storyden
+
+volumes:
+  postgres-data:
+  caddy_data:
+  caddy_config:

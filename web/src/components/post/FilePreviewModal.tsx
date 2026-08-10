@@ -75,9 +75,18 @@ export function FilePreviewModal({
   const [textContent, setTextContent] = useState<string | null>(null);
   const [showOcr, setShowOcr] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
   }, []);
 
   // Load text files
@@ -100,6 +109,8 @@ export function FilePreviewModal({
   }, [onClose]);
 
   if (!mounted) return null;
+
+  const isMobilePdf = isMobile && previewType === "pdf";
 
   return (
     <Portal>
@@ -137,8 +148,8 @@ export function FilePreviewModal({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%) translateZ(0)",
-          width: "90vw",
-          height: "90vh",
+          width: isMobilePdf ? "82vw" : "90vw",
+          height: isMobilePdf ? "72vh" : "90vh",
           animation: "previewZoomIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         }}
       >

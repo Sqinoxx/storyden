@@ -5,10 +5,11 @@ import { MenuSelectionDetails, Portal } from "@ark-ui/react";
 import { Category, Permission } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { MoreAction } from "@/components/site/Action/More";
+import { ArrowDownIcon, ArrowUpIcon, PromoteCategoryIcon } from "@/components/ui/icons/Arrow";
 import { Heading } from "@/components/ui/heading";
 import * as Menu from "@/components/ui/menu";
 import { WEB_ADDRESS } from "@/config";
-import { styled } from "@/styled-system/jsx";
+import { HStack, styled } from "@/styled-system/jsx";
 import { useShare } from "@/utils/client";
 import { hasPermission } from "@/utils/permissions";
 import { useCopyToClipboard } from "@/utils/useCopyToClipboard";
@@ -20,9 +21,12 @@ import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   category: Category;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  onPromote?: () => void;
 };
 
-export function useCategoryMenu({ category }: Props) {
+export function useCategoryMenu({ category, onMoveUp, onMoveDown, onPromote }: Props) {
   const account = useSession();
   const [, copyToClipboard] = useCopyToClipboard();
 
@@ -63,6 +67,15 @@ export function useCategoryMenu({ category }: Props) {
       case "delete":
         // Handled by item component
         return;
+
+      case "move-up":
+        return onMoveUp?.();
+
+      case "move-down":
+        return onMoveDown?.();
+
+      case "promote":
+        return onPromote?.();
     }
   }
 
@@ -80,7 +93,9 @@ export function CategoryMenu(props: Props) {
     useCategoryMenu(props);
   const t = useTranslation();
 
-  const { category } = props;
+  const { category, onMoveUp, onMoveDown, onPromote } = props;
+
+  const hasReorderActions = isEditingEnabled && (onMoveUp || onMoveDown || onPromote);
 
   return (
     <Menu.Root onSelect={handlers.handleSelect}>
@@ -102,6 +117,39 @@ export function CategoryMenu(props: Props) {
               <Menu.Item value="copy-link">{t.actions.copyLink}</Menu.Item>
               {isSharingEnabled && <Menu.Item value="share">{t.actions.share}</Menu.Item>}
             </Menu.ItemGroup>
+
+            {hasReorderActions && (
+              <>
+                <Menu.Separator />
+
+                <Menu.ItemGroup id="reorder">
+                  {onMoveUp && (
+                    <Menu.Item value="move-up">
+                      <HStack gap="1">
+                        <ArrowUpIcon />
+                        {t.category.moveUp}
+                      </HStack>
+                    </Menu.Item>
+                  )}
+                  {onMoveDown && (
+                    <Menu.Item value="move-down">
+                      <HStack gap="1">
+                        <ArrowDownIcon />
+                        {t.category.moveDown}
+                      </HStack>
+                    </Menu.Item>
+                  )}
+                  {onPromote && (
+                    <Menu.Item value="promote">
+                      <HStack gap="1">
+                        <PromoteCategoryIcon />
+                        {t.category.promoteToParentLevel}
+                      </HStack>
+                    </Menu.Item>
+                  )}
+                </Menu.ItemGroup>
+              </>
+            )}
 
             {isEditingEnabled && (
               <>

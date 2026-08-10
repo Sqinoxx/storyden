@@ -29,9 +29,11 @@ import {
 type Props = {
   account: Account;
   size?: "sm" | "md";
+  open?: boolean;
+  onOpenChange?: (details: { open: boolean }) => void;
 };
 
-export function AccountMenu({ account, size = "md" }: Props) {
+export function AccountMenu({ account, size = "md", open, onOpenChange }: Props) {
   const isAdmin = hasPermission(account, Permission.ADMINISTRATOR);
   const canCreateInvitations = hasPermission(account, Permission.CREATE_INVITATION);
   const isStaff = isModeratorOrAdmin(account);
@@ -53,6 +55,8 @@ export function AccountMenu({ account, size = "md" }: Props) {
     <>
       <Menu.Root
         size="md"
+        open={open}
+        onOpenChange={onOpenChange}
         onSelect={handleSelect}
         positioning={{
           fitViewport: true,

@@ -97,6 +97,9 @@ export const en = {
     subcategories: "subcategories",
     filesInThisCategory: "Files in this category",
     slug: "Slug",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    promoteToParentLevel: "Move to parent's level",
   },
   search: {
     placeholder: "Search...",

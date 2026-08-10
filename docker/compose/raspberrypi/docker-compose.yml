@@ -169,6 +169,15 @@ services:
     image: qmcgaw/ddns-updater:latest
     restart: unless-stopped
     logging: *default-logging
+    # Oeffentliche Resolver statt des Host-Standards: ddns-updater prueft per
+    # DNS-Lookup, ob der Record aktuell ist (auch fuer den eingebauten Docker-
+    # Healthcheck). Laeuft die Aufloesung ueber AdGuard Home mit dem LAN-
+    # Rewrite aus Schritt 3d, sieht der Container dauerhaft die interne
+    # 192.168.178.30 statt der echten oeffentlichen IP - haelt den Record
+    # faelschlich fuer veraltet und wird als unhealthy markiert.
+    dns:
+      - 1.1.1.1
+      - 9.9.9.9
     volumes:
       - ./ddns:/updater/data
     environment:

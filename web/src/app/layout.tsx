@@ -16,7 +16,7 @@ const { API_ADDRESS, WEB_ADDRESS } = serverEnvironment();
 
 export default async function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${interDisplay.variable}`}>
+    <html lang="de" suppressHydrationWarning className={`${inter.variable} ${interDisplay.variable}`}>
       <head>
         {/*
           NOTE: Because the browser side does not support dynamic environment

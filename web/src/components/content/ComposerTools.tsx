@@ -36,7 +36,11 @@ export function ComposerTools({
   onClick,
   children,
 }: PropsWithChildren<Props>) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  // NOTE: Defaults to collapsed on mobile so the toolbar doesn't cover the
+  // text being edited; desktop has enough room so it starts expanded.
+  const [isExpanded, setIsExpanded] = useState(() =>
+    typeof window === "undefined" ? true : window.innerWidth >= MD_BREAKPOINT,
+  );
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {

@@ -256,7 +256,11 @@ export function useQuickShare({ initialCategory }: Props) {
 }
 
 function getFirstURL(html: Document) {
-  const result = html.querySelector("a");
+  // File attachments are anchors too, but they're not "shared links" - skip
+  // them so uploading a file doesn't get treated as sharing its asset URL.
+  const result = Array.from(html.querySelectorAll("a")).find(
+    (a) => a.getAttribute("data-type") !== "file-attachment",
+  );
   if (!result) {
     return undefined;
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { FieldValues } from "react-hook-form";
+import { FieldValues, useFormState } from "react-hook-form";
 
 import { ErrorTooltip } from "@/components/ui/ErrorTooltip";
 import {
@@ -19,6 +19,9 @@ export function CategorySelect<T extends FieldValues>(
   const { ready, collection, error } = result;
   const t = useTranslation();
 
+  const { errors } = useFormState({ control: props.control, name: props.name });
+  const fieldError = errors[props.name]?.message as string | undefined;
+
   return (
     <HStack gap="2" alignItems="center">
       <SelectField
@@ -28,7 +31,7 @@ export function CategorySelect<T extends FieldValues>(
         placeholder={ready ? t.category.category : t.category.loadingCategories}
         collection={collection}
       />
-      <ErrorTooltip error={error} />
+      <ErrorTooltip error={fieldError ?? error} />
     </HStack>
   );
 }

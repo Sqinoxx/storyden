@@ -11,10 +11,14 @@ import { Asset } from "@/api/openapi-schema";
 import { UseDisclosureProps } from "@/utils/useDisclosure";
 
 import { handle } from "@/api/client";
+import { isSlug } from "@/utils/slugify";
 
 export const FormSchema = z.object({
   name: z.string().min(1, "Please enter a name for the category."),
-  slug: z.string().min(1, "Please enter a URL slug for the category."),
+  slug: z
+    .string()
+    .min(1, "Please enter a URL slug for the category.")
+    .refine(isSlug, "The slug must only contain letters, numbers, hyphens and underscores."),
   description: z.string().min(1, "Please enter a short description."),
   colour: z.string().default("#8577ce"),
   parent: z.string().optional(),
@@ -27,7 +31,7 @@ export interface CategoryCreateProps extends UseDisclosureProps {
 }
 
 export function useCategoryCreate(props: CategoryCreateProps) {
-  const { register, handleSubmit, control, setValue } = useForm<Form>({
+  const { register, handleSubmit, control, setValue, formState } = useForm<Form>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       colour: "#8577ce",
@@ -51,6 +55,7 @@ export function useCategoryCreate(props: CategoryCreateProps) {
     onSubmit,
     register,
     control,
+    formState,
     handleImageUpload,
   };
 }

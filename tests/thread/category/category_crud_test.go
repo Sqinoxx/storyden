@@ -101,6 +101,36 @@ func TestCategoryCRUD(t *testing.T) {
 				a.Equal(newName, found.Name)
 			})
 
+			t.Run("create_category_rejects_invalid_slug", func(t *testing.T) {
+				r := require.New(t)
+
+				name := "Category " + uuid.NewString()
+				create := tests.AssertRequest(cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+					Colour:      "#abc123",
+					Description: "category testing",
+					Name:        name,
+					Slug:        lo.ToPtr("has/a-slash"),
+				}, adminSession))(t, http.StatusBadRequest)
+				r.NotNil(create)
+			})
+
+			t.Run("update_category_rejects_invalid_slug", func(t *testing.T) {
+				r := require.New(t)
+
+				name := "Category " + uuid.NewString()
+				create := tests.AssertRequest(cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+					Colour:      "#abc123",
+					Description: "category testing",
+					Name:        name,
+				}, adminSession))(t, http.StatusOK)
+				r.NotNil(create.JSON200)
+
+				update := tests.AssertRequest(cl.CategoryUpdateWithResponse(root, create.JSON200.Slug, openapi.CategoryUpdateJSONRequestBody{
+					Slug: lo.ToPtr("has/a-slash"),
+				}, adminSession))(t, http.StatusBadRequest)
+				r.NotNil(update)
+			})
+
 			t.Run("move_category_to_new_parent", func(t *testing.T) {
 				r := require.New(t)
 				a := assert.New(t)

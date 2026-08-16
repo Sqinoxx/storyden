@@ -9,6 +9,7 @@ import { UseDisclosureProps } from "@/utils/useDisclosure";
 
 import { handle } from "@/api/client";
 import { useCategoryMutations } from "@/lib/category/mutation";
+import { isSlug } from "@/utils/slugify";
 
 export type Props = {
   category: Category;
@@ -16,7 +17,10 @@ export type Props = {
 
 export const FormSchema = z.object({
   name: z.string().min(1),
-  slug: z.string().min(1),
+  slug: z
+    .string()
+    .min(1)
+    .refine(isSlug, "The slug must only contain letters, numbers, hyphens and underscores."),
   description: z.string().min(1),
   colour: z.string().default("#fff"),
   cover_image: z.custom<Asset>().nullable().optional(),

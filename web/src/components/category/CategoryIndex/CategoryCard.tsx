@@ -21,23 +21,6 @@ type CategoryCardProps = {
   showChildren: boolean;
 };
 
-const INDENT_BY_DEPTH = ["0", "4", "8"] as const;
-
-type FlattenedChild = {
-  category: CategoryTree;
-  depth: number;
-};
-
-function flattenChildren(
-  categories: CategoryTree[],
-  depth = 0,
-): FlattenedChild[] {
-  return categories.flatMap((category) => [
-    { category, depth },
-    ...flattenChildren(category.children, depth + 1),
-  ]);
-}
-
 export function CategoryCard({ category, showChildren }: CategoryCardProps) {
   const cssProps = categoryColourCSS(category.colour);
   const t = useTranslation();
@@ -104,17 +87,14 @@ export function CategoryCard({ category, showChildren }: CategoryCardProps) {
 
         {hasSubcategories && showChildren && (
           <CardRows>
-            {flattenChildren(category.children).map(({ category: c, depth }) => {
+            {category.children.map((c) => {
               const cssProps = categoryColourCSS(c.colour);
-              const indent =
-                INDENT_BY_DEPTH[Math.min(depth, INDENT_BY_DEPTH.length - 1)]!;
 
               return (
                 <CardBox
                   key={c.id}
                   position="relative"
                   style={cssProps}
-                  ml={indent}
                   borderColor="bg.subtle"
                   borderWidth="hairline"
                   borderStyle="solid"

@@ -14,6 +14,7 @@ import { RegenerateIcon } from "@/components/ui/icons/Regenerate";
 import { Input } from "@/components/ui/input";
 import { Item } from "@/components/ui/menu";
 import { createInvitationLink } from "@/lib/invitation/link";
+import { useCopyToClipboard } from "@/utils/useCopyToClipboard";
 import {
   Center,
   HStack,
@@ -38,6 +39,7 @@ export function useInvitation() {
     status: "idle",
   });
   const isCreating = useRef(false);
+  const [, copyToClipboard] = useCopyToClipboard();
 
   async function createInvitation() {
     if (isCreating.current) {
@@ -49,10 +51,9 @@ export function useInvitation() {
 
     try {
       const created = await invitationCreate({});
-      setInvitation({
-        status: "success",
-        link: createInvitationLink(created.id),
-      });
+      const link = createInvitationLink(created.id);
+      setInvitation({ status: "success", link });
+      await copyToClipboard(link);
     } catch (error) {
       setInvitation({
         status: "error",

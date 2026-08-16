@@ -5,7 +5,7 @@ import { UseDisclosureProps } from "@/utils/useDisclosure";
 
 import { Heading } from "@/components/ui/heading";
 import { cx } from "@/styled-system/css";
-import { Box, VStack, WStack } from "@/styled-system/jsx";
+import { Box, VStack, VisuallyHidden, WStack } from "@/styled-system/jsx";
 
 import { CloseAction } from "../Action/Close";
 
@@ -67,8 +67,10 @@ export function ModalDrawer({
                 <Drawer.Title asChild>
                   <Heading size="md">{props.title}</Heading>
                 </Drawer.Title>
-                <Drawer.Description className="sr-only">
-                  {props.description || props.title || "Modal window"}
+                <Drawer.Description asChild>
+                  <VisuallyHidden>
+                    {props.description || props.title || "Modal window"}
+                  </VisuallyHidden>
                 </Drawer.Description>
                 <CloseAction onClick={props.onClose} />
               </WStack>

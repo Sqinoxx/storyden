@@ -23,6 +23,12 @@ const (
 	FieldExpiresAt = "expires_at"
 	// FieldRevokedAt holds the string denoting the revoked_at field in the database.
 	FieldRevokedAt = "revoked_at"
+	// FieldRefreshedAt holds the string denoting the refreshed_at field in the database.
+	FieldRefreshedAt = "refreshed_at"
+	// FieldLifetimeSeconds holds the string denoting the lifetime_seconds field in the database.
+	FieldLifetimeSeconds = "lifetime_seconds"
+	// FieldPersistent holds the string denoting the persistent field in the database.
+	FieldPersistent = "persistent"
 	// EdgeAccount holds the string denoting the account edge name in mutations.
 	EdgeAccount = "account"
 	// Table holds the table name of the session in the database.
@@ -43,6 +49,9 @@ var Columns = []string{
 	FieldAccountID,
 	FieldExpiresAt,
 	FieldRevokedAt,
+	FieldRefreshedAt,
+	FieldLifetimeSeconds,
+	FieldPersistent,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -60,6 +69,10 @@ var (
 	DefaultCreatedAt func() time.Time
 	// AccountIDValidator is a validator for the "account_id" field. It is called by the builders before save.
 	AccountIDValidator func(string) error
+	// DefaultLifetimeSeconds holds the default value on creation for the "lifetime_seconds" field.
+	DefaultLifetimeSeconds int
+	// DefaultPersistent holds the default value on creation for the "persistent" field.
+	DefaultPersistent bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() xid.ID
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -92,6 +105,21 @@ func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
 // ByRevokedAt orders the results by the revoked_at field.
 func ByRevokedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRevokedAt, opts...).ToFunc()
+}
+
+// ByRefreshedAt orders the results by the refreshed_at field.
+func ByRefreshedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRefreshedAt, opts...).ToFunc()
+}
+
+// ByLifetimeSeconds orders the results by the lifetime_seconds field.
+func ByLifetimeSeconds(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLifetimeSeconds, opts...).ToFunc()
+}
+
+// ByPersistent orders the results by the persistent field.
+func ByPersistent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPersistent, opts...).ToFunc()
 }
 
 // ByAccountField orders the results by account field.

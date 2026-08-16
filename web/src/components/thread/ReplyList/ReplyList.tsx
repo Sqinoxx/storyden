@@ -10,7 +10,6 @@ type Props = {
   thread: Thread;
   currentPage?: number;
   initialSignatureConfig: SignatureConfig;
-  sortOrder?: "asc" | "desc";
 };
 
 export function ReplyList({
@@ -18,12 +17,9 @@ export function ReplyList({
   thread,
   currentPage,
   initialSignatureConfig,
-  sortOrder = "asc",
 }: Props) {
-  const replies = [...thread.replies.replies];
-  if (sortOrder === "desc") {
-    replies.reverse();
-  }
+  // Ordering is applied server-side so it spans every page, not just this one.
+  const replies = thread.replies.replies;
 
   return (
     <styled.ol

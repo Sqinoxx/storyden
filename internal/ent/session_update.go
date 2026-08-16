@@ -29,6 +29,20 @@ func (_u *SessionUpdate) Where(ps ...predicate.Session) *SessionUpdate {
 	return _u
 }
 
+// SetExpiresAt sets the "expires_at" field.
+func (_u *SessionUpdate) SetExpiresAt(v time.Time) *SessionUpdate {
+	_u.mutation.SetExpiresAt(v)
+	return _u
+}
+
+// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillableExpiresAt(v *time.Time) *SessionUpdate {
+	if v != nil {
+		_u.SetExpiresAt(*v)
+	}
+	return _u
+}
+
 // SetRevokedAt sets the "revoked_at" field.
 func (_u *SessionUpdate) SetRevokedAt(v time.Time) *SessionUpdate {
 	_u.mutation.SetRevokedAt(v)
@@ -46,6 +60,61 @@ func (_u *SessionUpdate) SetNillableRevokedAt(v *time.Time) *SessionUpdate {
 // ClearRevokedAt clears the value of the "revoked_at" field.
 func (_u *SessionUpdate) ClearRevokedAt() *SessionUpdate {
 	_u.mutation.ClearRevokedAt()
+	return _u
+}
+
+// SetRefreshedAt sets the "refreshed_at" field.
+func (_u *SessionUpdate) SetRefreshedAt(v time.Time) *SessionUpdate {
+	_u.mutation.SetRefreshedAt(v)
+	return _u
+}
+
+// SetNillableRefreshedAt sets the "refreshed_at" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillableRefreshedAt(v *time.Time) *SessionUpdate {
+	if v != nil {
+		_u.SetRefreshedAt(*v)
+	}
+	return _u
+}
+
+// ClearRefreshedAt clears the value of the "refreshed_at" field.
+func (_u *SessionUpdate) ClearRefreshedAt() *SessionUpdate {
+	_u.mutation.ClearRefreshedAt()
+	return _u
+}
+
+// SetLifetimeSeconds sets the "lifetime_seconds" field.
+func (_u *SessionUpdate) SetLifetimeSeconds(v int) *SessionUpdate {
+	_u.mutation.ResetLifetimeSeconds()
+	_u.mutation.SetLifetimeSeconds(v)
+	return _u
+}
+
+// SetNillableLifetimeSeconds sets the "lifetime_seconds" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillableLifetimeSeconds(v *int) *SessionUpdate {
+	if v != nil {
+		_u.SetLifetimeSeconds(*v)
+	}
+	return _u
+}
+
+// AddLifetimeSeconds adds value to the "lifetime_seconds" field.
+func (_u *SessionUpdate) AddLifetimeSeconds(v int) *SessionUpdate {
+	_u.mutation.AddLifetimeSeconds(v)
+	return _u
+}
+
+// SetPersistent sets the "persistent" field.
+func (_u *SessionUpdate) SetPersistent(v bool) *SessionUpdate {
+	_u.mutation.SetPersistent(v)
+	return _u
+}
+
+// SetNillablePersistent sets the "persistent" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillablePersistent(v *bool) *SessionUpdate {
+	if v != nil {
+		_u.SetPersistent(*v)
+	}
 	return _u
 }
 
@@ -107,11 +176,29 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.ExpiresAt(); ok {
+		_spec.SetField(session.FieldExpiresAt, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.RevokedAt(); ok {
 		_spec.SetField(session.FieldRevokedAt, field.TypeTime, value)
 	}
 	if _u.mutation.RevokedAtCleared() {
 		_spec.ClearField(session.FieldRevokedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.RefreshedAt(); ok {
+		_spec.SetField(session.FieldRefreshedAt, field.TypeTime, value)
+	}
+	if _u.mutation.RefreshedAtCleared() {
+		_spec.ClearField(session.FieldRefreshedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LifetimeSeconds(); ok {
+		_spec.SetField(session.FieldLifetimeSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedLifetimeSeconds(); ok {
+		_spec.AddField(session.FieldLifetimeSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Persistent(); ok {
+		_spec.SetField(session.FieldPersistent, field.TypeBool, value)
 	}
 	_spec.AddModifiers(_u.modifiers...)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -135,6 +222,20 @@ type SessionUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
+// SetExpiresAt sets the "expires_at" field.
+func (_u *SessionUpdateOne) SetExpiresAt(v time.Time) *SessionUpdateOne {
+	_u.mutation.SetExpiresAt(v)
+	return _u
+}
+
+// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillableExpiresAt(v *time.Time) *SessionUpdateOne {
+	if v != nil {
+		_u.SetExpiresAt(*v)
+	}
+	return _u
+}
+
 // SetRevokedAt sets the "revoked_at" field.
 func (_u *SessionUpdateOne) SetRevokedAt(v time.Time) *SessionUpdateOne {
 	_u.mutation.SetRevokedAt(v)
@@ -152,6 +253,61 @@ func (_u *SessionUpdateOne) SetNillableRevokedAt(v *time.Time) *SessionUpdateOne
 // ClearRevokedAt clears the value of the "revoked_at" field.
 func (_u *SessionUpdateOne) ClearRevokedAt() *SessionUpdateOne {
 	_u.mutation.ClearRevokedAt()
+	return _u
+}
+
+// SetRefreshedAt sets the "refreshed_at" field.
+func (_u *SessionUpdateOne) SetRefreshedAt(v time.Time) *SessionUpdateOne {
+	_u.mutation.SetRefreshedAt(v)
+	return _u
+}
+
+// SetNillableRefreshedAt sets the "refreshed_at" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillableRefreshedAt(v *time.Time) *SessionUpdateOne {
+	if v != nil {
+		_u.SetRefreshedAt(*v)
+	}
+	return _u
+}
+
+// ClearRefreshedAt clears the value of the "refreshed_at" field.
+func (_u *SessionUpdateOne) ClearRefreshedAt() *SessionUpdateOne {
+	_u.mutation.ClearRefreshedAt()
+	return _u
+}
+
+// SetLifetimeSeconds sets the "lifetime_seconds" field.
+func (_u *SessionUpdateOne) SetLifetimeSeconds(v int) *SessionUpdateOne {
+	_u.mutation.ResetLifetimeSeconds()
+	_u.mutation.SetLifetimeSeconds(v)
+	return _u
+}
+
+// SetNillableLifetimeSeconds sets the "lifetime_seconds" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillableLifetimeSeconds(v *int) *SessionUpdateOne {
+	if v != nil {
+		_u.SetLifetimeSeconds(*v)
+	}
+	return _u
+}
+
+// AddLifetimeSeconds adds value to the "lifetime_seconds" field.
+func (_u *SessionUpdateOne) AddLifetimeSeconds(v int) *SessionUpdateOne {
+	_u.mutation.AddLifetimeSeconds(v)
+	return _u
+}
+
+// SetPersistent sets the "persistent" field.
+func (_u *SessionUpdateOne) SetPersistent(v bool) *SessionUpdateOne {
+	_u.mutation.SetPersistent(v)
+	return _u
+}
+
+// SetNillablePersistent sets the "persistent" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillablePersistent(v *bool) *SessionUpdateOne {
+	if v != nil {
+		_u.SetPersistent(*v)
+	}
 	return _u
 }
 
@@ -243,11 +399,29 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 			}
 		}
 	}
+	if value, ok := _u.mutation.ExpiresAt(); ok {
+		_spec.SetField(session.FieldExpiresAt, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.RevokedAt(); ok {
 		_spec.SetField(session.FieldRevokedAt, field.TypeTime, value)
 	}
 	if _u.mutation.RevokedAtCleared() {
 		_spec.ClearField(session.FieldRevokedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.RefreshedAt(); ok {
+		_spec.SetField(session.FieldRefreshedAt, field.TypeTime, value)
+	}
+	if _u.mutation.RefreshedAtCleared() {
+		_spec.ClearField(session.FieldRefreshedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LifetimeSeconds(); ok {
+		_spec.SetField(session.FieldLifetimeSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedLifetimeSeconds(); ok {
+		_spec.AddField(session.FieldLifetimeSeconds, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Persistent(); ok {
+		_spec.SetField(session.FieldPersistent, field.TypeBool, value)
 	}
 	_spec.AddModifiers(_u.modifiers...)
 	_node = &Session{config: _u.config}

@@ -12,7 +12,7 @@ import { CopyIcon } from "@/components/ui/icons/Copy";
 import { InvitationIcon } from "@/components/ui/icons/Invitation";
 import { Input } from "@/components/ui/input";
 import { Item } from "@/components/ui/menu";
-import { WEB_ADDRESS } from "@/config";
+import { createInvitationLink } from "@/lib/invitation/link";
 import { Center, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
 import { deriveError } from "@/utils/error";
 import { useTranslation } from "@/lib/i18n";
@@ -24,12 +24,6 @@ type InvitationState =
 
 export const InvitationID = "invitation";
 export const InvitationLabel = "Invite";
-
-function createInvitationLink(invitationID: string) {
-  const webAddress = WEB_ADDRESS.replace(/\/$/, "");
-
-  return `${webAddress}/invitation/${invitationID}`;
-}
 
 export function useInvitation() {
   const [invitation, setInvitation] = useState<InvitationState>({

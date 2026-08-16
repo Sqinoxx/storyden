@@ -11,6 +11,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/role/role_hydrate"
 	"github.com/Southclaws/storyden/app/resources/post/thread"
+	"github.com/Southclaws/storyden/app/resources/sortrule"
 	"github.com/Southclaws/storyden/app/resources/visibility"
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_account "github.com/Southclaws/storyden/internal/ent/account"
@@ -57,9 +58,33 @@ type CategoryFilter struct {
 type threadListOptions struct {
 	q            *ent.PostQuery
 	ignorePinned bool
+	sort         opt.Optional[sortrule.SortRule]
 }
 
 type Query func(*threadListOptions)
+
+type getOptions struct {
+	repliesDescending bool
+}
+
+type GetOption func(*getOptions)
+
+// WithRepliesDescending returns a thread's replies newest first. Note that
+// reply permalinks are resolved against ascending order, so deep links must
+// reset to the default.
+func WithRepliesDescending(v bool) GetOption {
+	return func(o *getOptions) {
+		o.repliesDescending = v
+	}
+}
+
+// WithSortBy overrides the default ordering of the thread list. Unrecognised
+// fields fall back to the default so an unexpected value never empties a feed.
+func WithSortBy(rule sortrule.SortRule) Query {
+	return func(q *threadListOptions) {
+		q.sort = opt.New(rule)
+	}
+}
 
 func HasKeyword(s string) Query {
 	return func(q *threadListOptions) {

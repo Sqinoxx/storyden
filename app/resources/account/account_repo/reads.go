@@ -233,3 +233,39 @@ func roleHydrationTargets(acc *ent.Account) []*ent.Account {
 
 	return targets
 }
+
+// MetadataRecord is the minimal projection needed by background jobs that walk
+// every account's client metadata.
+type MetadataRecord struct {
+	ID       account.AccountID
+	Metadata map[string]any
+}
+
+// ListMetadataAfter returns a page of account metadata ordered by ID. Pass a
+// zero ID to start, then the last returned ID to continue. Walking a cursor
+// rather than filtering on the JSON column keeps this portable across SQLite,
+// Postgres and CockroachDB.
+func (r *Repository) ListMetadataAfter(ctx context.Context, after xid.ID, limit int) ([]MetadataRecord, error) {
+	q := r.db.Account.
+		Query().
+		Where(account_ent.DeletedAtIsNil()).
+		Order(ent.Asc(account_ent.FieldID)).
+		Select(account_ent.FieldID, account_ent.FieldMetadata).
+		Limit(limit)
+
+	if !after.IsNil() {
+		q = q.Where(account_ent.IDGT(after))
+	}
+
+	rows, err := q.All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return dt.Map(rows, func(a *ent.Account) MetadataRecord {
+		return MetadataRecord{
+			ID:       account.AccountID(a.ID),
+			Metadata: a.Metadata,
+		}
+	}), nil
+}

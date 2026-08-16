@@ -13,6 +13,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/post/thread_querier"
 	"github.com/Southclaws/storyden/app/resources/rbac"
+	"github.com/Southclaws/storyden/app/resources/sortrule"
 	"github.com/Southclaws/storyden/app/resources/visibility"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/internal/infrastructure/instrumentation/kv"
@@ -27,6 +28,7 @@ type Params struct {
 	Tags          opt.Optional[[]xid.ID]
 	Categories    opt.Optional[thread_querier.CategoryFilter]
 	IgnorePinned  opt.Optional[bool]
+	Sort          opt.Optional[sortrule.SortRule]
 }
 
 func (s *service) List(ctx context.Context,
@@ -54,6 +56,7 @@ func (s *service) List(ctx context.Context,
 	opts.Tags.Call(func(a []xid.ID) { q = append(q, thread_querier.HasTags(a)) })
 	opts.Categories.Call(func(cf thread_querier.CategoryFilter) { q = append(q, thread_querier.HasCategories(cf)) })
 	opts.IgnorePinned.Call(func(value bool) { q = append(q, thread_querier.HasNoPinnedOrdering(value)) })
+	opts.Sort.Call(func(value sortrule.SortRule) { q = append(q, thread_querier.WithSortBy(value)) })
 
 	vq := func() thread_querier.Query {
 		v, ok := opts.Visibility.Get()

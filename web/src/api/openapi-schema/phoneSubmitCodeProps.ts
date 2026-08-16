@@ -7,10 +7,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
+import type { AuthRememberMe } from "./authRememberMe";
 
 /**
  * The Phone submit code payload.
  */
 export interface PhoneSubmitCodeProps {
   code: string;
+  remember_me?: AuthRememberMe;
 }

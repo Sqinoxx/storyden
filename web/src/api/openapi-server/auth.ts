@@ -17,6 +17,7 @@ import type {
   AuthEmailPasswordSignupParams,
   AuthEmailSignupParams,
   AuthEmailVerifyBody,
+  AuthEmailVerifyResendBody,
   AuthPasswordBody,
   AuthPasswordCreateBody,
   AuthPasswordResetBody,
@@ -444,6 +445,43 @@ export const authEmailVerify = async (
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(authEmailVerifyBody),
   });
+};
+
+/**
+ * Send a new verification code to an unverified email address.
+
+When called with a session, the address may be omitted and the session
+account's unverified address is used. Without a session the address must
+be provided.
+
+The response is always 200, regardless of whether the address is known,
+so that this cannot be used to probe for registered accounts. Given that
+it triggers an email to an arbitrary public address, it MUST be heavily
+rate limited.
+
+ */
+export type authEmailVerifyResendResponse = {
+  data: void;
+  status: number;
+};
+
+export const getAuthEmailVerifyResendUrl = () => {
+  return `/auth/email/resend`;
+};
+
+export const authEmailVerifyResend = async (
+  authEmailVerifyResendBody: AuthEmailVerifyResendBody,
+  options?: RequestInit,
+): Promise<authEmailVerifyResendResponse> => {
+  return fetcher<Promise<authEmailVerifyResendResponse>>(
+    getAuthEmailVerifyResendUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(authEmailVerifyResendBody),
+    },
+  );
 };
 
 /**

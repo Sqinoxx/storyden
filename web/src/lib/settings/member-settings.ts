@@ -6,14 +6,23 @@ import { EditorSettingsSchema } from "./editor";
 import { FrontendConfiguration, Settings } from "./settings";
 import { SidebarSettingsSchema } from "./sidebar";
 
+export const SessionSettingsSchema = z.object({
+  // How long a "remember me" session lasts, in days. Clamped server-side to
+  // the instance maximum.
+  remember_me_days: z.number().int().min(1).max(365),
+});
+export type SessionSettings = z.infer<typeof SessionSettingsSchema>;
+
 const MemberCustomSettingsParseSchema = z.object({
   editor: EditorSettingsSchema.optional(),
   sidebar: SidebarSettingsSchema.optional(),
+  session: SessionSettingsSchema.optional(),
 });
 
 export const MemberCustomSettingsSchema = z.object({
   editor: EditorSettingsSchema,
   sidebar: SidebarSettingsSchema,
+  session: SessionSettingsSchema,
 });
 export type MemberCustomSettings = z.infer<typeof MemberCustomSettingsSchema>;
 
@@ -28,6 +37,9 @@ export const DefaultMemberSettings: MemberCustomSettings = {
   },
   sidebar: {
     defaultState: "closed",
+  },
+  session: {
+    remember_me_days: 30,
   },
 };
 
@@ -54,6 +66,11 @@ export function parseMemberSettings(
         rawMeta.sidebar?.defaultState ??
         global?.sidebar.defaultState ??
         DefaultMemberSettings.sidebar.defaultState,
+    },
+    session: {
+      remember_me_days:
+        rawMeta.session?.remember_me_days ??
+        DefaultMemberSettings.session.remember_me_days,
     },
   };
 

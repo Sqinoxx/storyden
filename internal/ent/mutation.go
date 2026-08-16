@@ -50648,18 +50648,22 @@ func (m *RoleMutation) ResetEdge(name string) error {
 // SessionMutation represents an operation that mutates the Session nodes in the graph.
 type SessionMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *xid.ID
-	created_at     *time.Time
-	expires_at     *time.Time
-	revoked_at     *time.Time
-	clearedFields  map[string]struct{}
-	account        *xid.ID
-	clearedaccount bool
-	done           bool
-	oldValue       func(context.Context) (*Session, error)
-	predicates     []predicate.Session
+	op                  Op
+	typ                 string
+	id                  *xid.ID
+	created_at          *time.Time
+	expires_at          *time.Time
+	revoked_at          *time.Time
+	refreshed_at        *time.Time
+	lifetime_seconds    *int
+	addlifetime_seconds *int
+	persistent          *bool
+	clearedFields       map[string]struct{}
+	account             *xid.ID
+	clearedaccount      bool
+	done                bool
+	oldValue            func(context.Context) (*Session, error)
+	predicates          []predicate.Session
 }
 
 var _ ent.Mutation = (*SessionMutation)(nil)
@@ -50923,6 +50927,147 @@ func (m *SessionMutation) ResetRevokedAt() {
 	delete(m.clearedFields, session.FieldRevokedAt)
 }
 
+// SetRefreshedAt sets the "refreshed_at" field.
+func (m *SessionMutation) SetRefreshedAt(t time.Time) {
+	m.refreshed_at = &t
+}
+
+// RefreshedAt returns the value of the "refreshed_at" field in the mutation.
+func (m *SessionMutation) RefreshedAt() (r time.Time, exists bool) {
+	v := m.refreshed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRefreshedAt returns the old "refreshed_at" field's value of the Session entity.
+// If the Session object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SessionMutation) OldRefreshedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRefreshedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRefreshedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRefreshedAt: %w", err)
+	}
+	return oldValue.RefreshedAt, nil
+}
+
+// ClearRefreshedAt clears the value of the "refreshed_at" field.
+func (m *SessionMutation) ClearRefreshedAt() {
+	m.refreshed_at = nil
+	m.clearedFields[session.FieldRefreshedAt] = struct{}{}
+}
+
+// RefreshedAtCleared returns if the "refreshed_at" field was cleared in this mutation.
+func (m *SessionMutation) RefreshedAtCleared() bool {
+	_, ok := m.clearedFields[session.FieldRefreshedAt]
+	return ok
+}
+
+// ResetRefreshedAt resets all changes to the "refreshed_at" field.
+func (m *SessionMutation) ResetRefreshedAt() {
+	m.refreshed_at = nil
+	delete(m.clearedFields, session.FieldRefreshedAt)
+}
+
+// SetLifetimeSeconds sets the "lifetime_seconds" field.
+func (m *SessionMutation) SetLifetimeSeconds(i int) {
+	m.lifetime_seconds = &i
+	m.addlifetime_seconds = nil
+}
+
+// LifetimeSeconds returns the value of the "lifetime_seconds" field in the mutation.
+func (m *SessionMutation) LifetimeSeconds() (r int, exists bool) {
+	v := m.lifetime_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLifetimeSeconds returns the old "lifetime_seconds" field's value of the Session entity.
+// If the Session object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SessionMutation) OldLifetimeSeconds(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLifetimeSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLifetimeSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLifetimeSeconds: %w", err)
+	}
+	return oldValue.LifetimeSeconds, nil
+}
+
+// AddLifetimeSeconds adds i to the "lifetime_seconds" field.
+func (m *SessionMutation) AddLifetimeSeconds(i int) {
+	if m.addlifetime_seconds != nil {
+		*m.addlifetime_seconds += i
+	} else {
+		m.addlifetime_seconds = &i
+	}
+}
+
+// AddedLifetimeSeconds returns the value that was added to the "lifetime_seconds" field in this mutation.
+func (m *SessionMutation) AddedLifetimeSeconds() (r int, exists bool) {
+	v := m.addlifetime_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLifetimeSeconds resets all changes to the "lifetime_seconds" field.
+func (m *SessionMutation) ResetLifetimeSeconds() {
+	m.lifetime_seconds = nil
+	m.addlifetime_seconds = nil
+}
+
+// SetPersistent sets the "persistent" field.
+func (m *SessionMutation) SetPersistent(b bool) {
+	m.persistent = &b
+}
+
+// Persistent returns the value of the "persistent" field in the mutation.
+func (m *SessionMutation) Persistent() (r bool, exists bool) {
+	v := m.persistent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPersistent returns the old "persistent" field's value of the Session entity.
+// If the Session object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SessionMutation) OldPersistent(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPersistent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPersistent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPersistent: %w", err)
+	}
+	return oldValue.Persistent, nil
+}
+
+// ResetPersistent resets all changes to the "persistent" field.
+func (m *SessionMutation) ResetPersistent() {
+	m.persistent = nil
+}
+
 // ClearAccount clears the "account" edge to the Account entity.
 func (m *SessionMutation) ClearAccount() {
 	m.clearedaccount = true
@@ -50984,7 +51129,7 @@ func (m *SessionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SessionMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, session.FieldCreatedAt)
 	}
@@ -50996,6 +51141,15 @@ func (m *SessionMutation) Fields() []string {
 	}
 	if m.revoked_at != nil {
 		fields = append(fields, session.FieldRevokedAt)
+	}
+	if m.refreshed_at != nil {
+		fields = append(fields, session.FieldRefreshedAt)
+	}
+	if m.lifetime_seconds != nil {
+		fields = append(fields, session.FieldLifetimeSeconds)
+	}
+	if m.persistent != nil {
+		fields = append(fields, session.FieldPersistent)
 	}
 	return fields
 }
@@ -51013,6 +51167,12 @@ func (m *SessionMutation) Field(name string) (ent.Value, bool) {
 		return m.ExpiresAt()
 	case session.FieldRevokedAt:
 		return m.RevokedAt()
+	case session.FieldRefreshedAt:
+		return m.RefreshedAt()
+	case session.FieldLifetimeSeconds:
+		return m.LifetimeSeconds()
+	case session.FieldPersistent:
+		return m.Persistent()
 	}
 	return nil, false
 }
@@ -51030,6 +51190,12 @@ func (m *SessionMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldExpiresAt(ctx)
 	case session.FieldRevokedAt:
 		return m.OldRevokedAt(ctx)
+	case session.FieldRefreshedAt:
+		return m.OldRefreshedAt(ctx)
+	case session.FieldLifetimeSeconds:
+		return m.OldLifetimeSeconds(ctx)
+	case session.FieldPersistent:
+		return m.OldPersistent(ctx)
 	}
 	return nil, fmt.Errorf("unknown Session field %s", name)
 }
@@ -51067,6 +51233,27 @@ func (m *SessionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRevokedAt(v)
 		return nil
+	case session.FieldRefreshedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRefreshedAt(v)
+		return nil
+	case session.FieldLifetimeSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLifetimeSeconds(v)
+		return nil
+	case session.FieldPersistent:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPersistent(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Session field %s", name)
 }
@@ -51074,13 +51261,21 @@ func (m *SessionMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *SessionMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addlifetime_seconds != nil {
+		fields = append(fields, session.FieldLifetimeSeconds)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *SessionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case session.FieldLifetimeSeconds:
+		return m.AddedLifetimeSeconds()
+	}
 	return nil, false
 }
 
@@ -51089,6 +51284,13 @@ func (m *SessionMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *SessionMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case session.FieldLifetimeSeconds:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLifetimeSeconds(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Session numeric field %s", name)
 }
@@ -51099,6 +51301,9 @@ func (m *SessionMutation) ClearedFields() []string {
 	var fields []string
 	if m.FieldCleared(session.FieldRevokedAt) {
 		fields = append(fields, session.FieldRevokedAt)
+	}
+	if m.FieldCleared(session.FieldRefreshedAt) {
+		fields = append(fields, session.FieldRefreshedAt)
 	}
 	return fields
 }
@@ -51116,6 +51321,9 @@ func (m *SessionMutation) ClearField(name string) error {
 	switch name {
 	case session.FieldRevokedAt:
 		m.ClearRevokedAt()
+		return nil
+	case session.FieldRefreshedAt:
+		m.ClearRefreshedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Session nullable field %s", name)
@@ -51136,6 +51344,15 @@ func (m *SessionMutation) ResetField(name string) error {
 		return nil
 	case session.FieldRevokedAt:
 		m.ResetRevokedAt()
+		return nil
+	case session.FieldRefreshedAt:
+		m.ResetRefreshedAt()
+		return nil
+	case session.FieldLifetimeSeconds:
+		m.ResetLifetimeSeconds()
+		return nil
+	case session.FieldPersistent:
+		m.ResetPersistent()
 		return nil
 	}
 	return fmt.Errorf("unknown Session field %s", name)

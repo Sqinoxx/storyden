@@ -326,6 +326,10 @@ func (m *Mapping) AuthEmailVerify() (bool, *rbac.Permission) {
 	return false, nil // Public
 }
 
+func (m *Mapping) AuthEmailVerifyResend() (bool, *rbac.Permission) {
+	return false, nil // Public
+}
+
 func (m *Mapping) OAuthProviderCallback() (bool, *rbac.Permission) {
 	return false, nil // Public
 }

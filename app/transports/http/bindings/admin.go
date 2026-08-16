@@ -315,12 +315,33 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 			robots = opt.New(robotSettings)
 		}
 
-		if clientIP.Ok() || rateLimit.Ok() || moderation.Ok() || robots.Ok() {
+		var content opt.Optional[settings.ContentServiceSettings]
+		if request.Body.Services.Content != nil {
+			contentBody := request.Body.Services.Content
+			content = opt.New(settings.ContentServiceSettings{
+				RepliesPerPage: opt.NewPtr(contentBody.RepliesPerPage),
+				ThreadsPerPage: opt.NewPtr(contentBody.ThreadsPerPage),
+			})
+		}
+
+		var sessionSettings opt.Optional[settings.SessionServiceSettings]
+		if request.Body.Services.Session != nil {
+			sessionBody := request.Body.Services.Session
+			sessionSettings = opt.New(settings.SessionServiceSettings{
+				IdleTimeout:       opt.Map(opt.NewPtr(sessionBody.IdleTimeoutMinutes), minutesToDuration),
+				RememberMeDefault: opt.Map(opt.NewPtr(sessionBody.RememberMeDefaultDays), daysToDuration),
+				RememberMeMax:     opt.Map(opt.NewPtr(sessionBody.RememberMeMaxDays), daysToDuration),
+			})
+		}
+
+		if clientIP.Ok() || rateLimit.Ok() || moderation.Ok() || robots.Ok() || content.Ok() || sessionSettings.Ok() {
 			services = opt.New(settings.ServiceSettings{
 				ClientIP:   clientIP,
 				RateLimit:  rateLimit,
 				Moderation: moderation,
 				Robots:     robots,
+				Content:    content,
+				Session:    sessionSettings,
 			})
 		}
 	}
@@ -1035,8 +1056,30 @@ func serialiseServiceSettings(in settings.ServiceSettings) openapi.AdminSettings
 		RateLimiting: opt.Map(in.RateLimit, serialiseRateLimitSettings).Ptr(),
 		Moderation:   opt.Map(in.Moderation, serialiseModerationSettings).Ptr(),
 		Robots:       opt.Map(in.Robots, serialiseRobotServiceSettings).Ptr(),
+		Content:      opt.Map(in.Content, serialiseContentSettings).Ptr(),
+		Session:      opt.Map(in.Session, serialiseSessionSettings).Ptr(),
 	}
 }
+
+func serialiseContentSettings(in settings.ContentServiceSettings) openapi.ContentServiceSettings {
+	return openapi.ContentServiceSettings{
+		RepliesPerPage: in.RepliesPerPage.Ptr(),
+		ThreadsPerPage: in.ThreadsPerPage.Ptr(),
+	}
+}
+
+func serialiseSessionSettings(in settings.SessionServiceSettings) openapi.SessionServiceSettings {
+	return openapi.SessionServiceSettings{
+		IdleTimeoutMinutes:    opt.Map(in.IdleTimeout, durationToMinutes).Ptr(),
+		RememberMeDefaultDays: opt.Map(in.RememberMeDefault, durationToDays).Ptr(),
+		RememberMeMaxDays:     opt.Map(in.RememberMeMax, durationToDays).Ptr(),
+	}
+}
+
+func minutesToDuration(v int) time.Duration { return time.Duration(v) * time.Minute }
+func daysToDuration(v int) time.Duration    { return time.Duration(v) * time.Hour * 24 }
+func durationToMinutes(d time.Duration) int { return int(d.Minutes()) }
+func durationToDays(d time.Duration) int    { return int(d.Hours() / 24) }
 
 func serialiseRobotServiceSettings(in settings.RobotServiceSettings) openapi.RobotServiceSettings {
 	return openapi.RobotServiceSettings{

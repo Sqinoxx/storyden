@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/rs/xid"
 
@@ -73,13 +74,13 @@ func newSessionHelper(
 func (h *SessionHelper) WithSession(ctx context.Context) openapi.RequestEditorFn {
 	accountID := ctx.Value(accountIDKey).(account.AccountID)
 
-	t, err := h.tr.Issue(context.Background(), accountID)
+	t, err := h.tr.Issue(context.Background(), accountID, token.WithLifetime(time.Hour))
 	if err != nil {
 		panic(err)
 	}
 
 	return func(ctx context.Context, req *http.Request) error {
-		req.AddCookie(h.cj.Create(t.Token))
+		req.AddCookie(h.cj.Create(*t))
 		return nil
 	}
 }

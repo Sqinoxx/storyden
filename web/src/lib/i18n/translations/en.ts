@@ -29,6 +29,7 @@ export const en = {
     loginRequiredDescription: "This forum is private. Please log in to access discussions and content.",
     login: "Log In",
     register: "Register",
+    rememberMe: "Remember me",
   },
   actions: {
     viewProfile: "View profile",
@@ -73,6 +74,7 @@ export const en = {
     youRepliedToThis: "You have replied to this thread",
     sortOldestFirst: "Oldest first",
     sortNewestFirst: "Newest first",
+    sortRecentActivity: "Recent activity",
     sortBy: "Sort by",
     id: "ID",
     author: "Author",
@@ -274,6 +276,8 @@ export const en = {
     threads: "Threads",
     collections: "Collections",
     noBio: "This profile has no bio yet...",
+    semester: "Semester of study",
+    semesterUnset: "Not specified",
     noSignature: "This profile has no signature yet...",
     accountInfo: "Account information",
     purgeContent: "Purge Content",
@@ -323,11 +327,40 @@ export const en = {
     deletedSuccess: "Tag deleted successfully.",
     unauthorized: "Only visible for Moderators and Admins.",
   },
-  verificationBanner: {
-    title: "Email Verification Required",
-    textPrefix: "Please ",
-    linkText: "verify your email in settings",
-    textSuffix: " to participate in this community.",
+  verification: {
+    title: "Confirm your email address",
+    body: "Please confirm your email address to use all features of this community.",
+    resend: "Send a new confirmation email",
+    resendLoading: "Sending confirmation email...",
+    resendSuccess: "Confirmation email sent. Check your inbox.",
+    resendError: "The confirmation email could not be sent.",
+    enterCode: "Verify now",
+  },
+  sessionSettings: {
+    title: "Session",
+    description:
+      "For security, you are signed out after a period of inactivity. Ticking \"Remember me\" when signing in keeps you signed in for the duration below instead.",
+    durationLabel: "Stay signed in for",
+    durationHelp:
+      "Applies when you tick \"Remember me\" while signing in. An administrator may cap this.",
+    durations: {
+      oneDay: "1 day",
+      sevenDays: "7 days",
+      thirtyDays: "30 days",
+      oneYear: "1 year",
+    },
+  },
+  invitations: {
+    title: "Invitations",
+    description:
+      "Invitation links let you bring new people into the community. Anyone with the link can create an account.",
+    create: "Generate new invitation",
+    createdHint: "Share this link with the person you want to invite.",
+    linkLabel: "Invitation link",
+    copy: "Copy invitation link",
+    empty: "You have not created any invitations yet.",
+    countOne: "1 invitation.",
+    countMany: "{count} invitations.",
   },
   settings: {
     tabs: {
@@ -335,6 +368,8 @@ export const en = {
       authentication: "Authentication",
       email: "Email",
       accessKeys: "Access keys",
+      invitations: "Invitations",
+      session: "Session",
       account: "Account",
       oauth: "OAuth",
     },

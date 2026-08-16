@@ -81,6 +81,7 @@ type OperationPermissions interface {
 	AuthEmailSignup() (bool, *rbac.Permission)
 	AuthEmailSignin() (bool, *rbac.Permission)
 	AuthEmailVerify() (bool, *rbac.Permission)
+	AuthEmailVerifyResend() (bool, *rbac.Permission)
 	OAuthProviderCallback() (bool, *rbac.Permission)
 	OAuthJWKS() (bool, *rbac.Permission)
 	OAuthDeviceAuthorisation() (bool, *rbac.Permission)
@@ -417,6 +418,8 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.AuthEmailSignin()
 	case "AuthEmailVerify":
 		return optable.AuthEmailVerify()
+	case "AuthEmailVerifyResend":
+		return optable.AuthEmailVerifyResend()
 	case "OAuthProviderCallback":
 		return optable.OAuthProviderCallback()
 	case "OAuthJWKS":

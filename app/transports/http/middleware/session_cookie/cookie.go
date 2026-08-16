@@ -11,6 +11,7 @@ import (
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fmsg"
+	"github.com/Southclaws/opt"
 	"github.com/Southclaws/storyden/app/resources/account/token"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/internal/config"
@@ -20,21 +21,16 @@ import (
 const (
 	secureCookieName = "storyden-session"
 	sameSiteMode     = http.SameSiteLaxMode
-	cookieLifespan   = time.Hour * 24 * 90
 )
-
-func expiryFunc() time.Time {
-	return time.Now().Add(cookieLifespan)
-}
 
 type Jar struct {
 	validator        *session.Validator
-	issuer           *session.Issuer
+	refresher        *session.Refresher
 	domain           string
 	secureCookieName string
 }
 
-func New(cfg config.Config, v *session.Validator) (*Jar, error) {
+func New(cfg config.Config, v *session.Validator, refresher *session.Refresher) (*Jar, error) {
 	domain, err := getCookieDomain(cfg.PublicAPIAddress, cfg.PublicWebAddress)
 	if err != nil {
 		return nil, fault.Wrap(err, fmsg.With("failed to parse domain from public API address"))
@@ -43,16 +39,19 @@ func New(cfg config.Config, v *session.Validator) (*Jar, error) {
 	return &Jar{
 		domain:           domain,
 		validator:        v,
+		refresher:        refresher,
 		secureCookieName: secureCookieName,
 	}, nil
 }
 
-func (j *Jar) createWithValue(value string, expire time.Time) *http.Cookie {
-	return &http.Cookie{
+// createWithValue builds the session cookie. An empty expiry produces a browser
+// session cookie, which is deliberately not persisted to disk so that closing
+// the browser signs the member out.
+func (j *Jar) createWithValue(value string, expire opt.Optional[time.Time]) *http.Cookie {
+	cookie := &http.Cookie{
 		Name:     secureCookieName,
 		Value:    value,
 		SameSite: sameSiteMode,
-		Expires:  expire,
 		Path:     "/",
 		Domain:   j.domain,
 
@@ -62,20 +61,42 @@ func (j *Jar) createWithValue(value string, expire time.Time) *http.Cookie {
 		// JS never needs to access these cookies.
 		HttpOnly: true,
 	}
+
+	if expires, ok := expire.Get(); ok {
+		cookie.Expires = expires
+		cookie.MaxAge = max(1, int(time.Until(expires).Seconds()))
+	}
+
+	return cookie
 }
 
-func (j *Jar) Create(t token.Token) *http.Cookie {
-	return j.createWithValue(t.String(), expiryFunc())
+// Create builds the cookie for a freshly issued or refreshed session.
+func (j *Jar) Create(s token.Session) *http.Cookie {
+	expiry := opt.NewEmpty[time.Time]()
+	if s.Persistent {
+		expiry = opt.New(s.ExpiresAt)
+	}
+
+	return j.createWithValue(s.Token.String(), expiry)
 }
 
 func (j *Jar) Destroy() *http.Cookie {
-	return j.createWithValue("", time.Now())
+	cookie := j.createWithValue("", opt.New(time.Unix(0, 0)))
+
+	// MaxAge<0 is what actually removes a browser session cookie; a past
+	// Expires alone is not reliable for one.
+	cookie.MaxAge = -1
+
+	return cookie
 }
 
 // withSession checks the request for a session via either a cookie (for browser
 // requests) or a bearer token access key (for API requests).
-func (j *Jar) withSession(r *http.Request) context.Context {
-	if ctx, ok := j.tryFromCookie(r); ok {
+//
+// The writer is needed because a cookie session slides its expiry forward on
+// activity, which means re-issuing the cookie.
+func (j *Jar) withSession(w http.ResponseWriter, r *http.Request) context.Context {
+	if ctx, ok := j.tryFromCookie(w, r); ok {
 		return ctx
 	}
 
@@ -86,15 +107,21 @@ func (j *Jar) withSession(r *http.Request) context.Context {
 	return j.withDefaultRoles(r)
 }
 
-func (j *Jar) tryFromCookie(r *http.Request) (context.Context, bool) {
+func (j *Jar) tryFromCookie(w http.ResponseWriter, r *http.Request) (context.Context, bool) {
 	cookie, err := r.Cookie(secureCookieName)
 	if err != nil {
 		return r.Context(), false
 	}
 
-	ctx, err := j.validator.ValidateSessionToken(r.Context(), cookie.Value)
+	ctx, validated, err := j.validator.ValidateSessionToken(r.Context(), cookie.Value)
 	if err != nil {
 		return r.Context(), false
+	}
+
+	// Extending the window is what makes this an inactivity timeout rather than
+	// a hard cap from sign-in. Headers must be written before the handler runs.
+	if refreshed, ok := j.refresher.RefreshIfStale(ctx, token.Session(*validated)).Get(); ok {
+		http.SetCookie(w, j.Create(refreshed))
 	}
 
 	return ctx, true
@@ -147,7 +174,7 @@ func (j *Jar) withDefaultRoles(r *http.Request) context.Context {
 func (j *Jar) WithAuth() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := j.withSession(r)
+			ctx := j.withSession(w, r)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

@@ -34,7 +34,7 @@ type Filter func(*ent.PostQuery)
 type Repository interface {
 	Search(ctx context.Context, params pagination.Parameters, filters ...Filter) (*pagination.Result[*post.Post], error)
 	GetMany(ctx context.Context, id ...post.ID) ([]*post.Post, error)
-	Locate(ctx context.Context, externalID post.ID) (*Location, error)
+	Locate(ctx context.Context, externalID post.ID, perPage int) (*Location, error)
 }
 
 func WithKinds(ks ...Kind) Filter {

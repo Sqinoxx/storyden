@@ -31,6 +31,7 @@ export const de: Translations = {
     loginRequiredDescription: "Diese Plattform ist geschützt. Bitte melde dich an, um auf die Diskussionen und Inhalte zuzugreifen.",
     login: "Anmelden",
     register: "Registrieren",
+    rememberMe: "Anmeldedaten merken",
   },
   actions: {
     viewProfile: "Profil ansehen",
@@ -75,6 +76,7 @@ export const de: Translations = {
     youRepliedToThis: "Du hast auf diesen Beitrag geantwortet",
     sortOldestFirst: "Älteste zuerst",
     sortNewestFirst: "Neueste zuerst",
+    sortRecentActivity: "Letzte Aktivität",
     sortBy: "Sortieren nach",
     id: "ID",
     author: "Autor",
@@ -276,6 +278,8 @@ export const de: Translations = {
     threads: "Beiträge",
     collections: "Sammlungen",
     noBio: "Dieses Profil hat noch keine Biografie...",
+    semester: "Fachsemester",
+    semesterUnset: "Keine Angabe",
     noSignature: "Dieses Profil hat noch keine Signatur...",
     accountInfo: "Konto-Informationen",
     purgeContent: "Inhalte löschen",
@@ -325,11 +329,40 @@ export const de: Translations = {
     deletedSuccess: "Tag erfolgreich gelöscht.",
     unauthorized: "Nur für Moderatoren und Admins sichtbar.",
   },
-  verificationBanner: {
-    title: "E-Mail-Verifizierung erforderlich",
-    textPrefix: "Bitte ",
-    linkText: "verifiziere deine E-Mail-Adresse in den Einstellungen",
-    textSuffix: ", um an dieser Community teilzunehmen.",
+  verification: {
+    title: "E-Mail-Adresse bestätigen",
+    body: "Bitte bestätige deine E-Mail-Adresse, um alle Funktionen zu nutzen.",
+    resend: "Neue Bestätigungs-E-Mail senden",
+    resendLoading: "Bestätigungs-E-Mail wird gesendet...",
+    resendSuccess: "Bestätigungs-E-Mail gesendet. Schau in dein Postfach.",
+    resendError: "Die Bestätigungs-E-Mail konnte nicht gesendet werden.",
+    enterCode: "Jetzt verifizieren",
+  },
+  sessionSettings: {
+    title: "Sitzung",
+    description:
+      "Aus Sicherheitsgründen wirst du nach einer Zeit ohne Aktivität automatisch abgemeldet. Mit \"Anmeldedaten merken\" beim Login bleibst du stattdessen für den unten gewählten Zeitraum angemeldet.",
+    durationLabel: "Angemeldet bleiben für",
+    durationHelp:
+      "Gilt, wenn du beim Login \"Anmeldedaten merken\" aktivierst. Eine Administratorin oder ein Administrator kann dies begrenzen.",
+    durations: {
+      oneDay: "1 Tag",
+      sevenDays: "7 Tage",
+      thirtyDays: "30 Tage",
+      oneYear: "1 Jahr",
+    },
+  },
+  invitations: {
+    title: "Einladungen",
+    description:
+      "Mit Einladungslinks holst du neue Leute in die Community. Wer den Link hat, kann ein Konto anlegen.",
+    create: "Neue Einladung generieren",
+    createdHint: "Teile diesen Link mit der Person, die du einladen möchtest.",
+    linkLabel: "Einladungslink",
+    copy: "Einladungslink kopieren",
+    empty: "Du hast noch keine Einladungen erstellt.",
+    countOne: "1 Einladung.",
+    countMany: "{count} Einladungen.",
   },
   settings: {
     tabs: {
@@ -337,6 +370,8 @@ export const de: Translations = {
       authentication: "Authentifizierung",
       email: "E-Mail",
       accessKeys: "Zugriffsschlüssel",
+      invitations: "Einladungen",
+      session: "Sitzung",
       account: "Konto",
       oauth: "OAuth",
     },

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/mail"
 	"net/url"
+	"time"
 
 	"github.com/Southclaws/dt"
 	"github.com/Southclaws/fault"
@@ -28,6 +29,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/account/account_auth"
 	"github.com/Southclaws/storyden/app/services/account/account_deletion"
 	"github.com/Southclaws/storyden/app/services/account/account_email"
+	"github.com/Southclaws/storyden/app/services/account/semester"
 	"github.com/Southclaws/storyden/app/services/account/account_manage"
 	"github.com/Southclaws/storyden/app/services/account/account_moderation_note"
 	"github.com/Southclaws/storyden/app/services/account/account_role_assign"
@@ -452,8 +454,16 @@ func (i *Accounts) AccountUpdate(ctx context.Context, request openapi.AccountUpd
 		Name:      opt.NewPtr(request.Body.Name),
 		Bio:       opt.NewPtr(request.Body.Bio),
 		Signature: signature,
-		Links:     links,
-		Meta:      opt.NewPtr((*map[string]any)(request.Body.Meta)),
+		Links: links,
+		// Merged rather than replaced so a client updating one preference does
+		// not wipe the others, and normalised so the server anchors the chosen
+		// semester to the term it was chosen in.
+		MetaMerge: opt.Map(
+			opt.NewPtr((*map[string]any)(request.Body.Meta)),
+			func(m map[string]any) map[string]any {
+				return semester.NormaliseWrite(m, time.Now())
+			},
+		),
 		Interests: opt.NewPtrMap(request.Body.Interests, tagsIDs),
 	})
 	if err != nil {

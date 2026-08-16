@@ -15,6 +15,12 @@ import {
 import { useSession } from "@/auth";
 
 import { handle } from "@/api/client";
+import {
+  ACADEMIC_META_KEY,
+  MAX_SEMESTER,
+  MIN_SEMESTER,
+  parseAcademicMeta,
+} from "@/lib/profile/academic";
 import { useProfileMutations } from "@/lib/profile/mutation";
 import type { SignatureConfig } from "@/lib/settings/settings";
 import { hasPermissionOr } from "@/utils/permissions";
@@ -39,6 +45,12 @@ export const FormSchema = z.object({
 
   bio: z.string(),
   signature: z.string(),
+  semester: z.coerce
+    .number()
+    .int()
+    .min(MIN_SEMESTER)
+    .max(MAX_SEMESTER)
+    .optional(),
 });
 export type Form = z.infer<typeof FormSchema>;
 
@@ -63,6 +75,7 @@ export function useProfileScreen({
       handle: profile.handle,
       bio: profile.bio,
       signature: profile.signature ?? "",
+      semester: parseAcademicMeta(profile.meta)?.semester,
     },
   });
 
@@ -82,10 +95,16 @@ export function useProfileScreen({
     setEditing(true);
   }
 
-  const handleSave = form.handleSubmit(async (data) => {
-    const payload: AccountMutableProps = signaturesEnabled
-      ? data
-      : { ...data, signature: undefined };
+  const handleSave = form.handleSubmit(async ({ semester, ...data }) => {
+    const payload: AccountMutableProps = {
+      ...data,
+      signature: signaturesEnabled ? data.signature : undefined,
+      // Only the number is sent; the server anchors it to the current term.
+      // Metadata is merged server-side, so unrelated settings survive.
+      ...(semester === undefined
+        ? {}
+        : { meta: { [ACADEMIC_META_KEY]: { semester } } }),
+    };
 
     await handle(
       async () => {

@@ -209,20 +209,88 @@ func (d *Repository) GetCategories(ctx context.Context, admin bool) ([]*Category
 	}), nil
 }
 
-func (d *Repository) Get(ctx context.Context, slug string) (*Category, error) {
-	c, err := d.db.Category.
+type categoryTree struct {
+	bySlug map[string]*Category
+}
+
+// assembleTree loads every category in one query and links parents to children
+// in memory. Two linear passes rather than recursive eager-loading, so nesting
+// depth is unbounded and costs a single round trip regardless of how deep the
+// tree goes.
+func (d *Repository) assembleTree(ctx context.Context) (*categoryTree, error) {
+	rows, err := d.db.Category.
 		Query().
-		Where(category.SlugEQ(slug)).
-		WithChildren().
 		WithCoverImage(func(aq *ent.AssetQuery) {
 			aq.WithParent()
 		}).
-		Only(ctx)
+		Order(ent.Asc(category.FieldSort), ent.Asc(category.FieldCreatedAt)).
+		All(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.NotFound))
-		}
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	byID := make(map[xid.ID]*Category, len(rows))
+	bySlug := make(map[string]*Category, len(rows))
+
+	for _, row := range rows {
+		c := FromModel(row)
+		c.Children = []*Category{}
+		byID[row.ID] = c
+		bySlug[row.Slug] = c
+	}
+
+	for _, row := range rows {
+		if row.ParentCategoryID.IsNil() {
+			continue
+		}
+
+		parent, ok := byID[row.ParentCategoryID]
+		if !ok {
+			continue
+		}
+
+		parent.Children = append(parent.Children, byID[row.ID])
+	}
+
+	for _, row := range rows {
+		if row.ParentCategoryID.IsNil() {
+			assignDepth(byID[row.ID], 0)
+		}
+	}
+
+	return &categoryTree{bySlug: bySlug}, nil
+}
+
+// assignDepth terminates on cyclic data because depth always increases.
+func assignDepth(c *Category, depth int) {
+	c.Depth = depth
+
+	if depth > MaxCategoryDepth {
+		return
+	}
+
+	for _, child := range c.Children {
+		assignDepth(child, depth+1)
+	}
+}
+
+func applyPostCounts(c *Category, counts CategoryThreadsMap) {
+	c.PostCount = counts[xid.ID(c.ID)].PostCount
+
+	for _, child := range c.Children {
+		applyPostCounts(child, counts)
+	}
+}
+
+func (d *Repository) Get(ctx context.Context, slug string) (*Category, error) {
+	tree, err := d.assembleTree(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	result, ok := tree.bySlug[slug]
+	if !ok {
+		return nil, fault.New("category not found", fctx.With(ctx), ftag.With(ftag.NotFound))
 	}
 
 	var replies CategoryThreadsResults
@@ -230,20 +298,10 @@ func (d *Repository) Get(ctx context.Context, slug string) (*Category, error) {
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
-	categoryPosts := replies.Map()
 
-	category := FromModel(c)
+	applyPostCounts(result, replies.Map())
 
-	// Set post count for this category.
-	category.PostCount = categoryPosts[c.ID].PostCount
-
-	// Set post count for child categories.
-	category.Children = dt.Map(category.Children, func(child *Category) *Category {
-		child.PostCount = categoryPosts[xid.ID(child.ID)].PostCount
-		return child
-	})
-
-	return category, nil
+	return result, nil
 }
 
 func (d *Repository) UpdateCategory(ctx context.Context, slug string, opts ...Option) (*Category, error) {
@@ -368,6 +426,9 @@ func (d *Repository) MoveCategory(ctx context.Context, slug string, opts MoveOpt
 				return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
 			}
 			if err := ensureNoCycle(ctx, tx, cat.ID, parentCat); err != nil {
+				return nil, err
+			}
+			if err := ensureWithinDepthLimit(ctx, tx.Category, parentCat, cat.ID); err != nil {
 				return nil, err
 			}
 		}
@@ -497,6 +558,91 @@ func ensureNoCycle(ctx context.Context, tx *ent.Tx, originalID xid.ID, parent *e
 
 		current = next
 	}
+}
+
+// ValidateParentDepth reports whether a new leaf may be created under parentID.
+func (d *Repository) ValidateParentDepth(ctx context.Context, parentID CategoryID) error {
+	parent, err := d.db.Category.Get(ctx, xid.ID(parentID))
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+		}
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return ensureWithinDepthLimit(ctx, d.db.Category, parent, xid.ID{})
+}
+
+// ensureWithinDepthLimit rejects a reparent that would push any node of the
+// moved subtree past MaxCategoryDepth. Pass a nil subtreeID when the node being
+// placed under parent does not exist yet.
+func ensureWithinDepthLimit(ctx context.Context, client *ent.CategoryClient, parent *ent.Category, subtreeID xid.ID) error {
+	parentDepth, err := categoryDepth(ctx, client, parent)
+	if err != nil {
+		return err
+	}
+
+	subtreeHeight := 0
+	if !subtreeID.IsNil() {
+		subtreeHeight, err = categoryHeight(ctx, client, subtreeID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// parentDepth counts ancestors, so the parent sits on level parentDepth+1
+	// and the node being placed under it lands on level parentDepth+2.
+	if parentDepth+2+subtreeHeight > MaxCategoryDepth {
+		return fault.New(
+			"category nesting is limited to eight levels",
+			fctx.With(ctx),
+			ftag.With(ftag.InvalidArgument),
+			fmsg.WithDesc("depth limit exceeded", "Categories can only be nested eight levels deep."),
+		)
+	}
+
+	return nil
+}
+
+func categoryDepth(ctx context.Context, client *ent.CategoryClient, c *ent.Category) (int, error) {
+	depth := 0
+	current := c
+
+	for !current.ParentCategoryID.IsNil() && depth <= MaxCategoryDepth {
+		next, err := client.Query().Where(category.IDEQ(current.ParentCategoryID)).Only(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return depth, nil
+			}
+			return 0, fault.Wrap(err, fctx.With(ctx))
+		}
+
+		depth++
+		current = next
+	}
+
+	return depth, nil
+}
+
+func categoryHeight(ctx context.Context, client *ent.CategoryClient, id xid.ID) (int, error) {
+	height := 0
+	level := []xid.ID{id}
+
+	for len(level) > 0 && height <= MaxCategoryDepth {
+		children, err := client.Query().Where(category.ParentCategoryIDIn(level...)).All(ctx)
+		if err != nil {
+			return 0, fault.Wrap(err, fctx.With(ctx))
+		}
+
+		if len(children) == 0 {
+			break
+		}
+
+		height++
+		level = dt.Map(children, func(c *ent.Category) xid.ID { return c.ID })
+	}
+
+	return height, nil
 }
 
 func indexOfCategory(ids []CategoryID, target CategoryID) int {

@@ -32,7 +32,7 @@ func (i *Authentication) AuthEmailPasswordSignup(ctx context.Context, request op
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := i.si.Issue(ctx, acc.ID)
+	t, err := i.si.Issue(ctx, acc.ID, rememberMe(request.Body.RememberMe))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -58,7 +58,7 @@ func (i *Authentication) AuthEmailPasswordSignin(ctx context.Context, request op
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := i.si.Issue(ctx, acc.ID)
+	t, err := i.si.Issue(ctx, acc.ID, rememberMe(request.Body.RememberMe))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

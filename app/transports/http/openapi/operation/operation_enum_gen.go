@@ -90,6 +90,7 @@ var (
 	OperationIDAuthEmailSignup                        = OperationID{`AuthEmailSignup`}
 	OperationIDAuthEmailSignin                        = OperationID{`AuthEmailSignin`}
 	OperationIDAuthEmailVerify                        = OperationID{`AuthEmailVerify`}
+	OperationIDAuthEmailVerifyResend                  = OperationID{`AuthEmailVerifyResend`}
 	OperationIDOAuthProviderCallback                  = OperationID{`OAuthProviderCallback`}
 	OperationIDOAuthJWKS                              = OperationID{`OAuthJWKS`}
 	OperationIDOAuthDeviceAuthorisation               = OperationID{`OAuthDeviceAuthorisation`}
@@ -461,6 +462,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAuthEmailSignin, nil
 	case string(`AuthEmailVerify`):
 		return OperationIDAuthEmailVerify, nil
+	case string(`AuthEmailVerifyResend`):
+		return OperationIDAuthEmailVerifyResend, nil
 	case string(`OAuthProviderCallback`):
 		return OperationIDOAuthProviderCallback, nil
 	case string(`OAuthJWKS`):

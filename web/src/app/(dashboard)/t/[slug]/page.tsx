@@ -17,6 +17,7 @@ const QuerySchema = z.object({
     .string()
     .transform((v) => parseInt(v, 10))
     .optional(),
+  sort: z.enum(["asc", "desc"]).optional(),
 });
 
 type Query = z.infer<typeof QuerySchema>;
@@ -25,10 +26,11 @@ export default async function Page(props: Props) {
   const { slug } = await props.params;
   const searchParams = await props.searchParams;
 
-  const { page } = QuerySchema.parse(searchParams);
+  const { page, sort } = QuerySchema.parse(searchParams);
 
   const { data } = await threadGet(slug, {
     page: page?.toString(),
+    sort,
   });
 
   const session = await getServerSession();

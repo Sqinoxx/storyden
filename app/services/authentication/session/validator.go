@@ -42,35 +42,37 @@ func NewValidator(ins spanner.Builder, tokenRepo token.Repository, accountQuerie
 	}
 }
 
-func (v *Validator) resolveRolesForAccount(ctx context.Context, acc *account.Account) (role.Roles, error) {
+// resolveRolesForAccount returns the roles a session should carry, plus whether
+// the account was demoted purely because its email is unverified.
+func (v *Validator) resolveRolesForAccount(ctx context.Context, acc *account.Account) (role.Roles, bool, error) {
 	ctx, span := v.ins.Instrument(ctx, kv.String("account_id", acc.ID.String()))
 	defer span.End()
 
 	if acc.Admin {
 		span.Event("admin account bypassed email verification role gate")
-		return acc.Roles.Roles(), nil
+		return acc.Roles.Roles(), false, nil
 	}
 
 	if acc.Kind == account.AccountKindBot {
 		span.Event("bot account bypassed email verification role gate")
-		return acc.Roles.Roles(), nil
+		return acc.Roles.Roles(), false, nil
 	}
 
 	requiresEmailVerification, err := v.installationRequiresEmailVerification(ctx)
 	if err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
+		return nil, false, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	if requiresEmailVerification && acc.VerifiedStatus == account.VerifiedStatusNone {
 		span.Event("account forced to guest role due to unverified email")
 		guestRole, err := v.roleQuerier.GetGuestRole(ctx)
 		if err != nil {
-			return nil, fault.Wrap(err, fctx.With(ctx))
+			return nil, false, fault.Wrap(err, fctx.With(ctx))
 		}
-		return role.Roles{guestRole}, nil
+		return role.Roles{guestRole}, true, nil
 	}
 
-	return acc.Roles.Roles(), nil
+	return acc.Roles.Roles(), false, nil
 }
 
 func (v *Validator) installationRequiresEmailVerification(ctx context.Context) (bool, error) {
@@ -87,32 +89,34 @@ func (v *Validator) installationRequiresEmailVerification(ctx context.Context) (
 	return authMode == authentication.ModeEmail, nil
 }
 
-// ValidateSessionToken validates a session token and returns a context with account info.
-func (v *Validator) ValidateSessionToken(ctx context.Context, raw string) (context.Context, error) {
+// ValidateSessionToken validates a session token and returns a context with
+// account info plus the session record, which the caller needs in order to
+// slide its expiry forward.
+func (v *Validator) ValidateSessionToken(ctx context.Context, raw string) (context.Context, *token.Validated, error) {
 	ctx, span := v.ins.Instrument(ctx)
 	defer span.End()
 
 	t, err := token.FromString(raw)
 	if err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
+		return nil, nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	tv, err := v.tokenRepo.Validate(ctx, t)
 	if err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
+		return nil, nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	acc, err := v.accountQuerier.GetRefByID(ctx, tv.AccountID)
 	if err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
+		return nil, nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	roles, err := v.resolveRolesForAccount(ctx, acc)
+	roles, emailGated, err := v.resolveRolesForAccount(ctx, acc)
 	if err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
+		return nil, nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	return WithAccountAndToken(ctx, *acc, roles, raw), nil
+	return WithAccountAndToken(ctx, *acc, roles, raw, EmailGated(emailGated)), tv, nil
 }
 
 // ValidateAccessKeyToken validates an access key token and returns a context with account info.
@@ -145,12 +149,12 @@ func (v *Validator) ValidateAccessKeyToken(ctx context.Context, raw string) (con
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	roles, err := v.resolveRolesForAccount(ctx, acc)
+	roles, emailGated, err := v.resolveRolesForAccount(ctx, acc)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	return WithAccessKey(ctx, *acc, roles), nil
+	return WithAccessKey(ctx, *acc, roles, EmailGated(emailGated)), nil
 }
 
 // ValidateOAuthToken validates an OAuth access token and returns a context with account info.

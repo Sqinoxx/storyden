@@ -59,6 +59,7 @@ type Service interface {
 		ctx context.Context,
 		threadID post.ID,
 		pageParams pagination.Parameters,
+		opts ...thread_querier.GetOption,
 	) (*thread.Thread, error)
 }
 

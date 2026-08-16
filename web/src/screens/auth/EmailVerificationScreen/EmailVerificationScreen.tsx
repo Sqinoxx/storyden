@@ -3,9 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { z } from "zod";
+
+import { resendVerificationEmail } from "@/api/verification";
 
 import { handle } from "@/api/client";
 import { getAccountGetKey } from "@/api/openapi-client/accounts";
@@ -43,6 +47,27 @@ export function EmailVerificationScreen(props: Props) {
       email: probablyEmail?.email_address,
     },
   });
+
+  const [isResending, setResending] = useState(false);
+
+  async function handleResend() {
+    setResending(true);
+
+    try {
+      // The address in the field wins so a mistyped signup can still be fixed.
+      await toast
+        .promise(resendVerificationEmail(form.getValues("email")), {
+          loading: "Sending a new code...",
+          success: "A new code is on its way. Check your inbox.",
+          error: "The confirmation email could not be sent.",
+        })
+        .unwrap();
+    } catch {
+      // Already reported by the toast.
+    } finally {
+      setResending(false);
+    }
+  }
 
   const handleSubmit = form.handleSubmit(async (data) => {
     await handle(
@@ -95,6 +120,16 @@ export function EmailVerificationScreen(props: Props) {
       </Button>
 
       <FormErrorText>{form.formState.errors["root"]?.message}</FormErrorText>
+
+      <Button
+        type="button"
+        w="full"
+        variant="subtle"
+        onClick={handleResend}
+        loading={isResending}
+      >
+        Send a new code
+      </Button>
 
       {props.returnURL && (
         <Link className="link" href={props.returnURL}>

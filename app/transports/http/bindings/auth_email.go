@@ -38,7 +38,7 @@ func (i *Authentication) AuthEmailSignup(ctx context.Context, request openapi.Au
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := i.si.Issue(ctx, acc.ID)
+	t, err := i.si.Issue(ctx, acc.ID, rememberMe(request.Body.RememberMe))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

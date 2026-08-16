@@ -16,6 +16,11 @@ type CategoryID xid.ID
 
 func (i CategoryID) String() string { return xid.ID(i).String() }
 
+// MaxCategoryDepth bounds how deeply categories may be nested. There is no
+// limit on how many categories may exist at any given level, this only guards
+// against pathological trees that no interface could render sensibly.
+const MaxCategoryDepth = 8
+
 type PostMeta struct {
 	Author string
 	PostID xid.ID
@@ -35,6 +40,7 @@ type Category struct {
 	ParentID    *CategoryID
 	CoverImage  opt.Optional[asset.Asset]
 	Children    []*Category
+	Depth       int
 	Recent      []PostMeta
 	PostCount   int
 	Metadata    map[string]any

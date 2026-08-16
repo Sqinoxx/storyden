@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/Southclaws/dt"
 	"github.com/Southclaws/fault"
@@ -19,6 +20,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/post/reply"
 	"github.com/Southclaws/storyden/app/resources/post/thread"
 	"github.com/Southclaws/storyden/app/resources/visibility"
+	"github.com/Southclaws/storyden/app/services/account/semester"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 )
@@ -45,7 +47,7 @@ func serialiseAccount(acc *account.AccountWithEdges) openapi.Account {
 		Name:           acc.Name,
 		Bio:            acc.Bio.HTML(),
 		Signature:      opt.Map(acc.Signature, func(s datagraph.Content) string { return s.HTML() }).Ptr(),
-		Meta:           acc.Metadata,
+		Meta:           semester.Project(acc.Metadata, time.Now()),
 		Links:          serialiseExternalLinks(acc.ExternalLinks),
 		CreatedAt:      acc.CreatedAt,
 		UpdatedAt:      acc.UpdatedAt,

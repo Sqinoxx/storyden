@@ -14,16 +14,16 @@ import { AccessKeySettingsScreen } from "./AccessKeySettingsScreen";
 import { AuditLogSettingsScreen } from "./AuditLogSettingsScreen/AuditLogSettingsScreen";
 import { AuthenticationSettingsScreen } from "./AuthenticationSettingsScreen";
 import { BrandSettingsScreen } from "./BrandSettingsScreen";
+import { ContentSettingsScreen } from "./ContentSettingsScreen";
 import { DriveSettingsScreen } from "./DriveSettingsScreen";
 import { EmailLogSettingsScreen } from "./EmailLogSettingsScreen/EmailLogSettingsScreen";
 import { InterfaceSettingsScreen } from "./InterfaceSettingsScreen";
-import { ContentSettingsScreen } from "./ContentSettingsScreen";
-import { SessionSettingsScreen } from "./SessionSettingsScreen";
 import { ModerationSettingsScreen } from "./ModerationSettingsScreen";
 import { OAuthSettingsScreen } from "./OAuthSettingsScreen";
 import { OCRSettingsScreen } from "./OCRSettingsScreen/OCRSettingsScreen";
 import { PluginSettingsScreen } from "./PluginSettingsScreen";
 import { RobotsSettingsScreen } from "./RobotsSettingsScreen/RobotsSettingsScreen";
+import { SessionSettingsScreen } from "./SessionSettingsScreen";
 import { SystemSettingsScreen } from "./SystemSettingsScreen";
 
 const DEFAULT_TAB = "brand";
@@ -60,7 +60,6 @@ export function AdminScreen() {
     if (!canViewOAuth && tab === "oauth") {
       setTab(DEFAULT_TAB);
     }
-
   }, [canViewEmailLog, canViewOAuth, pluginsEnabled, tab, setTab]);
 
   function handleTabChange({ value }: TabsValueChangeDetails) {
@@ -77,7 +76,7 @@ export function AdminScreen() {
       value={tab}
       onValueChange={handleTabChange}
     >
-      <Tabs.List>
+      <Tabs.List flexWrap="wrap" height="auto" rowGap="1" columnGap="1" py="1">
         <Tabs.Trigger value="brand">Brand</Tabs.Trigger>
         <Tabs.Trigger value="content">Content</Tabs.Trigger>
         <Tabs.Trigger value="moderation">Moderation</Tabs.Trigger>
@@ -97,69 +96,69 @@ export function AdminScreen() {
       </Tabs.List>
 
       <Tabs.Content value="brand">
-        <BrandSettingsScreen />
+        {tab === "brand" && <BrandSettingsScreen />}
       </Tabs.Content>
 
       <Tabs.Content value="content">
-        <ContentSettingsScreen />
+        {tab === "content" && <ContentSettingsScreen />}
       </Tabs.Content>
 
       <Tabs.Content value="moderation">
-        <ModerationSettingsScreen />
+        {tab === "moderation" && <ModerationSettingsScreen />}
       </Tabs.Content>
 
       <Tabs.Content value="system">
-        <SystemSettingsScreen />
+        {tab === "system" && <SystemSettingsScreen />}
       </Tabs.Content>
 
       <Tabs.Content value="ocr">
-        <OCRSettingsScreen />
+        {tab === "ocr" && <OCRSettingsScreen />}
       </Tabs.Content>
 
       <Tabs.Content value="audit">
-        <AuditLogSettingsScreen />
+        {tab === "audit" && <AuditLogSettingsScreen />}
       </Tabs.Content>
 
       {canViewEmailLog && (
         <Tabs.Content value="email">
-          <EmailLogSettingsScreen />
+          {tab === "email" && <EmailLogSettingsScreen />}
         </Tabs.Content>
       )}
 
       <Tabs.Content value="interface">
-        <InterfaceSettingsScreen />
+        {tab === "interface" && <InterfaceSettingsScreen />}
       </Tabs.Content>
 
       <Tabs.Content value="authentication">
-        <AuthenticationSettingsScreen />
+        {tab === "authentication" && <AuthenticationSettingsScreen />}
       </Tabs.Content>
 
       <Tabs.Content value="sessions">
-        <SessionSettingsScreen />
+        {tab === "sessions" && <SessionSettingsScreen />}
       </Tabs.Content>
 
       <Tabs.Content value="access_keys">
-        <AccessKeySettingsScreen />
+        {tab === "access_keys" && <AccessKeySettingsScreen />}
       </Tabs.Content>
 
       {canViewOAuth && (
         <Tabs.Content value="oauth">
-          <OAuthSettingsScreen />
+          {tab === "oauth" && <OAuthSettingsScreen />}
         </Tabs.Content>
       )}
 
       {pluginsEnabled && (
         <Tabs.Content value="plugins">
-          <PluginSettingsScreen />
+          {tab === "plugins" && <PluginSettingsScreen />}
         </Tabs.Content>
       )}
 
       <Tabs.Content value="drive">
-        <DriveSettingsScreen />
+        {tab === "drive" && <DriveSettingsScreen />}
       </Tabs.Content>
 
       <Tabs.Content value="robots">
-        <RobotsSettingsScreen />
+        {tab === "robots" && <RobotsSettingsScreen />}
       </Tabs.Content>
     </Tabs.Root>
   );

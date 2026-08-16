@@ -282,6 +282,18 @@ func applyPostCounts(c *Category, counts CategoryThreadsMap) {
 	}
 }
 
+func (d *Repository) GetSlug(ctx context.Context, id CategoryID) (string, error) {
+	c, err := d.db.Category.Get(ctx, xid.ID(id))
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return "", fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.NotFound))
+		}
+		return "", fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return c.Slug, nil
+}
+
 func (d *Repository) Get(ctx context.Context, slug string) (*Category, error) {
 	tree, err := d.assembleTree(ctx)
 	if err != nil {

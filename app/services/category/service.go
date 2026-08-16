@@ -12,6 +12,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
+	"github.com/Southclaws/storyden/app/resources/mark"
 	"github.com/Southclaws/storyden/app/resources/post/category"
 	"github.com/Southclaws/storyden/app/resources/post/category_cache"
 	"github.com/Southclaws/storyden/internal/deletable"
@@ -72,16 +73,22 @@ func New(
 func (s *service) Create(ctx context.Context, partial Partial) (*category.Category, error) {
 	opts := []category.Option{}
 
+	var parentID *category.CategoryID
+
 	if v, ok := partial.Parent.Get(); ok {
 		if err := s.category_repo.ValidateParentDepth(ctx, v); err != nil {
 			return nil, fault.Wrap(err, fctx.With(ctx))
 		}
 
 		pid := v
+		parentID = &pid
 		opts = append(opts, category.WithParent(&pid))
 	}
 
 	if v, ok := partial.Slug.Get(); ok {
+		if _, err := mark.NewSlug(v); err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
 		opts = append(opts, category.WithSlug(v))
 	}
 
@@ -118,6 +125,17 @@ func (s *service) Create(ctx context.Context, partial Partial) (*category.Catego
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if parentID != nil {
+		parentSlug, err := s.category_repo.GetSlug(ctx, *parentID)
+		if err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+
+		if err := s.cache.Invalidate(ctx, parentSlug); err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+	}
+
 	s.bus.Publish(ctx, &rpc.EventCategoryUpdated{Slug: cat.Slug})
 
 	return cat, nil
@@ -134,6 +152,9 @@ func (s *service) Update(ctx context.Context, slug string, partial Partial) (*ca
 		opts = append(opts, category.WithName(v))
 	}
 	if v, ok := partial.Slug.Get(); ok {
+		if _, err := mark.NewSlug(v); err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
 		opts = append(opts, category.WithSlug(v))
 	}
 	if v, ok := partial.Description.Get(); ok {

@@ -6,6 +6,7 @@ import { AssetUploadEditor } from "@/components/asset/AssetUploadEditor/AssetUpl
 import { ColourPickerField } from "@/components/ui/ColourPickerField";
 import { Button } from "@/components/ui/button";
 import { FormControl } from "@/components/ui/form/FormControl";
+import { FormFeedback } from "@/components/ui/form/FormFeedback";
 import { FormHelperText } from "@/components/ui/form/FormHelperText";
 import { FormLabel } from "@/components/ui/form/FormLabel";
 import { SelectField } from "@/components/ui/form/SelectField";
@@ -22,7 +23,7 @@ import { CategoryCreateProps, useCategoryCreate } from "./useCategoryCreate";
 export type { CategoryCreateProps };
 
 export function CategoryCreateScreen(props: CategoryCreateProps) {
-  const { register, onSubmit, control, handleImageUpload } =
+  const { register, onSubmit, control, formState, handleImageUpload } =
     useCategoryCreate(props);
 
   const { data: categoryListResult } = useCategoryList();
@@ -98,10 +99,10 @@ export function CategoryCreateScreen(props: CategoryCreateProps) {
               }}
             />
           </HStack>
-          <FormHelperText>
+          <FormFeedback error={formState.errors["slug"]?.message}>
             The URL path for your category (e.g., &quot;general&quot;,
             &quot;announcements&quot;)
-          </FormHelperText>
+          </FormFeedback>
         </FormControl>
 
         <FormControl>

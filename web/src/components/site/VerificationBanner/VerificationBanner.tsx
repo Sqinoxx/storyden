@@ -78,11 +78,16 @@ export function VerificationBanner({ session, settings }: Props) {
           <p>{t.verification.body}</p>
 
           <HStack gap="2" flexWrap="wrap">
-            <Button size="sm" onClick={handleResend} loading={isSending}>
+            <Button
+              size="sm"
+              variant="subtle"
+              onClick={handleResend}
+              loading={isSending}
+            >
               {t.verification.resend}
             </Button>
 
-            <Button size="sm" variant="subtle" asChild>
+            <Button size="sm" asChild>
               <Link href="/auth/verify/email?returnURL=/">
                 {t.verification.enterCode}
               </Link>

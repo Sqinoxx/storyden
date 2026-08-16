@@ -5,6 +5,7 @@ import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import { EmptyState } from "@/components/site/EmptyState";
 import { Timestamp } from "@/components/site/Timestamp";
 import * as Table from "@/components/ui/table";
+import { useTranslation } from "@/lib/i18n";
 import { Box, HStack, LStack, VStack, styled } from "@/styled-system/jsx";
 
 type Props = {
@@ -13,6 +14,8 @@ type Props = {
 };
 
 export function MemberList({ profiles, hideDeleted }: Props) {
+  const t = useTranslation();
+
   const visibleProfiles = hideDeleted
     ? profiles.filter((p) => !isDeletedAccount(p))
     : profiles;
@@ -62,7 +65,7 @@ export function MemberList({ profiles, hideDeleted }: Props) {
                       <Timestamp created={profile.createdAt} large />
                       {isBanned && (
                         <styled.p color="fg.destructive">
-                          banned{" "}
+                          {t.profile.suspended}{" "}
                           <Timestamp created={profile.deletedAt!} large />
                         </styled.p>
                       )}
@@ -158,7 +161,8 @@ export function MemberList({ profiles, hideDeleted }: Props) {
                         fontSize="sm"
                         fontWeight="medium"
                       >
-                        Banned <Timestamp created={profile.deletedAt!} large />
+                        {t.profile.suspended}{" "}
+                        <Timestamp created={profile.deletedAt!} large />
                       </styled.p>
                     </Box>
                   )}

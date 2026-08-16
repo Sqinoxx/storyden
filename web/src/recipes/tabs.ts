@@ -99,6 +99,7 @@ export const tabs = defineSlotRecipe({
           boxShadow: "xs",
           borderRadius: "md",
           "--transition-duration": "200ms!",
+          top: "var(--top)",
           height: "var(--height)",
           width: "var(--width)",
         },

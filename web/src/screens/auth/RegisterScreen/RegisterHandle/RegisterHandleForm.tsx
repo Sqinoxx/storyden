@@ -7,6 +7,7 @@ import { BiometricIcon } from "@/components/ui/icons/Biometric";
 import { Input } from "@/components/ui/input";
 import { Flex, styled } from "@/styled-system/jsx";
 
+import { SemesterField } from "../SemesterField";
 import { Props, useRegisterHandleForm } from "./useRegisterHandleForm";
 
 export function RegisterHandleForm(props: Props) {
@@ -52,6 +53,10 @@ export function RegisterHandleForm(props: Props) {
       />
       <styled.p color="fg.error" fontSize="sm">
         {errors.identifier?.message}
+      </styled.p>
+      <SemesterField register={register("semester")} />
+      <styled.p color="fg.error" fontSize="sm">
+        {errors.semester?.message}
       </styled.p>
       <Flex alignItems="center" gap="2">
         <Input

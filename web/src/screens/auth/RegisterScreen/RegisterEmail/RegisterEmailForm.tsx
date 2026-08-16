@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { styled } from "@/styled-system/jsx";
 import { vstack } from "@/styled-system/patterns";
 
+import { SemesterField } from "../SemesterField";
 import { useRegisterEmailForm } from "./useRegisterEmailForm";
 
 type Props = {
@@ -81,6 +82,13 @@ export function RegisterEmailForm(props: Props) {
 
         <FormErrorText>
           {form.formState.errors["password"]?.message}
+        </FormErrorText>
+      </FormControl>
+
+      <FormControl>
+        <SemesterField register={form.register("semester")} />
+        <FormErrorText>
+          {form.formState.errors["semester"]?.message}
         </FormErrorText>
       </FormControl>
 

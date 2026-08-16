@@ -30,9 +30,11 @@ export const en = {
     login: "Log In",
     register: "Register",
     rememberMe: "Remember me",
-    identifierPlaceholder: "Username or email address",
+    identifierLabel: "Username or email address",
+    identifierPlaceholder: "StuDent",
     usernamePlaceholder: "Username",
-    passwordPlaceholder: "Password",
+    passwordLabel: "Password",
+    passwordPlaceholder: "••••••••",
     forgotPassword: "Forgot password",
   },
   actions: {

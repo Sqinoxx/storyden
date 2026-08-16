@@ -32,9 +32,11 @@ export const de: Translations = {
     login: "Anmelden",
     register: "Registrieren",
     rememberMe: "Anmeldedaten merken",
-    identifierPlaceholder: "Benutzername oder E-Mail-Adresse",
+    identifierLabel: "Benutzername oder E-Mail-Adresse",
+    identifierPlaceholder: "StuDent",
     usernamePlaceholder: "Benutzername",
-    passwordPlaceholder: "Passwort",
+    passwordLabel: "Passwort",
+    passwordPlaceholder: "••••••••",
     forgotPassword: "Passwort vergessen",
   },
   actions: {

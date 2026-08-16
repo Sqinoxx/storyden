@@ -38,6 +38,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/robot/model_ref"
 	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/resources/sortrule"
+	"github.com/Southclaws/storyden/app/resources/statistics/statistics_querier"
 	"github.com/Southclaws/storyden/app/resources/timerange"
 	"github.com/Southclaws/storyden/app/services/account/account_deletion"
 	"github.com/Southclaws/storyden/app/services/account/account_suspension"
@@ -71,6 +72,7 @@ type Admin struct {
 	instanceInfo      *instance_info.Provider
 	assetQuerier      *asset_querier.Querier
 	assetWriter       *asset_writer.Writer
+	statisticsQuerier *statistics_querier.Querier
 	bus               *pubsub.Bus
 }
 
@@ -91,6 +93,7 @@ func NewAdmin(
 	instanceInfo *instance_info.Provider,
 	assetQuerier *asset_querier.Querier,
 	assetWriter *asset_writer.Writer,
+	statisticsQuerier *statistics_querier.Querier,
 	bus *pubsub.Bus,
 	router *echo.Echo,
 ) Admin {
@@ -111,6 +114,7 @@ func NewAdmin(
 		instanceInfo:      instanceInfo,
 		assetQuerier:      assetQuerier,
 		assetWriter:       assetWriter,
+		statisticsQuerier: statisticsQuerier,
 		bus:               bus,
 	}
 
@@ -152,6 +156,85 @@ func (a *Admin) AdminOCRStats(ctx context.Context, request openapi.AdminOCRStats
 		Failed:     stats.Failed,
 		Skipped:    stats.Skipped,
 	}, nil
+}
+
+func (a *Admin) AdminStatistics(ctx context.Context, request openapi.AdminStatisticsRequestObject) (openapi.AdminStatisticsResponseObject, error) {
+	if err := session.Authorise(ctx, nil, rbac.PermissionAdministrator); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	stats, err := a.statisticsQuerier.Get(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AdminStatistics200JSONResponse{
+		Totals: openapi.StatisticsTotals{
+			Accounts:          stats.Totals.Accounts,
+			Threads:           stats.Totals.Threads,
+			Replies:           stats.Totals.Replies,
+			Categories:        stats.Totals.Categories,
+			ActiveAccounts7d:  stats.Totals.ActiveAccounts7d,
+			ActiveAccounts30d: stats.Totals.ActiveAccounts30d,
+		},
+		AccountsDaily:         mapSeries(stats.AccountsDaily),
+		AccountsMonthly:       mapSeries(stats.AccountsMonthly),
+		AccountsYearly:        mapSeries(stats.AccountsYearly),
+		ThreadsDaily:          mapSeries(stats.ThreadsDaily),
+		ThreadsMonthly:        mapSeries(stats.ThreadsMonthly),
+		ThreadsYearly:         mapSeries(stats.ThreadsYearly),
+		ThreadsBySemester:     mapSemesterSeries(stats.ThreadsBySemester),
+		ThreadsByFachsemester: mapFachsemesterSeries(stats.ThreadsByFachsemester),
+		TopContributors:       mapContributors(stats.TopContributors),
+	}, nil
+}
+
+func mapSeries(points []statistics_querier.SeriesPoint) []openapi.StatisticsSeriesPoint {
+	out := make([]openapi.StatisticsSeriesPoint, len(points))
+	for i, p := range points {
+		out[i] = openapi.StatisticsSeriesPoint{
+			Date:  openapi_types.Date{Time: p.Date},
+			Count: p.Count,
+		}
+	}
+	return out
+}
+
+func mapSemesterSeries(points []statistics_querier.SemesterPoint) []openapi.StatisticsSemesterPoint {
+	out := make([]openapi.StatisticsSemesterPoint, len(points))
+	for i, p := range points {
+		out[i] = openapi.StatisticsSemesterPoint{
+			Term:  p.Term.String(),
+			Count: p.Count,
+		}
+	}
+	return out
+}
+
+func mapFachsemesterSeries(points []statistics_querier.FachsemesterPoint) []openapi.StatisticsFachsemesterPoint {
+	out := make([]openapi.StatisticsFachsemesterPoint, len(points))
+	for i, p := range points {
+		out[i] = openapi.StatisticsFachsemesterPoint{
+			Semester: p.Semester,
+			Count:    p.Count,
+		}
+	}
+	return out
+}
+
+func mapContributors(contributors []statistics_querier.Contributor) []openapi.StatisticsContributor {
+	out := make([]openapi.StatisticsContributor, len(contributors))
+	for i, c := range contributors {
+		out[i] = openapi.StatisticsContributor{
+			AccountId:    openapi.Identifier(c.AccountID.String()),
+			Handle:       c.Handle,
+			Name:         c.Name,
+			Semester:     c.Semester,
+			ThreadCount:  c.ThreadCount,
+			LastThreadAt: c.LastThreadAt,
+		}
+	}
+	return out
 }
 
 // adminOCRReindexBatchLimit bounds how many previously-processed assets are

@@ -17,6 +17,7 @@ type OperationPermissions interface {
 	AdminSettingsUpdate() (bool, *rbac.Permission)
 	AdminOCRStats() (bool, *rbac.Permission)
 	AdminOCRReindex() (bool, *rbac.Permission)
+	AdminStatistics() (bool, *rbac.Permission)
 	AdminDriveFolderList() (bool, *rbac.Permission)
 	AdminDriveFolderCreate() (bool, *rbac.Permission)
 	AdminDriveFolderUpdate() (bool, *rbac.Permission)
@@ -290,6 +291,8 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.AdminOCRStats()
 	case "AdminOCRReindex":
 		return optable.AdminOCRReindex()
+	case "AdminStatistics":
+		return optable.AdminStatistics()
 	case "AdminDriveFolderList":
 		return optable.AdminDriveFolderList()
 	case "AdminDriveFolderCreate":

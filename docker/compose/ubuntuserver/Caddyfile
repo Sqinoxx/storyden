@@ -1,0 +1,43 @@
+{
+	email {$ACME_EMAIL}
+}
+
+# www leitet auf die Hauptdomain um. Die App darf NICHT direkt unter www
+# ausgeliefert werden: Session-Cookies, CORS und WebAuthn werden aus
+# PUBLIC_WEB_ADDRESS abgeleitet und passen dann nicht mehr zum Host.
+www.{$SITE_DOMAIN} {
+	redir https://{$SITE_DOMAIN}{uri} permanent
+}
+
+{$SITE_DOMAIN} {
+	encode zstd gzip
+
+	# Muss >= MAX_UPLOAD_SIZE_MB sein, sonst bricht Caddy grosse Uploads ab,
+	# bevor die App eine saubere Fehlermeldung liefern kann.
+	request_body {
+		max_size 64MB
+	}
+
+	header {
+		# Nach dem ersten erfolgreichen HTTPS-Test aktiv lassen. Achtung: setzt
+		# die Domain fuer ein Jahr auf HTTPS-only fest.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy storyden:8000 {
+		# Uploads und OCR-Verarbeitung koennen laenger dauern als der Default.
+		transport http {
+			read_timeout 300s
+			write_timeout 300s
+		}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

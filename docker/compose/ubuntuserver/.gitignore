@@ -1,0 +1,6 @@
+.env
+data/
+ddns/
+transfer/
+backups/
+backup.log

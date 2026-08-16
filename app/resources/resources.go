@@ -83,6 +83,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/robot/robot_workspace"
 	"github.com/Southclaws/storyden/app/resources/robot/robot_writer"
 	"github.com/Southclaws/storyden/app/resources/settings"
+	"github.com/Southclaws/storyden/app/resources/statistics/statistics_querier"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_querier"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_writer"
 )
@@ -108,6 +109,7 @@ func Build() fx.Option {
 			moderation_note_writer.New,
 			asset_querier.New,
 			asset_writer.New,
+			statistics_querier.New,
 			audit_querier.New,
 			audit_writer.New,
 			email_queue_repo.New,

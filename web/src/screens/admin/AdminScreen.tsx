@@ -24,6 +24,7 @@ import { OCRSettingsScreen } from "./OCRSettingsScreen/OCRSettingsScreen";
 import { PluginSettingsScreen } from "./PluginSettingsScreen";
 import { RobotsSettingsScreen } from "./RobotsSettingsScreen/RobotsSettingsScreen";
 import { SessionSettingsScreen } from "./SessionSettingsScreen";
+import { StatisticsSettingsScreen } from "./StatisticsSettingsScreen/StatisticsSettingsScreen";
 import { SystemSettingsScreen } from "./SystemSettingsScreen";
 
 const DEFAULT_TAB = "brand";
@@ -33,6 +34,7 @@ export function AdminScreen() {
   const oauthCapabilityEnabled = useCapability("oauth");
   const session = useSession();
   const canViewEmailLog = hasPermission(session, Permission.ADMINISTRATOR);
+  const canViewStatistics = hasPermission(session, Permission.ADMINISTRATOR);
   const canViewOAuth =
     oauthCapabilityEnabled && hasPermission(session, Permission.ADMINISTRATOR);
   const [tab, setTab] = useQueryState("tab", {
@@ -57,10 +59,21 @@ export function AdminScreen() {
       setTab(DEFAULT_TAB);
     }
 
+    if (!canViewStatistics && tab === "statistics") {
+      setTab(DEFAULT_TAB);
+    }
+
     if (!canViewOAuth && tab === "oauth") {
       setTab(DEFAULT_TAB);
     }
-  }, [canViewEmailLog, canViewOAuth, pluginsEnabled, tab, setTab]);
+  }, [
+    canViewEmailLog,
+    canViewStatistics,
+    canViewOAuth,
+    pluginsEnabled,
+    tab,
+    setTab,
+  ]);
 
   function handleTabChange({ value }: TabsValueChangeDetails) {
     setTab(value);
@@ -76,12 +89,22 @@ export function AdminScreen() {
       value={tab}
       onValueChange={handleTabChange}
     >
-      <Tabs.List flexWrap="wrap" height="auto" rowGap="1" columnGap="1" py="1">
+      <Tabs.List
+        flexWrap="wrap"
+        overflow="visible"
+        height="auto!"
+        rowGap="1"
+        columnGap="1"
+        py="1"
+      >
         <Tabs.Trigger value="brand">Brand</Tabs.Trigger>
         <Tabs.Trigger value="content">Content</Tabs.Trigger>
         <Tabs.Trigger value="moderation">Moderation</Tabs.Trigger>
         <Tabs.Trigger value="system">System</Tabs.Trigger>
         <Tabs.Trigger value="ocr">OCR & Bildtext</Tabs.Trigger>
+        {canViewStatistics && (
+          <Tabs.Trigger value="statistics">Statistiken</Tabs.Trigger>
+        )}
         <Tabs.Trigger value="audit">Audit Log</Tabs.Trigger>
         {canViewEmailLog && <Tabs.Trigger value="email">Email</Tabs.Trigger>}
         <Tabs.Trigger value="interface">Interface</Tabs.Trigger>
@@ -114,6 +137,12 @@ export function AdminScreen() {
       <Tabs.Content value="ocr">
         {tab === "ocr" && <OCRSettingsScreen />}
       </Tabs.Content>
+
+      {canViewStatistics && (
+        <Tabs.Content value="statistics">
+          {tab === "statistics" && <StatisticsSettingsScreen />}
+        </Tabs.Content>
+      )}
 
       <Tabs.Content value="audit">
         {tab === "audit" && <AuditLogSettingsScreen />}

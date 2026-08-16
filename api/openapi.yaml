@@ -369,6 +369,82 @@ paths:
   #                       "Y88P"
   #
 
+  /admin/statistics:
+    get:
+      operationId: AdminStatistics
+      description: |
+        Retrieve aggregate usage statistics for the instance, including
+        account and thread growth over time, recent activity, a breakdown of
+        new threads by German academic term (semester), and a breakdown of
+        thread activity by the authors' recorded study semester (Fachsemester)
+        with the most active members named. Intended for the admin statistics
+        dashboard.
+      tags: [admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - totals
+                  - accountsDaily
+                  - accountsMonthly
+                  - accountsYearly
+                  - threadsDaily
+                  - threadsMonthly
+                  - threadsYearly
+                  - threadsBySemester
+                  - threadsByFachsemester
+                  - topContributors
+                properties:
+                  totals: { $ref: "#/components/schemas/StatisticsTotals" }
+                  accountsDaily:
+                    description: New accounts per day, most recent 30 days.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  accountsMonthly:
+                    description: New accounts per month, most recent 12 months.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  accountsYearly:
+                    description: New accounts per year, most recent 5 years.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  threadsDaily:
+                    description: New threads per day, most recent 30 days.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  threadsMonthly:
+                    description: New threads per month, most recent 12 months.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  threadsYearly:
+                    description: New threads per year, most recent 5 years.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  threadsBySemester:
+                    description: New threads per academic term, most recent 8 terms.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSemesterPoint" }
+                  threadsByFachsemester:
+                    description: |
+                      Total threads authored by members currently recorded in
+                      each study semester (1-11), plus a bucket for members
+                      with no recorded semester. Shows which cohorts are the
+                      most and least engaged.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsFachsemesterPoint" }
+                  topContributors:
+                    description: |
+                      The most active thread authors, most recent 5 years,
+                      with their study semester and most recent thread date.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsContributor" }
+
   /admin/drive/folders:
     get:
       operationId: AdminDriveFolderList
@@ -7820,6 +7896,100 @@ components:
           $ref: "#/components/schemas/ContentServiceSettings"
         session:
           $ref: "#/components/schemas/SessionServiceSettings"
+
+    StatisticsSeriesPoint:
+      type: object
+      description: A single data point in a usage statistics time series.
+      required: [date, count]
+      properties:
+        date:
+          type: string
+          format: date
+          description: Start of the bucket this point covers (UTC).
+        count:
+          type: integer
+          description: Number of records created within the bucket.
+
+    StatisticsSemesterPoint:
+      type: object
+      description: A single data point bucketed by German academic term.
+      required: [term, count]
+      properties:
+        term:
+          type: string
+          description: |
+            Academic term identifier: a year plus WS (Wintersemester) or SS
+            (Sommersemester).
+          example: "2026-SS"
+        count:
+          type: integer
+
+    StatisticsFachsemesterPoint:
+      type: object
+      description: |
+        A single data point of thread activity for one study semester
+        (Fachsemester) cohort.
+      required: [semester, count]
+      properties:
+        semester:
+          type: integer
+          description: |
+            The study semester number (1-11). Zero means the authors have no
+            recorded study semester.
+        count:
+          type: integer
+          description: Total threads authored by members in this cohort.
+
+    StatisticsContributor:
+      type: object
+      description: A member ranked by thread activity, for admin review.
+      required: [accountId, handle, name, semester, threadCount, lastThreadAt]
+      properties:
+        accountId: { $ref: "#/components/schemas/Identifier" }
+        handle:
+          type: string
+          description: The member's handle.
+        name:
+          type: string
+          description: The member's display name.
+        semester:
+          type: integer
+          description: |
+            The member's currently recorded study semester (1-11), or zero if
+            not recorded.
+        threadCount:
+          type: integer
+          description: Total threads authored by this member in the window.
+        lastThreadAt: { $ref: "#/components/schemas/CreatedAt" }
+
+    StatisticsTotals:
+      type: object
+      required:
+        - accounts
+        - threads
+        - replies
+        - categories
+        - activeAccounts7d
+        - activeAccounts30d
+      properties:
+        accounts:
+          type: integer
+          description: Total number of registered accounts.
+        threads:
+          type: integer
+          description: Total number of threads (root posts).
+        replies:
+          type: integer
+          description: Total number of replies (non-root posts).
+        categories:
+          type: integer
+          description: Total number of categories.
+        activeAccounts7d:
+          type: integer
+          description: Distinct accounts that authored a post in the last 7 days.
+        activeAccounts30d:
+          type: integer
+          description: Distinct accounts that authored a post in the last 30 days.
 
     ContentServiceSettings:
       type: object

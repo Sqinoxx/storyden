@@ -18,6 +18,7 @@ import type {
   AdminSettingsGetOKResponse,
   AdminSettingsUpdateBody,
   AdminSettingsUpdateOKResponse,
+  AdminStatistics200,
   AuditEventCreatedOKResponse,
   AuditEventGetOKResponse,
   AuditEventListOKResponse,
@@ -135,6 +136,33 @@ export const adminOCRReindex = async (
   return fetcher<Promise<adminOCRReindexResponse>>(getAdminOCRReindexUrl(), {
     ...options,
     method: "POST",
+  });
+};
+
+/**
+ * Retrieve aggregate usage statistics for the instance, including
+account and thread growth over time, recent activity, a breakdown of
+new threads by German academic term (semester), and a breakdown of
+thread activity by the authors' recorded study semester (Fachsemester)
+with the most active members named. Intended for the admin statistics
+dashboard.
+
+ */
+export type adminStatisticsResponse = {
+  data: AdminStatistics200;
+  status: number;
+};
+
+export const getAdminStatisticsUrl = () => {
+  return `/admin/statistics`;
+};
+
+export const adminStatistics = async (
+  options?: RequestInit,
+): Promise<adminStatisticsResponse> => {
+  return fetcher<Promise<adminStatisticsResponse>>(getAdminStatisticsUrl(), {
+    ...options,
+    method: "GET",
   });
 };
 

@@ -5,6 +5,7 @@ import { Controller } from "react-hook-form";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormControl } from "@/components/ui/FormControl";
+import { FormLabel } from "@/components/ui/FormLabel";
 import { Button } from "@/components/ui/button";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { Input } from "@/components/ui/input";
@@ -29,18 +30,19 @@ export function LoginEmailForm() {
     <styled.form
       className={vstack()}
       w="full"
-      gap="3"
+      gap="4"
       onSubmit={handlers.handleSubmit}
       onKeyDown={handleKeyDown}
     >
       <FormControl>
+        <FormLabel>{t.auth.identifierLabel}</FormLabel>
         <Input
           type="text"
           autoCapitalize="none"
           autoCorrect="off"
           autoComplete="username"
           w="full"
-          size="md"
+          size="sm"
           placeholder={t.auth.identifierPlaceholder}
           required
           {...form.register("identifier")}
@@ -53,10 +55,11 @@ export function LoginEmailForm() {
       </FormControl>
 
       <FormControl>
+        <FormLabel>{t.auth.passwordLabel}</FormLabel>
         <Input
           type="password"
           w="full"
-          size="md"
+          size="sm"
           placeholder={t.auth.passwordPlaceholder}
           autoComplete="current-password"
           {...form.register("password")}
@@ -69,7 +72,7 @@ export function LoginEmailForm() {
         )}
       </FormControl>
 
-      <HStack justifyContent="center" gap="2" pt="1">
+      <HStack justifyContent="center" gap="2">
         <Controller
           control={form.control}
           name="remember_me"
@@ -90,8 +93,7 @@ export function LoginEmailForm() {
       <Button
         type="submit"
         w="full"
-        size="md"
-        mt="1"
+        size="sm"
         loading={form.formState.isSubmitting}
       >
         {t.auth.login}

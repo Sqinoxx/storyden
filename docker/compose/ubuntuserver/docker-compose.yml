@@ -1,0 +1,159 @@
+# Storyden auf einem eigenen Ubuntu-Server (192.168.178.105), HTTPS auf 443.
+#
+# Das Image wird NICHT hier gebaut, sondern auf dem Windows-PC (siehe
+# build-image.ps1) und per "docker load" eingespielt - build-image.ps1 baut
+# fuer linux/amd64. Damit muss auf dem Server nichts kompiliert werden.
+#
+# Ablauf beim ersten Start (Details in Anleitung.md):
+#   1) .env ausfuellen
+#   2) docker compose up -d postgres
+#   3) bash restore-db.sh db.sql       <- Datenbank vom Pi einspielen
+#   4) docker compose up -d
+#
+# Logs:    docker compose logs -f storyden
+# Update:  neues Image laden, dann docker compose up -d
+
+name: storyden
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    logging: *default-logging
+    ports:
+      # Nur an localhost gebunden, nicht im LAN erreichbar. Wird fuer
+      # Backups vom Host aus gebraucht.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-storyden}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD fehlt in .env}
+      - POSTGRES_DB=${POSTGRES_DB:-storyden}
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-storyden} -d ${POSTGRES_DB:-storyden}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  storyden:
+    # Kommt per "docker load" aus dem Transfer vom PC. pull_policy: never
+    # verhindert, dass Compose stattdessen in einer Registry sucht und mit
+    # einer verwirrenden 404-Meldung abbricht.
+    image: ${STORYDEN_IMAGE:-storyden-server:latest}
+    pull_policy: never
+    restart: unless-stopped
+    logging: *default-logging
+    expose:
+      - "8000"
+    volumes:
+      # Assets, Avatare und Uploads. Gehoert dem Container-User 1001:
+      #   mkdir -p data && sudo chown -R 1001:1001 data
+      - ./data:/storyden/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    environment:
+      # --- Adressen ---
+      # Muessen exakt der URL entsprechen, die im Browser aufgerufen wird.
+      # Falsche Werte brechen Login, Cookies, E-Mail-Links und Passkeys.
+      - PUBLIC_WEB_ADDRESS=${PUBLIC_WEB_ADDRESS:?PUBLIC_WEB_ADDRESS fehlt in .env}
+      - PUBLIC_API_ADDRESS=${PUBLIC_API_ADDRESS:?PUBLIC_API_ADDRESS fehlt in .env}
+
+      # --- Datenbank ---
+      # Ohne diese Variable faellt die App still auf SQLite zurueck.
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL fehlt in .env}
+
+      # --- JWT Secret ---
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET fehlt in .env}
+
+      # --- E-Mail (SMTP) ---
+      - EMAIL_PROVIDER=${EMAIL_PROVIDER:-smtp}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-Storyden}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
+
+      # --- Uploads ---
+      # Muss <= max_size im Caddyfile (64MB) bleiben.
+      - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-50}
+
+      # --- OCR / Volltextsuche in Dateien ---
+      # tesseract und pdftoppm sind im Image installiert.
+      - OCR_ENABLED=${OCR_ENABLED:-true}
+      - OCR_PROVIDER=${OCR_PROVIDER:-tesseract}
+      - OCR_LANGUAGES=${OCR_LANGUAGES:-deu,eng}
+      - OCR_MAX_FILE_SIZE_MB=${OCR_MAX_FILE_SIZE_MB:-10}
+      - OCR_PDF_MAX_PAGES=${OCR_PDF_MAX_PAGES:-20}
+      - OCR_BACKFILL_ENABLED=${OCR_BACKFILL_ENABLED:-true}
+
+      # --- Google Drive Bibliothek (optional) ---
+      - GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON=${GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON}
+      - GOOGLE_DRIVE_CACHE_TTL=${GOOGLE_DRIVE_CACHE_TTL:-1m}
+
+      # --- Rate Limiting ---
+      - RATE_LIMIT=${RATE_LIMIT:-5000}
+      - RATE_LIMIT_PERIOD=${RATE_LIMIT_PERIOD:-1h}
+
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    logging: *default-logging
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - SITE_DOMAIN=${SITE_DOMAIN:?SITE_DOMAIN fehlt in .env}
+      - ACME_EMAIL=${ACME_EMAIL:?ACME_EMAIL fehlt in .env}
+    depends_on:
+      - storyden
+
+  # Optional: haelt den A-Record der Domain auf der aktuellen Anschluss-IP,
+  # falls der Server hinter einem Router mit wechselnder IP haengt (z.B.
+  # Fritz!Box ohne feste IPv4). Siehe Anleitung.md, Abschnitt "DynDNS".
+  # Falls die Domain schon eine feste IP hat oder woanders aktuell gehalten
+  # wird (z.B. Cloud-VM mit fester IP), diesen Service einfach nicht nutzen -
+  # er startet nur, wenn "docker compose --profile ddns up -d" aufgerufen wird.
+  ddns:
+    image: qmcgaw/ddns-updater:latest
+    restart: unless-stopped
+    logging: *default-logging
+    profiles: ["ddns"]
+    dns:
+      - 1.1.1.1
+      - 9.9.9.9
+    volumes:
+      - ./ddns:/updater/data
+    environment:
+      - PERIOD=${DDNS_PERIOD:-5m}
+      - TZ=${TZ:-Europe/Berlin}
+
+volumes:
+  postgres-data:
+  caddy_data:
+  caddy_config:

@@ -24,6 +24,7 @@ import type {
   AdminSettingsGetOKResponse,
   AdminSettingsUpdateBody,
   AdminSettingsUpdateOKResponse,
+  AdminStatistics200,
   AuditEventCreatedOKResponse,
   AuditEventGetOKResponse,
   AuditEventListOKResponse,
@@ -242,6 +243,57 @@ export const useAdminOCRReindex = <
   const swrFn = getAdminOCRReindexMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Retrieve aggregate usage statistics for the instance, including
+account and thread growth over time, recent activity, a breakdown of
+new threads by German academic term (semester), and a breakdown of
+thread activity by the authors' recorded study semester (Fachsemester)
+with the most active members named. Intended for the admin statistics
+dashboard.
+
+ */
+export const adminStatistics = () => {
+  return fetcher<AdminStatistics200>({
+    url: `/admin/statistics`,
+    method: "GET",
+  });
+};
+
+export const getAdminStatisticsKey = () => [`/admin/statistics`] as const;
+
+export type AdminStatisticsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminStatistics>>
+>;
+export type AdminStatisticsQueryError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAdminStatistics = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRConfiguration<
+    Awaited<ReturnType<typeof adminStatistics>>,
+    TError
+  > & { swrKey?: Key; enabled?: boolean };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey =
+    swrOptions?.swrKey ?? (() => (isEnabled ? getAdminStatisticsKey() : null));
+  const swrFn = () => adminStatistics();
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
 
   return {
     swrKey,

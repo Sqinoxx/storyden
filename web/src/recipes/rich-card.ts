@@ -41,6 +41,13 @@ export const richCard = defineSlotRecipe({
       borderRadius: "var(--card-border-radius)",
       boxShadow: "sm",
       backgroundColor: "bg.default",
+      transitionProperty: "box-shadow, transform",
+      transitionDuration: "normal",
+      transitionTimingFunction: "default",
+      _hover: {
+        boxShadow: "md",
+        transform: "translateY(-2px)",
+      },
     },
 
     headerContainer: {

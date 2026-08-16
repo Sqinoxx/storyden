@@ -16,10 +16,11 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/cachecontrol"
 	"github.com/Southclaws/storyden/app/resources/datagraph"
-	"github.com/Southclaws/storyden/app/resources/post/reply"
 	"github.com/Southclaws/storyden/app/resources/post/thread_cache"
 	"github.com/Southclaws/storyden/app/resources/post/thread_querier"
 	"github.com/Southclaws/storyden/app/resources/profile/profile_querier"
+	"github.com/Southclaws/storyden/app/resources/settings"
+	"github.com/Southclaws/storyden/app/resources/sortrule"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
 	"github.com/Southclaws/storyden/app/resources/visibility"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
@@ -27,6 +28,7 @@ import (
 	thread_service "github.com/Southclaws/storyden/app/services/thread"
 	"github.com/Southclaws/storyden/app/services/thread_mark"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
+	ent_post "github.com/Southclaws/storyden/internal/ent/post"
 )
 
 type Threads struct {
@@ -35,6 +37,7 @@ type Threads struct {
 	thread_mark_svc thread_mark.Service
 	accountQuery    *account_querier.Querier
 	profileQuery    *profile_querier.Querier
+	settings        *settings.SettingsRepository
 }
 
 func NewThreads(
@@ -43,8 +46,35 @@ func NewThreads(
 	thread_mark_svc thread_mark.Service,
 	accountQuery *account_querier.Querier,
 	profileQuery *profile_querier.Querier,
+	settings *settings.SettingsRepository,
 ) Threads {
-	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery}
+	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings}
+}
+
+func (i *Threads) pageSizes(ctx context.Context) (replies int, threads int) {
+	set, err := i.settings.Get(ctx)
+	if err != nil {
+		return settings.DefaultRepliesPerPage, settings.DefaultThreadsPerPage
+	}
+
+	return set.RepliesPerPage(), set.ThreadsPerPage()
+}
+
+// deserialiseThreadListSort maps the API's ordering vocabulary onto sort rules.
+// Anything unrecognised falls through to the default, newest first.
+func deserialiseThreadListSort(v *openapi.ThreadListParamsSort) opt.Optional[sortrule.SortRule] {
+	if v == nil {
+		return opt.NewEmpty[sortrule.SortRule]()
+	}
+
+	switch *v {
+	case "activity":
+		return opt.New(sortrule.Parse("-" + ent_post.FieldLastReplyAt))
+	case "oldest":
+		return opt.New(sortrule.Parse(ent_post.FieldCreatedAt))
+	default:
+		return opt.New(sortrule.Parse("-" + ent_post.FieldCreatedAt))
+	}
 }
 
 func (i *Threads) ThreadCreate(ctx context.Context, request openapi.ThreadCreateRequestObject) (openapi.ThreadCreateResponseObject, error) {
@@ -176,7 +206,7 @@ func (i *Threads) ThreadDelete(ctx context.Context, request openapi.ThreadDelete
 }
 
 func (i *Threads) ThreadList(ctx context.Context, request openapi.ThreadListRequestObject) (openapi.ThreadListResponseObject, error) {
-	pageSize := 50
+	_, pageSize := i.pageSizes(ctx)
 
 	page := opt.NewPtrMap(request.Params.Page, func(s string) int {
 		v, err := strconv.ParseInt(s, 10, 32)
@@ -216,6 +246,7 @@ func (i *Threads) ThreadList(ctx context.Context, request openapi.ThreadListRequ
 		Tags:         tags,
 		Categories:   cats,
 		IgnorePinned: ignorePinned,
+		Sort:         deserialiseThreadListSort(request.Params.Sort),
 	})
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -258,9 +289,12 @@ func (i *Threads) ThreadGet(ctx context.Context, request openapi.ThreadGetReques
 		}, nil
 	}
 
-	pp := deserialisePageParams(request.Params.Page, reply.RepliesPerPage)
+	repliesPerPage, _ := i.pageSizes(ctx)
+	pp := deserialisePageParams(request.Params.Page, uint(repliesPerPage))
 
-	thread, err := i.thread_svc.Get(ctx, postID, pp)
+	descending := request.Params.Sort != nil && *request.Params.Sort == "desc"
+
+	thread, err := i.thread_svc.Get(ctx, postID, pp, thread_querier.WithRepliesDescending(descending))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

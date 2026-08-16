@@ -5,6 +5,7 @@ import (
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
+	"github.com/Southclaws/fault/fmsg"
 	"github.com/Southclaws/fault/ftag"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
@@ -16,6 +17,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/rbac"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/transports/http/bindings/openapi_rbac"
+	"github.com/Southclaws/storyden/app/transports/http/openapi"
 )
 
 type Authorisation struct {
@@ -102,7 +104,7 @@ func (i *Authorisation) validator(oapictx context.Context, ai *openapi3filter.Au
 	}
 
 	if err := session.Authorise(ctx, nil, *perm, rbac.PermissionAdministrator); err != nil {
-		return fault.New("required role not held", fctx.With(ctx), ftag.With(ftag.PermissionDenied))
+		return permissionDenied(ctx)
 	}
 
 	return nil
@@ -129,7 +131,7 @@ func AuthoriseOperation(ctx context.Context, operationID string) error {
 	}
 
 	if err := session.Authorise(ctx, nil, *perm, rbac.PermissionAdministrator); err != nil {
-		return fault.New("required role not held", fctx.With(ctx), ftag.With(ftag.PermissionDenied))
+		return permissionDenied(ctx)
 	}
 
 	return nil
@@ -158,4 +160,20 @@ func effectiveSecurityRequirements(ai *openapi3filter.AuthenticationInput) *open
 // additional logic required to determine attributes such as resource ownership.
 func GetPermissionForOperation(operationID string) (requiresSession bool, requiresPermission *rbac.Permission) {
 	return openapi_rbac.GetOperationPermission(&openapi_rbac.Mapping{}, operationID)
+}
+
+// permissionDenied distinguishes "you are not allowed to do this" from "you
+// would be allowed once your email is verified", which are otherwise the same
+// 403 on the wire because unverified accounts are silently demoted to guests.
+func permissionDenied(ctx context.Context) error {
+	if session.IsEmailVerificationGated(ctx) {
+		return fault.New(
+			"account is limited until its email address is verified",
+			fctx.With(ctx),
+			ftag.With(openapi.KindEmailNotVerified),
+			fmsg.WithDesc("email not verified", "Please verify your email address to use this feature."),
+		)
+	}
+
+	return fault.New("required role not held", fctx.With(ctx), ftag.With(ftag.PermissionDenied))
 }

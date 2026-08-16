@@ -27,6 +27,12 @@ type Session struct {
 	ExpiresAt time.Time `json:"expires_at,omitempty"`
 	// RevokedAt holds the value of the "revoked_at" field.
 	RevokedAt *time.Time `json:"revoked_at,omitempty"`
+	// RefreshedAt holds the value of the "refreshed_at" field.
+	RefreshedAt *time.Time `json:"refreshed_at,omitempty"`
+	// LifetimeSeconds holds the value of the "lifetime_seconds" field.
+	LifetimeSeconds int `json:"lifetime_seconds,omitempty"`
+	// Persistent holds the value of the "persistent" field.
+	Persistent bool `json:"persistent,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SessionQuery when eager-loading is set.
 	Edges        SessionEdges `json:"edges"`
@@ -58,7 +64,11 @@ func (*Session) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case session.FieldCreatedAt, session.FieldExpiresAt, session.FieldRevokedAt:
+		case session.FieldPersistent:
+			values[i] = new(sql.NullBool)
+		case session.FieldLifetimeSeconds:
+			values[i] = new(sql.NullInt64)
+		case session.FieldCreatedAt, session.FieldExpiresAt, session.FieldRevokedAt, session.FieldRefreshedAt:
 			values[i] = new(sql.NullTime)
 		case session.FieldID, session.FieldAccountID:
 			values[i] = new(xid.ID)
@@ -107,6 +117,25 @@ func (_m *Session) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.RevokedAt = new(time.Time)
 				*_m.RevokedAt = value.Time
+			}
+		case session.FieldRefreshedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field refreshed_at", values[i])
+			} else if value.Valid {
+				_m.RefreshedAt = new(time.Time)
+				*_m.RefreshedAt = value.Time
+			}
+		case session.FieldLifetimeSeconds:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field lifetime_seconds", values[i])
+			} else if value.Valid {
+				_m.LifetimeSeconds = int(value.Int64)
+			}
+		case session.FieldPersistent:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field persistent", values[i])
+			} else if value.Valid {
+				_m.Persistent = value.Bool
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -162,6 +191,17 @@ func (_m *Session) String() string {
 		builder.WriteString("revoked_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	if v := _m.RefreshedAt; v != nil {
+		builder.WriteString("refreshed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("lifetime_seconds=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LifetimeSeconds))
+	builder.WriteString(", ")
+	builder.WriteString("persistent=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Persistent))
 	builder.WriteByte(')')
 	return builder.String()
 }

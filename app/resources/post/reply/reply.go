@@ -20,7 +20,9 @@ import (
 	"github.com/Southclaws/storyden/internal/ent"
 )
 
-const RepliesPerPage = 50
+// DefaultRepliesPerPage is the fallback used when the instance has no
+// configured page size. The live value comes from admin settings.
+const DefaultRepliesPerPage = 15
 
 type Reply struct {
 	post.Post

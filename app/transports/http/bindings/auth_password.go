@@ -16,7 +16,7 @@ func (i *Authentication) AuthPasswordSignin(ctx context.Context, request openapi
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := i.si.Issue(ctx, acc.ID)
+	t, err := i.si.Issue(ctx, acc.ID, rememberMe(request.Body.RememberMe))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -42,7 +42,7 @@ func (i *Authentication) AuthPasswordSignup(ctx context.Context, request openapi
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := i.si.Issue(ctx, acc.ID)
+	t, err := i.si.Issue(ctx, acc.ID, rememberMe(request.Body.RememberMe))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -68,7 +68,7 @@ func (i *Authentication) AuthPasswordCreate(ctx context.Context, request openapi
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := i.si.Issue(ctx, acc.ID)
+	t, err := i.reissueForCurrentSession(ctx, acc.ID)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -94,7 +94,7 @@ func (i *Authentication) AuthPasswordUpdate(ctx context.Context, request openapi
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := i.si.Issue(ctx, acc.ID)
+	t, err := i.reissueForCurrentSession(ctx, acc.ID)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -115,7 +115,7 @@ func (i *Authentication) AuthPasswordReset(ctx context.Context, request openapi.
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := i.si.Issue(ctx, acc.ID)
+	t, err := i.reissueForCurrentSession(ctx, acc.ID)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

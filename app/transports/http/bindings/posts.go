@@ -12,6 +12,8 @@ import (
 	"github.com/Southclaws/storyden/app/resources/datagraph"
 	"github.com/Southclaws/storyden/app/resources/post"
 	"github.com/Southclaws/storyden/app/resources/post/post_search"
+	post_reply "github.com/Southclaws/storyden/app/resources/post/reply"
+	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/resources/visibility"
 	"github.com/Southclaws/storyden/app/services/reply"
 	"github.com/Southclaws/storyden/app/services/thread_mark"
@@ -22,17 +24,20 @@ type Posts struct {
 	post_repo       post_search.Repository
 	replyMutator    *reply.Mutator
 	thread_mark_svc thread_mark.Service
+	settings        *settings.SettingsRepository
 }
 
 func NewPosts(
 	post_repo post_search.Repository,
 	replyMutator *reply.Mutator,
 	thread_mark_svc thread_mark.Service,
+	settings *settings.SettingsRepository,
 ) Posts {
 	return Posts{
 		post_repo:       post_repo,
 		replyMutator:    replyMutator,
 		thread_mark_svc: thread_mark_svc,
+		settings:        settings,
 	}
 }
 
@@ -91,7 +96,14 @@ func (p *Posts) PostLocationGet(ctx context.Context, request openapi.PostLocatio
 		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
 	}
 
-	location, err := p.post_repo.Locate(ctx, post.ID(id))
+	// The page a reply lives on depends on the configured page size, so the
+	// permalink and the thread view must agree on the same value.
+	repliesPerPage := post_reply.DefaultRepliesPerPage
+	if set, err := p.settings.Get(ctx); err == nil {
+		repliesPerPage = set.RepliesPerPage()
+	}
+
+	location, err := p.post_repo.Locate(ctx, post.ID(id), repliesPerPage)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

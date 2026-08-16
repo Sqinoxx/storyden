@@ -16,7 +16,9 @@ import { MemberAccountSettingsScreen } from "./MemberAccountSettingsScreen";
 import { MemberAuthenticationSettingsScreen } from "./MemberAuthenticationSettingsScreen";
 import { MemberEmailSettingsScreen } from "./MemberEmailSettingsScreen";
 import { MemberInterfaceSettingsScreen } from "./MemberInterfaceSettingsScreen";
+import { MemberInvitationsSettingsScreen } from "./MemberInvitationsSettingsScreen";
 import { MemberOAuthSettingsScreen } from "./MemberOAuthSettingsScreen";
+import { MemberSessionSettingsScreen } from "./MemberSessionSettingsScreen";
 
 const DEFAULT_TAB = "interface";
 
@@ -54,6 +56,10 @@ export function SettingsScreen({ initialSettings }: Props) {
   );
   const oauthEnabled =
     oauthCapabilityEnabled && hasPermission(session, Permission.ADMINISTRATOR);
+  const invitationsEnabled = hasPermission(
+    session,
+    Permission.CREATE_INVITATION,
+  );
 
   const activeTab = !oauthEnabled && tab === "oauth" ? DEFAULT_TAB : tab;
 
@@ -77,11 +83,19 @@ export function SettingsScreen({ initialSettings }: Props) {
             {t.settings?.tabs?.email || "Email"}
           </Tabs.Trigger>
         )}
+        {invitationsEnabled && (
+          <Tabs.Trigger value="invitations">
+            {t.settings?.tabs?.invitations || "Invitations"}
+          </Tabs.Trigger>
+        )}
         {accessKeysEnabled && (
           <Tabs.Trigger value="access_keys">
             {t.settings?.tabs?.accessKeys || "Access keys"}
           </Tabs.Trigger>
         )}
+        <Tabs.Trigger value="session">
+          {t.settings?.tabs?.session || "Session"}
+        </Tabs.Trigger>
         <Tabs.Trigger value="account">
           {t.settings?.tabs?.account || "Konto"}
         </Tabs.Trigger>
@@ -107,11 +121,21 @@ export function SettingsScreen({ initialSettings }: Props) {
         </Tabs.Content>
       )}
 
+      {invitationsEnabled && (
+        <Tabs.Content value="invitations">
+          <MemberInvitationsSettingsScreen />
+        </Tabs.Content>
+      )}
+
       {accessKeysEnabled && (
         <Tabs.Content value="access_keys">
           <MemberAccessKeysSettingsScreen />
         </Tabs.Content>
       )}
+
+      <Tabs.Content value="session">
+        <MemberSessionSettingsScreen />
+      </Tabs.Content>
 
       <Tabs.Content value="account">
         <MemberAccountSettingsScreen />

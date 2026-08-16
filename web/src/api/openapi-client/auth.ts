@@ -23,6 +23,7 @@ import type {
   AuthEmailPasswordSignupParams,
   AuthEmailSignupParams,
   AuthEmailVerifyBody,
+  AuthEmailVerifyResendBody,
   AuthPasswordBody,
   AuthPasswordCreateBody,
   AuthPasswordResetBody,
@@ -818,6 +819,71 @@ export const useAuthEmailVerify = <
 
   const swrKey = swrOptions?.swrKey ?? getAuthEmailVerifyMutationKey();
   const swrFn = getAuthEmailVerifyMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Send a new verification code to an unverified email address.
+
+When called with a session, the address may be omitted and the session
+account's unverified address is used. Without a session the address must
+be provided.
+
+The response is always 200, regardless of whether the address is known,
+so that this cannot be used to probe for registered accounts. Given that
+it triggers an email to an arbitrary public address, it MUST be heavily
+rate limited.
+
+ */
+export const authEmailVerifyResend = (
+  authEmailVerifyResendBody: AuthEmailVerifyResendBody,
+) => {
+  return fetcher<void>({
+    url: `/auth/email/resend`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: authEmailVerifyResendBody,
+  });
+};
+
+export const getAuthEmailVerifyResendMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: AuthEmailVerifyResendBody },
+  ): Promise<void> => {
+    return authEmailVerifyResend(arg);
+  };
+};
+export const getAuthEmailVerifyResendMutationKey = () =>
+  [`/auth/email/resend`] as const;
+
+export type AuthEmailVerifyResendMutationResult = NonNullable<
+  Awaited<ReturnType<typeof authEmailVerifyResend>>
+>;
+export type AuthEmailVerifyResendMutationError =
+  | BadRequestResponse
+  | InternalServerErrorResponse;
+
+export const useAuthEmailVerifyResend = <
+  TError = BadRequestResponse | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof authEmailVerifyResend>>,
+    TError,
+    Key,
+    AuthEmailVerifyResendBody,
+    Awaited<ReturnType<typeof authEmailVerifyResend>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAuthEmailVerifyResendMutationKey();
+  const swrFn = getAuthEmailVerifyResendMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

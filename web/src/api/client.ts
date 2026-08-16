@@ -3,6 +3,10 @@ import { toast } from "sonner";
 import { deriveError } from "@/utils/error";
 
 import { Options, buildRequest, buildResult } from "./common";
+import { ProblemType, isProblemType } from "./problems";
+import { handleUnverifiedEmailError } from "./verification";
+
+import { UNVERIFIED_EMAIL_MESSAGE } from "./verification";
 
 export const fetcher = async <T>(opts: Options): Promise<T> => {
   const request = buildRequest({
@@ -61,6 +65,14 @@ export async function handle<T>(
           },
           error: (error: unknown) => {
             reject(error);
+
+            // sonner renders this toast itself, so only the message is
+            // swapped here. The resend button lives on the verification
+            // banner, which is on screen whenever this can happen.
+            if (isProblemType(error, ProblemType.EmailNotVerified)) {
+              return UNVERIFIED_EMAIL_MESSAGE;
+            }
+
             return deriveError(error);
           },
           finally: cleanup,
@@ -75,7 +87,9 @@ export async function handle<T>(
   } catch (error) {
     await onError?.(error);
 
-    if (errorToast) {
+    // An unverified email surfaces as a plain 403; catching it centrally turns
+    // every blocked action into a prompt with a way to fix it.
+    if (errorToast && !handleUnverifiedEmailError(error)) {
       toast.error(deriveError(error));
     }
   } finally {

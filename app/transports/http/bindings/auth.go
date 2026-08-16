@@ -12,6 +12,7 @@ import (
 	"github.com/Southclaws/fault/ftag"
 	"github.com/Southclaws/opt"
 
+	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
 	"github.com/Southclaws/storyden/app/resources/account/authentication/access_key"
@@ -76,6 +77,35 @@ func NewAuthentication(
 		access_key:                    access_key,
 		webAddress:                    cfg.PublicWebAddress,
 	}
+}
+
+// alwaysRemember is used by flows with no request body to carry the choice in
+// (OAuth callbacks and WebAuthn), which are explicit sign-in gestures and so
+// default to a persistent session.
+func alwaysRemember() session.IssueParams {
+	return session.IssueParams{RememberMe: true}
+}
+
+// rememberMe reads an optional "remember me" flag from a request body.
+func rememberMe(v *openapi.AuthRememberMe) session.IssueParams {
+	return session.IssueParams{RememberMe: v != nil && *v}
+}
+
+// reissueForCurrentSession issues a session that keeps the persistence of the
+// one making the request, so that changing a password does not silently
+// downgrade a remembered login into a browser session.
+func (i *Authentication) reissueForCurrentSession(ctx context.Context, accountID account.AccountID) (*token.Session, error) {
+	previous := opt.NewEmpty[token.Session]()
+
+	if raw, ok := session.GetSessionToken(ctx).Get(); ok {
+		if t, err := token.FromString(raw); err == nil {
+			if v, err := i.tokenRepo.Validate(ctx, t); err == nil {
+				previous = opt.New(token.Session(*v))
+			}
+		}
+	}
+
+	return i.si.IssueLike(ctx, accountID, previous)
 }
 
 func (o *Authentication) AuthProviderList(ctx context.Context, request openapi.AuthProviderListRequestObject) (openapi.AuthProviderListResponseObject, error) {

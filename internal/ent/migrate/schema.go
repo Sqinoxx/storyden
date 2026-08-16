@@ -1733,6 +1733,9 @@ var (
 		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},
 		{Name: "expires_at", Type: field.TypeTime},
 		{Name: "revoked_at", Type: field.TypeTime, Nullable: true},
+		{Name: "refreshed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "lifetime_seconds", Type: field.TypeInt, Default: 0},
+		{Name: "persistent", Type: field.TypeBool, Default: false},
 		{Name: "account_id", Type: field.TypeString, Size: 20},
 	}
 	// SessionsTable holds the schema information for the "sessions" table.
@@ -1743,7 +1746,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sessions_accounts_sessions",
-				Columns:    []*schema.Column{SessionsColumns[4]},
+				Columns:    []*schema.Column{SessionsColumns[7]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

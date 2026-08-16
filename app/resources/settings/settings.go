@@ -65,6 +65,21 @@ type ServiceSettings struct {
 	Moderation opt.Optional[ModerationServiceSettings]
 	Robots     opt.Optional[RobotServiceSettings]
 	Drive      opt.Optional[DriveServiceSettings]
+	Content    opt.Optional[ContentServiceSettings]
+	Session    opt.Optional[SessionServiceSettings]
+}
+
+// ContentServiceSettings controls how much content is returned per page.
+type ContentServiceSettings struct {
+	RepliesPerPage opt.Optional[int]
+	ThreadsPerPage opt.Optional[int]
+}
+
+// SessionServiceSettings controls how long browser sessions survive.
+type SessionServiceSettings struct {
+	IdleTimeout       opt.Optional[time.Duration]
+	RememberMeDefault opt.Optional[time.Duration]
+	RememberMeMax     opt.Optional[time.Duration]
 }
 
 type ClientIPServiceSettings struct {

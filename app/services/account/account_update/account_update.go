@@ -2,6 +2,7 @@ package account_update
 
 import (
 	"context"
+	"maps"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
@@ -43,7 +44,14 @@ type Partial struct {
 	Links          opt.Optional[[]account.ExternalLink]
 	Admin          opt.Optional[bool]
 	VerifiedStatus opt.Optional[account.VerifiedStatus]
-	Meta           opt.Optional[map[string]any]
+
+	// Meta replaces the account's entire metadata object.
+	Meta opt.Optional[map[string]any]
+
+	// MetaMerge shallow-merges into the account's metadata, leaving top-level
+	// keys the caller did not mention untouched. Prefer this over Meta for
+	// partial updates, which would otherwise drop unrelated client settings.
+	MetaMerge opt.Optional[map[string]any]
 }
 
 func (u *Updater) Update(ctx context.Context, id account.AccountID, params Partial) (*account.AccountWithEdges, error) {
@@ -79,6 +87,18 @@ func (u *Updater) Update(ctx context.Context, id account.AccountID, params Parti
 	}
 	if v, ok := params.Meta.Get(); ok {
 		opts = append(opts, account_writer.SetMetadata(v))
+	}
+	if v, ok := params.MetaMerge.Get(); ok {
+		current, err := u.writer.GetByID(ctx, id)
+		if err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+
+		merged := make(map[string]any, len(current.Metadata)+len(v))
+		maps.Copy(merged, current.Metadata)
+		maps.Copy(merged, v)
+
+		opts = append(opts, account_writer.SetMetadata(merged))
 	}
 
 	err := u.profileCache.Invalidate(ctx, xid.ID(id))

@@ -22,6 +22,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/post/reaction"
 	"github.com/Southclaws/storyden/app/resources/post/reply"
 	"github.com/Southclaws/storyden/app/resources/post/thread"
+	"github.com/Southclaws/storyden/app/resources/sortrule"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_account "github.com/Southclaws/storyden/internal/ent/account"
@@ -32,6 +33,27 @@ import (
 	ent_tag "github.com/Southclaws/storyden/internal/ent/tag"
 	"github.com/Southclaws/storyden/internal/infrastructure/instrumentation/kv"
 )
+
+// threadListOrder maps a sort rule onto column ordering. Threads are ordered by
+// creation date unless the caller explicitly asks for activity ordering, so the
+// newest threads lead the list rather than whichever was last replied to.
+func threadListOrder(rule opt.Optional[sortrule.SortRule]) []ent_post.OrderOption {
+	r, ok := rule.Get()
+	if !ok {
+		return []ent_post.OrderOption{ent.Desc(ent_post.FieldCreatedAt)}
+	}
+
+	field := ent_post.FieldCreatedAt
+	if r.Field() == ent_post.FieldLastReplyAt {
+		field = ent_post.FieldLastReplyAt
+	}
+
+	if r.IsAscending() {
+		return []ent_post.OrderOption{ent.Asc(field)}
+	}
+
+	return []ent_post.OrderOption{ent.Desc(field)}
+}
 
 func (d *Querier) List(
 	ctx context.Context,
@@ -75,16 +97,12 @@ func (d *Querier) List(
 			lq.WithAssets().Order(link.ByCreatedAt(sql.OrderDesc()))
 		})
 
-	if queryOptions.ignorePinned {
-		query.Order(
-			ent.Desc(ent_post.FieldLastReplyAt),
-		)
-	} else {
-		query.Order(
-			ent.Desc(ent_post.FieldPinnedRank),
-			ent.Desc(ent_post.FieldLastReplyAt),
-		)
+	order := threadListOrder(queryOptions.sort)
+	if !queryOptions.ignorePinned {
+		order = append([]ent_post.OrderOption{ent.Desc(ent_post.FieldPinnedRank)}, order...)
 	}
+
+	query.Order(order...)
 
 	total, err := query.Count(ctx)
 	if err != nil {

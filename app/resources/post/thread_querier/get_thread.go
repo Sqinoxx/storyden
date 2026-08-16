@@ -30,12 +30,22 @@ import (
 	"github.com/Southclaws/storyden/internal/infrastructure/instrumentation/kv"
 )
 
-func (d *Querier) Get(ctx context.Context, threadID post.ID, pageParams pagination.Parameters, accountID opt.Optional[account.AccountID]) (*thread.Thread, error) {
+func (d *Querier) Get(ctx context.Context, threadID post.ID, pageParams pagination.Parameters, accountID opt.Optional[account.AccountID], opts ...GetOption) (*thread.Thread, error) {
 	ctx, span := d.ins.Instrument(ctx,
 		kv.String("thread_id", threadID.String()),
 		kv.String("account_id", accountID.String()),
 	)
 	defer span.End()
+
+	getOpts := getOptions{}
+	for _, fn := range opts {
+		fn(&getOpts)
+	}
+
+	replyOrder := ent.Asc(ent_post.FieldCreatedAt)
+	if getOpts.repliesDescending {
+		replyOrder = ent.Desc(ent_post.FieldCreatedAt)
+	}
 
 	pool1 := pond.NewGroup()
 
@@ -122,7 +132,7 @@ func (d *Querier) Get(ctx context.Context, threadID post.ID, pageParams paginati
 			).
 			Limit(pageParams.Limit()).
 			Offset(pageParams.Offset()).
-			Order(ent.Asc(ent_post.FieldCreatedAt)).
+			Order(replyOrder).
 			WithReplyTo(func(rq *ent.PostQuery) {
 				rq.Where(ent_post.DeletedAtIsNil())
 			}).

@@ -15,6 +15,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/post"
 	"github.com/Southclaws/storyden/app/resources/post/reply"
 	"github.com/Southclaws/storyden/app/resources/post/thread"
+	"github.com/Southclaws/storyden/app/resources/post/thread_querier"
 	"github.com/Southclaws/storyden/app/resources/rbac"
 	"github.com/Southclaws/storyden/app/resources/visibility"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
@@ -27,6 +28,7 @@ func (s *service) Get(
 	ctx context.Context,
 	threadID post.ID,
 	pageParams pagination.Parameters,
+	opts ...thread_querier.GetOption,
 ) (*thread.Thread, error) {
 	accountID := session.GetOptAccountID(ctx)
 
@@ -35,7 +37,7 @@ func (s *service) Get(
 	)
 	defer span.End()
 
-	thr, err := s.threadQuerier.Get(ctx, threadID, pageParams, accountID)
+	thr, err := s.threadQuerier.Get(ctx, threadID, pageParams, accountID, opts...)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to get thread"))
 	}

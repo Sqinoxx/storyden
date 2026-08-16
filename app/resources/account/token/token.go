@@ -62,6 +62,39 @@ type Session struct {
 	AccountID account.AccountID       `json:"a"`
 	ExpiresAt time.Time               `json:"e"`
 	RevokedAt opt.Optional[time.Time] `json:"r"`
+
+	// RefreshedAt is when the sliding window was last extended, used to keep
+	// the extension to at most one write per RefreshInterval.
+	RefreshedAt opt.Optional[time.Time] `json:"rf"`
+
+	// Lifetime is the sliding window size chosen when this session was issued.
+	// Zero marks a session issued before lifetimes were configurable; those
+	// keep their original expiry rather than being cut short.
+	Lifetime time.Duration `json:"l"`
+
+	// Persistent records whether the browser was given a cookie that survives
+	// being closed, so refreshes re-issue the same kind.
+	Persistent bool `json:"p"`
+}
+
+// IsLegacy reports a session issued before session lifetimes were configurable.
+func (s Session) IsLegacy() bool {
+	return s.Lifetime <= 0
+}
+
+// NeedsRefresh reports whether the sliding window is stale enough to be worth a
+// write. Legacy sessions are left alone so an upgrade cannot shorten them.
+func (s Session) NeedsRefresh(now time.Time, interval time.Duration) bool {
+	if s.IsLegacy() {
+		return false
+	}
+
+	refreshedAt, ok := s.RefreshedAt.Get()
+	if !ok {
+		return true
+	}
+
+	return now.Sub(refreshedAt) > interval
 }
 
 type Validated Session

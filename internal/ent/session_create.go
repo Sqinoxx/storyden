@@ -65,6 +65,48 @@ func (_c *SessionCreate) SetNillableRevokedAt(v *time.Time) *SessionCreate {
 	return _c
 }
 
+// SetRefreshedAt sets the "refreshed_at" field.
+func (_c *SessionCreate) SetRefreshedAt(v time.Time) *SessionCreate {
+	_c.mutation.SetRefreshedAt(v)
+	return _c
+}
+
+// SetNillableRefreshedAt sets the "refreshed_at" field if the given value is not nil.
+func (_c *SessionCreate) SetNillableRefreshedAt(v *time.Time) *SessionCreate {
+	if v != nil {
+		_c.SetRefreshedAt(*v)
+	}
+	return _c
+}
+
+// SetLifetimeSeconds sets the "lifetime_seconds" field.
+func (_c *SessionCreate) SetLifetimeSeconds(v int) *SessionCreate {
+	_c.mutation.SetLifetimeSeconds(v)
+	return _c
+}
+
+// SetNillableLifetimeSeconds sets the "lifetime_seconds" field if the given value is not nil.
+func (_c *SessionCreate) SetNillableLifetimeSeconds(v *int) *SessionCreate {
+	if v != nil {
+		_c.SetLifetimeSeconds(*v)
+	}
+	return _c
+}
+
+// SetPersistent sets the "persistent" field.
+func (_c *SessionCreate) SetPersistent(v bool) *SessionCreate {
+	_c.mutation.SetPersistent(v)
+	return _c
+}
+
+// SetNillablePersistent sets the "persistent" field if the given value is not nil.
+func (_c *SessionCreate) SetNillablePersistent(v *bool) *SessionCreate {
+	if v != nil {
+		_c.SetPersistent(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SessionCreate) SetID(v xid.ID) *SessionCreate {
 	_c.mutation.SetID(v)
@@ -123,6 +165,14 @@ func (_c *SessionCreate) defaults() {
 		v := session.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
+	if _, ok := _c.mutation.LifetimeSeconds(); !ok {
+		v := session.DefaultLifetimeSeconds
+		_c.mutation.SetLifetimeSeconds(v)
+	}
+	if _, ok := _c.mutation.Persistent(); !ok {
+		v := session.DefaultPersistent
+		_c.mutation.SetPersistent(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := session.DefaultID()
 		_c.mutation.SetID(v)
@@ -144,6 +194,12 @@ func (_c *SessionCreate) check() error {
 	}
 	if _, ok := _c.mutation.ExpiresAt(); !ok {
 		return &ValidationError{Name: "expires_at", err: errors.New(`ent: missing required field "Session.expires_at"`)}
+	}
+	if _, ok := _c.mutation.LifetimeSeconds(); !ok {
+		return &ValidationError{Name: "lifetime_seconds", err: errors.New(`ent: missing required field "Session.lifetime_seconds"`)}
+	}
+	if _, ok := _c.mutation.Persistent(); !ok {
+		return &ValidationError{Name: "persistent", err: errors.New(`ent: missing required field "Session.persistent"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := session.IDValidator(v.String()); err != nil {
@@ -200,6 +256,18 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.RevokedAt(); ok {
 		_spec.SetField(session.FieldRevokedAt, field.TypeTime, value)
 		_node.RevokedAt = &value
+	}
+	if value, ok := _c.mutation.RefreshedAt(); ok {
+		_spec.SetField(session.FieldRefreshedAt, field.TypeTime, value)
+		_node.RefreshedAt = &value
+	}
+	if value, ok := _c.mutation.LifetimeSeconds(); ok {
+		_spec.SetField(session.FieldLifetimeSeconds, field.TypeInt, value)
+		_node.LifetimeSeconds = value
+	}
+	if value, ok := _c.mutation.Persistent(); ok {
+		_spec.SetField(session.FieldPersistent, field.TypeBool, value)
+		_node.Persistent = value
 	}
 	if nodes := _c.mutation.AccountIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -270,6 +338,18 @@ type (
 	}
 )
 
+// SetExpiresAt sets the "expires_at" field.
+func (u *SessionUpsert) SetExpiresAt(v time.Time) *SessionUpsert {
+	u.Set(session.FieldExpiresAt, v)
+	return u
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *SessionUpsert) UpdateExpiresAt() *SessionUpsert {
+	u.SetExcluded(session.FieldExpiresAt)
+	return u
+}
+
 // SetRevokedAt sets the "revoked_at" field.
 func (u *SessionUpsert) SetRevokedAt(v time.Time) *SessionUpsert {
 	u.Set(session.FieldRevokedAt, v)
@@ -285,6 +365,54 @@ func (u *SessionUpsert) UpdateRevokedAt() *SessionUpsert {
 // ClearRevokedAt clears the value of the "revoked_at" field.
 func (u *SessionUpsert) ClearRevokedAt() *SessionUpsert {
 	u.SetNull(session.FieldRevokedAt)
+	return u
+}
+
+// SetRefreshedAt sets the "refreshed_at" field.
+func (u *SessionUpsert) SetRefreshedAt(v time.Time) *SessionUpsert {
+	u.Set(session.FieldRefreshedAt, v)
+	return u
+}
+
+// UpdateRefreshedAt sets the "refreshed_at" field to the value that was provided on create.
+func (u *SessionUpsert) UpdateRefreshedAt() *SessionUpsert {
+	u.SetExcluded(session.FieldRefreshedAt)
+	return u
+}
+
+// ClearRefreshedAt clears the value of the "refreshed_at" field.
+func (u *SessionUpsert) ClearRefreshedAt() *SessionUpsert {
+	u.SetNull(session.FieldRefreshedAt)
+	return u
+}
+
+// SetLifetimeSeconds sets the "lifetime_seconds" field.
+func (u *SessionUpsert) SetLifetimeSeconds(v int) *SessionUpsert {
+	u.Set(session.FieldLifetimeSeconds, v)
+	return u
+}
+
+// UpdateLifetimeSeconds sets the "lifetime_seconds" field to the value that was provided on create.
+func (u *SessionUpsert) UpdateLifetimeSeconds() *SessionUpsert {
+	u.SetExcluded(session.FieldLifetimeSeconds)
+	return u
+}
+
+// AddLifetimeSeconds adds v to the "lifetime_seconds" field.
+func (u *SessionUpsert) AddLifetimeSeconds(v int) *SessionUpsert {
+	u.Add(session.FieldLifetimeSeconds, v)
+	return u
+}
+
+// SetPersistent sets the "persistent" field.
+func (u *SessionUpsert) SetPersistent(v bool) *SessionUpsert {
+	u.Set(session.FieldPersistent, v)
+	return u
+}
+
+// UpdatePersistent sets the "persistent" field to the value that was provided on create.
+func (u *SessionUpsert) UpdatePersistent() *SessionUpsert {
+	u.SetExcluded(session.FieldPersistent)
 	return u
 }
 
@@ -310,9 +438,6 @@ func (u *SessionUpsertOne) UpdateNewValues() *SessionUpsertOne {
 		}
 		if _, exists := u.create.mutation.AccountID(); exists {
 			s.SetIgnore(session.FieldAccountID)
-		}
-		if _, exists := u.create.mutation.ExpiresAt(); exists {
-			s.SetIgnore(session.FieldExpiresAt)
 		}
 	}))
 	return u
@@ -345,6 +470,20 @@ func (u *SessionUpsertOne) Update(set func(*SessionUpsert)) *SessionUpsertOne {
 	return u
 }
 
+// SetExpiresAt sets the "expires_at" field.
+func (u *SessionUpsertOne) SetExpiresAt(v time.Time) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdateExpiresAt() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
 // SetRevokedAt sets the "revoked_at" field.
 func (u *SessionUpsertOne) SetRevokedAt(v time.Time) *SessionUpsertOne {
 	return u.Update(func(s *SessionUpsert) {
@@ -363,6 +502,62 @@ func (u *SessionUpsertOne) UpdateRevokedAt() *SessionUpsertOne {
 func (u *SessionUpsertOne) ClearRevokedAt() *SessionUpsertOne {
 	return u.Update(func(s *SessionUpsert) {
 		s.ClearRevokedAt()
+	})
+}
+
+// SetRefreshedAt sets the "refreshed_at" field.
+func (u *SessionUpsertOne) SetRefreshedAt(v time.Time) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetRefreshedAt(v)
+	})
+}
+
+// UpdateRefreshedAt sets the "refreshed_at" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdateRefreshedAt() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateRefreshedAt()
+	})
+}
+
+// ClearRefreshedAt clears the value of the "refreshed_at" field.
+func (u *SessionUpsertOne) ClearRefreshedAt() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.ClearRefreshedAt()
+	})
+}
+
+// SetLifetimeSeconds sets the "lifetime_seconds" field.
+func (u *SessionUpsertOne) SetLifetimeSeconds(v int) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetLifetimeSeconds(v)
+	})
+}
+
+// AddLifetimeSeconds adds v to the "lifetime_seconds" field.
+func (u *SessionUpsertOne) AddLifetimeSeconds(v int) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.AddLifetimeSeconds(v)
+	})
+}
+
+// UpdateLifetimeSeconds sets the "lifetime_seconds" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdateLifetimeSeconds() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateLifetimeSeconds()
+	})
+}
+
+// SetPersistent sets the "persistent" field.
+func (u *SessionUpsertOne) SetPersistent(v bool) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetPersistent(v)
+	})
+}
+
+// UpdatePersistent sets the "persistent" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdatePersistent() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdatePersistent()
 	})
 }
 
@@ -555,9 +750,6 @@ func (u *SessionUpsertBulk) UpdateNewValues() *SessionUpsertBulk {
 			if _, exists := b.mutation.AccountID(); exists {
 				s.SetIgnore(session.FieldAccountID)
 			}
-			if _, exists := b.mutation.ExpiresAt(); exists {
-				s.SetIgnore(session.FieldExpiresAt)
-			}
 		}
 	}))
 	return u
@@ -590,6 +782,20 @@ func (u *SessionUpsertBulk) Update(set func(*SessionUpsert)) *SessionUpsertBulk 
 	return u
 }
 
+// SetExpiresAt sets the "expires_at" field.
+func (u *SessionUpsertBulk) SetExpiresAt(v time.Time) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdateExpiresAt() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
 // SetRevokedAt sets the "revoked_at" field.
 func (u *SessionUpsertBulk) SetRevokedAt(v time.Time) *SessionUpsertBulk {
 	return u.Update(func(s *SessionUpsert) {
@@ -608,6 +814,62 @@ func (u *SessionUpsertBulk) UpdateRevokedAt() *SessionUpsertBulk {
 func (u *SessionUpsertBulk) ClearRevokedAt() *SessionUpsertBulk {
 	return u.Update(func(s *SessionUpsert) {
 		s.ClearRevokedAt()
+	})
+}
+
+// SetRefreshedAt sets the "refreshed_at" field.
+func (u *SessionUpsertBulk) SetRefreshedAt(v time.Time) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetRefreshedAt(v)
+	})
+}
+
+// UpdateRefreshedAt sets the "refreshed_at" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdateRefreshedAt() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateRefreshedAt()
+	})
+}
+
+// ClearRefreshedAt clears the value of the "refreshed_at" field.
+func (u *SessionUpsertBulk) ClearRefreshedAt() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.ClearRefreshedAt()
+	})
+}
+
+// SetLifetimeSeconds sets the "lifetime_seconds" field.
+func (u *SessionUpsertBulk) SetLifetimeSeconds(v int) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetLifetimeSeconds(v)
+	})
+}
+
+// AddLifetimeSeconds adds v to the "lifetime_seconds" field.
+func (u *SessionUpsertBulk) AddLifetimeSeconds(v int) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.AddLifetimeSeconds(v)
+	})
+}
+
+// UpdateLifetimeSeconds sets the "lifetime_seconds" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdateLifetimeSeconds() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateLifetimeSeconds()
+	})
+}
+
+// SetPersistent sets the "persistent" field.
+func (u *SessionUpsertBulk) SetPersistent(v bool) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetPersistent(v)
+	})
+}
+
+// UpdatePersistent sets the "persistent" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdatePersistent() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdatePersistent()
 	})
 }
 

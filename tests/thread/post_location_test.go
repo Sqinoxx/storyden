@@ -14,7 +14,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/Southclaws/storyden/app/resources/account/account_writer"
-	"github.com/Southclaws/storyden/app/resources/post/reply"
+	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/resources/seed"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 	"github.com/Southclaws/storyden/internal/integration"
@@ -116,8 +116,12 @@ func TestPostLocation(t *testing.T) {
 				r := require.New(t)
 
 				thr := createThread(t, "Thread replies page2")
-				targetIndex := reply.RepliesPerPage + 1
-				limit := reply.RepliesPerPage + 3
+
+				// Derived from the configured page size so that changing it
+				// cannot silently desynchronise permalinks from the thread view.
+				perPage := settings.DefaultRepliesPerPage
+				targetIndex := perPage + 1
+				limit := perPage + 3
 				var target openapi.Identifier
 				for i := 0; i < limit; i++ {
 					id := createReply(t, thr.Slug, i)
@@ -141,7 +145,7 @@ func TestPostLocation(t *testing.T) {
 				r.NotNil(resp.JSON200.Index)
 				r.NotNil(resp.JSON200.Page)
 				r.NotNil(resp.JSON200.Position)
-				a.Equal(51, *resp.JSON200.Index)
+				a.Equal(targetIndex, *resp.JSON200.Index)
 				a.Equal(2, *resp.JSON200.Page)
 				a.Equal(1, *resp.JSON200.Position)
 			})

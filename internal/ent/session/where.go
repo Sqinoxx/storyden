@@ -76,6 +76,21 @@ func RevokedAt(v time.Time) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldRevokedAt, v))
 }
 
+// RefreshedAt applies equality check predicate on the "refreshed_at" field. It's identical to RefreshedAtEQ.
+func RefreshedAt(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldRefreshedAt, v))
+}
+
+// LifetimeSeconds applies equality check predicate on the "lifetime_seconds" field. It's identical to LifetimeSecondsEQ.
+func LifetimeSeconds(v int) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldLifetimeSeconds, v))
+}
+
+// Persistent applies equality check predicate on the "persistent" field. It's identical to PersistentEQ.
+func Persistent(v bool) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldPersistent, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldCreatedAt, v))
@@ -274,6 +289,106 @@ func RevokedAtIsNil() predicate.Session {
 // RevokedAtNotNil applies the NotNil predicate on the "revoked_at" field.
 func RevokedAtNotNil() predicate.Session {
 	return predicate.Session(sql.FieldNotNull(FieldRevokedAt))
+}
+
+// RefreshedAtEQ applies the EQ predicate on the "refreshed_at" field.
+func RefreshedAtEQ(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldRefreshedAt, v))
+}
+
+// RefreshedAtNEQ applies the NEQ predicate on the "refreshed_at" field.
+func RefreshedAtNEQ(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldRefreshedAt, v))
+}
+
+// RefreshedAtIn applies the In predicate on the "refreshed_at" field.
+func RefreshedAtIn(vs ...time.Time) predicate.Session {
+	return predicate.Session(sql.FieldIn(FieldRefreshedAt, vs...))
+}
+
+// RefreshedAtNotIn applies the NotIn predicate on the "refreshed_at" field.
+func RefreshedAtNotIn(vs ...time.Time) predicate.Session {
+	return predicate.Session(sql.FieldNotIn(FieldRefreshedAt, vs...))
+}
+
+// RefreshedAtGT applies the GT predicate on the "refreshed_at" field.
+func RefreshedAtGT(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldGT(FieldRefreshedAt, v))
+}
+
+// RefreshedAtGTE applies the GTE predicate on the "refreshed_at" field.
+func RefreshedAtGTE(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldGTE(FieldRefreshedAt, v))
+}
+
+// RefreshedAtLT applies the LT predicate on the "refreshed_at" field.
+func RefreshedAtLT(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldLT(FieldRefreshedAt, v))
+}
+
+// RefreshedAtLTE applies the LTE predicate on the "refreshed_at" field.
+func RefreshedAtLTE(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldLTE(FieldRefreshedAt, v))
+}
+
+// RefreshedAtIsNil applies the IsNil predicate on the "refreshed_at" field.
+func RefreshedAtIsNil() predicate.Session {
+	return predicate.Session(sql.FieldIsNull(FieldRefreshedAt))
+}
+
+// RefreshedAtNotNil applies the NotNil predicate on the "refreshed_at" field.
+func RefreshedAtNotNil() predicate.Session {
+	return predicate.Session(sql.FieldNotNull(FieldRefreshedAt))
+}
+
+// LifetimeSecondsEQ applies the EQ predicate on the "lifetime_seconds" field.
+func LifetimeSecondsEQ(v int) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldLifetimeSeconds, v))
+}
+
+// LifetimeSecondsNEQ applies the NEQ predicate on the "lifetime_seconds" field.
+func LifetimeSecondsNEQ(v int) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldLifetimeSeconds, v))
+}
+
+// LifetimeSecondsIn applies the In predicate on the "lifetime_seconds" field.
+func LifetimeSecondsIn(vs ...int) predicate.Session {
+	return predicate.Session(sql.FieldIn(FieldLifetimeSeconds, vs...))
+}
+
+// LifetimeSecondsNotIn applies the NotIn predicate on the "lifetime_seconds" field.
+func LifetimeSecondsNotIn(vs ...int) predicate.Session {
+	return predicate.Session(sql.FieldNotIn(FieldLifetimeSeconds, vs...))
+}
+
+// LifetimeSecondsGT applies the GT predicate on the "lifetime_seconds" field.
+func LifetimeSecondsGT(v int) predicate.Session {
+	return predicate.Session(sql.FieldGT(FieldLifetimeSeconds, v))
+}
+
+// LifetimeSecondsGTE applies the GTE predicate on the "lifetime_seconds" field.
+func LifetimeSecondsGTE(v int) predicate.Session {
+	return predicate.Session(sql.FieldGTE(FieldLifetimeSeconds, v))
+}
+
+// LifetimeSecondsLT applies the LT predicate on the "lifetime_seconds" field.
+func LifetimeSecondsLT(v int) predicate.Session {
+	return predicate.Session(sql.FieldLT(FieldLifetimeSeconds, v))
+}
+
+// LifetimeSecondsLTE applies the LTE predicate on the "lifetime_seconds" field.
+func LifetimeSecondsLTE(v int) predicate.Session {
+	return predicate.Session(sql.FieldLTE(FieldLifetimeSeconds, v))
+}
+
+// PersistentEQ applies the EQ predicate on the "persistent" field.
+func PersistentEQ(v bool) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldPersistent, v))
+}
+
+// PersistentNEQ applies the NEQ predicate on the "persistent" field.
+func PersistentNEQ(v bool) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldPersistent, v))
 }
 
 // HasAccount applies the HasEdge predicate on the "account" edge.

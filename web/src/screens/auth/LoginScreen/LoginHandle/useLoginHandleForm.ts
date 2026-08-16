@@ -23,10 +23,12 @@ type Kind = z.infer<typeof KindSchema>;
 const FormSchema = z.object({
   identifier: UsernameSchema,
   token: z.string().optional(), // Validated properly during password submission
+  remember_me: z.boolean().optional(),
 });
 const FormPasswordSchema = z.object({
   identifier: UsernameSchema,
   token: ExistingPasswordSchema,
+  remember_me: z.boolean().optional(),
 });
 type Form = z.infer<typeof FormSchema>;
 
@@ -38,6 +40,7 @@ export function useLoginHandleForm() {
     setError,
   } = useForm<Form>({
     resolver: zodResolver(FormSchema),
+    defaultValues: { remember_me: false },
   });
   const searchParams = useSearchParams();
   const returnURL = searchParams.get("return_url") ?? "/d";

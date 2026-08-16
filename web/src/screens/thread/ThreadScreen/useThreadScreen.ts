@@ -97,6 +97,7 @@ export function useThreadScreen({
     slug,
     {
       page: initialPage?.toString(),
+      sort: sortOrder,
     },
     {
       swr: {

@@ -8,6 +8,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/account/account_email"
 	"github.com/Southclaws/storyden/app/services/account/account_suspension"
 	"github.com/Southclaws/storyden/app/services/account/register"
+	"github.com/Southclaws/storyden/app/services/account/semester"
 	"github.com/Southclaws/storyden/app/services/admin/settings_manager"
 	"github.com/Southclaws/storyden/app/services/asset"
 	"github.com/Southclaws/storyden/app/services/audit/audit_logger"
@@ -97,6 +98,7 @@ func Build() fx.Option {
 		fx.Provide(autotagger.New),
 		fx.Provide(instance_info.New),
 		ocr.Build(),
+		semester.Build(),
 		drive_credentials.Build(),
 		fx.Provide(drive_manage.New, drive_browse.New),
 		fx.Provide(account_auth.New, account_email.New),

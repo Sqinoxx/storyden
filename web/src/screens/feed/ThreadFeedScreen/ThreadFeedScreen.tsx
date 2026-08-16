@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-
 import { type Account } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { FeedEmptyState } from "@/components/feed/FeedEmptyState";
@@ -18,7 +16,23 @@ import { type Settings } from "@/lib/settings/settings";
 import { HStack, LStack, VStack, WStack } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
-import { Props, useThreadFeedScreen } from "./useThreadFeedScreen";
+import {
+  Props,
+  ThreadSortOrder,
+  useThreadFeedScreen,
+} from "./useThreadFeedScreen";
+
+const SORT_ORDERS: ThreadSortOrder[] = ["newest", "activity", "oldest"];
+
+function sortOrderLabels(
+  t: ReturnType<typeof useTranslation>,
+): Record<ThreadSortOrder, string> {
+  return {
+    newest: t.thread.sortNewestFirst,
+    activity: t.thread.sortRecentActivity,
+    oldest: t.thread.sortOldestFirst,
+  };
+}
 
 export function ThreadFeedScreen({
   initialPage,
@@ -71,17 +85,6 @@ export function ThreadFeed(props: Props & { hideCategoryBadge?: boolean }) {
     handleSetSortOrder,
   } = useThreadFeedScreen(props);
 
-  const sortedThreads = useMemo(() => {
-    if (!data?.threads) return [];
-    const threads = [...data.threads];
-    threads.sort((a, b) => {
-      const timeA = new Date(a.createdAt).getTime();
-      const timeB = new Date(b.createdAt).getTime();
-      return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
-    });
-    return threads;
-  }, [data?.threads, sortOrder]);
-
   if (!ready) {
     return <Unready error={error} />;
   }
@@ -97,50 +100,42 @@ export function ThreadFeed(props: Props & { hideCategoryBadge?: boolean }) {
           <Menu.Trigger asChild>
             <Button variant="ghost" size="xs" aria-label={t.thread.sortBy}>
               <HStack gap="1" fontSize="xs">
-                {sortOrder === "asc" ? (
+                {sortOrder === "oldest" ? (
                   <SortAscendingIcon width="3.5" height="3.5" />
                 ) : (
                   <SortDescendingIcon width="3.5" height="3.5" />
                 )}
-                <span>
-                  {sortOrder === "asc"
-                    ? t.thread.sortOldestFirst
-                    : t.thread.sortNewestFirst}
-                </span>
+                <span>{sortOrderLabels(t)[sortOrder]}</span>
               </HStack>
             </Button>
           </Menu.Trigger>
           <Menu.Positioner>
             <Menu.Content minW="44">
               <Menu.ItemGroup id="feed-sort-options">
-                <Menu.Item
-                  key="desc"
-                  value="desc"
-                  onClick={() => handleSetSortOrder("desc")}
-                  aria-label={t.thread.sortNewestFirst}
-                >
-                  <HStack gap="2" justifyContent="space-between" w="full">
-                    <HStack gap="2">
-                      <SortDescendingIcon width="4" height="4" />
-                      <span>{t.thread.sortNewestFirst}</span>
-                    </HStack>
-                    {sortOrder === "desc" && <CheckIcon width="4" height="4" />}
-                  </HStack>
-                </Menu.Item>
-                <Menu.Item
-                  key="asc"
-                  value="asc"
-                  onClick={() => handleSetSortOrder("asc")}
-                  aria-label={t.thread.sortOldestFirst}
-                >
-                  <HStack gap="2" justifyContent="space-between" w="full">
-                    <HStack gap="2">
-                      <SortAscendingIcon width="4" height="4" />
-                      <span>{t.thread.sortOldestFirst}</span>
-                    </HStack>
-                    {sortOrder === "asc" && <CheckIcon width="4" height="4" />}
-                  </HStack>
-                </Menu.Item>
+                {SORT_ORDERS.map((order) => {
+                  const label = sortOrderLabels(t)[order];
+                  const Icon =
+                    order === "oldest" ? SortAscendingIcon : SortDescendingIcon;
+
+                  return (
+                    <Menu.Item
+                      key={order}
+                      value={order}
+                      onClick={() => handleSetSortOrder(order)}
+                      aria-label={label}
+                    >
+                      <HStack gap="2" justifyContent="space-between" w="full">
+                        <HStack gap="2">
+                          <Icon width="4" height="4" />
+                          <span>{label}</span>
+                        </HStack>
+                        {sortOrder === order && (
+                          <CheckIcon width="4" height="4" />
+                        )}
+                      </HStack>
+                    </Menu.Item>
+                  );
+                })}
               </Menu.ItemGroup>
             </Menu.Content>
           </Menu.Positioner>
@@ -157,7 +152,7 @@ export function ThreadFeed(props: Props & { hideCategoryBadge?: boolean }) {
         />
       )}
       <ol className={lstack()}>
-        {sortedThreads.map((t) => {
+        {data.threads.map((t) => {
           return (
             <ThreadReferenceCard
               key={t.slug}

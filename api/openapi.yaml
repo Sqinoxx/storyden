@@ -1376,6 +1376,29 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "200": { $ref: "#/components/responses/AuthSuccessOK" }
 
+  /auth/email/resend:
+    post:
+      operationId: AuthEmailVerifyResend
+      description: |
+        Send a new verification code to an unverified email address.
+
+        When called with a session, the address may be omitted and the session
+        account's unverified address is used. Without a session the address must
+        be provided.
+
+        The response is always 200, regardless of whether the address is known,
+        so that this cannot be used to probe for registered accounts. Given that
+        it triggers an email to an arbitrary public address, it MUST be heavily
+        rate limited.
+      x-storyden:
+        rate-limit-cost: 10
+      tags: [auth]
+      requestBody: { $ref: "#/components/requestBodies/AuthEmailVerifyResend" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200": { description: A verification email was sent if the address was eligible. }
+
   /auth/oauth/{oauth_provider}/callback:
     post:
       operationId: OAuthProviderCallback
@@ -2831,6 +2854,7 @@ paths:
         - $ref: "#/components/parameters/SearchQuery"
         - $ref: "#/components/parameters/PaginationQuery"
         - $ref: "#/components/parameters/ThreadsIgnorePinnedQuery"
+        - $ref: "#/components/parameters/ThreadListSortQuery"
         - name: author
           description: Show only results creeated by this user.
           required: false
@@ -2860,6 +2884,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/ThreadMarkParam"
         - $ref: "#/components/parameters/PaginationQuery"
+        - $ref: "#/components/parameters/ThreadRepliesSortQuery"
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -5109,6 +5134,35 @@ components:
       schema:
         type: boolean
 
+    ThreadListSortQuery:
+      description: |
+        Ordering applied to the thread list.
+
+        - `newest`: most recently created threads first. This is the default.
+        - `activity`: most recently replied-to threads first, so busy threads
+          are bumped back to the top.
+        - `oldest`: oldest threads first.
+
+        Pinned threads keep their position at the top of the first page for
+        every ordering unless `ignore_pinned` is set.
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [newest, activity, oldest]
+
+    ThreadRepliesSortQuery:
+      description: |
+        Ordering applied to the replies within a thread. Defaults to `asc`,
+        oldest first, which is the order reply permalinks are resolved against.
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [asc, desc]
+
     CategorySlugParam:
       description: Unique category URL slug.
       name: category_slug
@@ -5434,6 +5488,11 @@ components:
       content:
         application/json:
           schema: { $ref: "#/components/schemas/AuthEmailVerifyProps" }
+
+    AuthEmailVerifyResend:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AuthEmailVerifyResendProps" }
 
     AuthPasswordCreate:
       content:
@@ -7757,6 +7816,54 @@ components:
           $ref: "#/components/schemas/ModerationServiceSettings"
         robots:
           $ref: "#/components/schemas/RobotServiceSettings"
+        content:
+          $ref: "#/components/schemas/ContentServiceSettings"
+        session:
+          $ref: "#/components/schemas/SessionServiceSettings"
+
+    ContentServiceSettings:
+      type: object
+      properties:
+        replies_per_page:
+          type: integer
+          minimum: 1
+          maximum: 200
+          description: |
+            How many replies are returned per page of a thread. Lowering this
+            keeps long threads fast to load. Changing it alters which page a
+            given reply lives on, invalidating existing deep links.
+        threads_per_page:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: |
+            How many threads are returned per page of a thread list or feed.
+
+    SessionServiceSettings:
+      type: object
+      properties:
+        idle_timeout_minutes:
+          type: integer
+          minimum: 1
+          maximum: 43200
+          description: |
+            How long a session without "remember me" survives without activity.
+            The window slides forward while the member keeps making requests, so
+            this is an inactivity timeout rather than a hard cap from sign-in.
+        remember_me_default_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          description: |
+            Session lifetime applied when a member signs in with "remember me"
+            and has not chosen their own duration.
+        remember_me_max_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          description: |
+            Upper bound for member-chosen "remember me" durations. Requests for
+            longer sessions are clamped to this value.
 
     RobotServiceSettings:
       type: object
@@ -8806,6 +8913,16 @@ components:
           description: The hyperlink to render for the user.
           type: string
 
+    AuthRememberMe:
+      description: |
+        Whether to keep the member signed in beyond the current browser session.
+
+        When false or omitted the session is a browser-session cookie subject to
+        the instance's inactivity timeout, so closing the browser signs out.
+        When true the session lasts for the member's configured remember-me
+        duration, clamped to the instance maximum.
+      type: boolean
+
     AuthPair:
       type: object
       required: [identifier, token]
@@ -8816,6 +8933,7 @@ components:
         token:
           example: "password"
           type: string
+        remember_me: { $ref: "#/components/schemas/AuthRememberMe" }
 
     AuthEmailPasswordInitialProps:
       type: object
@@ -8826,6 +8944,7 @@ components:
           type: string
         handle:
           $ref: "#/components/schemas/AccountHandle"
+        remember_me: { $ref: "#/components/schemas/AuthRememberMe" }
 
     AuthEmailPasswordReset:
       type: object
@@ -8854,6 +8973,7 @@ components:
         email: { $ref: "#/components/schemas/EmailAddress" }
         handle:
           $ref: "#/components/schemas/AccountHandle"
+        remember_me: { $ref: "#/components/schemas/AuthRememberMe" }
 
     AuthEmailVerifyProps:
       type: object
@@ -8867,6 +8987,17 @@ components:
         code:
           example: "728562"
           type: string
+        remember_me: { $ref: "#/components/schemas/AuthRememberMe" }
+
+    AuthEmailVerifyResendProps:
+      type: object
+      properties:
+        email:
+          description: |
+            The address to resend the verification code to. May be omitted when
+            a session cookie is present, in which case the session account's
+            unverified address is used.
+          $ref: "#/components/schemas/EmailAddress"
 
     AuthPasswordInitialProps:
       type: object
@@ -9817,6 +9948,7 @@ components:
       properties:
         code:
           type: string
+        remember_me: { $ref: "#/components/schemas/AuthRememberMe" }
 
     AccessKey:
       type: object

@@ -21,6 +21,11 @@ import { DotSeparator } from "@/components/site/Dot";
 import { LikeIcon } from "@/components/ui/icons/Like";
 import { Input } from "@/components/ui/input";
 import {
+  SEMESTER_OPTIONS,
+  formatSemester,
+  parseAcademicMeta,
+} from "@/lib/profile/academic";
+import {
   Box,
   CardBox,
   Flex,
@@ -43,6 +48,7 @@ export function ProfileScreen(props: Props) {
 
   const { session, profile } = data;
   const { isSelf, isEditing, canViewAccount, signaturesEnabled } = state;
+  const semester = parseAcademicMeta(profile.meta)?.semester;
   const isEmpty =
     !profile.bio || profile.bio === "" || profile.bio === "<body></body>";
   const isSignatureEmpty =
@@ -144,7 +150,48 @@ export function ProfileScreen(props: Props) {
                 {profile.like_score === 1 ? t.thread.like : t.thread.likes}
               </span>
             </HStack>
+
+            {!isEditing && semester !== undefined && (
+              <>
+                <DotSeparator />
+                <styled.p color="fg.subtle" textWrap="nowrap">
+                  {formatSemester(semester)}
+                </styled.p>
+              </>
+            )}
           </HStack>
+
+          {isEditing && (
+            <LStack gap="1" maxW={{ base: "full", sm: "64" }}>
+              <styled.label
+                htmlFor="profile-semester"
+                color="fg.muted"
+                fontSize="sm"
+              >
+                {t.profile.semester}
+              </styled.label>
+              <styled.select
+                id="profile-semester"
+                width="full"
+                height="9"
+                px="2"
+                borderWidth="thin"
+                borderStyle="solid"
+                borderColor="border.default"
+                borderRadius="l2"
+                bg="bg.default"
+                color="fg.default"
+                {...form.register("semester")}
+              >
+                <option value="">{t.profile.semesterUnset}</option>
+                {SEMESTER_OPTIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {formatSemester(value)}
+                  </option>
+                ))}
+              </styled.select>
+            </LStack>
+          )}
 
           {isEmpty && !isEditing ? (
             <styled.p color="fg.subtle" fontStyle="italic">

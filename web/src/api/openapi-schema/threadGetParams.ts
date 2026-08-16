@@ -8,10 +8,17 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 import type { PaginationQueryParameter } from "./paginationQueryParameter";
+import type { ThreadRepliesSortQueryParameter } from "./threadRepliesSortQueryParameter";
 
 export type ThreadGetParams = {
   /**
    * Pagination query parameters.
    */
   page?: PaginationQueryParameter;
+  /**
+ * Ordering applied to the replies within a thread. Defaults to `asc`,
+oldest first, which is the order reply permalinks are resolved against.
+
+ */
+  sort?: ThreadRepliesSortQueryParameter;
 };

@@ -33,7 +33,7 @@ func (o *Authentication) OAuthProviderCallback(ctx context.Context, request open
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := o.si.Issue(ctx, account.ID)
+	t, err := o.si.Issue(ctx, account.ID, alwaysRemember())
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

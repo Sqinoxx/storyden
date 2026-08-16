@@ -152,7 +152,7 @@ func (a *WebAuthn) WebAuthnMakeCredential(ctx context.Context, request openapi.W
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := a.si.Issue(ctx, accountID)
+	t, err := a.si.Issue(ctx, accountID, alwaysRemember())
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -240,7 +240,7 @@ func (a *WebAuthn) WebAuthnMakeAssertion(ctx context.Context, request openapi.We
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := a.si.Issue(ctx, acc.ID)
+	t, err := a.si.Issue(ctx, acc.ID, alwaysRemember())
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

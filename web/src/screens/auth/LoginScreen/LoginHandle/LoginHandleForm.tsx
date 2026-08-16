@@ -4,11 +4,13 @@ import type { KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "@/lib/i18n";
 import { Flex, styled } from "@/styled-system/jsx";
 
 import { useLoginHandleForm } from "./useLoginHandleForm";
 
 export function LoginHandleForm() {
+  const t = useTranslation();
   const {
     form: {
       register,
@@ -66,6 +68,17 @@ export function LoginHandleForm() {
       <styled.p color="fg.error" fontSize="sm">
         {errors.token?.message}
       </styled.p>
+      <Flex alignItems="center" justifyContent="center" gap="2">
+        <styled.input
+          id="remember-me"
+          type="checkbox"
+          cursor="pointer"
+          {...register("remember_me")}
+        />
+        <styled.label htmlFor="remember-me" fontSize="sm" cursor="pointer">
+          {t.auth.rememberMe}
+        </styled.label>
+      </Flex>
       <Button type="submit" w="full" loading={isSubmitting}>
         Login
       </Button>

@@ -2021,6 +2021,14 @@ func init() {
 	sessionDescAccountID := sessionFields[0].Descriptor()
 	// session.AccountIDValidator is a validator for the "account_id" field. It is called by the builders before save.
 	session.AccountIDValidator = sessionDescAccountID.Validators[0].(func(string) error)
+	// sessionDescLifetimeSeconds is the schema descriptor for lifetime_seconds field.
+	sessionDescLifetimeSeconds := sessionFields[4].Descriptor()
+	// session.DefaultLifetimeSeconds holds the default value on creation for the lifetime_seconds field.
+	session.DefaultLifetimeSeconds = sessionDescLifetimeSeconds.Default.(int)
+	// sessionDescPersistent is the schema descriptor for persistent field.
+	sessionDescPersistent := sessionFields[5].Descriptor()
+	// session.DefaultPersistent holds the default value on creation for the persistent field.
+	session.DefaultPersistent = sessionDescPersistent.Default.(bool)
 	// sessionDescID is the schema descriptor for id field.
 	sessionDescID := sessionMixinFields0[0].Descriptor()
 	// session.DefaultID holds the default value on creation for the id field.

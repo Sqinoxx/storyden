@@ -154,7 +154,7 @@ func statusFromErrorKind(k ftag.Kind) int {
 		return http.StatusNotFound
 	case ftag.AlreadyExists:
 		return http.StatusConflict
-	case ftag.PermissionDenied:
+	case ftag.PermissionDenied, KindEmailNotVerified:
 		return http.StatusForbidden
 	case ftag.Unauthenticated:
 		return http.StatusUnauthorized

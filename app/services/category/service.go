@@ -73,6 +73,10 @@ func (s *service) Create(ctx context.Context, partial Partial) (*category.Catego
 	opts := []category.Option{}
 
 	if v, ok := partial.Parent.Get(); ok {
+		if err := s.category_repo.ValidateParentDepth(ctx, v); err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+
 		pid := v
 		opts = append(opts, category.WithParent(&pid))
 	}

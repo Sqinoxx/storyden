@@ -143,7 +143,11 @@ type Location struct {
 	Position opt.Optional[int]
 }
 
-func (d *database) Locate(ctx context.Context, id post.ID) (*Location, error) {
+func (d *database) Locate(ctx context.Context, id post.ID, perPage int) (*Location, error) {
+	if perPage <= 0 {
+		perPage = reply.DefaultRepliesPerPage
+	}
+
 	// fetch either the post or its root post.
 	p, err := d.db.Post.Query().
 		Where(
@@ -182,8 +186,8 @@ func (d *database) Locate(ctx context.Context, id post.ID) (*Location, error) {
 	}
 
 	index := count - 1
-	page := (index / reply.RepliesPerPage) + 1
-	position := index % reply.RepliesPerPage
+	page := (index / perPage) + 1
+	position := index % perPage
 
 	return &Location{
 		Slug:     fmt.Sprintf("%s#%s", p.Edges.Root.Slug, id.String()),

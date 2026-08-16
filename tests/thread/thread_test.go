@@ -22,6 +22,10 @@ import (
 	"github.com/Southclaws/storyden/tests"
 )
 
+// Threads are listed newest-first by default; last_reply_at ordering, where a
+// new reply bumps a thread back to the top, is requested explicitly.
+var sortByActivity = openapi.ThreadListParamsSort("activity")
+
 func TestThreads(t *testing.T) {
 	t.Parallel()
 
@@ -192,6 +196,7 @@ func TestThreads(t *testing.T) {
 					threadlist := tests.AssertRequest(
 						cl.ThreadListWithResponse(root, &openapi.ThreadListParams{
 							Categories: &categoryFilter,
+							Sort:       &sortByActivity,
 						}),
 					)(t, http.StatusOK)
 					threads := filterThreads(threadlist.JSON200.Threads, id1, id2)
@@ -217,6 +222,7 @@ func TestThreads(t *testing.T) {
 					threadlist := tests.AssertRequest(
 						cl.ThreadListWithResponse(root, &openapi.ThreadListParams{
 							Categories: &categoryFilter,
+							Sort:       &sortByActivity,
 						}),
 					)(t, http.StatusOK)
 					threads := filterThreads(threadlist.JSON200.Threads, id1, id2)
@@ -242,6 +248,7 @@ func TestThreads(t *testing.T) {
 					threadlist := tests.AssertRequest(
 						cl.ThreadListWithResponse(root, &openapi.ThreadListParams{
 							Categories: &categoryFilter,
+							Sort:       &sortByActivity,
 						}),
 					)(t, http.StatusOK)
 					threads := filterThreads(threadlist.JSON200.Threads, id1, id2)
@@ -293,6 +300,7 @@ func TestThreads(t *testing.T) {
 				threadList := tests.AssertRequest(
 					cl.ThreadListWithResponse(root, &openapi.ThreadListParams{
 						Categories: &categoryFilter,
+						Sort:       &sortByActivity,
 					}),
 				)(t, http.StatusOK)
 

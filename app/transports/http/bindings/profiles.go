@@ -17,6 +17,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/datagraph"
 	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/profile"
+	"github.com/Southclaws/storyden/app/services/account/semester"
 	"github.com/Southclaws/storyden/app/resources/profile/follow_querier"
 	"github.com/Southclaws/storyden/app/resources/profile/profile_cache"
 	"github.com/Southclaws/storyden/app/resources/profile/profile_querier"
@@ -314,7 +315,7 @@ func serialiseProfile(in *profile.Public) openapi.PublicProfile {
 		LikeScore: in.LikeScore,
 		Links:     serialiseExternalLinks(in.ExternalLinks),
 		InvitedBy: invitedBy.Ptr(),
-		Meta:      in.Metadata,
+		Meta:      semester.Project(in.Metadata, time.Now()),
 	}
 }
 
@@ -327,7 +328,7 @@ func serialiseProfileReference(a profile.Ref) openapi.ProfileReference {
 		Name:      a.Name,
 		Signature: opt.Map(a.Signature, func(s datagraph.Content) string { return s.HTML() }).Ptr(),
 		Roles:     serialiseHeldRoleRefList(a.Roles),
-		Meta:      (*openapi.Metadata)(&a.Metadata),
+		Meta:      serialiseProfileMeta(a.Metadata),
 	}
 }
 
@@ -340,10 +341,17 @@ func serialiseProfileReferenceFromAccount(a account.Account) openapi.ProfileRefe
 		Name:      a.Name,
 		Signature: opt.Map(a.Signature, func(s datagraph.Content) string { return s.HTML() }).Ptr(),
 		Roles:     serialiseHeldRoleRefList(a.Roles),
-		Meta:      (*openapi.Metadata)(&a.Metadata),
+		Meta:      serialiseProfileMeta(a.Metadata),
 	}
 }
 
 func serialiseProfileReferencePtr(a *profile.Ref) openapi.ProfileReference {
 	return serialiseProfileReference(*a)
+}
+
+// serialiseProfileMeta projects the derived academic semester so that every
+// profile-shaped response agrees on the same value.
+func serialiseProfileMeta(meta map[string]any) *openapi.Metadata {
+	projected := openapi.Metadata(semester.Project(meta, time.Now()))
+	return &projected
 }

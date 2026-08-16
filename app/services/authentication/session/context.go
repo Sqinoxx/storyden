@@ -36,6 +36,32 @@ type sessionContext struct {
 	// sessionToken stores the session token for later revocation during logout.
 	// This is only populated for browser sessions, not access keys.
 	sessionToken opt.Optional[string]
+
+	// emailVerificationGated records that this account was demoted to the guest
+	// role solely because its email address is unverified. Without it an
+	// authorisation failure is indistinguishable from a genuine lack of
+	// permission, and the frontend cannot offer to resend the code.
+	emailVerificationGated bool
+}
+
+// SessionOption adjusts the session being placed into the request context.
+type SessionOption func(*sessionContext)
+
+func EmailGated(v bool) SessionOption {
+	return func(s *sessionContext) {
+		s.emailVerificationGated = v
+	}
+}
+
+// IsEmailVerificationGated reports whether the session's permissions were
+// reduced because of an unverified email address.
+func IsEmailVerificationGated(ctx context.Context) bool {
+	session, ok := ctx.Value(sessionContextKey).(sessionContext)
+	if !ok {
+		return false
+	}
+
+	return session.emailVerificationGated
 }
 
 func WithAccount(ctx context.Context, u account.Account, roles role.Roles) context.Context {
@@ -51,17 +77,34 @@ func WithAccountPermissions(ctx context.Context, u account.Account, permissions 
 	})
 }
 
-func WithAccountAndToken(ctx context.Context, u account.Account, roles role.Roles, token string) context.Context {
-	return context.WithValue(ctx, sessionContextKey, sessionContext{
+func WithAccountAndToken(ctx context.Context, u account.Account, roles role.Roles, token string, opts ...SessionOption) context.Context {
+	s := sessionContext{
 		account:        opt.New(u),
 		permissions:    roles.Permissions(),
 		securityScheme: "browser",
 		sessionToken:   opt.New(token),
-	})
+	}
+
+	for _, fn := range opts {
+		fn(&s)
+	}
+
+	return context.WithValue(ctx, sessionContextKey, s)
 }
 
-func WithAccessKey(ctx context.Context, u account.Account, roles role.Roles) context.Context {
-	return WithAccessKeyPermissions(ctx, u, roles.Permissions())
+func WithAccessKey(ctx context.Context, u account.Account, roles role.Roles, opts ...SessionOption) context.Context {
+	s := sessionContext{
+		account:        opt.New(u),
+		permissions:    roles.Permissions(),
+		securityScheme: "access_key",
+		sessionToken:   opt.NewEmpty[string](),
+	}
+
+	for _, fn := range opts {
+		fn(&s)
+	}
+
+	return context.WithValue(ctx, sessionContextKey, s)
 }
 
 func WithAccessKeyPermissions(ctx context.Context, u account.Account, permissions rbac.Permissions) context.Context {

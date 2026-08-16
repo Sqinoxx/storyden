@@ -12,6 +12,7 @@ import type { CategorySlugListQueryParameter } from "./categorySlugListQueryPara
 import type { PaginationQueryParameter } from "./paginationQueryParameter";
 import type { SearchQueryParameter } from "./searchQueryParameter";
 import type { TagListIDs } from "./tagListIDs";
+import type { ThreadListSortQueryParameter } from "./threadListSortQueryParameter";
 import type { ThreadsIgnorePinnedQueryParameter } from "./threadsIgnorePinnedQueryParameter";
 import type { VisibilityParamParameter } from "./visibilityParamParameter";
 
@@ -32,6 +33,19 @@ page.
 
  */
   ignore_pinned?: ThreadsIgnorePinnedQueryParameter;
+  /**
+ * Ordering applied to the thread list.
+
+- `newest`: most recently created threads first. This is the default.
+- `activity`: most recently replied-to threads first, so busy threads
+  are bumped back to the top.
+- `oldest`: oldest threads first.
+
+Pinned threads keep their position at the top of the first page for
+every ordering unless `ignore_pinned` is set.
+
+ */
+  sort?: ThreadListSortQueryParameter;
   /**
    * Show only results creeated by this user.
    */

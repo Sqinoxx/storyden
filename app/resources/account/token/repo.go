@@ -12,7 +12,8 @@ import (
 )
 
 type Repository interface {
-	Issue(context.Context, account.AccountID) (*Session, error)
+	Issue(context.Context, account.AccountID, ...IssueOption) (*Session, error)
+	Refresh(context.Context, Token) (*Session, error)
 	Revoke(context.Context, Token) error
 	Validate(context.Context, Token) (*Validated, error)
 }
@@ -29,12 +30,27 @@ func NewCachedRepository(repo Repository, store cache.Store) Repository {
 	}
 }
 
-func (r *cachedRepo) Issue(ctx context.Context, accountID account.AccountID) (*Session, error) {
-	s, err := r.repo.Issue(ctx, accountID)
+func (r *cachedRepo) Issue(ctx context.Context, accountID account.AccountID, opts ...IssueOption) (*Session, error) {
+	s, err := r.repo.Issue(ctx, accountID, opts...)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if err := r.cache(ctx, *s); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return s, nil
+}
+
+func (r *cachedRepo) Refresh(ctx context.Context, t Token) (*Session, error) {
+	s, err := r.repo.Refresh(ctx, t)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	// Re-cache rather than invalidate, otherwise the cached copy would keep
+	// serving the old expiry and the window would never appear to slide.
 	if err := r.cache(ctx, *s); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

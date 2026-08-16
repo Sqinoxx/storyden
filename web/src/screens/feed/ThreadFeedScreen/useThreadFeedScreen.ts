@@ -3,7 +3,11 @@
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 
 import { useThreadList } from "@/api/openapi-client/threads";
-import { Category, ThreadListResult } from "@/api/openapi-schema";
+import {
+  Category,
+  ThreadListParams,
+  ThreadListResult,
+} from "@/api/openapi-schema";
 
 export type Props = {
   initialPage?: number;
@@ -15,6 +19,23 @@ export type Props = {
   paginationBasePath: string;
 };
 
+export type ThreadSortOrder = NonNullable<ThreadListParams["sort"]>;
+
+const DEFAULT_SORT: ThreadSortOrder = "newest";
+
+// "asc"/"desc" were the pre-API sort values and may still be in shared links.
+function parseSortOrder(value: string): ThreadSortOrder {
+  switch (value) {
+    case "oldest":
+    case "asc":
+      return "oldest";
+    case "activity":
+      return "activity";
+    default:
+      return DEFAULT_SORT;
+  }
+}
+
 export function useThreadFeedScreen(props: Props) {
   const initialPage = props.initialPage ?? 1;
 
@@ -24,9 +45,9 @@ export function useThreadFeedScreen(props: Props) {
   });
   const [sortParam, setSortParam] = useQueryState(
     "sort",
-    parseAsString.withDefault("desc"),
+    parseAsString.withDefault(DEFAULT_SORT),
   );
-  const sortOrder: "asc" | "desc" = sortParam === "asc" ? "asc" : "desc";
+  const sortOrder = parseSortOrder(sortParam);
 
   function handlePageChange(page: number) {
     setPage(page);
@@ -35,6 +56,7 @@ export function useThreadFeedScreen(props: Props) {
   const { data, error } = useThreadList(
     {
       page: page.toString(),
+      sort: sortOrder,
       categories:
         props.category === undefined
           ? []
@@ -61,7 +83,7 @@ export function useThreadFeedScreen(props: Props) {
     data,
     sortOrder,
     handlePageChange,
-    handleSetSortOrder: (order: "asc" | "desc") =>
-      setSortParam(order === "desc" ? null : order),
+    handleSetSortOrder: (order: ThreadSortOrder) =>
+      setSortParam(order === DEFAULT_SORT ? null : order),
   };
 }

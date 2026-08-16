@@ -4,7 +4,7 @@ import { ProblemType } from "@/api/problems";
 const ErrUnexpected = "An unexpected error occurred";
 
 const ErrAccessDenied =
-  "Du hast keinen Zugriff auf diese Seite. Bitte verifiziere dich zuerst.";
+  "Du hast keinen Zugriff auf diese Seite.";
 
 // Next.js replaces the real message of any Error thrown during a Server
 // Component render with this boilerplate before it reaches the client in

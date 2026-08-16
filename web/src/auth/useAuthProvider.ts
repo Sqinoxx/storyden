@@ -8,7 +8,9 @@ import { usePublicRegistration } from "@/lib/settings/registration";
 const PRIVATE_PAGES = ["/settings", "/new", "/admin"];
 
 function privatePage(pathName: string): boolean {
-  return PRIVATE_PAGES.includes(pathName);
+  return PRIVATE_PAGES.some(
+    (page) => pathName === page || pathName.startsWith(`${page}/`),
+  );
 }
 
 export function useAuthProvider() {

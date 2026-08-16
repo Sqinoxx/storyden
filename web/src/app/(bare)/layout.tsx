@@ -23,22 +23,37 @@ export default async function Layout({ children }: PropsWithChildren) {
 
   return (
     <Fullpage>
-      <VStack minH="dvh" py="6" justifyContent="space-between" alignItems="center" w="full">
+      <VStack minH="dvh" py="8" justifyContent="space-between" alignItems="center" w="full">
         <styled.div flexGrow={1} />
-        <CardBox className={vstack()} maxW="sm" gap="4" p="4">
+        <CardBox
+          className={vstack()}
+          maxW="sm"
+          gap="6"
+          p="8"
+          borderWidth="thin"
+          borderColor="border.subtle"
+          borderRadius="2xl"
+          boxShadow="lg"
+        >
           <WStack>
             <BackAction />
           </WStack>
-          <VStack>
+          <VStack gap="3">
             <Image
-              className={css({ width: "24", borderRadius: "md" })}
+              className={css({
+                width: "20",
+                borderRadius: "full",
+                borderWidth: "thin",
+                borderColor: "border.subtle",
+                boxShadow: "sm",
+              })}
               src={getIconURL("512x512")}
               width={512}
               height={512}
               alt={`The ${siteName} logo`}
             />
 
-            <styled.h1 fontWeight="bold" fontSize="lg">
+            <styled.h1 fontWeight="bold" fontSize="xl" color="fg.default">
               {siteName}
             </styled.h1>
           </VStack>

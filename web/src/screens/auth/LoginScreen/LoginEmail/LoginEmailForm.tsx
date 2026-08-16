@@ -29,8 +29,7 @@ export function LoginEmailForm() {
     <styled.form
       className={vstack()}
       w="full"
-      gap="2"
-      textAlign="center"
+      gap="3"
       onSubmit={handlers.handleSubmit}
       onKeyDown={handleKeyDown}
     >
@@ -41,34 +40,36 @@ export function LoginEmailForm() {
           autoCorrect="off"
           autoComplete="username"
           w="full"
-          size="sm"
-          textAlign="center"
+          size="md"
           placeholder={t.auth.identifierPlaceholder}
           required
           {...form.register("identifier")}
         />
-        <FormErrorText>
-          {form.formState.errors["identifier"]?.message}
-        </FormErrorText>
+        {form.formState.errors["identifier"]?.message && (
+          <FormErrorText textAlign="center">
+            {form.formState.errors["identifier"]?.message}
+          </FormErrorText>
+        )}
       </FormControl>
 
       <FormControl>
         <Input
           type="password"
           w="full"
-          size="sm"
-          textAlign="center"
+          size="md"
           placeholder={t.auth.passwordPlaceholder}
           autoComplete="current-password"
           {...form.register("password")}
         />
 
-        <FormErrorText>
-          {form.formState.errors["password"]?.message}
-        </FormErrorText>
+        {form.formState.errors["password"]?.message && (
+          <FormErrorText textAlign="center">
+            {form.formState.errors["password"]?.message}
+          </FormErrorText>
+        )}
       </FormControl>
 
-      <HStack justifyContent="center" gap="2">
+      <HStack justifyContent="center" gap="2" pt="1">
         <Controller
           control={form.control}
           name="remember_me"
@@ -86,11 +87,21 @@ export function LoginEmailForm() {
         />
       </HStack>
 
-      <Button type="submit" w="full" loading={form.formState.isSubmitting}>
+      <Button
+        type="submit"
+        w="full"
+        size="md"
+        mt="1"
+        loading={form.formState.isSubmitting}
+      >
         {t.auth.login}
       </Button>
 
-      <FormErrorText>{form.formState.errors["root"]?.message}</FormErrorText>
+      {form.formState.errors["root"]?.message && (
+        <FormErrorText textAlign="center">
+          {form.formState.errors["root"]?.message}
+        </FormErrorText>
+      )}
     </styled.form>
   );
 }

@@ -144,7 +144,10 @@ export function CategoryListTree({
           }
         })();
 
-        const response = await categoryUpdatePosition(categorySlug, params);
+        const response = await categoryUpdatePosition(
+          encodeURIComponent(categorySlug),
+          params,
+        );
         await mutate(response, { revalidate: false });
       });
     },

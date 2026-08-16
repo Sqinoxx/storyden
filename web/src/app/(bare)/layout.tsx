@@ -4,7 +4,6 @@ import { PropsWithChildren } from "react";
 import { Fullpage } from "@/layouts/Fullpage";
 
 import { BackAction } from "@/components/site/Action/Back";
-import { HomeAnchor } from "@/components/site/Navigation/Anchors/Home";
 import { ImpressumLink } from "@/components/site/ImpressumModal/ImpressumLink";
 import { CookieLink } from "@/components/site/CookieNotice/CookieLink";
 import { getSettings } from "@/lib/settings/settings-server";
@@ -29,8 +28,6 @@ export default async function Layout({ children }: PropsWithChildren) {
         <CardBox className={vstack()} maxW="sm" gap="4" p="4">
           <WStack>
             <BackAction />
-
-            <HomeAnchor hideLabel />
           </WStack>
           <VStack>
             <Image

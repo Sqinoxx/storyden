@@ -30,6 +30,10 @@ export const en = {
     login: "Log In",
     register: "Register",
     rememberMe: "Remember me",
+    identifierPlaceholder: "Username or email address",
+    usernamePlaceholder: "Username",
+    passwordPlaceholder: "Password",
+    forgotPassword: "Forgot password",
   },
   actions: {
     viewProfile: "View profile",

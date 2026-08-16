@@ -35,6 +35,7 @@ type Form = z.infer<typeof FormSchema>;
 export function useLoginHandleForm() {
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
@@ -99,6 +100,7 @@ export function useLoginHandleForm() {
   return {
     form: {
       register,
+      control,
       isWebauthnEnabled,
       handlePassword: handler("password"),
       handleWebauthn: handler("webauthn"),

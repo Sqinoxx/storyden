@@ -1,17 +1,21 @@
 "use client";
 
 import type { KeyboardEvent } from "react";
+import { Controller } from "react-hook-form";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import { FormControl } from "@/components/ui/FormControl";
 import { Button } from "@/components/ui/button";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { Input } from "@/components/ui/input";
-import { styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
+import { HStack, styled } from "@/styled-system/jsx";
 import { vstack } from "@/styled-system/patterns";
 
 import { useLoginEmailForm } from "./useLoginEmailForm";
 
 export function LoginEmailForm() {
+  const t = useTranslation();
   const { form, handlers } = useLoginEmailForm();
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -39,7 +43,7 @@ export function LoginEmailForm() {
           w="full"
           size="sm"
           textAlign="center"
-          placeholder="username or email address"
+          placeholder={t.auth.identifierPlaceholder}
           required
           {...form.register("identifier")}
         />
@@ -54,7 +58,7 @@ export function LoginEmailForm() {
           w="full"
           size="sm"
           textAlign="center"
-          placeholder="password"
+          placeholder={t.auth.passwordPlaceholder}
           autoComplete="current-password"
           {...form.register("password")}
         />
@@ -64,8 +68,26 @@ export function LoginEmailForm() {
         </FormErrorText>
       </FormControl>
 
+      <HStack justifyContent="center" gap="2">
+        <Controller
+          control={form.control}
+          name="remember_me"
+          render={({ field }) => (
+            <Checkbox
+              size="sm"
+              checked={!!field.value}
+              onCheckedChange={({ checked }) => {
+                field.onChange(checked === true);
+              }}
+            >
+              {t.auth.rememberMe}
+            </Checkbox>
+          )}
+        />
+      </HStack>
+
       <Button type="submit" w="full" loading={form.formState.isSubmitting}>
-        Login
+        {t.auth.login}
       </Button>
 
       <FormErrorText>{form.formState.errors["root"]?.message}</FormErrorText>

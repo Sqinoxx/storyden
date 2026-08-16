@@ -10,10 +10,18 @@ import { IconButton } from "@/components/ui/icon-button";
 import { CheckIcon } from "@/components/ui/icons/Check";
 import { CopyIcon } from "@/components/ui/icons/Copy";
 import { InvitationIcon } from "@/components/ui/icons/Invitation";
+import { RegenerateIcon } from "@/components/ui/icons/Regenerate";
 import { Input } from "@/components/ui/input";
 import { Item } from "@/components/ui/menu";
 import { createInvitationLink } from "@/lib/invitation/link";
-import { Center, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
+import {
+  Center,
+  HStack,
+  LStack,
+  VStack,
+  WStack,
+  styled,
+} from "@/styled-system/jsx";
 import { deriveError } from "@/utils/error";
 import { useTranslation } from "@/lib/i18n";
 
@@ -112,20 +120,31 @@ function InvitationModalContent({
           </styled.p>
         </LStack>
 
-        <Clipboard.Root w="full" value={invitation.link}>
-          <Clipboard.Control gap="0">
-            <Clipboard.Input asChild>
-              <Input readOnly aria-label="Invitation link" />
-            </Clipboard.Input>
-            <Clipboard.Trigger asChild>
-              <IconButton variant="outline" aria-label="Copy invitation link">
-                <Clipboard.Indicator copied={<CheckIcon />}>
-                  <CopyIcon />
-                </Clipboard.Indicator>
-              </IconButton>
-            </Clipboard.Trigger>
-          </Clipboard.Control>
-        </Clipboard.Root>
+        <HStack w="full" gap="3">
+          <IconButton
+            variant="outline"
+            borderRadius="full"
+            aria-label="Generate new invitation link"
+            onClick={onRetry}
+          >
+            <RegenerateIcon />
+          </IconButton>
+
+          <Clipboard.Root w="full" value={invitation.link}>
+            <Clipboard.Control gap="0">
+              <Clipboard.Input asChild>
+                <Input readOnly aria-label="Invitation link" />
+              </Clipboard.Input>
+              <Clipboard.Trigger asChild>
+                <IconButton variant="outline" aria-label="Copy invitation link">
+                  <Clipboard.Indicator copied={<CheckIcon />}>
+                    <CopyIcon />
+                  </Clipboard.Indicator>
+                </IconButton>
+              </Clipboard.Trigger>
+            </Clipboard.Control>
+          </Clipboard.Root>
+        </HStack>
 
         <WStack>
           <Button w="full" onClick={onClose}>

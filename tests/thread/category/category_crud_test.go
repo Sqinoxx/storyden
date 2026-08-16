@@ -14,6 +14,7 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/app/resources/mark"
+	"github.com/Southclaws/storyden/app/resources/post/category"
 	"github.com/Southclaws/storyden/app/resources/seed"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 	"github.com/Southclaws/storyden/internal/integration"
@@ -30,6 +31,7 @@ func TestCategoryCRUD(t *testing.T) {
 		cl *openapi.ClientWithResponses,
 		sh *e2e.SessionHelper,
 		aw *account_writer.Writer,
+		category_repo *category.Repository,
 	) {
 		lc.Append(fx.StartHook(func() {
 			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
@@ -290,6 +292,51 @@ func TestCategoryCRUD(t *testing.T) {
 
 				getDeleted := tests.AssertRequest(cl.CategoryGetWithResponse(root, origin.JSON200.Slug, adminSession))(t, http.StatusNotFound)
 				r.NotNil(getDeleted)
+
+				list := tests.AssertRequest(cl.CategoryListWithResponse(root, adminSession))(t, http.StatusOK)
+				r.NotNil(list.JSON200)
+				_, ok := lo.Find(list.JSON200.Categories, func(c openapi.Category) bool { return c.Id == origin.JSON200.Id })
+				a.False(ok)
+			})
+
+			// Regression test: slugs containing "/" are rejected on create and
+			// update (see create_category_rejects_invalid_slug and
+			// update_category_rejects_invalid_slug above), but rows written
+			// before that validation existed can still have one. Deleting such
+			// a category previously 404'd because the raw "/" split the
+			// request path into two segments before it reached the router.
+			t.Run("delete_category_with_legacy_slash_in_slug", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				originName := "Category " + uuid.NewString()
+				targetName := "Category " + uuid.NewString()
+				origin := tests.AssertRequest(cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+					Colour:      "#654654",
+					Description: "category testing",
+					Name:        originName,
+				}, adminSession))(t, http.StatusOK)
+				r.NotNil(origin.JSON200)
+
+				target := tests.AssertRequest(cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+					Colour:      "#456456",
+					Description: "category testing",
+					Name:        targetName,
+				}, adminSession))(t, http.StatusOK)
+				r.NotNil(target.JSON200)
+
+				// Bypass service-level slug validation to simulate legacy data,
+				// the same way the repository layer would have accepted it
+				// before validation was added at the service layer.
+				legacySlug := origin.JSON200.Slug + "/dt"
+				_, err := category_repo.UpdateCategory(root, origin.JSON200.Slug, category.WithSlug(legacySlug))
+				r.NoError(err)
+
+				deleted := tests.AssertRequest(cl.CategoryDeleteWithResponse(root, legacySlug, openapi.CategoryDeleteJSONRequestBody{
+					MoveTo: target.JSON200.Id,
+				}, adminSession))(t, http.StatusOK)
+				r.NotNil(deleted.JSON200)
+				a.Equal(origin.JSON200.Id, deleted.JSON200.Id)
 
 				list := tests.AssertRequest(cl.CategoryListWithResponse(root, adminSession))(t, http.StatusOK)
 				r.NotNil(list.JSON200)

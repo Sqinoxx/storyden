@@ -11,7 +11,7 @@ export default async function Layout({ children }: PropsWithChildren) {
   const canRegister = allowsPublicRegistration(registration_mode);
 
   return (
-    <VStack w="full">
+    <VStack w="full" gap="4">
       {children}
 
       <LoginFooterLinks canRegister={canRegister} />

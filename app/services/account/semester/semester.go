@@ -19,7 +19,14 @@ import (
 const (
 	// Min and Max bound a dentistry degree's semester count.
 	Min = 1
-	Max = 11
+	Max = 12
+
+	// Finished is returned by Current, and stored in metadata in place of a
+	// semester number, once a member has progressed beyond Max ("Fertig").
+	// It is a stable end state: Current short-circuits on it instead of
+	// projecting further, so a finished member can never decay back into a
+	// real semester number as terms keep passing.
+	Finished = -1
 )
 
 // Term identifies one academic term. Year is the year the term begins in, so
@@ -90,10 +97,20 @@ func Parse(raw string) (Term, error) {
 }
 
 // Current advances a semester recorded in storedTerm to the term containing
-// now, clamped to the degree's range. Terms that have not yet elapsed and
-// clocks that run backwards never decrement the value.
+// now, clamped to the degree's range, or reports Finished once that would
+// carry the member past Max. Terms that have not yet elapsed and clocks that
+// run backwards never decrement the value.
 func Current(stored int, storedTerm Term, now time.Time) int {
-	return Clamp(stored + max(0, storedTerm.Elapsed(TermFor(now))))
+	if stored == Finished {
+		return Finished
+	}
+
+	projected := stored + max(0, storedTerm.Elapsed(TermFor(now)))
+	if projected > Max {
+		return Finished
+	}
+
+	return Clamp(projected)
 }
 
 func Clamp(semester int) int {

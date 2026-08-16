@@ -119,6 +119,27 @@ func TestAccountSemester(t *testing.T) {
 				a.Equal(semester.TermFor(time.Now()).String(), academic["term"])
 			})
 
+			t.Run("progressing_past_the_final_semester_reports_finished", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				longAgo := semester.TermFor(time.Now().AddDate(-20, 0, 0))
+
+				_, err := aw.Update(root, acc.ID, account_writer.SetMetadata(map[string]any{
+					semester.MetadataKey: map[string]any{
+						"semester": 1,
+						"term":     longAgo.String(),
+					},
+				}))
+				r.NoError(err)
+
+				get := tests.AssertRequest(cl.AccountGetWithResponse(root, session))(t, http.StatusOK)
+				r.NotNil(get.JSON200)
+
+				academic := readAcademic(t, get.JSON200.Meta)
+				a.EqualValues(semester.Finished, academic["semester"])
+			})
+
 			t.Run("rollover_persists_the_projected_value", func(t *testing.T) {
 				r := require.New(t)
 				a := assert.New(t)

@@ -20,8 +20,8 @@ export interface StatisticsContributor {
   lastThreadAt: CreatedAt;
   /** The member's display name. */
   name: string;
-  /** The member's currently recorded study semester (1-11), or zero if
-not recorded.
+  /** The member's currently recorded study semester (1-12), zero if
+not recorded, or -1 if the member has finished ("Fertig").
  */
   semester: number;
   /** Total threads authored by this member in the window. */

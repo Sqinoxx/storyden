@@ -143,9 +143,9 @@ export const adminOCRReindex = async (
  * Retrieve aggregate usage statistics for the instance, including
 account and thread growth over time, recent activity, a breakdown of
 new threads by German academic term (semester), and a breakdown of
-thread activity by the authors' recorded study semester (Fachsemester)
-with the most active members named. Intended for the admin statistics
-dashboard.
+thread and file-upload activity by the authors' recorded study
+semester (Fachsemester) with the most active members named. Intended
+for the admin statistics dashboard.
 
  */
 export type adminStatisticsResponse = {

@@ -9,15 +9,17 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  */
 
 /**
- * A single data point of thread activity for one study semester
-(Fachsemester) cohort.
+ * A single data point of activity (threads or file uploads) for one
+study semester (Fachsemester) cohort.
 
  */
 export interface StatisticsFachsemesterPoint {
-  /** Total threads authored by members in this cohort. */
+  /** Total threads or file uploads by members in this cohort. */
   count: number;
-  /** The study semester number (1-11). Zero means the authors have no
-recorded study semester.
+  /** The study semester number (1-12). Zero means the members have no
+recorded study semester. -1 means the members have progressed
+beyond the final semester and are recorded as finished
+("Fertig").
  */
   semester: number;
 }

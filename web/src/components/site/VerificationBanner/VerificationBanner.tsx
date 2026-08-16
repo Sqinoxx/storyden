@@ -88,7 +88,7 @@ export function VerificationBanner({ session, settings }: Props) {
             </Button>
 
             <Button size="sm" asChild>
-              <Link href="/auth/verify/email?returnURL=/">
+              <Link href="/auth/verify/email?returnURL=/d">
                 {t.verification.enterCode}
               </Link>
             </Button>

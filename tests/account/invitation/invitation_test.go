@@ -49,6 +49,16 @@ func TestAccountInvitations(t *testing.T) {
 
 			invitationID := invResponse.JSON200.Id
 
+			t.Run("list_invitations", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				listResponse, err := cl.InvitationListWithResponse(root, &openapi.InvitationListParams{}, inviterSession)
+				tests.Ok(t, err, listResponse)
+				r.NotEmpty(listResponse.JSON200.Invitations)
+				a.Equal(inviter.ID.String(), listResponse.JSON200.Invitations[0].Creator.Id)
+			})
+
 			t.Run("accept_invite_with_password", func(t *testing.T) {
 				r := require.New(t)
 				a := assert.New(t)

@@ -11,6 +11,9 @@ test.describe("Registration", () => {
     await page.goto("/register");
 
     await page.getByRole("textbox", { name: "username" }).fill(username);
+    await page
+      .getByRole("combobox", { name: "Fachsemester" })
+      .selectOption("3");
     await page.getByRole("textbox", { name: "password" }).fill(password);
 
     await page.getByRole("button", { name: "Register" }).click();
@@ -19,6 +22,9 @@ test.describe("Registration", () => {
     await expect(
       page.getByRole("button", { name: `Account menu` }),
     ).toBeVisible();
+
+    await page.goto(`/m/${username}`);
+    await expect(page.getByText("3. Fachsemester")).toBeVisible();
   });
 
   test("should fail to register with username that is too short", async ({
@@ -27,6 +33,27 @@ test.describe("Registration", () => {
     await page.goto("/register");
 
     await page.getByRole("textbox", { name: "username" }).fill("ab");
+    await page
+      .getByRole("combobox", { name: "Fachsemester" })
+      .selectOption("3");
+    await page
+      .getByRole("textbox", { name: "password" })
+      .fill("TestPassword123!");
+
+    await page.getByRole("button", { name: "Register" }).click();
+
+    await expect(page).not.toHaveURL("/", { timeout: 5000 });
+  });
+
+  test("should fail to register without selecting a semester", async ({
+    page,
+  }) => {
+    const timestamp = Date.now();
+    const username = `testuser${timestamp}`;
+
+    await page.goto("/register");
+
+    await page.getByRole("textbox", { name: "username" }).fill(username);
     await page
       .getByRole("textbox", { name: "password" })
       .fill("TestPassword123!");

@@ -2,17 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useSWRConfig } from "swr";
 import { z } from "zod";
 
 import { resendVerificationEmail } from "@/api/verification";
 
 import { handle } from "@/api/client";
-import { getAccountGetKey } from "@/api/openapi-client/accounts";
 import { authEmailVerify } from "@/api/openapi-client/auth";
 import { Account } from "@/api/openapi-schema";
 import { Button } from "@/components/ui/button";
@@ -35,8 +32,6 @@ type Props = {
 };
 
 export function EmailVerificationScreen(props: Props) {
-  const router = useRouter();
-  const { mutate } = useSWRConfig();
   const probablyEmail = props.initialAccount?.email_addresses.find(
     (e) => e.verified === false,
   );
@@ -72,14 +67,14 @@ export function EmailVerificationScreen(props: Props) {
   const handleSubmit = form.handleSubmit(async (data) => {
     await handle(
       async () => {
-        const r = await authEmailVerify({
+        await authEmailVerify({
           email: data.email,
           code: data.code,
         });
 
-        await mutate(getAccountGetKey());
-
-        router.push(props.returnURL ?? "/d");
+        // Hard redirect: forces a full page reload so the server renders the
+        // now-verified state immediately, instead of a stale cached session.
+        window.location.href = props.returnURL ?? "/d";
       },
       {
         errorToast: false,

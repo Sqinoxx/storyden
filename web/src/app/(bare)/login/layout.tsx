@@ -1,9 +1,10 @@
 import { PropsWithChildren } from "react";
 
-import { LinkButton } from "@/components/ui/link-button";
 import { allowsPublicRegistration } from "@/lib/settings/registration";
 import { getSettings } from "@/lib/settings/settings-server";
-import { HStack, VStack } from "@/styled-system/jsx";
+import { VStack } from "@/styled-system/jsx";
+
+import { LoginFooterLinks } from "@/screens/auth/LoginScreen/LoginFooterLinks";
 
 export default async function Layout({ children }: PropsWithChildren) {
   const { registration_mode } = await getSettings();
@@ -13,17 +14,7 @@ export default async function Layout({ children }: PropsWithChildren) {
     <VStack w="full">
       {children}
 
-      <HStack>
-        <LinkButton size="xs" variant="ghost" href="/password-reset">
-          Forgot password
-        </LinkButton>
-
-        {canRegister && (
-          <LinkButton size="xs" variant="subtle" href="/register">
-            Register
-          </LinkButton>
-        )}
-      </HStack>
+      <LoginFooterLinks canRegister={canRegister} />
     </VStack>
   );
 }

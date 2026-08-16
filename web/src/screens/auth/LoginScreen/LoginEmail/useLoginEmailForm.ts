@@ -18,6 +18,7 @@ import {
 const FormSchema = z.object({
   identifier: UsernameOrEmailSchema,
   password: ExistingPasswordSchema,
+  remember_me: z.boolean().optional(),
 });
 type Form = z.infer<typeof FormSchema>;
 
@@ -27,6 +28,7 @@ export function useLoginEmailForm() {
 
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
+    defaultValues: { remember_me: false },
   });
 
   const handleSubmit = form.handleSubmit(async (payload: Form) => {
@@ -38,11 +40,13 @@ export function useLoginEmailForm() {
           await authEmailPasswordSignin({
             email: payload.identifier,
             password: payload.password,
+            remember_me: payload.remember_me,
           });
         } else {
           await authPasswordSignin({
             identifier: payload.identifier,
             token: payload.password,
+            remember_me: payload.remember_me,
           });
         }
 

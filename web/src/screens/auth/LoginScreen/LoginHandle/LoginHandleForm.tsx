@@ -1,7 +1,9 @@
 "use client";
 
 import type { KeyboardEvent } from "react";
+import { Controller } from "react-hook-form";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/lib/i18n";
@@ -14,6 +16,7 @@ export function LoginHandleForm() {
   const {
     form: {
       register,
+      control,
       isWebauthnEnabled,
       handlePassword,
       handleWebauthn,
@@ -47,7 +50,7 @@ export function LoginHandleForm() {
         w="full"
         size="sm"
         textAlign="center"
-        placeholder="username"
+        placeholder={t.auth.usernamePlaceholder}
         required
         {...register("identifier")}
       />
@@ -60,7 +63,7 @@ export function LoginHandleForm() {
           w="full"
           size="sm"
           textAlign="center"
-          placeholder="password"
+          placeholder={t.auth.passwordPlaceholder}
           autoComplete="current-password"
           {...register("token")}
         />
@@ -69,18 +72,24 @@ export function LoginHandleForm() {
         {errors.token?.message}
       </styled.p>
       <Flex alignItems="center" justifyContent="center" gap="2">
-        <styled.input
-          id="remember-me"
-          type="checkbox"
-          cursor="pointer"
-          {...register("remember_me")}
+        <Controller
+          control={control}
+          name="remember_me"
+          render={({ field }) => (
+            <Checkbox
+              size="sm"
+              checked={!!field.value}
+              onCheckedChange={({ checked }) => {
+                field.onChange(checked === true);
+              }}
+            >
+              {t.auth.rememberMe}
+            </Checkbox>
+          )}
         />
-        <styled.label htmlFor="remember-me" fontSize="sm" cursor="pointer">
-          {t.auth.rememberMe}
-        </styled.label>
       </Flex>
       <Button type="submit" w="full" loading={isSubmitting}>
-        Login
+        {t.auth.login}
       </Button>
       <styled.p color="fg.error" fontSize="sm">
         {errors.root?.message}

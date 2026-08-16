@@ -185,6 +185,7 @@ func (a *Admin) AdminStatistics(ctx context.Context, request openapi.AdminStatis
 		ThreadsYearly:         mapSeries(stats.ThreadsYearly),
 		ThreadsBySemester:     mapSemesterSeries(stats.ThreadsBySemester),
 		ThreadsByFachsemester: mapFachsemesterSeries(stats.ThreadsByFachsemester),
+		AssetsByFachsemester:  mapFachsemesterSeries(stats.AssetsByFachsemester),
 		TopContributors:       mapContributors(stats.TopContributors),
 	}, nil
 }

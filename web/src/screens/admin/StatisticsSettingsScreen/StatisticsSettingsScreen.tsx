@@ -33,6 +33,7 @@ import type {
 import { Button } from "@/components/ui/button";
 import * as Table from "@/components/ui/table";
 import { ProfileRoute } from "@/components/site/Navigation/Anchors/Profile";
+import { FINISHED_SEMESTER } from "@/lib/profile/academic";
 import { Box, Flex, Grid, HStack, Stack, styled } from "@/styled-system/jsx";
 
 type Granularity = "daily" | "monthly" | "yearly";
@@ -72,6 +73,15 @@ export function StatisticsSettingsScreen() {
 
   const fachsemesterInsight = useMemo(
     () => buildFachsemesterInsight(data?.threadsByFachsemester ?? []),
+    [data],
+  );
+
+  const assetsFachsemesterData = useMemo(
+    () =>
+      (data?.assetsByFachsemester ?? []).map((point) => ({
+        semester: formatFachsemester(point.semester),
+        count: point.count,
+      })),
     [data],
   );
 
@@ -357,6 +367,62 @@ export function StatisticsSettingsScreen() {
         bgColor="bg.default"
       >
         <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
+          Dateien nach Fachsemester
+        </styled.h3>
+        <styled.p fontSize="sm" color="fg.muted" mb="4">
+          Wie viele Dateien Mitglieder je nach ihrem aktuellen Fachsemester
+          hochgeladen haben.
+        </styled.p>
+
+        <Box height="72" width="full">
+          {isLoading ? (
+            <ChartPlaceholder />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={assetsFachsemesterData}
+                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  stroke="var(--colors-border-subtle)"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="semester"
+                  stroke="var(--colors-fg-muted)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="var(--colors-fg-muted)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                  width={32}
+                />
+                <Tooltip content={FilesTooltip} />
+                <Bar
+                  dataKey="count"
+                  name="Dateien"
+                  fill="var(--colors-amber-9)"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </Box>
+      </Box>
+
+      <Box
+        p="5"
+        borderRadius="lg"
+        borderWidth="thin"
+        borderColor="border.subtle"
+        bgColor="bg.default"
+      >
+        <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
           Aktivste Mitglieder
         </styled.h3>
         <styled.p fontSize="sm" color="fg.muted" mb="4">
@@ -457,13 +523,17 @@ function formatTerm(term: string): string {
 }
 
 function formatFachsemester(semester: number): string {
-  return semester === 0 ? "Unbekannt" : `${semester}. Sem.`;
+  if (semester === 0) return "Unbekannt";
+  if (semester === FINISHED_SEMESTER) return "Fertig";
+  return `${semester}. Sem.`;
 }
 
 function buildFachsemesterInsight(
   points: { semester: number; count: number }[],
 ) {
-  const known = points.filter((p) => p.semester !== 0);
+  const known = points.filter(
+    (p) => p.semester !== 0 && p.semester !== FINISHED_SEMESTER,
+  );
   if (known.length === 0) return null;
 
   const most = known.reduce((a, b) => (b.count > a.count ? b : a));
@@ -586,6 +656,23 @@ function SemesterTooltip({
           key={entry.dataKey as string}
           color={entry.color}
           name="Themen"
+          value={entry.value as number}
+        />
+      ))}
+    </ChartTooltipCard>
+  );
+}
+
+function FilesTooltip({ active, payload, label }: TooltipContentProps) {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <ChartTooltipCard label={label}>
+      {payload.map((entry) => (
+        <TooltipRow
+          key={entry.dataKey as string}
+          color={entry.color}
+          name="Dateien"
           value={entry.value as number}
         />
       ))}

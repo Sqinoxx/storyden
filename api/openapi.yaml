@@ -376,9 +376,9 @@ paths:
         Retrieve aggregate usage statistics for the instance, including
         account and thread growth over time, recent activity, a breakdown of
         new threads by German academic term (semester), and a breakdown of
-        thread activity by the authors' recorded study semester (Fachsemester)
-        with the most active members named. Intended for the admin statistics
-        dashboard.
+        thread and file-upload activity by the authors' recorded study
+        semester (Fachsemester) with the most active members named. Intended
+        for the admin statistics dashboard.
       tags: [admin]
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
@@ -399,6 +399,7 @@ paths:
                   - threadsYearly
                   - threadsBySemester
                   - threadsByFachsemester
+                  - assetsByFachsemester
                   - topContributors
                 properties:
                   totals: { $ref: "#/components/schemas/StatisticsTotals" }
@@ -433,9 +434,19 @@ paths:
                   threadsByFachsemester:
                     description: |
                       Total threads authored by members currently recorded in
-                      each study semester (1-11), plus a bucket for members
-                      with no recorded semester. Shows which cohorts are the
+                      each study semester (1-12), plus a bucket for members
+                      with no recorded semester and a bucket for members who
+                      have finished ("Fertig"). Shows which cohorts are the
                       most and least engaged.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsFachsemesterPoint" }
+                  assetsByFachsemester:
+                    description: |
+                      Total files uploaded by members currently recorded in
+                      each study semester (1-12), plus a bucket for members
+                      with no recorded semester and a bucket for members who
+                      have finished ("Fertig"). Shows which cohorts are
+                      contributing the most and least material.
                     type: array
                     items: { $ref: "#/components/schemas/StatisticsFachsemesterPoint" }
                   topContributors:
@@ -7927,18 +7938,20 @@ components:
     StatisticsFachsemesterPoint:
       type: object
       description: |
-        A single data point of thread activity for one study semester
-        (Fachsemester) cohort.
+        A single data point of activity (threads or file uploads) for one
+        study semester (Fachsemester) cohort.
       required: [semester, count]
       properties:
         semester:
           type: integer
           description: |
-            The study semester number (1-11). Zero means the authors have no
-            recorded study semester.
+            The study semester number (1-12). Zero means the members have no
+            recorded study semester. -1 means the members have progressed
+            beyond the final semester and are recorded as finished
+            ("Fertig").
         count:
           type: integer
-          description: Total threads authored by members in this cohort.
+          description: Total threads or file uploads by members in this cohort.
 
     StatisticsContributor:
       type: object
@@ -7955,8 +7968,8 @@ components:
         semester:
           type: integer
           description: |
-            The member's currently recorded study semester (1-11), or zero if
-            not recorded.
+            The member's currently recorded study semester (1-12), zero if
+            not recorded, or -1 if the member has finished ("Fertig").
         threadCount:
           type: integer
           description: Total threads authored by this member in the window.

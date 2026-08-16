@@ -1,7 +1,11 @@
 package admin_test
 
 import (
+	"bytes"
 	"context"
+	"image"
+	"image/color"
+	"image/png"
 	"net/http"
 	"testing"
 	"time"
@@ -20,6 +24,18 @@ import (
 	"github.com/Southclaws/storyden/internal/integration"
 	"github.com/Southclaws/storyden/internal/integration/e2e"
 )
+
+func onePixelPNG() []byte {
+	img := image.NewRGBA(image.Rect(0, 0, 1, 1))
+	img.Set(0, 0, color.RGBA{R: 255, G: 0, B: 0, A: 255})
+
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, img); err != nil {
+		panic(err)
+	}
+
+	return buf.Bytes()
+}
 
 func TestAdminStatistics(t *testing.T) {
 	t.Parallel()
@@ -67,6 +83,15 @@ func TestAdminStatistics(t *testing.T) {
 				require.NoError(t, err)
 				r.Equal(http.StatusOK, createThread.StatusCode(), "%s", string(createThread.Body))
 
+				png := onePixelPNG()
+				filename := "statistics-regression.png"
+				uploadAsset, err := cl.AssetUploadWithBodyWithResponse(memberCtx, &openapi.AssetUploadParams{
+					ContentLength: int64(len(png)),
+					Filename:      &filename,
+				}, "image/png", bytes.NewReader(png), memberSession)
+				require.NoError(t, err)
+				r.Equal(http.StatusOK, uploadAsset.StatusCode(), "%s", string(uploadAsset.Body))
+
 				stats, err := cl.AdminStatisticsWithResponse(adminCtx, adminSession)
 				r.NoError(err)
 				r.Equal(http.StatusOK, stats.StatusCode())
@@ -100,13 +125,20 @@ func TestAdminStatistics(t *testing.T) {
 				r.True(found, "current term should be present in the semester series")
 				a.GreaterOrEqual(currentPoint.Count, 1)
 
-				a.Len(body.ThreadsByFachsemester, 12) // unknown (0) + semesters 1-11
+				a.Len(body.ThreadsByFachsemester, 14) // unknown (0) + semesters 1-12 + finished (-1)
+				a.Len(body.AssetsByFachsemester, 14)
 
 				fachsemester3, found := lo.Find(body.ThreadsByFachsemester, func(p openapi.StatisticsFachsemesterPoint) bool {
 					return p.Semester == 3
 				})
 				r.True(found, "cohort for semester 3 should be present")
 				a.GreaterOrEqual(fachsemester3.Count, 1)
+
+				assetFachsemester3, found := lo.Find(body.AssetsByFachsemester, func(p openapi.StatisticsFachsemesterPoint) bool {
+					return p.Semester == 3
+				})
+				r.True(found, "asset cohort for semester 3 should be present")
+				a.GreaterOrEqual(assetFachsemester3.Count, 1)
 
 				contributor, found := lo.Find(body.TopContributors, func(c openapi.StatisticsContributor) bool {
 					return c.AccountId == openapi.Identifier(member.ID.String())

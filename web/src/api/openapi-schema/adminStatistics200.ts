@@ -20,9 +20,17 @@ export type AdminStatistics200 = {
   accountsMonthly: StatisticsSeriesPoint[];
   /** New accounts per year, most recent 5 years. */
   accountsYearly: StatisticsSeriesPoint[];
+  /** Total files uploaded by members currently recorded in
+each study semester (1-12), plus a bucket for members
+with no recorded semester and a bucket for members who
+have finished ("Fertig"). Shows which cohorts are
+contributing the most and least material.
+ */
+  assetsByFachsemester: StatisticsFachsemesterPoint[];
   /** Total threads authored by members currently recorded in
-each study semester (1-11), plus a bucket for members
-with no recorded semester. Shows which cohorts are the
+each study semester (1-12), plus a bucket for members
+with no recorded semester and a bucket for members who
+have finished ("Fertig"). Shows which cohorts are the
 most and least engaged.
  */
   threadsByFachsemester: StatisticsFachsemesterPoint[];

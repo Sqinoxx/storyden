@@ -12,6 +12,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/account/semester"
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_account "github.com/Southclaws/storyden/internal/ent/account"
+	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	ent_post "github.com/Southclaws/storyden/internal/ent/post"
 )
 
@@ -33,8 +34,9 @@ type SemesterPoint struct {
 	Count int
 }
 
-// FachsemesterPoint is thread activity for one study-semester cohort.
-// Semester 0 means the authors have no recorded study semester.
+// FachsemesterPoint is activity for one study-semester cohort. Semester 0
+// means the members have no recorded study semester; semester.Finished means
+// they've progressed beyond the degree's final semester ("Fertig").
 type FachsemesterPoint struct {
 	Semester int
 	Count    int
@@ -68,6 +70,7 @@ type Statistics struct {
 	ThreadsYearly         []SeriesPoint
 	ThreadsBySemester     []SemesterPoint
 	ThreadsByFachsemester []FachsemesterPoint
+	AssetsByFachsemester  []FachsemesterPoint
 	TopContributors       []Contributor
 }
 
@@ -154,6 +157,11 @@ func (q *Querier) Get(ctx context.Context) (*Statistics, error) {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	assetsByFachsemester, err := q.getAssetActivity(ctx, historyStart, now)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	return &Statistics{
 		Totals: Totals{
 			Accounts:          accountsTotal,
@@ -171,6 +179,7 @@ func (q *Querier) Get(ctx context.Context) (*Statistics, error) {
 		ThreadsYearly:         threadsYearly,
 		ThreadsBySemester:     bucketBySemester(threadTimes, now),
 		ThreadsByFachsemester: threadsByFachsemester,
+		AssetsByFachsemester:  assetsByFachsemester,
 		TopContributors:       topContributors,
 	}, nil
 }
@@ -227,11 +236,7 @@ func (q *Querier) getAuthorActivity(ctx context.Context, historyStart, now time.
 		}
 	}
 
-	fachsemesterPoints := make([]FachsemesterPoint, 0, semester.Max+2)
-	fachsemesterPoints = append(fachsemesterPoints, FachsemesterPoint{Semester: 0, Count: fachsemesterCounts[0]})
-	for s := semester.Min; s <= semester.Max; s++ {
-		fachsemesterPoints = append(fachsemesterPoints, FachsemesterPoint{Semester: s, Count: fachsemesterCounts[s]})
-	}
+	fachsemesterPoints := fachsemesterPointsFromCounts(fachsemesterCounts)
 
 	topContributors := make([]Contributor, 0, len(contributors))
 	for _, c := range contributors {
@@ -248,6 +253,49 @@ func (q *Querier) getAuthorActivity(ctx context.Context, historyStart, now time.
 	}
 
 	return fachsemesterPoints, topContributors, nil
+}
+
+// getAssetActivity mirrors getAuthorActivity but for uploaded files, so
+// admins can see which semester cohorts are contributing the most (or least)
+// material.
+func (q *Querier) getAssetActivity(ctx context.Context, historyStart, now time.Time) ([]FachsemesterPoint, error) {
+	assets, err := q.db.Asset.Query().
+		Where(ent_asset.CreatedAtGTE(historyStart)).
+		Select(ent_asset.FieldCreatedAt, ent_asset.FieldAccountID).
+		WithOwner(func(aq *ent.AccountQuery) {
+			aq.Select(ent_account.FieldID, ent_account.FieldMetadata)
+		}).
+		All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	fachsemesterCounts := make(map[int]int)
+
+	for _, a := range assets {
+		owner := a.Edges.Owner
+		if owner == nil {
+			continue
+		}
+
+		fachsemesterCounts[currentSemester(owner.Metadata, now)]++
+	}
+
+	return fachsemesterPointsFromCounts(fachsemesterCounts), nil
+}
+
+// fachsemesterPointsFromCounts zero-fills a per-semester count map into the
+// standard bucket order: unknown (0), each real semester (Min..Max), then
+// finished (semester.Finished).
+func fachsemesterPointsFromCounts(counts map[int]int) []FachsemesterPoint {
+	points := make([]FachsemesterPoint, 0, semester.Max+3)
+	points = append(points, FachsemesterPoint{Semester: 0, Count: counts[0]})
+	for s := semester.Min; s <= semester.Max; s++ {
+		points = append(points, FachsemesterPoint{Semester: s, Count: counts[s]})
+	}
+	points = append(points, FachsemesterPoint{Semester: semester.Finished, Count: counts[semester.Finished]})
+
+	return points
 }
 
 // currentSemester projects an account's recorded semester forward to now, the

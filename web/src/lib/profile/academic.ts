@@ -1,12 +1,23 @@
 import { z } from "zod";
 
 export const MIN_SEMESTER = 1;
-export const MAX_SEMESTER = 11;
+export const MAX_SEMESTER = 12;
+
+// Reported by the server in place of a semester number once a member has
+// progressed beyond MAX_SEMESTER without setting it manually again.
+export const FINISHED_SEMESTER = -1;
 
 export const ACADEMIC_META_KEY = "academic";
 
 export const AcademicMetaSchema = z.object({
-  semester: z.number().int().min(MIN_SEMESTER).max(MAX_SEMESTER),
+  semester: z
+    .number()
+    .int()
+    .refine(
+      (value) =>
+        value === FINISHED_SEMESTER ||
+        (value >= MIN_SEMESTER && value <= MAX_SEMESTER),
+    ),
   // Stamped by the server. Clients only ever send the semester number; the
   // term is what lets the value advance on its own each April and October.
   term: z.string().optional(),
@@ -28,5 +39,9 @@ export function parseAcademicMeta(
 }
 
 export function formatSemester(semester: number): string {
+  if (semester === FINISHED_SEMESTER) {
+    return "Fertig";
+  }
+
   return `${semester}. Fachsemester`;
 }

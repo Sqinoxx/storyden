@@ -15,11 +15,15 @@ export const button = defineRecipe({
     outline: "none",
     position: "relative",
     transitionDuration: "normal",
-    transitionProperty: "background, border-color, color, box-shadow",
+    transitionProperty: "background, border-color, color, box-shadow, transform",
     transitionTimingFunction: "default",
     userSelect: "none",
     verticalAlign: "middle",
     whiteSpace: "nowrap",
+    _active: {
+      transform: "scale(0.97)",
+      transitionDuration: "faster",
+    },
     _hidden: {
       display: "none",
     },
@@ -113,6 +117,9 @@ export const button = defineRecipe({
       },
       link: {
         verticalAlign: "baseline",
+        _active: {
+          transform: "none",
+        },
         _disabled: {
           color: "border.disabled",
           cursor: "not-allowed",

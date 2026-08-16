@@ -174,6 +174,8 @@ export function Unready({ error }: Props) {
 }
 
 export function UnreadyBanner({ error, children }: PropsWithChildren<Props>) {
+  const t = useTranslation();
+
   if (!error) {
     return (
       <Center
@@ -204,7 +206,7 @@ export function UnreadyBanner({ error, children }: PropsWithChildren<Props>) {
           <HStack id="error__heading" gap="2" alignItems="center">
             <WarningIcon aria-hidden />
             <styled.h1 fontSize="md" fontWeight="bold" my="0">
-              Something went wrong
+              {t.common.error}
             </styled.h1>
           </HStack>
 

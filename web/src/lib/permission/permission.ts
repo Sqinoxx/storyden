@@ -29,7 +29,12 @@ export const PermissionDetails: Record<Permission, PermissionDetail> = {
   [Permission.MANAGE_POSTS]: {
     value: Permission.MANAGE_POSTS,
     name: "Manage posts",
-    description: "Manage posts, such as delete, pin and move.",
+    description: "Manage posts, such as delete and move.",
+  },
+  [Permission.PIN_POSTS]: {
+    value: Permission.PIN_POSTS,
+    name: "Pin threads",
+    description: "Pin and unpin threads to highlight them within a category.",
   },
   [Permission.MANAGE_CATEGORIES]: {
     value: Permission.MANAGE_CATEGORIES,

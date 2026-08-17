@@ -9,3 +9,5 @@ allowBuilds:
 minimumReleaseAgeExclude:
   # Renovate security update: dompurify@3.4.11
   - dompurify@3.4.11
+patchedDependencies:
+  '@zag-js/tabs@1.26.3': patches/@zag-js__tabs@1.26.3.patch

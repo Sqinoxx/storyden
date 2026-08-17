@@ -1,0 +1,60 @@
+diff --git a/dist/index.js b/dist/index.js
+index c6bcfad916361ab9b89f03d6fea77bc56b5dee2b..29cbac5bb31d77bc7041ccf0123bc89f47266442 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -27,19 +27,12 @@ var getFirstTriggerEl = (ctx) => utils.first(getElements(ctx));
+ var getLastTriggerEl = (ctx) => utils.last(getElements(ctx));
+ var getNextTriggerEl = (ctx, opts) => domQuery.nextById(getElements(ctx), getTriggerId(ctx, opts.value), opts.loopFocus);
+ var getPrevTriggerEl = (ctx, opts) => domQuery.prevById(getElements(ctx), getTriggerId(ctx, opts.value), opts.loopFocus);
+-var getOffsetRect = (el) => {
+-  if (!el) {
+-    return { left: 0, top: 0, width: 0, height: 0 };
+-  }
+-  const rect = el.getBoundingClientRect();
+-  const parent = el.offsetParent?.getBoundingClientRect();
+-  return {
+-    left: parent ? rect.left - parent.left : rect.left,
+-    top: parent ? rect.top - parent.top : rect.top,
+-    width: rect.width,
+-    height: rect.height
+-  };
+-};
++var getOffsetRect = (el) => ({
++  left: el?.offsetLeft ?? 0,
++  top: el?.offsetTop ?? 0,
++  width: el?.offsetWidth ?? 0,
++  height: el?.offsetHeight ?? 0
++});
+ var getRectById = (ctx, id) => {
+   const tab = domQuery.itemById(getElements(ctx), getTriggerId(ctx, id));
+   return resolveRect(getOffsetRect(tab));
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 32e978354b56651062d273c12b0c98177cd04111..a8067ca2fbc4433b094b456a95c18892f472b3f6 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -25,19 +25,12 @@ var getFirstTriggerEl = (ctx) => first(getElements(ctx));
+ var getLastTriggerEl = (ctx) => last(getElements(ctx));
+ var getNextTriggerEl = (ctx, opts) => nextById(getElements(ctx), getTriggerId(ctx, opts.value), opts.loopFocus);
+ var getPrevTriggerEl = (ctx, opts) => prevById(getElements(ctx), getTriggerId(ctx, opts.value), opts.loopFocus);
+-var getOffsetRect = (el) => {
+-  if (!el) {
+-    return { left: 0, top: 0, width: 0, height: 0 };
+-  }
+-  const rect = el.getBoundingClientRect();
+-  const parent = el.offsetParent?.getBoundingClientRect();
+-  return {
+-    left: parent ? rect.left - parent.left : rect.left,
+-    top: parent ? rect.top - parent.top : rect.top,
+-    width: rect.width,
+-    height: rect.height
+-  };
+-};
++var getOffsetRect = (el) => ({
++  left: el?.offsetLeft ?? 0,
++  top: el?.offsetTop ?? 0,
++  width: el?.offsetWidth ?? 0,
++  height: el?.offsetHeight ?? 0
++});
+ var getRectById = (ctx, id) => {
+   const tab = itemById(getElements(ctx), getTriggerId(ctx, id));
+   return resolveRect(getOffsetRect(tab));

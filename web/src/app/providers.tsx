@@ -7,6 +7,7 @@ import { SWRConfig } from "swr";
 import { AuthProvider } from "@/auth/AuthProvider";
 
 import { CookieNotice } from "@/components/site/CookieNotice/CookieNotice";
+import { RouteProgress } from "@/components/site/RouteProgress/RouteProgress";
 import { useCacheProvider } from "@/lib/cache/swr-cache";
 import { DndProvider } from "@/lib/dragdrop/provider";
 import { LanguageProvider } from "@/lib/i18n";
@@ -26,6 +27,7 @@ export function Providers({ children }: PropsWithChildren) {
             }}
           >
             <DndProvider>
+              <RouteProgress />
               <Toaster />
               <CookieNotice />
 

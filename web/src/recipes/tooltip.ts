@@ -17,10 +17,10 @@ export const tooltip = defineSlotRecipe({
       maxWidth: "2xs",
       zIndex: "tooltip",
       _open: {
-        animation: "scaleFadeIn 0.25s var(--easings-bounce)",
+        animation: "fadeIn 0.25s ease-out",
       },
       _closed: {
-        animation: "scaleFadeOut 0.2s var(--easings-emphasized-out)",
+        animation: "fadeOut 0.2s ease-out",
       },
     },
   },

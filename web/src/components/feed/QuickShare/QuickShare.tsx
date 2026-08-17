@@ -29,7 +29,7 @@ export function QuickShare(props: Props) {
 
   const {
     form,
-    state: { formRef, hydratedLink, resetKey, uploadedAssets },
+    state: { formRef, editing, hydratedLink, resetKey, uploadedAssets },
     handlers,
   } = useQuickShare(props);
   const t = useTranslation();
@@ -40,7 +40,14 @@ export function QuickShare(props: Props) {
   }
 
   return (
-    <CardBox bgColor="bg.default">
+    <CardBox
+      bgColor="bg.default"
+      padding={editing ? "3" : "2"}
+      boxShadow={editing ? "md" : "sm"}
+      transitionDuration="slower"
+      transitionTimingFunction="default"
+      style={{ transitionProperty: "padding, box-shadow" }}
+    >
       <form
         className={lstack({
           gap: "2",
@@ -72,6 +79,7 @@ export function QuickShare(props: Props) {
           name="body"
           placeholder={t.feed.quickSharePlaceholder}
           resetKey={resetKey}
+          expanded={editing}
         />
 
         <WStack

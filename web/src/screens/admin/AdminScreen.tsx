@@ -11,6 +11,7 @@ import { useCapability } from "@/lib/settings/capabilities";
 import { hasPermission } from "@/utils/permissions";
 
 import { AccessKeySettingsScreen } from "./AccessKeySettingsScreen";
+import { AssetSettingsScreen } from "./AssetSettingsScreen";
 import { AuditLogSettingsScreen } from "./AuditLogSettingsScreen/AuditLogSettingsScreen";
 import { AuthenticationSettingsScreen } from "./AuthenticationSettingsScreen";
 import { BrandSettingsScreen } from "./BrandSettingsScreen";
@@ -105,6 +106,7 @@ export function AdminScreen() {
       >
         <Tabs.Trigger value="brand">Brand</Tabs.Trigger>
         <Tabs.Trigger value="content">Content</Tabs.Trigger>
+        <Tabs.Trigger value="uploads">Uploads</Tabs.Trigger>
         <Tabs.Trigger value="moderation">Moderation</Tabs.Trigger>
         <Tabs.Trigger value="system">System</Tabs.Trigger>
         <Tabs.Trigger value="ocr">OCR & Bildtext</Tabs.Trigger>
@@ -130,6 +132,10 @@ export function AdminScreen() {
 
       <Tabs.Content value="content">
         {tab === "content" && <ContentSettingsScreen />}
+      </Tabs.Content>
+
+      <Tabs.Content value="uploads">
+        {tab === "uploads" && <AssetSettingsScreen />}
       </Tabs.Content>
 
       <Tabs.Content value="moderation">

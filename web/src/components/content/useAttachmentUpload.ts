@@ -5,10 +5,8 @@ import { useState } from "react";
 import { handle } from "@/api/client";
 import { assetUpload } from "@/api/openapi-client/assets";
 import { Asset } from "@/api/openapi-schema";
-import {
-  MAX_ASSET_UPLOAD_BYTES,
-  buildAttachmentMarkup,
-} from "@/utils/asset";
+import { useMaxUploadSizeBytes } from "@/lib/settings/uploads";
+import { buildAttachmentMarkup } from "@/utils/asset";
 
 import { isSupportedAsset } from "./useImageUpload";
 
@@ -29,6 +27,7 @@ export type UploadedAttachment = {
  */
 export function useAttachmentUpload() {
   const [isUploading, setUploading] = useState(false);
+  const maxUploadSizeBytes = useMaxUploadSizeBytes();
 
   async function upload(files: File[]): Promise<UploadedAttachment[]> {
     if (files.length === 0) {
@@ -42,9 +41,9 @@ export function useAttachmentUpload() {
     try {
       for (const file of files) {
         await handle(async () => {
-          if (file.size > MAX_ASSET_UPLOAD_BYTES) {
+          if (file.size > maxUploadSizeBytes) {
             throw new Error(
-              `${file.name} is larger than the ${Math.floor(MAX_ASSET_UPLOAD_BYTES / 1024 / 1024)}MB upload limit.`,
+              `${file.name} is larger than the ${Math.floor(maxUploadSizeBytes / 1024 / 1024)}MB upload limit.`,
             );
           }
 

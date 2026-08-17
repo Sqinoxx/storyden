@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -36,6 +37,16 @@ func HTTPErrorHandler(logger *slog.Logger) func(err error, c echo.Context) {
 		errctx := fctx.Unwrap(err)
 		title := fmsg.GetIssue(err)
 		chain := fault.Flatten(err)
+
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			title = "Payload Too Large"
+			errmsg = fmt.Sprintf(
+				"The uploaded file exceeds the maximum allowed upload size of %d MB.",
+				maxBytesErr.Limit/(1024*1024),
+			)
+		}
+
 		meta := lo.MapValues(errctx, func(v, k string) any { return v })
 		problem := NewAPIError(c.Request().Context(), status, errtag, title, errmsg, meta)
 
@@ -125,6 +136,11 @@ func categorise(err error) (ftag.Kind, int) {
 	var he *echo.HTTPError
 	if errors.As(err, &he) {
 		return errorKindFromStatus(he.Code), he.Code
+	}
+
+	var maxBytesErr *http.MaxBytesError
+	if errors.As(err, &maxBytesErr) {
+		return ftag.InvalidArgument, http.StatusRequestEntityTooLarge
 	}
 
 	if errors.Is(err, context.Canceled) {

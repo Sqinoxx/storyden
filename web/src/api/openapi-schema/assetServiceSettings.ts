@@ -7,19 +7,16 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { PaginationQueryParameter } from "./paginationQueryParameter";
-import type { ThreadRepliesSortQueryParameter } from "./threadRepliesSortQueryParameter";
 
-export type ThreadGetParams = {
+export interface AssetServiceSettings {
   /**
-   * Pagination query parameters.
+   * The maximum size, in megabytes, of a single file upload (attachments,
+cover images, plugin archives, etc). Requests with a larger body are
+rejected before the file is written to storage. Bound to 1024 MB
+(1 GB) to keep this within sane resource limits for most deployments.
+
+   * @minimum 1
+   * @maximum 1024
    */
-  page?: PaginationQueryParameter;
-  /**
- * Ordering applied to the replies within a thread. Defaults to `desc`,
-newest first. Reply permalinks are resolved against ascending order
-and explicitly request `sort=asc` when navigating to a specific reply.
-
- */
-  sort?: ThreadRepliesSortQueryParameter;
-};
+  max_upload_size_mb?: number;
+}

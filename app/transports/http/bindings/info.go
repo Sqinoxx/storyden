@@ -173,9 +173,34 @@ func serialiseInfo(info *instance_info.Info) openapi.Info {
 		Capabilities:       serialiseCapabilitiesList(info.Capabilities),
 		WebAddress:         info.WebAddress.String(),
 		ApiAddress:         info.APIAddress.String(),
+		MaxUploadSizeMb:    maxUploadSizeMB(info.Settings),
 		Metadata:           (*openapi.Metadata)(info.Settings.Metadata.Ptr()),
 		Motd:               opt.Map(info.Settings.Motd, serialiseMOTD).Ptr(),
 	}
+}
+
+// maxUploadSizeMB reports the effective upload size limit so clients (not
+// just admins) can reject oversized files before spending bandwidth on them.
+// Falls back to the same default as config.Config.MaxUploadSizeMB in case
+// settings were never hydrated (e.g. a settings row predating this field).
+func maxUploadSizeMB(s *settings.Settings) *int {
+	def := 50
+
+	services, ok := s.Services.Get()
+	if !ok {
+		return &def
+	}
+
+	assets, ok := services.Assets.Get()
+	if !ok {
+		return &def
+	}
+
+	if v, ok := assets.MaxUploadSizeMB.Get(); ok && v > 0 {
+		return &v
+	}
+
+	return &def
 }
 
 func serialiseCapabilitiesList(cs instance_info.Capabilities) openapi.InstanceCapabilityList {

@@ -11,8 +11,8 @@ import { Asset, AssetID } from "@/api/openapi-schema";
 import { Button } from "@/components/ui/button";
 import * as FileUpload from "@/components/ui/file-upload";
 import { MediaAddIcon, MediaIcon } from "@/components/ui/icons/Media";
+import { useMaxUploadSizeBytes } from "@/lib/settings/uploads";
 import { ButtonVariantProps, button } from "@/styled-system/recipes";
-import { MAX_ASSET_UPLOAD_BYTES } from "@/utils/asset";
 import { getExtensionsForMimeTypes } from "@/utils/mime-types";
 
 type AssetUploadActionProps = {
@@ -35,6 +35,7 @@ export function AssetUploadAction({
   const [buttonVariantProps, fileUploadProps] = button.splitVariantProps(props);
 
   const acceptedMIMEs = getMIMEs(props.accept);
+  const maxUploadSizeBytes = useMaxUploadSizeBytes();
 
   async function handleFile({ files }: FileUploadFileAcceptDetails) {
     await handle(async () => {
@@ -44,9 +45,9 @@ export function AssetUploadAction({
         return;
       }
 
-      if (file.size > MAX_ASSET_UPLOAD_BYTES) {
+      if (file.size > maxUploadSizeBytes) {
         throw new Error(
-          `File is larger than the ${Math.floor(MAX_ASSET_UPLOAD_BYTES / 1024 / 1024)}MB upload limit.`,
+          `File is larger than the ${Math.floor(maxUploadSizeBytes / 1024 / 1024)}MB upload limit.`,
         );
       }
 
@@ -83,7 +84,7 @@ export function AssetUploadAction({
           case "FILE_INVALID":
             return "Invalid file.";
           case "FILE_TOO_LARGE":
-            return "File is too large.";
+            return `File is larger than the ${Math.floor(maxUploadSizeBytes / 1024 / 1024)}MB upload limit.`;
           case "FILE_INVALID_TYPE":
             return `File must be of type ${acceptedList}`;
           case "FILE_TOO_SMALL":
@@ -103,7 +104,7 @@ export function AssetUploadAction({
     <FileUpload.Root
       w="min"
       maxFiles={1}
-      maxFileSize={MAX_ASSET_UPLOAD_BYTES}
+      maxFileSize={maxUploadSizeBytes}
       onFileAccept={handleFile}
       onFileReject={handleFileReject}
       {...fileUploadProps}

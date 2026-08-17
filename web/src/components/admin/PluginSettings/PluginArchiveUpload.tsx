@@ -8,6 +8,7 @@ import * as FileUpload from "@/components/ui/file-upload";
 import { IconButton } from "@/components/ui/icon-button";
 import { AddIcon } from "@/components/ui/icons/Add";
 import { DeleteSmallIcon } from "@/components/ui/icons/Delete";
+import { useMaxUploadSizeBytes } from "@/lib/settings/uploads";
 import { VStack, styled } from "@/styled-system/jsx";
 
 type Props = {
@@ -23,11 +24,17 @@ export function PluginArchiveUpload({
   onFileChange,
   onError,
 }: Props) {
+  const maxUploadSizeBytes = useMaxUploadSizeBytes();
+  const maxUploadSizeMb = Math.floor(maxUploadSizeBytes / 1024 / 1024);
+
   function handleFileChange(details: FileUploadFileChangeDetails) {
     const file = details.acceptedFiles[0] ?? null;
     onFileChange(file);
 
-    const rejectionError = mapPluginArchiveRejectionToError(details);
+    const rejectionError = mapPluginArchiveRejectionToError(
+      details,
+      maxUploadSizeMb,
+    );
     if (rejectionError) {
       onError?.(rejectionError);
     }
@@ -37,7 +44,7 @@ export function PluginArchiveUpload({
     <FileUpload.Root
       maxFiles={1}
       accept=".sdx,.zip"
-      maxFileSize={50 * 1024 * 1024}
+      maxFileSize={maxUploadSizeBytes}
       onFileChange={handleFileChange}
       disabled={disabled}
     >
@@ -48,7 +55,7 @@ export function PluginArchiveUpload({
               Drop your plugin file here or click to browse
             </styled.p>
             <styled.p fontSize="sm" color="fg.muted">
-              Plugin files only (.zip or .sdx), max 50MB
+              Plugin files only (.zip or .sdx), max {maxUploadSizeMb}MB
             </styled.p>
           </VStack>
           <FileUpload.Trigger asChild>
@@ -85,13 +92,16 @@ export function PluginArchiveUpload({
 
 function mapPluginArchiveRejectionToError(
   details: FileUploadFileChangeDetails,
+  maxUploadSizeMb: number,
 ): string | undefined {
   const file = details.rejectedFiles[0];
   if (!file) {
     return undefined;
   }
 
-  const messages = file.errors.map(mapFileError).filter(Boolean);
+  const messages = file.errors
+    .map((error) => mapFileError(error, maxUploadSizeMb))
+    .filter(Boolean);
   if (messages.length === 0) {
     return undefined;
   }
@@ -99,12 +109,12 @@ function mapPluginArchiveRejectionToError(
   return messages.join(", ");
 }
 
-function mapFileError(error: FileError): string {
+function mapFileError(error: FileError, maxUploadSizeMb: number): string {
   switch (error) {
     case "FILE_INVALID":
       return "Invalid file.";
     case "FILE_TOO_LARGE":
-      return "Plugin file is too large. Maximum size is 50MB.";
+      return `Plugin file is too large. Maximum size is ${maxUploadSizeMb}MB.`;
     case "FILE_INVALID_TYPE":
       return "File must be a .zip or .sdx archive.";
     case "FILE_TOO_SMALL":

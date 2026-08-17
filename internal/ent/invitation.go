@@ -29,6 +29,10 @@ type Invitation struct {
 	Message *string `json:"message,omitempty"`
 	// CreatorAccountID holds the value of the "creator_account_id" field.
 	CreatorAccountID xid.ID `json:"creator_account_id,omitempty"`
+	// MaxUses holds the value of the "max_uses" field.
+	MaxUses *int `json:"max_uses,omitempty"`
+	// ExpiresAt holds the value of the "expires_at" field.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the InvitationQuery when eager-loading is set.
 	Edges        InvitationEdges `json:"edges"`
@@ -71,9 +75,11 @@ func (*Invitation) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case invitation.FieldMaxUses:
+			values[i] = new(sql.NullInt64)
 		case invitation.FieldMessage:
 			values[i] = new(sql.NullString)
-		case invitation.FieldCreatedAt, invitation.FieldUpdatedAt, invitation.FieldDeletedAt:
+		case invitation.FieldCreatedAt, invitation.FieldUpdatedAt, invitation.FieldDeletedAt, invitation.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
 		case invitation.FieldID, invitation.FieldCreatorAccountID:
 			values[i] = new(xid.ID)
@@ -129,6 +135,20 @@ func (_m *Invitation) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field creator_account_id", values[i])
 			} else if value != nil {
 				_m.CreatorAccountID = *value
+			}
+		case invitation.FieldMaxUses:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field max_uses", values[i])
+			} else if value.Valid {
+				_m.MaxUses = new(int)
+				*_m.MaxUses = int(value.Int64)
+			}
+		case invitation.FieldExpiresAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field expires_at", values[i])
+			} else if value.Valid {
+				_m.ExpiresAt = new(time.Time)
+				*_m.ExpiresAt = value.Time
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -194,6 +214,16 @@ func (_m *Invitation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("creator_account_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CreatorAccountID))
+	builder.WriteString(", ")
+	if v := _m.MaxUses; v != nil {
+		builder.WriteString("max_uses=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.ExpiresAt; v != nil {
+		builder.WriteString("expires_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

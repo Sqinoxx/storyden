@@ -16,8 +16,9 @@ export type ThreadGetParams = {
    */
   page?: PaginationQueryParameter;
   /**
- * Ordering applied to the replies within a thread. Defaults to `asc`,
-oldest first, which is the order reply permalinks are resolved against.
+ * Ordering applied to the replies within a thread. Defaults to `desc`,
+newest first. Reply permalinks are resolved against ascending order
+and explicitly request `sort=asc` when navigating to a specific reply.
 
  */
   sort?: ThreadRepliesSortQueryParameter;

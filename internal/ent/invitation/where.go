@@ -81,6 +81,16 @@ func CreatorAccountID(v xid.ID) predicate.Invitation {
 	return predicate.Invitation(sql.FieldEQ(FieldCreatorAccountID, v))
 }
 
+// MaxUses applies equality check predicate on the "max_uses" field. It's identical to MaxUsesEQ.
+func MaxUses(v int) predicate.Invitation {
+	return predicate.Invitation(sql.FieldEQ(FieldMaxUses, v))
+}
+
+// ExpiresAt applies equality check predicate on the "expires_at" field. It's identical to ExpiresAtEQ.
+func ExpiresAt(v time.Time) predicate.Invitation {
+	return predicate.Invitation(sql.FieldEQ(FieldExpiresAt, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Invitation {
 	return predicate.Invitation(sql.FieldEQ(FieldCreatedAt, v))
@@ -354,6 +364,106 @@ func CreatorAccountIDEqualFold(v xid.ID) predicate.Invitation {
 func CreatorAccountIDContainsFold(v xid.ID) predicate.Invitation {
 	vc := v.String()
 	return predicate.Invitation(sql.FieldContainsFold(FieldCreatorAccountID, vc))
+}
+
+// MaxUsesEQ applies the EQ predicate on the "max_uses" field.
+func MaxUsesEQ(v int) predicate.Invitation {
+	return predicate.Invitation(sql.FieldEQ(FieldMaxUses, v))
+}
+
+// MaxUsesNEQ applies the NEQ predicate on the "max_uses" field.
+func MaxUsesNEQ(v int) predicate.Invitation {
+	return predicate.Invitation(sql.FieldNEQ(FieldMaxUses, v))
+}
+
+// MaxUsesIn applies the In predicate on the "max_uses" field.
+func MaxUsesIn(vs ...int) predicate.Invitation {
+	return predicate.Invitation(sql.FieldIn(FieldMaxUses, vs...))
+}
+
+// MaxUsesNotIn applies the NotIn predicate on the "max_uses" field.
+func MaxUsesNotIn(vs ...int) predicate.Invitation {
+	return predicate.Invitation(sql.FieldNotIn(FieldMaxUses, vs...))
+}
+
+// MaxUsesGT applies the GT predicate on the "max_uses" field.
+func MaxUsesGT(v int) predicate.Invitation {
+	return predicate.Invitation(sql.FieldGT(FieldMaxUses, v))
+}
+
+// MaxUsesGTE applies the GTE predicate on the "max_uses" field.
+func MaxUsesGTE(v int) predicate.Invitation {
+	return predicate.Invitation(sql.FieldGTE(FieldMaxUses, v))
+}
+
+// MaxUsesLT applies the LT predicate on the "max_uses" field.
+func MaxUsesLT(v int) predicate.Invitation {
+	return predicate.Invitation(sql.FieldLT(FieldMaxUses, v))
+}
+
+// MaxUsesLTE applies the LTE predicate on the "max_uses" field.
+func MaxUsesLTE(v int) predicate.Invitation {
+	return predicate.Invitation(sql.FieldLTE(FieldMaxUses, v))
+}
+
+// MaxUsesIsNil applies the IsNil predicate on the "max_uses" field.
+func MaxUsesIsNil() predicate.Invitation {
+	return predicate.Invitation(sql.FieldIsNull(FieldMaxUses))
+}
+
+// MaxUsesNotNil applies the NotNil predicate on the "max_uses" field.
+func MaxUsesNotNil() predicate.Invitation {
+	return predicate.Invitation(sql.FieldNotNull(FieldMaxUses))
+}
+
+// ExpiresAtEQ applies the EQ predicate on the "expires_at" field.
+func ExpiresAtEQ(v time.Time) predicate.Invitation {
+	return predicate.Invitation(sql.FieldEQ(FieldExpiresAt, v))
+}
+
+// ExpiresAtNEQ applies the NEQ predicate on the "expires_at" field.
+func ExpiresAtNEQ(v time.Time) predicate.Invitation {
+	return predicate.Invitation(sql.FieldNEQ(FieldExpiresAt, v))
+}
+
+// ExpiresAtIn applies the In predicate on the "expires_at" field.
+func ExpiresAtIn(vs ...time.Time) predicate.Invitation {
+	return predicate.Invitation(sql.FieldIn(FieldExpiresAt, vs...))
+}
+
+// ExpiresAtNotIn applies the NotIn predicate on the "expires_at" field.
+func ExpiresAtNotIn(vs ...time.Time) predicate.Invitation {
+	return predicate.Invitation(sql.FieldNotIn(FieldExpiresAt, vs...))
+}
+
+// ExpiresAtGT applies the GT predicate on the "expires_at" field.
+func ExpiresAtGT(v time.Time) predicate.Invitation {
+	return predicate.Invitation(sql.FieldGT(FieldExpiresAt, v))
+}
+
+// ExpiresAtGTE applies the GTE predicate on the "expires_at" field.
+func ExpiresAtGTE(v time.Time) predicate.Invitation {
+	return predicate.Invitation(sql.FieldGTE(FieldExpiresAt, v))
+}
+
+// ExpiresAtLT applies the LT predicate on the "expires_at" field.
+func ExpiresAtLT(v time.Time) predicate.Invitation {
+	return predicate.Invitation(sql.FieldLT(FieldExpiresAt, v))
+}
+
+// ExpiresAtLTE applies the LTE predicate on the "expires_at" field.
+func ExpiresAtLTE(v time.Time) predicate.Invitation {
+	return predicate.Invitation(sql.FieldLTE(FieldExpiresAt, v))
+}
+
+// ExpiresAtIsNil applies the IsNil predicate on the "expires_at" field.
+func ExpiresAtIsNil() predicate.Invitation {
+	return predicate.Invitation(sql.FieldIsNull(FieldExpiresAt))
+}
+
+// ExpiresAtNotNil applies the NotNil predicate on the "expires_at" field.
+func ExpiresAtNotNil() predicate.Invitation {
+	return predicate.Invitation(sql.FieldNotNull(FieldExpiresAt))
 }
 
 // HasCreator applies the HasEdge predicate on the "creator" edge.

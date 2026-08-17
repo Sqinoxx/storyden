@@ -17,6 +17,7 @@ export function useInvitationsSettings() {
   const { data, error } = useInvitationList();
   const [createdID, setCreatedID] = useState<Identifier | undefined>();
   const [isCreating, setCreating] = useState(false);
+  const [isMultiFormOpen, setMultiFormOpen] = useState(false);
 
   async function handleCreate() {
     if (isCreating) {
@@ -35,6 +36,19 @@ export function useInvitationsSettings() {
         cleanup: async () => setCreating(false),
       },
     );
+  }
+
+  function handleOpenMultiForm() {
+    setMultiFormOpen(true);
+  }
+
+  function handleCloseMultiForm() {
+    setMultiFormOpen(false);
+  }
+
+  function handleMultiCreated(id: Identifier) {
+    setCreatedID(id);
+    setMultiFormOpen(false);
   }
 
   async function handleDelete(id: Identifier) {
@@ -61,8 +75,12 @@ export function useInvitationsSettings() {
     invitations: data.invitations,
     createdID,
     isCreating,
+    isMultiFormOpen,
     handleCreate,
     handleDelete,
     handleDismissCreated: () => setCreatedID(undefined),
+    handleOpenMultiForm,
+    handleCloseMultiForm,
+    handleMultiCreated,
   };
 }

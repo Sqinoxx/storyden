@@ -37,8 +37,6 @@ function parseSortOrder(value: string): ThreadSortOrder {
 }
 
 export function useThreadFeedScreen(props: Props) {
-  const initialPage = props.initialPage ?? 1;
-
   const [page, setPage] = useQueryState("page", {
     ...parseAsInteger,
     defaultValue: props.initialPage ?? 1,
@@ -75,11 +73,8 @@ export function useThreadFeedScreen(props: Props) {
     };
   }
 
-  const showPaginationTop = data?.next_page && initialPage > 1;
-
   return {
     ready: true as const,
-    showPaginationTop,
     data,
     sortOrder,
     handlePageChange,

@@ -78,7 +78,6 @@ export function ThreadFeed(props: Props & { hideCategoryBadge?: boolean }) {
   const {
     ready,
     error,
-    showPaginationTop,
     data,
     sortOrder,
     handlePageChange,
@@ -142,15 +141,13 @@ export function ThreadFeed(props: Props & { hideCategoryBadge?: boolean }) {
         </Menu.Root>
       </WStack>
 
-      {showPaginationTop && (
-        <PaginationControls
-          path="/"
-          currentPage={data.current_page}
-          totalPages={data.total_pages}
-          pageSize={data.page_size}
-          onClick={handlePageChange}
-        />
-      )}
+      <PaginationControls
+        path={props.paginationBasePath}
+        currentPage={data.current_page}
+        totalPages={data.total_pages}
+        pageSize={data.page_size}
+        onClick={handlePageChange}
+      />
       <ol className={lstack()}>
         {data.threads.map((t) => {
           return (

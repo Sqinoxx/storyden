@@ -26,8 +26,8 @@ export function EmptyState({
   const session = useSession();
 
   const contributionLabel = session
-    ? (authenticatedLabel ?? "Be the first to contribute!")
-    : (unauthenticatedLabel ?? "Please log in to contribute.");
+    ? (authenticatedLabel ?? "")
+    : (unauthenticatedLabel ?? "");
 
   return (
     <Center className={vstack(props)} p="8" gap="2" color="fg.subtle">

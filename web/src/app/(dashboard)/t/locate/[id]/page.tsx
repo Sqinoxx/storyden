@@ -39,6 +39,12 @@ export default async function LocatePage(props: Props) {
     url.searchParams.set("page", data.page.toString());
   }
 
+  // The page above is computed against ascending order (see post_search.Locate),
+  // so the target view must use that order too, regardless of the default sort.
+  if (!url.searchParams.has("sort")) {
+    url.searchParams.set("sort", "asc");
+  }
+
   url.hash = id;
 
   redirect(url.toString());

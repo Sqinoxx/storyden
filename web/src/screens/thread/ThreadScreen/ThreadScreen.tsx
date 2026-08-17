@@ -191,13 +191,14 @@ export function ThreadScreen(props: Props) {
           initialSession={props.initialSession}
           initialSettings={props.initialSettings}
           thread={thread}
+          sortOrder={sortOrder}
         />
 
         <VStack w="full">
           {data.thread.replies.total_pages > 1 && (
             <PaginationControls
               path={`/t/${thread.slug}`}
-              params={sortOrder === "desc" ? { sort: "desc" } : undefined}
+              params={sortOrder === "asc" ? { sort: "asc" } : undefined}
               currentPage={data.thread.replies.current_page ?? 1}
               totalPages={data.thread.replies.total_pages}
               pageSize={data.thread.replies.page_size}
@@ -214,7 +215,7 @@ export function ThreadScreen(props: Props) {
           {data.thread.replies.total_pages > 1 && (
             <PaginationControls
               path={`/t/${thread.slug}`}
-              params={sortOrder === "desc" ? { sort: "desc" } : undefined}
+              params={sortOrder === "asc" ? { sort: "asc" } : undefined}
               currentPage={data.thread.replies.current_page ?? 1}
               totalPages={data.thread.replies.total_pages}
               pageSize={data.thread.replies.page_size}

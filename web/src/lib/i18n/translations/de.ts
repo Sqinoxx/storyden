@@ -276,7 +276,7 @@ export const de: Translations = {
   feed: {
     empty: "*Grille* es gibt hier noch keine Beiträge...",
     quickSharePlaceholder: "Teile eine Altklausur, eine Prüfungsfrage oder einen Tipp...",
-    share: "Teilen",
+    share: "Posten",
   },
   profile: {
     suspended: "Gesperrt",

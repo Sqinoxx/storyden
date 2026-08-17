@@ -117,6 +117,59 @@ func TestThreads(t *testing.T) {
 				a.Equal(thread2get.JSON200.ReplyStatus.Replied, 1, "ctx2 replied")
 			})
 
+			t.Run("replies_default_to_newest_first", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				threadcreate := tests.AssertRequest(
+					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>thread for sort order testing</p>").Ptr(),
+						Category:   opt.New(cat1create.JSON200.Id).Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      "Reply sort order testing",
+					}, session1),
+				)(t, http.StatusOK)
+
+				reply1create := tests.AssertRequest(
+					cl.ReplyCreateWithResponse(root, threadcreate.JSON200.Slug, openapi.ReplyInitialProps{
+						Body: "first reply",
+					}, session2),
+				)(t, http.StatusOK)
+
+				reply2create := tests.AssertRequest(
+					cl.ReplyCreateWithResponse(root, threadcreate.JSON200.Slug, openapi.ReplyInitialProps{
+						Body: "second reply",
+					}, session2),
+				)(t, http.StatusOK)
+
+				// No sort param: replies should come back newest first.
+				defaultGet := tests.AssertRequest(
+					cl.ThreadGetWithResponse(root, threadcreate.JSON200.Slug, nil),
+				)(t, http.StatusOK)
+				r.Len(defaultGet.JSON200.Replies.Replies, 2)
+				a.Equal(reply2create.JSON200.Id, defaultGet.JSON200.Replies.Replies[0].Id, "newest reply should be first by default")
+				a.Equal(reply1create.JSON200.Id, defaultGet.JSON200.Replies.Replies[1].Id)
+
+				// Explicit sort=asc: replies should come back oldest first, this
+				// is the order reply permalinks are resolved against.
+				sortAsc := openapi.ThreadGetParamsSortAsc
+				ascGet := tests.AssertRequest(
+					cl.ThreadGetWithResponse(root, threadcreate.JSON200.Slug, &openapi.ThreadGetParams{Sort: &sortAsc}),
+				)(t, http.StatusOK)
+				r.Len(ascGet.JSON200.Replies.Replies, 2)
+				a.Equal(reply1create.JSON200.Id, ascGet.JSON200.Replies.Replies[0].Id, "oldest reply should be first when sort=asc")
+				a.Equal(reply2create.JSON200.Id, ascGet.JSON200.Replies.Replies[1].Id)
+
+				// Explicit sort=desc should match the default.
+				sortDesc := openapi.ThreadGetParamsSortDesc
+				descGet := tests.AssertRequest(
+					cl.ThreadGetWithResponse(root, threadcreate.JSON200.Slug, &openapi.ThreadGetParams{Sort: &sortDesc}),
+				)(t, http.StatusOK)
+				r.Len(descGet.JSON200.Replies.Replies, 2)
+				a.Equal(reply2create.JSON200.Id, descGet.JSON200.Replies.Replies[0].Id)
+				a.Equal(reply1create.JSON200.Id, descGet.JSON200.Replies.Replies[1].Id)
+			})
+
 			t.Run("reply_to_reply", func(t *testing.T) {
 				r := require.New(t)
 				a := assert.New(t)

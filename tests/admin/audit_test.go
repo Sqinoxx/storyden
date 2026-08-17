@@ -263,10 +263,17 @@ func TestAuditLogging(t *testing.T) {
 				memberCtx, _ := e2e.WithAccount(root, aw, seed.Account_004_Loki)
 				memberSession := sh.WithSession(memberCtx)
 
+				cat, err := cl.CategoryCreateWithResponse(adminCtx, openapi.CategoryInitialProps{
+					Name:   "Audit " + xid.New().String(),
+					Colour: "#123456",
+				}, adminSession)
+				tests.Ok(t, err, cat)
+
 				vis := openapi.VisibilityPublished
 				createThread, err := cl.ThreadCreateWithResponse(memberCtx, openapi.ThreadInitialProps{
 					Title:      "Test Thread",
 					Body:       opt.New("<p>Test content</p>").Ptr(),
+					Category:   opt.New(cat.JSON200.Id).Ptr(),
 					Visibility: &vis,
 				}, memberSession)
 				tests.Ok(t, err, createThread)
@@ -307,10 +314,17 @@ func TestAuditLogging(t *testing.T) {
 				memberCtx, _ := e2e.WithAccount(root, aw, seed.Account_004_Loki)
 				memberSession := sh.WithSession(memberCtx)
 
+				cat, err := cl.CategoryCreateWithResponse(adminCtx, openapi.CategoryInitialProps{
+					Name:   "Audit " + xid.New().String(),
+					Colour: "#123456",
+				}, adminSession)
+				tests.Ok(t, err, cat)
+
 				vis := openapi.VisibilityPublished
 				createThread, err := cl.ThreadCreateWithResponse(memberCtx, openapi.ThreadInitialProps{
 					Title:      "Test Thread for Replies",
 					Body:       opt.New("<p>Test content</p>").Ptr(),
+					Category:   opt.New(cat.JSON200.Id).Ptr(),
 					Visibility: &vis,
 				}, memberSession)
 				tests.Ok(t, err, createThread)

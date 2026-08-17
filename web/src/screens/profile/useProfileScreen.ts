@@ -17,8 +17,7 @@ import { useSession } from "@/auth";
 import { handle } from "@/api/client";
 import {
   ACADEMIC_META_KEY,
-  MAX_SEMESTER,
-  MIN_SEMESTER,
+  SemesterSchema,
   parseAcademicMeta,
 } from "@/lib/profile/academic";
 import { useProfileMutations } from "@/lib/profile/mutation";
@@ -45,12 +44,7 @@ export const FormSchema = z.object({
 
   bio: z.string(),
   signature: z.string(),
-  semester: z.coerce
-    .number()
-    .int()
-    .min(MIN_SEMESTER)
-    .max(MAX_SEMESTER)
-    .optional(),
+  semester: SemesterSchema.optional(),
 });
 export type Form = z.infer<typeof FormSchema>;
 

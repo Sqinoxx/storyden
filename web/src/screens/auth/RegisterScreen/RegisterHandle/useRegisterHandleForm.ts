@@ -11,11 +11,7 @@ import { APIError } from "@/api/openapi-schema";
 import { passkeyRegister } from "@/components/auth/webauthn/utils";
 import { PasswordSchema, UsernameSchema } from "@/lib/auth/schemas";
 import { isWebauthnAvailable } from "@/lib/auth/webauthn";
-import {
-  ACADEMIC_META_KEY,
-  MAX_SEMESTER,
-  MIN_SEMESTER,
-} from "@/lib/profile/academic";
+import { ACADEMIC_META_KEY, SemesterSchema } from "@/lib/profile/academic";
 import { deriveError } from "@/utils/error";
 
 export type Props = {
@@ -29,12 +25,12 @@ type Kind = z.infer<typeof KindSchema>;
 const FormSchema = z.object({
   identifier: UsernameSchema,
   token: z.string().optional(), // Validated properly during password submission
-  semester: z.coerce.number().int().min(MIN_SEMESTER).max(MAX_SEMESTER),
+  semester: SemesterSchema,
 });
 const FormPasswordSchema = z.object({
   identifier: UsernameSchema,
   token: PasswordSchema,
-  semester: z.coerce.number().int().min(MIN_SEMESTER).max(MAX_SEMESTER),
+  semester: SemesterSchema,
 });
 type Form = z.infer<typeof FormSchema>;
 

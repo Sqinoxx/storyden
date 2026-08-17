@@ -125,8 +125,8 @@ func TestAdminStatistics(t *testing.T) {
 				r.True(found, "current term should be present in the semester series")
 				a.GreaterOrEqual(currentPoint.Count, 1)
 
-				a.Len(body.ThreadsByFachsemester, 14) // unknown (0) + semesters 1-12 + finished (-1)
-				a.Len(body.AssetsByFachsemester, 14)
+				a.Len(body.ThreadsByFachsemester, 13) // unknown (0) + semesters 1-11 + finished (-1)
+				a.Len(body.AssetsByFachsemester, 13)
 
 				fachsemester3, found := lo.Find(body.ThreadsByFachsemester, func(p openapi.StatisticsFachsemesterPoint) bool {
 					return p.Semester == 3

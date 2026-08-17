@@ -6,6 +6,8 @@ import { CategoryList } from "@/components/category/CategoryList/CategoryList";
 import { LStack, styled } from "@/styled-system/jsx";
 import { hasPermission, isModeratorOrAdmin } from "@/utils/permissions";
 
+import styles from "./ContentNavigationList.module.css";
+
 import { CollectionsAnchor } from "../Anchors/Collections";
 import { DriveAnchor, useHasDriveFolders } from "../Anchors/Drive";
 import { LinksAnchor } from "../Anchors/Link";
@@ -41,25 +43,34 @@ export function ContentNavigationList(props: Props) {
     >
       <LStack
         gap="1"
-        overflowY="scroll"
+        overflowY="auto"
+        className={styles["scrollArea"]}
         style={{
-          scrollbarWidth: "none",
+          scrollbarWidth: "thin",
         }}
       >
-        <CategoryList initialCategoryList={props.initialCategoryList} />
-        <styled.hr
-          width="full"
-          border="none"
-          borderColor="border.subtle"
-          my="1.5"
-          style={{ borderTop: "1px solid", opacity: 0.15 }}
-        />
-        <LibraryNavigationTree
-          initialNodeList={props.initialNodeList}
-          currentNode={nodeSlug}
-          visibility={["draft", "review", "unlisted", "published"]}
-        />
-        <DraftsSidebarSection />
+        <styled.div
+          w="full"
+          pl={{ base: "0", md: "2" }}
+          className={styles["scrollContent"]}
+        >
+          <LStack gap="1">
+            <CategoryList initialCategoryList={props.initialCategoryList} />
+            <styled.hr
+              width="full"
+              border="none"
+              borderColor="border.subtle"
+              my="1.5"
+              style={{ borderTop: "1px solid", opacity: 0.15 }}
+            />
+            <LibraryNavigationTree
+              initialNodeList={props.initialNodeList}
+              currentNode={nodeSlug}
+              visibility={["draft", "review", "unlisted", "published"]}
+            />
+            <DraftsSidebarSection />
+          </LStack>
+        </styled.div>
       </LStack>
 
       <LStack gap="1">

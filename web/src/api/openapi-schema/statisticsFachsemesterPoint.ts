@@ -16,7 +16,7 @@ study semester (Fachsemester) cohort.
 export interface StatisticsFachsemesterPoint {
   /** Total threads or file uploads by members in this cohort. */
   count: number;
-  /** The study semester number (1-12). Zero means the members have no
+  /** The study semester number (1-11). Zero means the members have no
 recorded study semester. -1 means the members have progressed
 beyond the final semester and are recorded as finished
 ("Fertig").

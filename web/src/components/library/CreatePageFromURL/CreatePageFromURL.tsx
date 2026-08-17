@@ -197,7 +197,7 @@ export function CreatePageFromURLAction({
                   initial={{ opacity: 0, y: 2 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -2 }}
-                  transition={{ duration: 0.15 }}
+                  transition={{ type: "spring", bounce: 0, duration: 0.4 }}
                 >
                   <styled.span
                     color={getImportStateColor(importState.step)}

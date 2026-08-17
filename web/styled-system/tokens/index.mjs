@@ -2323,6 +2323,10 @@ const tokens = {
     "value": "cubic-bezier(0.3, 0.0, 0.8, 0.15)",
     "variable": "var(--easings-emphasized-out)"
   },
+  "easings.bounce": {
+    "value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+    "variable": "var(--easings-bounce)"
+  },
   "fonts.inter": {
     "value": "var(--font-inter)",
     "variable": "var(--fonts-inter)"

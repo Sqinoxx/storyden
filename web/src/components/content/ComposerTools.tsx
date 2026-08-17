@@ -172,7 +172,7 @@ export function ComposerTools({
                   ? { width: "auto" }
                   : { width: isWorking ? "24px" : "0" }
               }
-              transition={{ duration: 0.2, ease: "easeInOut" }}
+              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
               style={{ overflow: "hidden", display: "flex", gap: "8px" }}
             >
               {isWorking && (

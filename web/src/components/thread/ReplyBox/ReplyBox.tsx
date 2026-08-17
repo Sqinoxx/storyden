@@ -34,6 +34,7 @@ export function ReplyBox(props: Props) {
   const {
     isLoggedIn,
     isEmpty,
+    isExpanded,
     isLoading,
     form,
     resetKey,
@@ -77,6 +78,13 @@ export function ReplyBox(props: Props) {
         flexDirection="column"
         gap="2"
         width="full"
+        padding={isExpanded ? "3" : "2"}
+        boxShadow={isExpanded ? "md" : "sm"}
+        transitionDuration="slower"
+        transitionTimingFunction="default"
+        style={{ transitionProperty: "padding, box-shadow" }}
+        onFocus={handlers.handleFocus}
+        onBlur={handlers.handleBlur}
         onSubmit={handlers.handleSubmit}
       >
         {replyTo && (

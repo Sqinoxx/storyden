@@ -182,7 +182,7 @@
     visibility: visible;
     pointer-events: all;
 
-    animation: fadeInLeft 0.2s ease-in-out;
+    animation: fadeInLeft 0.2s var(--easings-bounce);
   }
 
   .navigation__container[data-leftbar-shown="false"] .rightbar {
@@ -196,7 +196,7 @@
     visibility: visible;
     pointer-events: all;
 
-    animation: fadeInRight 0.2s ease-in-out;
+    animation: fadeInRight 0.2s var(--easings-bounce);
   }
 
   @keyframes fadeInLeft {

@@ -13,7 +13,7 @@ export type ColorToken = "current" | "black" | "black.a1" | "black.a2" | "black.
 
 export type DurationToken = "fastest" | "faster" | "fast" | "normal" | "slow" | "slower" | "slowest"
 
-export type EasingToken = "pulse" | "default" | "emphasized-in" | "emphasized-out"
+export type EasingToken = "pulse" | "default" | "emphasized-in" | "emphasized-out" | "bounce"
 
 export type FontToken = "inter" | "interDisplay" | "mono" | "body" | "heading"
 

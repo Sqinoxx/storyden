@@ -84,7 +84,7 @@ export function AdminZone({ initialSession, initialSettings }: Props) {
               initial={{ opacity: 0, y: 2 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -2 }}
-              transition={{ duration: 0.15 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
             >
               {isEditing && route ? `Editing ${route.label}` : "Admin"}
             </MotionSpan>
@@ -115,7 +115,7 @@ export function AdminZone({ initialSession, initialSettings }: Props) {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             overflow="hidden"
-            transition={{ duration: 0.25, ease: "easeInOut" }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.3 }}
           >
             <LStack py="2">
               <RouteConfig feed={feed} updateFeed={updateFeed} route={route} />

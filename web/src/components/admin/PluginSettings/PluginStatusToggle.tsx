@@ -136,7 +136,7 @@ export function PluginStatusToggle({ plugin }: Props) {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
-            transition={{ duration: 0.2 }}
+            transition={{ type: "spring", bounce: 0, duration: 0.4 }}
           >
             {statusLabel}
           </motion.span>

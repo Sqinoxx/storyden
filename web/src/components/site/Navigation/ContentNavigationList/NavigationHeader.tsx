@@ -65,7 +65,8 @@ export function NavigationHeader({
                 h: "4",
               })}
               style={{
-                transition: "transform 0.15s ease",
+                transition:
+                  "transform var(--durations-slower) var(--easings-bounce)",
                 transform: isCollapsed ? "rotate(0deg)" : "rotate(90deg)",
               }}
             />

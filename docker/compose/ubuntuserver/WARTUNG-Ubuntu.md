@@ -15,6 +15,13 @@ den Alltag danach wichtig ist.
 | DynDNS-Zugangsdaten (falls aktiv) | Server | `~/storyden/ddns/config.json` |
 | Konfiguration/Secrets | Server | `~/storyden/.env` |
 
+**Schnellzugriff:** `cd ~/storyden && ./menu.sh` öffnet ein interaktives
+Menü für alle unten dokumentierten Alltagsaufgaben (Status, Logs, Neustart,
+Backup, Rollback, Health-Check, ...) — praktisch per SSH vom Handy aus, wenn
+man sich die Befehle nicht merken will. Die Befehle unten bleiben als
+Referenz stehen und funktionieren weiterhin einzeln, z. B. für Cron oder wenn
+kein interaktives Menü gewünscht ist.
+
 Drei Container immer aktiv unter dem Compose-Projekt `storyden`: `postgres`,
 `storyden` (Backend+Frontend in einem Image), `caddy` (HTTPS). Ein vierter,
 `ddns`, ist optional und läuft nur nach `docker compose --profile ddns up -d`

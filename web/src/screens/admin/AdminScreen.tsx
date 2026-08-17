@@ -81,6 +81,12 @@ export function AdminScreen() {
 
   return (
     <Tabs.Root
+      key={[
+        canViewStatistics,
+        canViewEmailLog,
+        canViewOAuth,
+        pluginsEnabled,
+      ].join(",")}
       width="full"
       variant="enclosed"
       // variant="line"

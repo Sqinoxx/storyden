@@ -275,7 +275,7 @@ export const de: Translations = {
   },
   feed: {
     empty: "*Grille* es gibt hier noch keine Beiträge...",
-    quickSharePlaceholder: "Teile eine Altklausur, eine Prüfungsfrage oder einen Tipp...",
+    quickSharePlaceholder: "Teile eine Altklausur oder einen Tipp...",
     share: "Posten",
   },
   profile: {

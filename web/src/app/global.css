@@ -267,6 +267,7 @@ body {
   color: var(--colors-fg-subtle);
   content: attr(data-placeholder);
   float: left;
+  max-width: 100%;
   height: 0;
   pointer-events: none;
 }

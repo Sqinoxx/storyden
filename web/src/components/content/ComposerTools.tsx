@@ -195,7 +195,7 @@ export function ComposerTools({
                 style={{
                   visibility: isExpanded ? "visible" : "hidden",
                   width: isExpanded ? "auto" : 0,
-                  overflowX: isExpanded ? "scroll" : "hidden",
+                  overflowX: isExpanded ? "auto" : "hidden",
                   scrollbarWidth: "none",
                 }}
               >

@@ -61,10 +61,21 @@ export function SettingsScreen({ initialSettings }: Props) {
     Permission.CREATE_INVITATION,
   );
 
-  const activeTab = !oauthEnabled && tab === "oauth" ? DEFAULT_TAB : tab;
+  const availableTabs = [
+    "interface",
+    "authentication",
+    ...(emailEnabled ? ["email"] : []),
+    ...(invitationsEnabled ? ["invitations"] : []),
+    ...(accessKeysEnabled ? ["access_keys"] : []),
+    "session",
+    "account",
+    ...(oauthEnabled ? ["oauth"] : []),
+  ];
+  const activeTab = tab && availableTabs.includes(tab) ? tab : DEFAULT_TAB;
 
   return (
     <Tabs.Root
+      key={availableTabs.join(",")}
       width="full"
       variant="enclosed"
       defaultValue={DEFAULT_TAB}
@@ -149,4 +160,3 @@ export function SettingsScreen({ initialSettings }: Props) {
     </Tabs.Root>
   );
 }
-

@@ -9,6 +9,7 @@ oneOf:
   - $ref: "#/$defs/READ_PUBLISHED_THREADS"
   - $ref: "#/$defs/CREATE_REACTION"
   - $ref: "#/$defs/MANAGE_POSTS"
+  - $ref: "#/$defs/PIN_POSTS"
   - $ref: "#/$defs/MANAGE_CATEGORIES"
   - $ref: "#/$defs/CREATE_INVITATION"
   - $ref: "#/$defs/READ_PUBLISHED_LIBRARY"
@@ -62,7 +63,13 @@ $defs:
     type: string
     const: MANAGE_POSTS
     title: Manage posts
-    description: Manage posts, such as delete, pin and move.
+    description: Manage posts, such as delete and move.
+
+  PIN_POSTS:
+    type: string
+    const: PIN_POSTS
+    title: Pin threads
+    description: Pin and unpin threads to highlight them within a category.
 
   MANAGE_CATEGORIES:
     type: string

@@ -16,6 +16,7 @@ var (
 	PermissionReadPublishedThreads     = Permission{`READ_PUBLISHED_THREADS`}
 	PermissionCreateReaction           = Permission{`CREATE_REACTION`}
 	PermissionManagePosts              = Permission{`MANAGE_POSTS`}
+	PermissionPinPosts                 = Permission{`PIN_POSTS`}
 	PermissionManageCategories         = Permission{`MANAGE_CATEGORIES`}
 	PermissionCreateInvitation         = Permission{`CREATE_INVITATION`}
 	PermissionReadPublishedLibrary     = Permission{`READ_PUBLISHED_LIBRARY`}
@@ -92,6 +93,8 @@ func NewPermission(__iNpUt__ string) (Permission, error) {
 		return PermissionCreateReaction, nil
 	case string(`MANAGE_POSTS`):
 		return PermissionManagePosts, nil
+	case string(`PIN_POSTS`):
+		return PermissionPinPosts, nil
 	case string(`MANAGE_CATEGORIES`):
 		return PermissionManageCategories, nil
 	case string(`CREATE_INVITATION`):

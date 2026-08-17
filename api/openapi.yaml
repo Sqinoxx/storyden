@@ -8991,6 +8991,7 @@ components:
         - "READ_PUBLISHED_THREADS"
         - "CREATE_REACTION"
         - "MANAGE_POSTS"
+        - "PIN_POSTS"
         - "MANAGE_CATEGORIES"
         - "CREATE_INVITATION"
         # Library (Page tree nodes)

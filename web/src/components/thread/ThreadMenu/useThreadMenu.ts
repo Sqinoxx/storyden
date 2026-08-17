@@ -53,7 +53,7 @@ export function useThreadMenu({
   const isMovingEnabled = canEditPost(thread, account) && movingEnabled;
   const isDeletingEnabled =
     canDeletePost(thread, account) && thread.deletedAt === undefined;
-  const canPinThread = hasPermission(account, Permission.MANAGE_POSTS);
+  const canPinThread = hasPermission(account, Permission.PIN_POSTS);
   const isThreadPinned = (thread.pinned ?? 0) > 0;
 
   const permalink = getPermalinkForThread(thread.slug);

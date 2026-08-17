@@ -151,7 +151,7 @@ export function StatisticsSettingsScreen() {
           label="Mitglieder"
           value={data?.totals.accounts}
           loading={isLoading}
-          icon={<Users size={18} color="var(--colors-accent-9)" />}
+          icon={<Users size={18} color="var(--colors-green-9)" />}
         />
         <StatCard
           label="Themen"
@@ -281,7 +281,7 @@ export function StatisticsSettingsScreen() {
                   type="monotone"
                   dataKey="accounts"
                   name="Mitglieder"
-                  stroke="var(--colors-accent-9)"
+                  stroke="var(--colors-green-9)"
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4 }}
@@ -299,7 +299,7 @@ export function StatisticsSettingsScreen() {
                   type="monotone"
                   dataKey="logins"
                   name="Logins"
-                  stroke="var(--colors-pink-9)"
+                  stroke="var(--colors-red-9)"
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4 }}
@@ -308,7 +308,7 @@ export function StatisticsSettingsScreen() {
                   type="monotone"
                   dataKey="activeAccounts"
                   name="Aktive Nutzer"
-                  stroke="var(--colors-orange-9)"
+                  stroke="var(--colors-amber-9)"
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4 }}
@@ -755,7 +755,7 @@ export function StatisticsSettingsScreen() {
                 <Bar
                   dataKey="count"
                   name="Themen"
-                  fill="var(--colors-tomato-9)"
+                  fill="var(--colors-accent-9)"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>

@@ -2,7 +2,9 @@ package invitation_test
 
 import (
 	"context"
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/rs/xid"
 	"github.com/stretchr/testify/assert"
@@ -101,6 +103,56 @@ func TestAccountInvitations(t *testing.T) {
 				tests.Ok(t, err, public)
 				r.NotNil(public.JSON200.InvitedBy)
 				a.Equal(inviter.ID.String(), public.JSON200.InvitedBy.Id)
+			})
+
+			t.Run("multi_use_invitation_enforces_max_uses", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				maxUses := 1
+				multiUseResponse, err := cl.InvitationCreateWithResponse(root, openapi.InvitationInitialProps{
+					MaxUses: &maxUses,
+				}, inviterSession)
+				tests.Ok(t, err, multiUseResponse)
+				r.NotNil(multiUseResponse.JSON200.MaxUses)
+				a.Equal(maxUses, *multiUseResponse.JSON200.MaxUses)
+				a.Equal(0, multiUseResponse.JSON200.Uses)
+
+				multiUseID := multiUseResponse.JSON200.Id
+
+				firstHandle := "invitee-" + xid.New().String()
+				first, err := cl.AuthPasswordSignupWithResponse(root, &openapi.AuthPasswordSignupParams{
+					InvitationId: &multiUseID,
+				}, openapi.AuthPair{Identifier: firstHandle, Token: "password"})
+				tests.Ok(t, err, first)
+
+				secondHandle := "invitee-" + xid.New().String()
+				second, err := cl.AuthPasswordSignupWithResponse(root, &openapi.AuthPasswordSignupParams{
+					InvitationId: &multiUseID,
+				}, openapi.AuthPair{Identifier: secondHandle, Token: "password"})
+				r.NoError(err)
+				a.Equal(http.StatusForbidden, second.StatusCode())
+			})
+
+			t.Run("expired_invitation_cannot_be_used", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				expiresAt := time.Now().Add(-time.Hour)
+				expiredResponse, err := cl.InvitationCreateWithResponse(root, openapi.InvitationInitialProps{
+					ExpiresAt: &expiresAt,
+				}, inviterSession)
+				tests.Ok(t, err, expiredResponse)
+				r.NotNil(expiredResponse.JSON200.ExpiresAt)
+
+				expiredID := expiredResponse.JSON200.Id
+
+				inviteeHandle := "invitee-" + xid.New().String()
+				signup, err := cl.AuthPasswordSignupWithResponse(root, &openapi.AuthPasswordSignupParams{
+					InvitationId: &expiredID,
+				}, openapi.AuthPair{Identifier: inviteeHandle, Token: "password"})
+				r.NoError(err)
+				a.Equal(http.StatusForbidden, signup.StatusCode())
 			})
 		}))
 	}))

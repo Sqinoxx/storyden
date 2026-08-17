@@ -87,7 +87,12 @@ func (h *Invitations) InvitationCreate(ctx context.Context, request openapi.Invi
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	inv, err := h.invWriter.Create(ctx, account.AccountID(acc.ID), opt.NewPtr(request.Body.Message))
+	inv, err := h.invWriter.Create(ctx,
+		account.AccountID(acc.ID),
+		opt.NewPtr(request.Body.Message),
+		opt.NewPtr(request.Body.MaxUses),
+		opt.NewPtr(request.Body.ExpiresAt),
+	)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -160,6 +165,9 @@ func serialiseInvitationPtr(inv *invitation.Invitation) openapi.Invitation {
 		DeletedAt: inv.DeletedAt.Ptr(),
 		Creator:   serialiseProfileReferenceFromAccount(inv.Creator),
 		Message:   inv.Message.Ptr(),
+		MaxUses:   inv.MaxUses.Ptr(),
+		ExpiresAt: inv.ExpiresAt.Ptr(),
+		Uses:      inv.Uses,
 	}
 }
 

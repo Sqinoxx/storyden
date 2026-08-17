@@ -367,6 +367,20 @@ export const en = {
     empty: "You have not created any invitations yet.",
     countOne: "1 invitation.",
     countMany: "{count} invitations.",
+    createMulti: "Generate multi-use invitation",
+    multiUsesLabel: "Number of uses",
+    multiUsesHelp: "How many different people can register with this link.",
+    expiryLabel: "Expires after",
+    expiryOptions: {
+      never: "Never",
+      oneDay: "1 day",
+      sevenDays: "7 days",
+      thirtyDays: "30 days",
+    },
+    unlimitedUses: "Unlimited uses",
+    usesCount: "{used} of {max} used",
+    expiresOn: "Expires {date}",
+    expired: "Expired",
   },
   settings: {
     tabs: {

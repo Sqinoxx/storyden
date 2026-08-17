@@ -2,6 +2,7 @@ package invitation_writer
 
 import (
 	"context"
+	"time"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
@@ -22,11 +23,13 @@ func New(db *ent.Client) *Writer {
 	return &Writer{db: db}
 }
 
-func (d *Writer) Create(ctx context.Context, creator account.AccountID, message opt.Optional[string]) (*invitation.Invitation, error) {
+func (d *Writer) Create(ctx context.Context, creator account.AccountID, message opt.Optional[string], maxUses opt.Optional[int], expiresAt opt.Optional[time.Time]) (*invitation.Invitation, error) {
 	create := d.db.Invitation.Create()
 
 	create.SetCreatorAccountID(xid.ID(creator))
 	create.SetNillableMessage(message.Ptr())
+	create.SetNillableMaxUses(maxUses.Ptr())
+	create.SetNillableExpiresAt(expiresAt.Ptr())
 
 	result, err := create.Save(ctx)
 	if err != nil {

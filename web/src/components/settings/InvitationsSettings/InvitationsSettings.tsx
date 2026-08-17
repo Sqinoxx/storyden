@@ -19,6 +19,7 @@ import { createInvitationLink } from "@/lib/invitation/link";
 import { CardBox, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
+import { MultiUseInvitationForm } from "./MultiUseInvitationForm";
 import { useInvitationsSettings } from "./useInvitationsSettings";
 
 export function InvitationsSettings() {
@@ -33,9 +34,13 @@ export function InvitationsSettings() {
     invitations,
     createdID,
     isCreating,
+    isMultiFormOpen,
     handleCreate,
     handleDelete,
     handleDismissCreated,
+    handleOpenMultiForm,
+    handleCloseMultiForm,
+    handleMultiCreated,
   } = state;
 
   return (
@@ -56,11 +61,24 @@ export function InvitationsSettings() {
                 )}
           </styled.p>
 
-          <Button onClick={handleCreate} loading={isCreating}>
-            <AddIcon />
-            {t.invitations.create}
-          </Button>
+          <HStack gap="2">
+            <Button onClick={handleCreate} loading={isCreating}>
+              <AddIcon />
+              {t.invitations.create}
+            </Button>
+            <Button variant="outline" onClick={handleOpenMultiForm}>
+              <AddIcon />
+              {t.invitations.createMulti}
+            </Button>
+          </HStack>
         </WStack>
+
+        {isMultiFormOpen && (
+          <MultiUseInvitationForm
+            onSuccess={handleMultiCreated}
+            onCancel={handleCloseMultiForm}
+          />
+        )}
 
         {createdID && (
           <LStack gap="2">
@@ -128,6 +146,12 @@ function InvitationItem({
   const { isConfirming, handleConfirmAction, handleCancelAction } =
     useConfirmation(() => onDelete(invitation.id));
 
+  const isExpired = invitation.expires_at
+    ? new Date(invitation.expires_at) < new Date()
+    : false;
+  const isExhausted =
+    invitation.max_uses != null && invitation.uses >= invitation.max_uses;
+
   return (
     <WStack
       w="full"
@@ -145,6 +169,30 @@ function InvitationItem({
           <styled.p color="fg.muted" fontSize="sm" lineClamp={1}>
             {invitation.message}
           </styled.p>
+        )}
+        {(invitation.max_uses != null || invitation.expires_at) && (
+          <HStack gap="2" fontSize="xs">
+            {invitation.max_uses != null && (
+              <styled.span color={isExhausted ? "fg.error" : "fg.muted"}>
+                {t.invitations.usesCount
+                  .replace("{used}", String(invitation.uses))
+                  .replace("{max}", String(invitation.max_uses))}
+              </styled.span>
+            )}
+            {invitation.expires_at && (
+              <styled.span color={isExpired ? "fg.error" : "fg.muted"}>
+                {isExpired
+                  ? t.invitations.expired
+                  : t.invitations.expiresOn.replace(
+                      "{date}",
+                      formatDate(
+                        new Date(invitation.expires_at),
+                        "yyyy-MM-dd HH:mm",
+                      ),
+                    )}
+              </styled.span>
+            )}
+          </HStack>
         )}
       </LStack>
 

@@ -107,6 +107,7 @@ export * from "./assetList";
 export * from "./assetNameQueryParameter";
 export * from "./assetNotModifiedResponse";
 export * from "./assetRangeNotSatisfiableResponse";
+export * from "./assetServiceSettings";
 export * from "./assetSourceList";
 export * from "./assetSourceURL";
 export * from "./assetUploadBody";

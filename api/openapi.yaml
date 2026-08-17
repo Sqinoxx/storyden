@@ -7341,6 +7341,12 @@ components:
           format: uri
           description: |
             The public API address for this Storyden instance.
+        max_upload_size_mb:
+          type: integer
+          description: |
+            The maximum size, in megabytes, of a single file upload accepted by
+            this instance. Clients should use this to reject oversized files
+            before spending bandwidth uploading them.
         metadata:
           $ref: "#/components/schemas/Metadata"
         motd:
@@ -7908,6 +7914,8 @@ components:
           $ref: "#/components/schemas/ContentServiceSettings"
         session:
           $ref: "#/components/schemas/SessionServiceSettings"
+        assets:
+          $ref: "#/components/schemas/AssetServiceSettings"
 
     StatisticsSeriesPoint:
       type: object
@@ -8022,6 +8030,19 @@ components:
           maximum: 100
           description: |
             How many threads are returned per page of a thread list or feed.
+
+    AssetServiceSettings:
+      type: object
+      properties:
+        max_upload_size_mb:
+          type: integer
+          minimum: 1
+          maximum: 1024
+          description: |
+            The maximum size, in megabytes, of a single file upload (attachments,
+            cover images, plugin archives, etc). Requests with a larger body are
+            rejected before the file is written to storage. Bound to 1024 MB
+            (1 GB) to keep this within sane resource limits for most deployments.
 
     SessionServiceSettings:
       type: object

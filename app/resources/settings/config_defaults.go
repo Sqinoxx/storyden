@@ -17,6 +17,7 @@ func (d *SettingsRepository) hydrateConfigDefaults(in *ent.Setting) (*Settings, 
 
 	d.hydrateClientIPDefaults(settings)
 	d.hydrateRateLimitDefaults(settings)
+	d.hydrateAssetDefaults(settings)
 
 	return settings, nil
 }
@@ -91,5 +92,33 @@ func (d *SettingsRepository) hydrateRateLimitDefaults(settings *Settings) {
 	}
 
 	services.RateLimit = opt.New(rateLimit)
+	settings.Services = opt.New(services)
+}
+
+func (d *SettingsRepository) hydrateAssetDefaults(settings *Settings) {
+	services, ok := settings.Services.Get()
+	if !ok {
+		settings.Services = opt.New(ServiceSettings{
+			Assets: opt.New(AssetServiceSettings{
+				MaxUploadSizeMB: opt.New(d.config.MaxUploadSizeMB),
+			}),
+		})
+		return
+	}
+
+	assets, ok := services.Assets.Get()
+	if !ok {
+		services.Assets = opt.New(AssetServiceSettings{
+			MaxUploadSizeMB: opt.New(d.config.MaxUploadSizeMB),
+		})
+		settings.Services = opt.New(services)
+		return
+	}
+
+	if !assets.MaxUploadSizeMB.Ok() {
+		assets.MaxUploadSizeMB = opt.New(d.config.MaxUploadSizeMB)
+	}
+
+	services.Assets = opt.New(assets)
 	settings.Services = opt.New(services)
 }

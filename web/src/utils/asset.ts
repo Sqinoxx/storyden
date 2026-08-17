@@ -84,8 +84,9 @@ export function normalizeFilename(name?: string | null): string {
 }
 
 /**
- * Mirrors the backend's MAX_UPLOAD_SIZE_MB default. Checking client-side turns a
- * failed request into an immediate, explainable rejection.
+ * Fallback used only while the admin-configurable upload limit (see
+ * useMaxUploadSizeBytes in @/lib/settings/uploads) hasn't loaded yet, or if
+ * the server omits it. Mirrors the backend's MAX_UPLOAD_SIZE_MB default.
  */
 export const MAX_ASSET_UPLOAD_BYTES = 50 * 1024 * 1024;
 

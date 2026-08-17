@@ -27,6 +27,11 @@ export interface Info {
   capabilities: InstanceCapabilityList;
   content: PostContent;
   description: string;
+  /** The maximum size, in megabytes, of a single file upload accepted by
+this instance. Clients should use this to reject oversized files
+before spending bandwidth uploading them.
+ */
+  max_upload_size_mb?: number;
   metadata?: Metadata;
   motd?: MessageOfTheDay;
   onboarding_status: OnboardingStatus;

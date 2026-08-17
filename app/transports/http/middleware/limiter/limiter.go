@@ -43,7 +43,8 @@ type Middleware struct {
 	configPeriod     time.Duration
 	configBucket     time.Duration
 	configGuestCost  int
-	sizeLimit        int64
+	configSizeLimit  int64
+	sizeLimit        atomic.Int64
 	settingsRepo     *settings.SettingsRepository
 	logger           *slog.Logger
 }
@@ -63,10 +64,11 @@ func New(
 		configPeriod:    cfg.RateLimitPeriod,
 		configBucket:    cfg.RateLimitBucket,
 		configGuestCost: cfg.RateLimitGuestCost,
-		sizeLimit:       maxRequestSize(cfg),
+		configSizeLimit: maxRequestSize(cfg),
 		settingsRepo:    settingsRepo,
 		logger:          logger,
 	}
+	m.sizeLimit.Store(m.configSizeLimit)
 
 	lc.Append(fx.StartHook(func(hctx context.Context) error {
 		m.reconfigureLimiter(hctx)
@@ -89,11 +91,12 @@ func maxRequestSize(cfg config.Config) int64 {
 	return int64(cfg.MaxUploadSizeMB) * 1024 * 1024
 }
 
-func (m *Middleware) getConfiguration(ctx context.Context) (limit int, period time.Duration, bucket time.Duration, guestCost int) {
+func (m *Middleware) getConfiguration(ctx context.Context) (limit int, period time.Duration, bucket time.Duration, guestCost int, sizeLimit int64) {
 	limit = m.configLimit
 	period = m.configPeriod
 	bucket = m.configBucket
 	guestCost = m.configGuestCost
+	sizeLimit = m.configSizeLimit
 
 	appSettings, err := m.settingsRepo.Get(ctx)
 	if err != nil {
@@ -108,25 +111,28 @@ func (m *Middleware) getConfiguration(ctx context.Context) (limit int, period ti
 		return
 	}
 
-	rl, ok := svc.RateLimit.Get()
-	if !ok {
-		return
+	if rl, ok := svc.RateLimit.Get(); ok {
+		if v, ok := rl.RateLimit.Get(); ok && v > 0 {
+			limit = v
+		}
+		if v, ok := rl.RateLimitPeriod.Get(); ok && v > 0 {
+			period = v
+		}
+		if v, ok := rl.RateLimitBucket.Get(); ok && v > 0 {
+			bucket = v
+		}
+		if v, ok := rl.RateLimitGuestCost.Get(); ok && v > 0 {
+			guestCost = v
+		}
 	}
 
-	if v, ok := rl.RateLimit.Get(); ok && v > 0 {
-		limit = v
-	}
-	if v, ok := rl.RateLimitPeriod.Get(); ok && v > 0 {
-		period = v
-	}
-	if v, ok := rl.RateLimitBucket.Get(); ok && v > 0 {
-		bucket = v
-	}
-	if v, ok := rl.RateLimitGuestCost.Get(); ok && v > 0 {
-		guestCost = v
+	if assets, ok := svc.Assets.Get(); ok {
+		if v, ok := assets.MaxUploadSizeMB.Get(); ok && v > 0 {
+			sizeLimit = int64(v) * 1024 * 1024
+		}
 	}
 
-	return limit, period, bucket, guestCost
+	return limit, period, bucket, guestCost, sizeLimit
 }
 
 func (m *Middleware) reconfigureLimiter(ctx context.Context) {
@@ -135,7 +141,9 @@ func (m *Middleware) reconfigureLimiter(ctx context.Context) {
 	currentBucket := time.Duration(m.currentBucket.Load())
 	currentGuestCost := int(m.currentGuestCost.Load())
 
-	limit, period, bucket, guestCost := m.getConfiguration(ctx)
+	limit, period, bucket, guestCost, sizeLimit := m.getConfiguration(ctx)
+
+	m.sizeLimit.Store(sizeLimit)
 
 	if m.rl.Load() != nil && limit == currentLimit && period == currentPeriod && bucket == currentBucket && guestCost == currentGuestCost {
 		return
@@ -263,7 +271,7 @@ func (m *Middleware) getLookup(ctx context.Context) map[string]int {
 func (m *Middleware) WithRequestSizeLimiter() func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r.Body = http.MaxBytesReader(w, r.Body, m.sizeLimit)
+			r.Body = http.MaxBytesReader(w, r.Body, m.sizeLimit.Load())
 			h.ServeHTTP(w, r)
 		})
 	}

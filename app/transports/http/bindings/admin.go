@@ -418,7 +418,15 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 			})
 		}
 
-		if clientIP.Ok() || rateLimit.Ok() || moderation.Ok() || robots.Ok() || content.Ok() || sessionSettings.Ok() {
+		var assets opt.Optional[settings.AssetServiceSettings]
+		if request.Body.Services.Assets != nil {
+			assetsBody := request.Body.Services.Assets
+			assets = opt.New(settings.AssetServiceSettings{
+				MaxUploadSizeMB: opt.NewPtr(assetsBody.MaxUploadSizeMb),
+			})
+		}
+
+		if clientIP.Ok() || rateLimit.Ok() || moderation.Ok() || robots.Ok() || content.Ok() || sessionSettings.Ok() || assets.Ok() {
 			services = opt.New(settings.ServiceSettings{
 				ClientIP:   clientIP,
 				RateLimit:  rateLimit,
@@ -426,6 +434,7 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 				Robots:     robots,
 				Content:    content,
 				Session:    sessionSettings,
+				Assets:     assets,
 			})
 		}
 	}
@@ -1142,6 +1151,7 @@ func serialiseServiceSettings(in settings.ServiceSettings) openapi.AdminSettings
 		Robots:       opt.Map(in.Robots, serialiseRobotServiceSettings).Ptr(),
 		Content:      opt.Map(in.Content, serialiseContentSettings).Ptr(),
 		Session:      opt.Map(in.Session, serialiseSessionSettings).Ptr(),
+		Assets:       opt.Map(in.Assets, serialiseAssetSettings).Ptr(),
 	}
 }
 
@@ -1149,6 +1159,12 @@ func serialiseContentSettings(in settings.ContentServiceSettings) openapi.Conten
 	return openapi.ContentServiceSettings{
 		RepliesPerPage: in.RepliesPerPage.Ptr(),
 		ThreadsPerPage: in.ThreadsPerPage.Ptr(),
+	}
+}
+
+func serialiseAssetSettings(in settings.AssetServiceSettings) openapi.AssetServiceSettings {
+	return openapi.AssetServiceSettings{
+		MaxUploadSizeMb: in.MaxUploadSizeMB.Ptr(),
 	}
 }
 

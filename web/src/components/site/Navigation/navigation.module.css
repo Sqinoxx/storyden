@@ -59,6 +59,13 @@
 .main {
   grid-area: main;
   height: 100%;
+  padding-bottom: calc(var(--spacing-24) + var(--spacing-safe-bottom));
+}
+
+@media screen and (min-width: 768px) {
+  .main {
+    padding-bottom: 0;
+  }
 }
 
 .topbar {

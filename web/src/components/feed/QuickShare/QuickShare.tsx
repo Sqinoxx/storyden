@@ -78,7 +78,7 @@ export function QuickShare(props: Props) {
           }}
         />
 
-        <Box flex="1" minH="0" w="full">
+        <Box flex="1" minH="0" maxH="48" w="full" overflowX="hidden" overflowY="auto">
           <ComposeField
             control={form.control}
             name="body"

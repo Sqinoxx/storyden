@@ -18,6 +18,7 @@ import { QueueMenuItem } from "../Anchors/Queue";
 import { ReportsMenuItem } from "../Anchors/Reports";
 import { SettingsMenuItem } from "../Anchors/Settings";
 import { TagsMenuItem } from "../Anchors/Tags";
+import { ThemeMenuItem } from "../Anchors/Theme";
 
 import {
   InvitationID,
@@ -101,6 +102,7 @@ export function AccountMenu({ account, size = "md", open, onOpenChange }: Props)
 
               <Menu.ItemGroup id="language">
                 <LanguageMenuItem />
+                <ThemeMenuItem />
               </Menu.ItemGroup>
 
               <Menu.Separator />

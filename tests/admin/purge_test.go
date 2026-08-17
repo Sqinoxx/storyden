@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Southclaws/opt"
+	"github.com/rs/xid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
@@ -42,10 +43,17 @@ func TestPurgeAccountContent(t *testing.T) {
 				memberCtx, member := e2e.WithAccount(root, aw, seed.Account_004_Loki)
 				memberSession := sh.WithSession(memberCtx)
 
+				cat, err := cl.CategoryCreateWithResponse(adminCtx, openapi.CategoryInitialProps{
+					Name:   "Purge " + xid.New().String(),
+					Colour: "#123456",
+				}, adminSession)
+				tests.Ok(t, err, cat)
+
 				vis := openapi.VisibilityPublished
 				thread1, err := cl.ThreadCreateWithResponse(memberCtx, openapi.ThreadInitialProps{
 					Title:      "Test Thread 1",
 					Body:       opt.New("<p>Content 1</p>").Ptr(),
+					Category:   opt.New(cat.JSON200.Id).Ptr(),
 					Visibility: &vis,
 				}, memberSession)
 				tests.Ok(t, err, thread1)
@@ -53,6 +61,7 @@ func TestPurgeAccountContent(t *testing.T) {
 				thread2, err := cl.ThreadCreateWithResponse(memberCtx, openapi.ThreadInitialProps{
 					Title:      "Test Thread 2",
 					Body:       opt.New("<p>Content 2</p>").Ptr(),
+					Category:   opt.New(cat.JSON200.Id).Ptr(),
 					Visibility: &vis,
 				}, memberSession)
 				tests.Ok(t, err, thread2)
@@ -103,10 +112,17 @@ func TestPurgeAccountContent(t *testing.T) {
 				otherMemberCtx, _ := e2e.WithAccount(root, aw, seed.Account_003_Baldur)
 				otherMemberSession := sh.WithSession(otherMemberCtx)
 
+				cat, err := cl.CategoryCreateWithResponse(adminCtx, openapi.CategoryInitialProps{
+					Name:   "Purge " + xid.New().String(),
+					Colour: "#123456",
+				}, adminSession)
+				tests.Ok(t, err, cat)
+
 				vis := openapi.VisibilityPublished
 				createdThread, err := cl.ThreadCreateWithResponse(otherMemberCtx, openapi.ThreadInitialProps{
 					Title:      "Test Thread",
 					Body:       opt.New("<p>Thread content</p>").Ptr(),
+					Category:   opt.New(cat.JSON200.Id).Ptr(),
 					Visibility: &vis,
 				}, otherMemberSession)
 				tests.Ok(t, err, createdThread)
@@ -168,12 +184,20 @@ func TestPurgeAccountContent(t *testing.T) {
 				nestedReplyAuthorCtx, nestedReplyAuthor := e2e.WithAccount(root, aw, seed.Account_003_Baldur)
 				nestedReplyAuthorSession := sh.WithSession(nestedReplyAuthorCtx)
 
+				cat := tests.AssertRequest(
+					cl.CategoryCreateWithResponse(adminCtx, openapi.CategoryInitialProps{
+						Name:   "Purge " + xid.New().String(),
+						Colour: "#123456",
+					}, adminSession),
+				)(t, http.StatusOK)
+
 				// Create a thread
 				vis := openapi.VisibilityPublished
 				threadResp := tests.AssertRequest(
 					cl.ThreadCreateWithResponse(threadAuthorCtx, openapi.ThreadInitialProps{
 						Title:      "Thread for Nested Replies",
 						Body:       opt.New("<p>Thread content</p>").Ptr(),
+						Category:   opt.New(cat.JSON200.Id).Ptr(),
 						Visibility: &vis,
 					}, threadAuthorSession),
 				)(t, http.StatusOK)
@@ -267,10 +291,17 @@ func TestPurgeAccountContent(t *testing.T) {
 				otherMemberCtx, _ := e2e.WithAccount(root, aw, seed.Account_003_Baldur)
 				otherMemberSession := sh.WithSession(otherMemberCtx)
 
+				cat, err := cl.CategoryCreateWithResponse(adminCtx, openapi.CategoryInitialProps{
+					Name:   "Purge " + xid.New().String(),
+					Colour: "#123456",
+				}, adminSession)
+				tests.Ok(t, err, cat)
+
 				vis := openapi.VisibilityPublished
 				memberThread, err := cl.ThreadCreateWithResponse(memberCtx, openapi.ThreadInitialProps{
 					Title:      "Member Thread",
 					Body:       opt.New("<p>Member content</p>").Ptr(),
+					Category:   opt.New(cat.JSON200.Id).Ptr(),
 					Visibility: &vis,
 				}, memberSession)
 				tests.Ok(t, err, memberThread)
@@ -278,6 +309,7 @@ func TestPurgeAccountContent(t *testing.T) {
 				otherThread, err := cl.ThreadCreateWithResponse(otherMemberCtx, openapi.ThreadInitialProps{
 					Title:      "Other Thread",
 					Body:       opt.New("<p>Other content</p>").Ptr(),
+					Category:   opt.New(cat.JSON200.Id).Ptr(),
 					Visibility: &vis,
 				}, otherMemberSession)
 				tests.Ok(t, err, otherThread)
@@ -436,12 +468,20 @@ func TestPurgeAccountContent(t *testing.T) {
 				memberCtx, member := e2e.WithAccount(root, aw, seed.Account_004_Loki)
 				memberSession := sh.WithSession(memberCtx)
 
+				cat := tests.AssertRequest(
+					cl.CategoryCreateWithResponse(adminCtx, openapi.CategoryInitialProps{
+						Name:   "Purge " + xid.New().String(),
+						Colour: "#123456",
+					}, adminSession),
+				)(t, http.StatusOK)
+
 				// Create a thread to add to collection
 				vis := openapi.VisibilityPublished
 				threadResp := tests.AssertRequest(
 					cl.ThreadCreateWithResponse(memberCtx, openapi.ThreadInitialProps{
 						Title:      "Thread for Collection",
 						Body:       opt.New("<p>Content</p>").Ptr(),
+						Category:   opt.New(cat.JSON200.Id).Ptr(),
 						Visibility: &vis,
 					}, memberSession),
 				)(t, http.StatusOK)

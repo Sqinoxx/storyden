@@ -7,7 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { OAuthClientList } from "./oAuthClientList";
+import type { OAuthClientList } from './oAuthClientList';
 
 export interface OAuthClientListResult {
   clients: OAuthClientList;

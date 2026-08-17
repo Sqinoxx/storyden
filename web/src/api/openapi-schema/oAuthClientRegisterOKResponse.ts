@@ -7,7 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { OAuthClientRegistration } from "./oAuthClientRegistration";
+import type { OAuthClientRegistration } from './oAuthClientRegistration';
 
 /**
  * RFC 7591 client information response. Contains the generated

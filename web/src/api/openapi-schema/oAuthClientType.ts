@@ -8,11 +8,11 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type OAuthClientType =
-  (typeof OAuthClientType)[keyof typeof OAuthClientType];
+export type OAuthClientType = typeof OAuthClientType[keyof typeof OAuthClientType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const OAuthClientType = {
-  public: "public",
-  confidential: "confidential",
+  public: 'public',
+  confidential: 'confidential',
 } as const;

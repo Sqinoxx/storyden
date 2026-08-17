@@ -31,6 +31,7 @@
   height: 100%;
 
   --grid-col-padding-outer: var(--spacing-2);
+  --grid-row-padding-outer: var(--spacing-8);
 
   grid-template-rows:
     var(--grid-row-padding-outer)
@@ -98,6 +99,7 @@
     display: grid;
 
     --grid-col-padding-outer: var(--spacing-4);
+    --grid-row-padding-outer: var(--spacing-5);
 
     grid-template-rows:
       var(--grid-row-padding-outer)

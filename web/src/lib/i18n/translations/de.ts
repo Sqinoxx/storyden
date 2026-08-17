@@ -350,7 +350,7 @@ export const de: Translations = {
       "Aus Sicherheitsgründen wirst du nach einer Zeit ohne Aktivität automatisch abgemeldet. Mit \"Anmeldedaten merken\" beim Login bleibst du stattdessen für den unten gewählten Zeitraum angemeldet.",
     durationLabel: "Angemeldet bleiben für",
     durationHelp:
-      "Gilt, wenn du beim Login \"Anmeldedaten merken\" aktivierst. Eine Administratorin oder ein Administrator kann dies begrenzen.",
+      "Gilt, wenn du beim Login \"Anmeldedaten merken\" aktivierst.",
     durations: {
       oneDay: "1 Tag",
       sevenDays: "7 Tage",

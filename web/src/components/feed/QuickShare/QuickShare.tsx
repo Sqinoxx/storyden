@@ -15,7 +15,7 @@ import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { Input } from "@/components/ui/input";
 import { CreateIcon } from "@/components/ui/icons/Create";
 import { Card } from "@/components/ui/rich-card";
-import { CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
+import { Box, CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
 import { button } from "@/styled-system/recipes";
 import { lstack } from "@/styled-system/patterns";
 import { useTranslation } from "@/lib/i18n";
@@ -48,13 +48,17 @@ export function QuickShare(props: Props) {
       transitionTimingFunction="default"
       style={{ transitionProperty: "padding, box-shadow" }}
     >
-      <form
+      <styled.form
         className={lstack({
           gap: "2",
         })}
         ref={formRef}
         onFocus={handlers.handleFocus}
         onSubmit={handlers.handlePost}
+        minHeight={editing ? "48" : "0"}
+        transitionDuration="slower"
+        transitionTimingFunction="default"
+        style={{ transitionProperty: "min-height" }}
       >
         <Input
           {...form.register("title")}
@@ -74,13 +78,14 @@ export function QuickShare(props: Props) {
           }}
         />
 
-        <ComposeField
-          control={form.control}
-          name="body"
-          placeholder={t.feed.quickSharePlaceholder}
-          resetKey={resetKey}
-          expanded={editing}
-        />
+        <Box flex="1" minH="0" w="full">
+          <ComposeField
+            control={form.control}
+            name="body"
+            placeholder={t.feed.quickSharePlaceholder}
+            resetKey={resetKey}
+          />
+        </Box>
 
         <WStack
           w="full"
@@ -153,7 +158,7 @@ export function QuickShare(props: Props) {
             </Button>
           </HStack>
         </WStack>
-      </form>
+      </styled.form>
 
       {match(hydratedLink)
         .with(null, () => null)

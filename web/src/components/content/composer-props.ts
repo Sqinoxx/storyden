@@ -3,7 +3,6 @@ import { Asset } from "@/api/openapi-schema";
 export type ContentComposerProps = {
   className?: string;
   disabled?: boolean;
-  expanded?: boolean;
   resetKey?: string;
   initialValue?: string;
   initialValueFormat?: "html" | "markdown";

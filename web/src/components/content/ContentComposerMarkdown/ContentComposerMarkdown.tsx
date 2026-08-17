@@ -86,14 +86,7 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
   }
 
   return (
-    <LStack
-      position="relative"
-      minHeight={props.expanded ? "24" : "10"}
-      maxHeight="fit"
-      transitionDuration="slower"
-      transitionTimingFunction="default"
-      style={{ transitionProperty: "min-height" }}
-    >
+    <LStack position="relative" minHeight="10" maxHeight="fit">
       <ComposerTools
         enabled={!props.disabled}
         icon={<ChevronLeftIcon />}

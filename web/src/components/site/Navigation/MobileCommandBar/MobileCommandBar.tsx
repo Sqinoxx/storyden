@@ -53,6 +53,7 @@ export function MobileCommandBar({ canRegister }: Props) {
                 size="sm"
                 open={isAccountMenuOpen}
                 onOpenChange={handleAccountMenuOpenChange}
+                closeOnThemeChange
               />
             ) : (
               <SiteIcon borderRadius="md" w="8" h="8" />
@@ -68,6 +69,7 @@ export function MobileCommandBar({ canRegister }: Props) {
                 size="sm"
                 open={isAccountMenuOpen}
                 onOpenChange={handleAccountMenuOpenChange}
+                closeOnThemeChange
               />
             ) : (
               <SiteIcon borderRadius="md" w="8" h="8" />

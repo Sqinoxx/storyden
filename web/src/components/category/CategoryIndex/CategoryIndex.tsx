@@ -1,6 +1,6 @@
 "use client";
 
-import { match } from "ts-pattern";
+import Image from "next/image";
 
 import { Account, ThreadListResult } from "@/api/openapi-schema";
 import { ComposeAnchor } from "@/components/site/Navigation/Anchors/Compose";
@@ -8,7 +8,8 @@ import { Heading } from "@/components/ui/heading";
 import { CategoryTree } from "@/lib/category/tree";
 import { Settings } from "@/lib/settings/settings";
 import { ThreadFeedScreen } from "@/screens/feed/ThreadFeedScreen/ThreadFeedScreen";
-import { HStack, LStack, WStack, styled } from "@/styled-system/jsx";
+import { css } from "@/styled-system/css";
+import { HStack, LStack, WStack } from "@/styled-system/jsx";
 
 import { CategoryBadge } from "../CategoryBadge";
 import { CategoryCreateTrigger } from "../CategoryCreate/CategoryCreateTrigger";
@@ -43,7 +44,6 @@ export function CategoryIndex({
   categories,
   paginationBasePath,
 }: Props) {
-  const categoryCount = categories.length;
   const t = useTranslation();
   const session = useSession(initialSession, initialSettings);
 
@@ -57,42 +57,26 @@ export function CategoryIndex({
   return (
     <LStack gap="8">
       <LStack>
-        <WStack>
-          <Heading>{t.category.discussionCategories}</Heading>
+        <WStack alignItems="center">
+          <Image
+            src="/StuDent-transparent.png"
+            alt={t.category.discussionCategories}
+            width={1200}
+            height={510}
+            className={css({
+              h: { base: "16", md: "12" },
+              w: "auto",
+            })}
+          />
 
           <CategoryCreateTrigger />
         </WStack>
 
-        <LStack>
-          {match(categoryCount)
-            .when(
-              (c) => c === 0,
-              () => (
-                <styled.p color="fg.muted">
-                  {t.category.noCategories}
-                </styled.p>
-              ),
-            )
-            .when(
-              (c) => c === 1,
-              () => (
-                <styled.p color="fg.muted">
-                  {t.category.oneCategoryAvailable}
-                </styled.p>
-              ),
-            )
-            .otherwise(() => (
-              <styled.p color="fg.muted">
-                {t.category.multipleCategoriesAvailable.replace("{count}", String(categoryCount))}
-              </styled.p>
-            ))}
-
-          <HStack>
-            {categories.map((c) => (
-              <CategoryBadge key={c.id} category={c} />
-            ))}
-          </HStack>
-        </LStack>
+        <HStack>
+          {categories.map((c) => (
+            <CategoryBadge key={c.id} category={c} />
+          ))}
+        </HStack>
 
         <CategoryLayout layout={layout} categories={categories} />
       </LStack>

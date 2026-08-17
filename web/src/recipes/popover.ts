@@ -21,10 +21,10 @@ export const popover = defineSlotRecipe({
       zIndex: "popover",
       p: "2",
       _open: {
-        animation: "fadeIn 0.25s ease-out",
+        animation: "scaleFadeIn 0.25s var(--easings-bounce)",
       },
       _closed: {
-        animation: "fadeOut 0.2s ease-out",
+        animation: "scaleFadeOut 0.2s var(--easings-emphasized-out)",
       },
       _hidden: {
         display: "none",

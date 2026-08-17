@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { FocusEvent, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -42,6 +42,7 @@ export function useReplyBox({ initialSession, initialSettings, thread }: Props) 
   );
   const [resetKey, setResetKey] = useState("");
   const [isEmpty, setEmpty] = useState(true);
+  const [isFocused, setFocused] = useState(false);
   const [postedReply, setPostedReply] = useState<ReplyLocationState | null>(
     null,
   );
@@ -49,6 +50,16 @@ export function useReplyBox({ initialSession, initialSettings, thread }: Props) 
 
   function handleEmptyStateChange(isEmpty: boolean) {
     setEmpty(isEmpty);
+  }
+
+  function handleFocus() {
+    setFocused(true);
+  }
+
+  function handleBlur(e: FocusEvent<HTMLFormElement>) {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setFocused(false);
+    }
   }
 
   function handleReplyPostedAdmonitionClose() {
@@ -105,6 +116,7 @@ export function useReplyBox({ initialSession, initialSettings, thread }: Props) 
   return {
     isLoggedIn: !!session,
     isEmpty,
+    isExpanded: isFocused || !isEmpty,
     isLoading: form.formState.isSubmitting,
     resetKey,
     postedReply,
@@ -114,6 +126,8 @@ export function useReplyBox({ initialSession, initialSettings, thread }: Props) 
       handleEmptyStateChange,
       handleReplyPostedAdmonitionClose,
       handleReplyNavigation,
+      handleFocus,
+      handleBlur,
     },
   };
 }

@@ -37,9 +37,13 @@ export function ThemeToggle() {
         },
         _active: {
           background: "bg.muted",
+          transform: "scale(0.97)",
         },
       })}
-      style={{ transition: "background 0.2s, color 0.2s" }}
+      style={{
+        transition:
+          "background 0.2s, color 0.2s, transform var(--durations-faster) var(--easings-default)",
+      }}
     >
       {/* Moon icon – visible in dark mode */}
       <span
@@ -47,7 +51,8 @@ export function ThemeToggle() {
         style={{
           display: "block",
           position: "absolute",
-          transition: "opacity 0.25s, transform 0.3s",
+          transition:
+            "opacity 0.25s var(--easings-default), transform var(--durations-slower) var(--easings-bounce)",
           opacity: isDark ? 1 : 0,
           transform: isDark ? "rotate(0deg) scale(1)" : "rotate(90deg) scale(0.7)",
           pointerEvents: "none",
@@ -62,7 +67,8 @@ export function ThemeToggle() {
         style={{
           display: "block",
           position: "absolute",
-          transition: "opacity 0.25s, transform 0.3s",
+          transition:
+            "opacity 0.25s var(--easings-default), transform var(--durations-slower) var(--easings-bounce)",
           opacity: isDark ? 0 : 1,
           transform: isDark ? "rotate(-90deg) scale(0.7)" : "rotate(0deg) scale(1)",
           pointerEvents: "none",

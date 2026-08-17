@@ -237,6 +237,14 @@ export default defineConfig({
           "0%, 100%": { backgroundColor: "transparent" },
           "50%": { backgroundColor: "var(--colors-bg-emphasized)" },
         },
+        scaleFadeIn: {
+          "0%": { opacity: 0, transform: "scale(0.95)" },
+          "100%": { opacity: 1, transform: "scale(1)" },
+        },
+        scaleFadeOut: {
+          "0%": { opacity: 1, transform: "scale(1)" },
+          "100%": { opacity: 0, transform: "scale(0.95)" },
+        },
       },
       textStyles: defineTextStyles({
         xs: { value: { fontSize: "xs", lineHeight: "1.125rem" } },

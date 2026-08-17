@@ -47,6 +47,7 @@ export function ContentNavigationList(props: Props) {
         className={styles["scrollArea"]}
         style={{
           scrollbarWidth: "thin",
+          scrollbarColor: "var(--colors-bg-muted) transparent",
         }}
       >
         <styled.div

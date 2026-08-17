@@ -47,6 +47,7 @@ if (-not $ImageOnly) {
     Send-File (Join-Path $PSScriptRoot "Caddyfile") "Caddyfile"
     Send-File (Join-Path $PSScriptRoot "backup.sh") "backup.sh"
     Send-File (Join-Path $PSScriptRoot "restore-db.sh") "restore-db.sh"
+    Send-File (Join-Path $PSScriptRoot "menu.sh") "menu.sh"
     Send-File (Join-Path $PSScriptRoot "ddns-config.example.json") "ddns-config.example.json"
     Send-File (Join-Path $PSScriptRoot ".env") ".env"
     Send-File (Join-Path $transfer "db.sql") "db.sql"

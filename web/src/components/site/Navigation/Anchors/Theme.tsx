@@ -7,7 +7,11 @@ import { useTheme } from "@/lib/theme/ThemeProvider";
 
 export const ThemeID = "theme";
 
-export function ThemeMenuItem() {
+type Props = {
+  closeOnSelect?: boolean;
+};
+
+export function ThemeMenuItem({ closeOnSelect = false }: Props) {
   const { resolvedTheme, toggleTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
@@ -16,7 +20,7 @@ export function ThemeMenuItem() {
     : "Zum dunklen Design wechseln";
 
   return (
-    <Item value={ThemeID} asChild closeOnSelect={false}>
+    <Item value={ThemeID} asChild closeOnSelect={closeOnSelect}>
       <button
         type="button"
         onClick={toggleTheme}

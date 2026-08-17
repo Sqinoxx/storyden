@@ -32,9 +32,16 @@ type Props = {
   size?: "sm" | "md";
   open?: boolean;
   onOpenChange?: (details: { open: boolean }) => void;
+  closeOnThemeChange?: boolean;
 };
 
-export function AccountMenu({ account, size = "md", open, onOpenChange }: Props) {
+export function AccountMenu({
+  account,
+  size = "md",
+  open,
+  onOpenChange,
+  closeOnThemeChange = false,
+}: Props) {
   const isAdmin = hasPermission(account, Permission.ADMINISTRATOR);
   const canCreateInvitations = hasPermission(account, Permission.CREATE_INVITATION);
   const isStaff = isModeratorOrAdmin(account);
@@ -102,7 +109,7 @@ export function AccountMenu({ account, size = "md", open, onOpenChange }: Props)
 
               <Menu.ItemGroup id="language">
                 <LanguageMenuItem />
-                <ThemeMenuItem />
+                <ThemeMenuItem closeOnSelect={closeOnThemeChange} />
               </Menu.ItemGroup>
 
               <Menu.Separator />

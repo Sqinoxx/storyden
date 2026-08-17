@@ -21,8 +21,6 @@ export const inter = localFont({
     { path: "static/Inter-ExtraBoldItalic.woff2", weight: "800", style: "italic" },
     { path: "static/Inter-Black.woff2", weight: "900" },
     { path: "static/Inter-BlackItalic.woff2", weight: "900", style: "italic" },
-    { path: "static/InterVariable-Italic.woff2", weight: "100 900", style: "italic" },
-    { path: "static/InterVariable.woff2", weight: "100 900" },
   ],
   preload: true,
   variable: "--font-inter",

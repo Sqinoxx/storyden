@@ -50,10 +50,7 @@ export function ContentComposerRich(props: ContentComposerProps) {
       position="relative"
       w="full"
       gap="1"
-      minHeight={props.expanded ? "24" : "10"}
-      transitionDuration="slower"
-      transitionTimingFunction="default"
-      style={{ transitionProperty: "min-height" }}
+      minHeight="10"
       onDragOver={handlers.handleDragOver}
       onDragEnter={handlers.handleDragEnter}
       onDragLeave={handlers.handleDragLeave}

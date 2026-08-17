@@ -47,7 +47,7 @@ Was du brauchst:
 Einloggen:
 
 ```bash
-ssh ubuntu@192.168.178.105
+ssh unidentist@192.168.178.105
 ```
 
 **Architektur pruefen** — steuert, mit welcher `-Platform` `build-image.ps1`
@@ -265,12 +265,12 @@ sie ist gitignored, landet also nicht im Repo.
 ## 6. Auf den Server kopieren
 
 ```powershell
-.\copy-to-server.ps1 -ServerUser ubuntu
+.\copy-to-server.ps1 -ServerUser unidentist
 ```
 
 Kopiert Image, Dump, Uploads, `.env`, `docker-compose.yml`, `Caddyfile`,
 `backup.sh`, `restore-db.sh` und `ddns-config.example.json` nach
-`/home/ubuntu/storyden` und laedt das Image dort in Docker. Gestartet wird
+`/home/unidentist/storyden` und laedt das Image dort in Docker. Gestartet wird
 noch nichts.
 
 Zu uebertragen sind je nach Forumsgroesse einige hundert MB (Image, Uploads,
@@ -281,7 +281,7 @@ SSH-Key:
 
 ```powershell
 ssh-keygen -t ed25519
-type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh ubuntu@192.168.178.105 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh unidentist@192.168.178.105 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
 ```
 
 ---
@@ -289,7 +289,7 @@ type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh ubuntu@192.168.178.105 "mkdir -p
 ## 7. Auf dem Server starten
 
 ```bash
-ssh ubuntu@192.168.178.105
+ssh unidentist@192.168.178.105
 cd ~/storyden
 ```
 
@@ -384,7 +384,7 @@ Auf dem PC:
 
 ```powershell
 .\build-image.ps1
-.\copy-to-server.ps1 -ServerUser ubuntu -ImageOnly
+.\copy-to-server.ps1 -ServerUser unidentist -ImageOnly
 ```
 
 Auf dem Server:
@@ -418,7 +418,7 @@ crontab -e
 ```
 
 ```
-30 3 * * * cd /home/ubuntu/storyden && bash backup.sh >> backup.log 2>&1
+30 3 * * * cd /home/unidentist/storyden && bash backup.sh >> backup.log 2>&1
 ```
 
 Zusaetzlich woanders ablegen (z.B. `rsync` auf den PC), Backups auf demselben

@@ -35,7 +35,8 @@ func (d *Querier) GetByID(ctx context.Context, id xid.ID) (*invitation.Invitatio
 	q := d.db.Invitation.
 		Query().
 		Where(invitation_ent.ID(id)).
-		WithCreator()
+		WithCreator().
+		WithInvited()
 
 	result, err := q.Only(ctx)
 	if err != nil {
@@ -57,7 +58,8 @@ func (d *Querier) GetByID(ctx context.Context, id xid.ID) (*invitation.Invitatio
 func (d *Querier) List(ctx context.Context, opts ...Filter) ([]*invitation.Invitation, error) {
 	q := d.db.Invitation.
 		Query().
-		WithCreator()
+		WithCreator().
+		WithInvited()
 
 	for _, opt := range opts {
 		opt(q)

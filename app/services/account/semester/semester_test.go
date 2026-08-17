@@ -62,7 +62,7 @@ func TestCurrent(t *testing.T) {
 		{"summer to winter advances one", 3, Term{2026, false}, date(2026, time.October, 1), 4},
 		{"winter to next summer advances one", 4, Term{2026, true}, date(2027, time.April, 1), 5},
 		{"multi year gap", 1, Term{2024, false}, date(2026, time.April, 1), 5},
-		{"reaching exactly the final semester does not finish", 11, Term{2026, false}, date(2026, time.October, 1), Max},
+		{"reaching exactly the final semester does not finish", 10, Term{2026, false}, date(2026, time.October, 1), Max},
 		{"still exactly at the cap is not finished", Max, Term{2026, false}, date(2026, time.April, 1), Max},
 		{"advancing past the final semester finishes", 10, Term{2020, false}, date(2026, time.October, 1), Finished},
 		{"long past the cap stays finished, not clamped", Max, Term{2026, false}, date(2030, time.April, 1), Finished},

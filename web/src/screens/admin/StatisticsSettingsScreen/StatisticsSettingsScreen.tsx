@@ -4,9 +4,12 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   Activity,
+  Clock,
   FolderTree,
+  LogIn,
   MessageSquare,
   MessagesSquare,
+  ShieldOff,
   UserCheck,
   Users,
 } from "lucide-react";
@@ -47,10 +50,56 @@ const GRANULARITY_LABEL: Record<Granularity, string> = {
 export function StatisticsSettingsScreen() {
   const { data, isLoading } = useAdminStatistics();
   const [granularity, setGranularity] = useState<Granularity>("daily");
+  const [assetsGranularity, setAssetsGranularity] =
+    useState<Granularity>("daily");
 
   const growthData = useMemo(
     () => buildGrowthData(data, granularity),
     [data, granularity],
+  );
+
+  const loginInsight = useMemo(() => buildLoginInsight(data), [data]);
+
+  const assetsGrowthData = useMemo(() => {
+    const series = data
+      ? selectByGranularity(
+          assetsGranularity,
+          data.assetsDaily,
+          data.assetsMonthly,
+          data.assetsYearly,
+        )
+      : [];
+    return series.map((point) => ({
+      label: formatDate(point.date, assetsGranularity),
+      count: point.count,
+    }));
+  }, [data, assetsGranularity]);
+
+  const loginsByHourData = useMemo(
+    () =>
+      (data?.loginsByHour ?? []).map((point) => ({
+        hour: `${point.hour}`,
+        count: point.count,
+      })),
+    [data],
+  );
+
+  const loginsByWeekdayData = useMemo(
+    () =>
+      (data?.loginsByWeekday ?? []).map((point) => ({
+        weekday: formatWeekday(point.weekday),
+        count: point.count,
+      })),
+    [data],
+  );
+
+  const topCategoriesData = useMemo(
+    () =>
+      (data?.topCategories ?? []).map((point) => ({
+        name: point.name,
+        count: point.threadCount,
+      })),
+    [data],
   );
 
   const semesterData = useMemo(
@@ -134,6 +183,24 @@ export function StatisticsSettingsScreen() {
           loading={isLoading}
           icon={<UserCheck size={18} color="var(--colors-accent-9)" />}
         />
+        <StatCard
+          label="Sitzungen aktiv"
+          value={data?.totals.sessionsActive}
+          loading={isLoading}
+          icon={<LogIn size={18} color="var(--colors-green-9)" />}
+        />
+        <StatCard
+          label="Sitzungen abgelaufen"
+          value={data?.totals.sessionsExpired}
+          loading={isLoading}
+          icon={<Clock size={18} color="var(--colors-amber-9)" />}
+        />
+        <StatCard
+          label="Sitzungen widerrufen"
+          value={data?.totals.sessionsRevoked}
+          loading={isLoading}
+          icon={<ShieldOff size={18} color="var(--colors-red-9)" />}
+        />
       </Grid>
 
       <Box
@@ -155,7 +222,8 @@ export function StatisticsSettingsScreen() {
               Wachstum
             </styled.h3>
             <styled.p fontSize="sm" color="fg.muted">
-              Neue Mitglieder und neue Themen im Zeitverlauf.
+              Neue Mitglieder, neue Themen, Logins und aktive Nutzer im
+              Zeitverlauf.
             </styled.p>
           </Box>
           <HStack gap="1">
@@ -227,7 +295,233 @@ export function StatisticsSettingsScreen() {
                   dot={false}
                   activeDot={{ r: 4 }}
                 />
+                <Line
+                  type="monotone"
+                  dataKey="logins"
+                  name="Logins"
+                  stroke="var(--colors-pink-9)"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="activeAccounts"
+                  name="Aktive Nutzer"
+                  stroke="var(--colors-orange-9)"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
               </LineChart>
+            </ResponsiveContainer>
+          )}
+        </Box>
+
+        {loginInsight && (
+          <styled.p fontSize="sm" color="fg.default" mt="4">
+            Heute: {loginInsight.loginsToday} Logins, davon ca.{" "}
+            <styled.span fontWeight="semibold">
+              {loginInsight.returning} wiederkehrend
+            </styled.span>{" "}
+            ({loginInsight.newSignups} Neuregistrierungen).
+          </styled.p>
+        )}
+        <styled.p fontSize="xs" color="fg.muted" mt="1">
+          Logins nähern sich über neue Sitzungen an: da bei jeder
+          Registrierung ebenfalls eine Sitzung entsteht, sind Tage mit vielen
+          Neuanmeldungen entsprechend höher.
+        </styled.p>
+      </Box>
+
+      <Box
+        p="5"
+        borderRadius="lg"
+        borderWidth="thin"
+        borderColor="border.subtle"
+        bgColor="bg.default"
+      >
+        <Flex
+          justifyContent="space-between"
+          alignItems="center"
+          flexWrap="wrap"
+          gap="3"
+          mb="4"
+        >
+          <Box>
+            <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
+              Datei-Uploads
+            </styled.h3>
+            <styled.p fontSize="sm" color="fg.muted">
+              Neu hochgeladene Dateien im Zeitverlauf.
+            </styled.p>
+          </Box>
+          <HStack gap="1">
+            {(Object.keys(GRANULARITY_LABEL) as Granularity[]).map((g) => (
+              <Button
+                key={g}
+                type="button"
+                size="sm"
+                variant={assetsGranularity === g ? "solid" : "ghost"}
+                onClick={() => setAssetsGranularity(g)}
+              >
+                {GRANULARITY_LABEL[g]}
+              </Button>
+            ))}
+          </HStack>
+        </Flex>
+
+        <Box height="72" width="full">
+          {isLoading ? (
+            <ChartPlaceholder />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={assetsGrowthData}
+                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  stroke="var(--colors-border-subtle)"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="label"
+                  stroke="var(--colors-fg-muted)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  minTickGap={16}
+                />
+                <YAxis
+                  stroke="var(--colors-fg-muted)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                  width={32}
+                />
+                <Tooltip content={FilesTooltip} />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  name="Dateien"
+                  stroke="var(--colors-amber-9)"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </Box>
+      </Box>
+
+      <Box
+        p="5"
+        borderRadius="lg"
+        borderWidth="thin"
+        borderColor="border.subtle"
+        bgColor="bg.default"
+      >
+        <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
+          Logins nach Uhrzeit
+        </styled.h3>
+        <styled.p fontSize="sm" color="fg.muted" mb="4">
+          Zu welchen Tageszeiten (UTC) die meisten Logins stattfinden.
+        </styled.p>
+
+        <Box height="72" width="full">
+          {isLoading ? (
+            <ChartPlaceholder />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={loginsByHourData}
+                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  stroke="var(--colors-border-subtle)"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="hour"
+                  stroke="var(--colors-fg-muted)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={1}
+                />
+                <YAxis
+                  stroke="var(--colors-fg-muted)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                  width={32}
+                />
+                <Tooltip content={LoginsTooltip} />
+                <Bar
+                  dataKey="count"
+                  name="Logins"
+                  fill="var(--colors-blue-9)"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </Box>
+      </Box>
+
+      <Box
+        p="5"
+        borderRadius="lg"
+        borderWidth="thin"
+        borderColor="border.subtle"
+        bgColor="bg.default"
+      >
+        <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
+          Logins nach Wochentag
+        </styled.h3>
+        <styled.p fontSize="sm" color="fg.muted" mb="4">
+          An welchen Wochentagen die meisten Logins stattfinden.
+        </styled.p>
+
+        <Box height="72" width="full">
+          {isLoading ? (
+            <ChartPlaceholder />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={loginsByWeekdayData}
+                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  stroke="var(--colors-border-subtle)"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="weekday"
+                  stroke="var(--colors-fg-muted)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="var(--colors-fg-muted)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                  width={32}
+                />
+                <Tooltip content={LoginsTooltip} />
+                <Bar
+                  dataKey="count"
+                  name="Logins"
+                  fill="var(--colors-green-9)"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
             </ResponsiveContainer>
           )}
         </Box>
@@ -423,6 +717,61 @@ export function StatisticsSettingsScreen() {
         bgColor="bg.default"
       >
         <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
+          Aktivste Kategorien
+        </styled.h3>
+        <styled.p fontSize="sm" color="fg.muted" mb="4">
+          Die Kategorien mit den meisten neuen Themen.
+        </styled.p>
+
+        <Box height="72" width="full">
+          {isLoading ? (
+            <ChartPlaceholder />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={topCategoriesData}
+                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  stroke="var(--colors-border-subtle)"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="name"
+                  stroke="var(--colors-fg-muted)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="var(--colors-fg-muted)"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                  width={32}
+                />
+                <Tooltip content={SemesterTooltip} />
+                <Bar
+                  dataKey="count"
+                  name="Themen"
+                  fill="var(--colors-tomato-9)"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </Box>
+      </Box>
+
+      <Box
+        p="5"
+        borderRadius="lg"
+        borderWidth="thin"
+        borderColor="border.subtle"
+        bgColor="bg.default"
+      >
+        <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
           Aktivste Mitglieder
         </styled.h3>
         <styled.p fontSize="sm" color="fg.muted" mb="4">
@@ -448,38 +797,87 @@ function buildGrowthData(
 
   const accounts = pickSeries(data, granularity, "accounts");
   const threads = pickSeries(data, granularity, "threads");
+  const logins = pickSeries(data, granularity, "logins");
+  const activeAccounts = pickSeries(data, granularity, "activeAccounts");
 
   return accounts.map((point, i) => ({
     label: formatDate(point.date, granularity),
     accounts: point.count,
     threads: threads[i]?.count ?? 0,
+    logins: logins[i]?.count ?? 0,
+    activeAccounts: activeAccounts[i]?.count ?? 0,
   }));
+}
+
+function selectByGranularity<T>(
+  granularity: Granularity,
+  daily: T[],
+  monthly: T[],
+  yearly: T[],
+): T[] {
+  switch (granularity) {
+    case "daily":
+      return daily;
+    case "monthly":
+      return monthly;
+    case "yearly":
+      return yearly;
+  }
 }
 
 function pickSeries(
   data: AdminStatistics200,
   granularity: Granularity,
-  kind: "accounts" | "threads",
+  kind: "accounts" | "threads" | "logins" | "activeAccounts",
 ): StatisticsSeriesPoint[] {
-  if (kind === "accounts") {
-    switch (granularity) {
-      case "daily":
-        return data.accountsDaily;
-      case "monthly":
-        return data.accountsMonthly;
-      case "yearly":
-        return data.accountsYearly;
-    }
+  switch (kind) {
+    case "accounts":
+      return selectByGranularity(
+        granularity,
+        data.accountsDaily,
+        data.accountsMonthly,
+        data.accountsYearly,
+      );
+    case "threads":
+      return selectByGranularity(
+        granularity,
+        data.threadsDaily,
+        data.threadsMonthly,
+        data.threadsYearly,
+      );
+    case "logins":
+      return selectByGranularity(
+        granularity,
+        data.loginsDaily,
+        data.loginsMonthly,
+        data.loginsYearly,
+      );
+    case "activeAccounts":
+      return selectByGranularity(
+        granularity,
+        data.activeAccountsDaily,
+        data.activeAccountsMonthly,
+        data.activeAccountsYearly,
+      );
   }
+}
 
-  switch (granularity) {
-    case "daily":
-      return data.threadsDaily;
-    case "monthly":
-      return data.threadsMonthly;
-    case "yearly":
-      return data.threadsYearly;
-  }
+// buildLoginInsight nets today's new-signup sessions out of today's total
+// login count, so the "raw" logins-includes-signups caveat becomes a
+// concrete, readable number rather than just a disclaimer.
+function buildLoginInsight(data: AdminStatistics200 | undefined) {
+  if (!data) return null;
+
+  const loginsToday = data.loginsDaily.at(-1)?.count ?? 0;
+  const newSignups = data.accountsDaily.at(-1)?.count ?? 0;
+
+  if (loginsToday === 0) return null;
+
+  return {
+    loginsToday,
+    newSignups,
+    returning: Math.max(0, loginsToday - newSignups),
+  };
 }
 
 function formatDate(date: string, granularity: Granularity): string {
@@ -526,6 +924,14 @@ function formatFachsemester(semester: number): string {
   if (semester === 0) return "Unbekannt";
   if (semester === FINISHED_SEMESTER) return "Fertig";
   return `${semester}. Sem.`;
+}
+
+const WEEKDAY_LABELS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+
+// formatWeekday maps the backend's 1=Monday..7=Sunday convention to a short
+// German label.
+function formatWeekday(weekday: number): string {
+  return WEEKDAY_LABELS[weekday - 1] ?? `${weekday}`;
 }
 
 function buildFachsemesterInsight(
@@ -656,6 +1062,23 @@ function SemesterTooltip({
           key={entry.dataKey as string}
           color={entry.color}
           name="Themen"
+          value={entry.value as number}
+        />
+      ))}
+    </ChartTooltipCard>
+  );
+}
+
+function LoginsTooltip({ active, payload, label }: TooltipContentProps) {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <ChartTooltipCard label={label}>
+      {payload.map((entry) => (
+        <TooltipRow
+          key={entry.dataKey as string}
+          color={entry.color}
+          name="Logins"
           value={entry.value as number}
         />
       ))}

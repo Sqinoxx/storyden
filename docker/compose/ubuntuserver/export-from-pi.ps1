@@ -52,7 +52,7 @@ if (-not $pgDb) { $pgDb = "storyden" }
 # --- 1. Datenbank ---
 
 Write-Host "Dump auf dem Pi erzeugen (DB: $pgDb, User: $pgUser) ..."
-ssh $target "cd '$RemoteDir' && docker compose exec -T postgres pg_dump -U '$pgUser' -d '$pgDb' --no-owner --no-privileges -f /tmp/storyden-export.sql"
+ssh $target "cd '$RemoteDir' && docker compose exec -T postgres pg_dump -U '$pgUser' -d '$pgDb' --no-owner --no-privileges > /tmp/storyden-export.sql"
 if ($LASTEXITCODE -ne 0) { throw "pg_dump auf dem Pi fehlgeschlagen (Exit $LASTEXITCODE)" }
 
 $dbOut = Join-Path $outDir "db.sql"
@@ -115,7 +115,8 @@ if (-not $SkipEnv) {
         if (-not $handled) { $result.Add($line) }
     }
 
-    [System.IO.File]::WriteAllLines($envPath, $result, (New-Object System.Text.UTF8Encoding($false)))
+    $content = ($result -join "`n") + "`n"
+    [System.IO.File]::WriteAllText($envPath, $content, (New-Object System.Text.UTF8Encoding($false)))
 
     Write-Host "  -> .env aktualisiert (uebernommen: $($filled -join ', '))"
     Write-Host ""

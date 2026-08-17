@@ -91,6 +91,53 @@ func (_u *InvitationUpdate) SetNillableCreatorAccountID(v *xid.ID) *InvitationUp
 	return _u
 }
 
+// SetMaxUses sets the "max_uses" field.
+func (_u *InvitationUpdate) SetMaxUses(v int) *InvitationUpdate {
+	_u.mutation.ResetMaxUses()
+	_u.mutation.SetMaxUses(v)
+	return _u
+}
+
+// SetNillableMaxUses sets the "max_uses" field if the given value is not nil.
+func (_u *InvitationUpdate) SetNillableMaxUses(v *int) *InvitationUpdate {
+	if v != nil {
+		_u.SetMaxUses(*v)
+	}
+	return _u
+}
+
+// AddMaxUses adds value to the "max_uses" field.
+func (_u *InvitationUpdate) AddMaxUses(v int) *InvitationUpdate {
+	_u.mutation.AddMaxUses(v)
+	return _u
+}
+
+// ClearMaxUses clears the value of the "max_uses" field.
+func (_u *InvitationUpdate) ClearMaxUses() *InvitationUpdate {
+	_u.mutation.ClearMaxUses()
+	return _u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (_u *InvitationUpdate) SetExpiresAt(v time.Time) *InvitationUpdate {
+	_u.mutation.SetExpiresAt(v)
+	return _u
+}
+
+// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
+func (_u *InvitationUpdate) SetNillableExpiresAt(v *time.Time) *InvitationUpdate {
+	if v != nil {
+		_u.SetExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (_u *InvitationUpdate) ClearExpiresAt() *InvitationUpdate {
+	_u.mutation.ClearExpiresAt()
+	return _u
+}
+
 // SetCreatorID sets the "creator" edge to the Account entity by ID.
 func (_u *InvitationUpdate) SetCreatorID(id xid.ID) *InvitationUpdate {
 	_u.mutation.SetCreatorID(id)
@@ -225,6 +272,21 @@ func (_u *InvitationUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if _u.mutation.MessageCleared() {
 		_spec.ClearField(invitation.FieldMessage, field.TypeString)
+	}
+	if value, ok := _u.mutation.MaxUses(); ok {
+		_spec.SetField(invitation.FieldMaxUses, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxUses(); ok {
+		_spec.AddField(invitation.FieldMaxUses, field.TypeInt, value)
+	}
+	if _u.mutation.MaxUsesCleared() {
+		_spec.ClearField(invitation.FieldMaxUses, field.TypeInt)
+	}
+	if value, ok := _u.mutation.ExpiresAt(); ok {
+		_spec.SetField(invitation.FieldExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.ExpiresAtCleared() {
+		_spec.ClearField(invitation.FieldExpiresAt, field.TypeTime)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -379,6 +441,53 @@ func (_u *InvitationUpdateOne) SetNillableCreatorAccountID(v *xid.ID) *Invitatio
 	if v != nil {
 		_u.SetCreatorAccountID(*v)
 	}
+	return _u
+}
+
+// SetMaxUses sets the "max_uses" field.
+func (_u *InvitationUpdateOne) SetMaxUses(v int) *InvitationUpdateOne {
+	_u.mutation.ResetMaxUses()
+	_u.mutation.SetMaxUses(v)
+	return _u
+}
+
+// SetNillableMaxUses sets the "max_uses" field if the given value is not nil.
+func (_u *InvitationUpdateOne) SetNillableMaxUses(v *int) *InvitationUpdateOne {
+	if v != nil {
+		_u.SetMaxUses(*v)
+	}
+	return _u
+}
+
+// AddMaxUses adds value to the "max_uses" field.
+func (_u *InvitationUpdateOne) AddMaxUses(v int) *InvitationUpdateOne {
+	_u.mutation.AddMaxUses(v)
+	return _u
+}
+
+// ClearMaxUses clears the value of the "max_uses" field.
+func (_u *InvitationUpdateOne) ClearMaxUses() *InvitationUpdateOne {
+	_u.mutation.ClearMaxUses()
+	return _u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (_u *InvitationUpdateOne) SetExpiresAt(v time.Time) *InvitationUpdateOne {
+	_u.mutation.SetExpiresAt(v)
+	return _u
+}
+
+// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
+func (_u *InvitationUpdateOne) SetNillableExpiresAt(v *time.Time) *InvitationUpdateOne {
+	if v != nil {
+		_u.SetExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (_u *InvitationUpdateOne) ClearExpiresAt() *InvitationUpdateOne {
+	_u.mutation.ClearExpiresAt()
 	return _u
 }
 
@@ -546,6 +655,21 @@ func (_u *InvitationUpdateOne) sqlSave(ctx context.Context) (_node *Invitation, 
 	}
 	if _u.mutation.MessageCleared() {
 		_spec.ClearField(invitation.FieldMessage, field.TypeString)
+	}
+	if value, ok := _u.mutation.MaxUses(); ok {
+		_spec.SetField(invitation.FieldMaxUses, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedMaxUses(); ok {
+		_spec.AddField(invitation.FieldMaxUses, field.TypeInt, value)
+	}
+	if _u.mutation.MaxUsesCleared() {
+		_spec.ClearField(invitation.FieldMaxUses, field.TypeInt)
+	}
+	if value, ok := _u.mutation.ExpiresAt(); ok {
+		_spec.SetField(invitation.FieldExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.ExpiresAtCleared() {
+		_spec.ClearField(invitation.FieldExpiresAt, field.TypeTime)
 	}
 	if _u.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -40,6 +40,10 @@ func (s *service) Update(ctx context.Context, threadID post.ID, partial Partial)
 
 	if err := session.Authorise(ctx, func() error {
 		if thr.Author.ID != aid {
+			if isPinOnlyMutation(partial) && session.Authorise(ctx, nil, rbac.PermissionPinPosts) == nil {
+				return nil
+			}
+
 			return fault.Wrap(rbac.ErrPermissions,
 				fctx.With(ctx),
 				fmsg.WithDesc("not author", "You are not the author of the thread and do not have the Manage Posts permission."))

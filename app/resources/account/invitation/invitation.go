@@ -16,6 +16,9 @@ type Invitation struct {
 	DeletedAt opt.Optional[time.Time]
 	Message   opt.Optional[string]
 	Creator   account.Account
+	MaxUses   opt.Optional[int]
+	ExpiresAt opt.Optional[time.Time]
+	Uses      int
 }
 
 func Map(in *ent.Invitation) (*Invitation, error) {
@@ -36,5 +39,8 @@ func Map(in *ent.Invitation) (*Invitation, error) {
 		DeletedAt: opt.NewPtr(in.DeletedAt),
 		Message:   opt.NewPtr(in.Message),
 		Creator:   *acc,
+		MaxUses:   opt.NewPtr(in.MaxUses),
+		ExpiresAt: opt.NewPtr(in.ExpiresAt),
+		Uses:      len(in.Edges.Invited),
 	}, nil
 }

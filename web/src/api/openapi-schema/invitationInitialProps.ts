@@ -9,5 +9,9 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  */
 
 export interface InvitationInitialProps {
+  /** The point in time after which this invitation may no longer be used. Omit for an invitation that never expires. */
+  expires_at?: string;
+  /** The maximum number of accounts that may register using this invitation. Omit for unlimited uses. */
+  max_uses?: number;
   message?: string;
 }

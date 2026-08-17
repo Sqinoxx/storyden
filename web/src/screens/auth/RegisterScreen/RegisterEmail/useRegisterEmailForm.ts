@@ -9,18 +9,14 @@ import { handle } from "@/api/client";
 import { accountUpdate } from "@/api/openapi-client/accounts";
 import { authEmailPasswordSignup } from "@/api/openapi-client/auth";
 import { PasswordSchema, UsernameSchema } from "@/lib/auth/schemas";
-import {
-  ACADEMIC_META_KEY,
-  MAX_SEMESTER,
-  MIN_SEMESTER,
-} from "@/lib/profile/academic";
+import { ACADEMIC_META_KEY, SemesterSchema } from "@/lib/profile/academic";
 import { deriveError } from "@/utils/error";
 
 const FormSchema = z.object({
   handle: UsernameSchema,
   email: z.string().email(),
   password: PasswordSchema,
-  semester: z.coerce.number().int().min(MIN_SEMESTER).max(MAX_SEMESTER),
+  semester: SemesterSchema,
 });
 type Form = z.infer<typeof FormSchema>;
 

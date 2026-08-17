@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const MIN_SEMESTER = 1;
-export const MAX_SEMESTER = 12;
+export const MAX_SEMESTER = 11;
 
 // Reported by the server in place of a semester number once a member has
 // progressed beyond MAX_SEMESTER without setting it manually again.
@@ -25,10 +25,24 @@ export const AcademicMetaSchema = z.object({
 
 export type AcademicMeta = z.infer<typeof AcademicMetaSchema>;
 
-export const SEMESTER_OPTIONS = Array.from(
-  { length: MAX_SEMESTER - MIN_SEMESTER + 1 },
-  (_, i) => i + MIN_SEMESTER,
-);
+export const SEMESTER_OPTIONS = [
+  ...Array.from(
+    { length: MAX_SEMESTER - MIN_SEMESTER + 1 },
+    (_, i) => i + MIN_SEMESTER,
+  ),
+  FINISHED_SEMESTER,
+];
+
+// Accepts a real semester number or FINISHED_SEMESTER ("Fertig"), matching
+// the options offered by SEMESTER_OPTIONS.
+export const SemesterSchema = z.coerce
+  .number()
+  .int()
+  .refine(
+    (value) =>
+      value === FINISHED_SEMESTER ||
+      (value >= MIN_SEMESTER && value <= MAX_SEMESTER),
+  );
 
 export function parseAcademicMeta(
   meta: Record<string, unknown> | undefined,

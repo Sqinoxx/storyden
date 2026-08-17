@@ -720,6 +720,80 @@ func TestThreads(t *testing.T) {
 				a.Equal(1, threadUpdate.JSON200.Pinned)
 			})
 
+			t.Run("pin_permission_independent_of_manage_posts", func(t *testing.T) {
+				a := assert.New(t)
+
+				indCat := tests.AssertRequest(
+					cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+						Colour:      "#abcdef",
+						Description: "pin permission independence test",
+						Name:        "Pin Independence Cat " + uuid.NewString(),
+					}, session1),
+				)(t, http.StatusOK)
+
+				thr := tests.AssertRequest(
+					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>owned by baldur</p>").Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      "Independence thread " + uuid.NewString(),
+						Category:   opt.New(indCat.JSON200.Id).Ptr(),
+					}, session2),
+				)(t, http.StatusOK)
+
+				// A role with ONLY the dedicated pin permission can pin someone
+				// else's thread, but cannot make other edits to it.
+				pinOnlyRole := tests.AssertRequest(
+					cl.RoleCreateWithResponse(root, openapi.RoleCreateJSONRequestBody{
+						Name:        "pin-only-" + uuid.NewString(),
+						Colour:      "blue",
+						Permissions: openapi.PermissionList{openapi.PINPOSTS},
+					}, session1),
+				)(t, http.StatusOK)
+
+				pinnerCtx, pinnerAcc := e2e.WithAccount(root, aw, seed.Account_004_Loki)
+				pinnerSession := sh.WithSession(pinnerCtx)
+
+				tests.AssertRequest(
+					cl.AccountAddRoleWithResponse(root, pinnerAcc.Handle, pinOnlyRole.JSON200.Id, session1),
+				)(t, http.StatusOK)
+
+				pinned := tests.AssertRequest(
+					cl.ThreadUpdateWithResponse(root, thr.JSON200.Slug, openapi.ThreadMutableProps{
+						Pinned: opt.New(openapi.PinnedRank(1)).Ptr(),
+					}, pinnerSession),
+				)(t, http.StatusOK)
+				a.Equal(1, pinned.JSON200.Pinned)
+
+				tests.AssertRequest(
+					cl.ThreadUpdateWithResponse(root, thr.JSON200.Slug, openapi.ThreadMutableProps{
+						Title: opt.New("hijacked title").Ptr(),
+					}, pinnerSession),
+				)(t, http.StatusForbidden)
+
+				// Conversely, MANAGE_POSTS alone no longer implies the ability to
+				// pin threads now that pinning has its own dedicated permission.
+				manageOnlyRole := tests.AssertRequest(
+					cl.RoleCreateWithResponse(root, openapi.RoleCreateJSONRequestBody{
+						Name:        "manage-posts-only-" + uuid.NewString(),
+						Colour:      "orange",
+						Permissions: openapi.PermissionList{openapi.MANAGEPOSTS},
+					}, session1),
+				)(t, http.StatusOK)
+
+				managerCtx, managerAcc := e2e.WithAccount(root, aw, seed.Account_006_Freyja)
+				managerSession := sh.WithSession(managerCtx)
+
+				tests.AssertRequest(
+					cl.AccountAddRoleWithResponse(root, managerAcc.Handle, manageOnlyRole.JSON200.Id, session1),
+				)(t, http.StatusOK)
+
+				tests.AssertRequest(
+					cl.ThreadUpdateWithResponse(root, thr.JSON200.Slug, openapi.ThreadMutableProps{
+						Pinned: opt.New(openapi.PinnedRank(0)).Ptr(),
+					}, managerSession),
+				)(t, http.StatusForbidden)
+			})
+
 			t.Run("category_required_for_non_admin_thread_update", func(t *testing.T) {
 				a := assert.New(t)
 

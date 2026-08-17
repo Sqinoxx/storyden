@@ -1,10 +1,10 @@
 # Kopiert Image, Datenbank-Dump, Uploads und Konfiguration per SSH auf den
 # Ubuntu-Server und laedt das Image dort in Docker.
 #
-#   .\copy-to-server.ps1 -ServerUser ubuntu
+#   .\copy-to-server.ps1 -ServerUser unidentist
 #
 # Fuer reine Code-Updates (Konfiguration und Daten bleiben unveraendert):
-#   .\copy-to-server.ps1 -ServerUser ubuntu -ImageOnly
+#   .\copy-to-server.ps1 -ServerUser unidentist -ImageOnly
 #
 # db.sql und data.tar.gz kommen aus transfer/ - vorher .\export-from-pi.ps1
 # ausfuehren. Startet auf dem Server nichts - die Schritte danach stehen in
@@ -12,7 +12,7 @@
 
 param(
     [string]$ServerHost = "192.168.178.105",
-    [string]$ServerUser = "ubuntu",
+    [string]$ServerUser = "unidentist",
     [string]$RemoteDir = "",
     [switch]$ImageOnly,
     [switch]$SkipImage
@@ -47,6 +47,7 @@ if (-not $ImageOnly) {
     Send-File (Join-Path $PSScriptRoot "Caddyfile") "Caddyfile"
     Send-File (Join-Path $PSScriptRoot "backup.sh") "backup.sh"
     Send-File (Join-Path $PSScriptRoot "restore-db.sh") "restore-db.sh"
+    Send-File (Join-Path $PSScriptRoot "menu.sh") "menu.sh"
     Send-File (Join-Path $PSScriptRoot "ddns-config.example.json") "ddns-config.example.json"
     Send-File (Join-Path $PSScriptRoot ".env") ".env"
     Send-File (Join-Path $transfer "db.sql") "db.sql"

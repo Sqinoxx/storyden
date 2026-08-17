@@ -25,6 +25,10 @@ const (
 	FieldMessage = "message"
 	// FieldCreatorAccountID holds the string denoting the creator_account_id field in the database.
 	FieldCreatorAccountID = "creator_account_id"
+	// FieldMaxUses holds the string denoting the max_uses field in the database.
+	FieldMaxUses = "max_uses"
+	// FieldExpiresAt holds the string denoting the expires_at field in the database.
+	FieldExpiresAt = "expires_at"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
 	// EdgeInvited holds the string denoting the invited edge name in mutations.
@@ -55,6 +59,8 @@ var Columns = []string{
 	FieldDeletedAt,
 	FieldMessage,
 	FieldCreatorAccountID,
+	FieldMaxUses,
+	FieldExpiresAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -111,6 +117,16 @@ func ByMessage(opts ...sql.OrderTermOption) OrderOption {
 // ByCreatorAccountID orders the results by the creator_account_id field.
 func ByCreatorAccountID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatorAccountID, opts...).ToFunc()
+}
+
+// ByMaxUses orders the results by the max_uses field.
+func ByMaxUses(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxUses, opts...).ToFunc()
+}
+
+// ByExpiresAt orders the results by the expires_at field.
+func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExpiresAt, opts...).ToFunc()
 }
 
 // ByCreatorField orders the results by creator field.

@@ -7,15 +7,15 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { ProfileReference } from "./profileReference";
+import type { Identifier } from "./identifier";
 
-export interface InvitationProps {
-  creator: ProfileReference;
-  /** The point in time after which this invitation may no longer be used. Absent means it never expires. */
-  expires_at?: string;
-  /** The maximum number of accounts that may register using this invitation. Absent means unlimited uses. */
-  max_uses?: number;
-  message?: string;
-  /** The number of accounts that have already registered using this invitation. */
-  uses: number;
+/**
+ * A single data point of thread activity for one forum category.
+ */
+export interface StatisticsCategoryPoint {
+  categoryId: Identifier;
+  /** The category's display name. */
+  name: string;
+  /** Total threads created in this category in the window. */
+  threadCount: number;
 }

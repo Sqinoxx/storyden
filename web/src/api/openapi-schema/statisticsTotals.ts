@@ -19,6 +19,12 @@ export interface StatisticsTotals {
   categories: number;
   /** Total number of replies (non-root posts). */
   replies: number;
+  /** Sessions that are not revoked and not yet expired. */
+  sessionsActive: number;
+  /** Sessions that are not revoked but have passed their expiry. */
+  sessionsExpired: number;
+  /** Sessions that were explicitly revoked (e.g. by sign-out). */
+  sessionsRevoked: number;
   /** Total number of threads (root posts). */
   threads: number;
 }

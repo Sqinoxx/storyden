@@ -87,6 +87,34 @@ func (_c *InvitationCreate) SetCreatorAccountID(v xid.ID) *InvitationCreate {
 	return _c
 }
 
+// SetMaxUses sets the "max_uses" field.
+func (_c *InvitationCreate) SetMaxUses(v int) *InvitationCreate {
+	_c.mutation.SetMaxUses(v)
+	return _c
+}
+
+// SetNillableMaxUses sets the "max_uses" field if the given value is not nil.
+func (_c *InvitationCreate) SetNillableMaxUses(v *int) *InvitationCreate {
+	if v != nil {
+		_c.SetMaxUses(*v)
+	}
+	return _c
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (_c *InvitationCreate) SetExpiresAt(v time.Time) *InvitationCreate {
+	_c.mutation.SetExpiresAt(v)
+	return _c
+}
+
+// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
+func (_c *InvitationCreate) SetNillableExpiresAt(v *time.Time) *InvitationCreate {
+	if v != nil {
+		_c.SetExpiresAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *InvitationCreate) SetID(v xid.ID) *InvitationCreate {
 	_c.mutation.SetID(v)
@@ -247,6 +275,14 @@ func (_c *InvitationCreate) createSpec() (*Invitation, *sqlgraph.CreateSpec) {
 		_spec.SetField(invitation.FieldMessage, field.TypeString, value)
 		_node.Message = &value
 	}
+	if value, ok := _c.mutation.MaxUses(); ok {
+		_spec.SetField(invitation.FieldMaxUses, field.TypeInt, value)
+		_node.MaxUses = &value
+	}
+	if value, ok := _c.mutation.ExpiresAt(); ok {
+		_spec.SetField(invitation.FieldExpiresAt, field.TypeTime, value)
+		_node.ExpiresAt = &value
+	}
 	if nodes := _c.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -392,6 +428,48 @@ func (u *InvitationUpsert) UpdateCreatorAccountID() *InvitationUpsert {
 	return u
 }
 
+// SetMaxUses sets the "max_uses" field.
+func (u *InvitationUpsert) SetMaxUses(v int) *InvitationUpsert {
+	u.Set(invitation.FieldMaxUses, v)
+	return u
+}
+
+// UpdateMaxUses sets the "max_uses" field to the value that was provided on create.
+func (u *InvitationUpsert) UpdateMaxUses() *InvitationUpsert {
+	u.SetExcluded(invitation.FieldMaxUses)
+	return u
+}
+
+// AddMaxUses adds v to the "max_uses" field.
+func (u *InvitationUpsert) AddMaxUses(v int) *InvitationUpsert {
+	u.Add(invitation.FieldMaxUses, v)
+	return u
+}
+
+// ClearMaxUses clears the value of the "max_uses" field.
+func (u *InvitationUpsert) ClearMaxUses() *InvitationUpsert {
+	u.SetNull(invitation.FieldMaxUses)
+	return u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *InvitationUpsert) SetExpiresAt(v time.Time) *InvitationUpsert {
+	u.Set(invitation.FieldExpiresAt, v)
+	return u
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *InvitationUpsert) UpdateExpiresAt() *InvitationUpsert {
+	u.SetExcluded(invitation.FieldExpiresAt)
+	return u
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *InvitationUpsert) ClearExpiresAt() *InvitationUpsert {
+	u.SetNull(invitation.FieldExpiresAt)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -510,6 +588,55 @@ func (u *InvitationUpsertOne) SetCreatorAccountID(v xid.ID) *InvitationUpsertOne
 func (u *InvitationUpsertOne) UpdateCreatorAccountID() *InvitationUpsertOne {
 	return u.Update(func(s *InvitationUpsert) {
 		s.UpdateCreatorAccountID()
+	})
+}
+
+// SetMaxUses sets the "max_uses" field.
+func (u *InvitationUpsertOne) SetMaxUses(v int) *InvitationUpsertOne {
+	return u.Update(func(s *InvitationUpsert) {
+		s.SetMaxUses(v)
+	})
+}
+
+// AddMaxUses adds v to the "max_uses" field.
+func (u *InvitationUpsertOne) AddMaxUses(v int) *InvitationUpsertOne {
+	return u.Update(func(s *InvitationUpsert) {
+		s.AddMaxUses(v)
+	})
+}
+
+// UpdateMaxUses sets the "max_uses" field to the value that was provided on create.
+func (u *InvitationUpsertOne) UpdateMaxUses() *InvitationUpsertOne {
+	return u.Update(func(s *InvitationUpsert) {
+		s.UpdateMaxUses()
+	})
+}
+
+// ClearMaxUses clears the value of the "max_uses" field.
+func (u *InvitationUpsertOne) ClearMaxUses() *InvitationUpsertOne {
+	return u.Update(func(s *InvitationUpsert) {
+		s.ClearMaxUses()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *InvitationUpsertOne) SetExpiresAt(v time.Time) *InvitationUpsertOne {
+	return u.Update(func(s *InvitationUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *InvitationUpsertOne) UpdateExpiresAt() *InvitationUpsertOne {
+	return u.Update(func(s *InvitationUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *InvitationUpsertOne) ClearExpiresAt() *InvitationUpsertOne {
+	return u.Update(func(s *InvitationUpsert) {
+		s.ClearExpiresAt()
 	})
 }
 
@@ -798,6 +925,55 @@ func (u *InvitationUpsertBulk) SetCreatorAccountID(v xid.ID) *InvitationUpsertBu
 func (u *InvitationUpsertBulk) UpdateCreatorAccountID() *InvitationUpsertBulk {
 	return u.Update(func(s *InvitationUpsert) {
 		s.UpdateCreatorAccountID()
+	})
+}
+
+// SetMaxUses sets the "max_uses" field.
+func (u *InvitationUpsertBulk) SetMaxUses(v int) *InvitationUpsertBulk {
+	return u.Update(func(s *InvitationUpsert) {
+		s.SetMaxUses(v)
+	})
+}
+
+// AddMaxUses adds v to the "max_uses" field.
+func (u *InvitationUpsertBulk) AddMaxUses(v int) *InvitationUpsertBulk {
+	return u.Update(func(s *InvitationUpsert) {
+		s.AddMaxUses(v)
+	})
+}
+
+// UpdateMaxUses sets the "max_uses" field to the value that was provided on create.
+func (u *InvitationUpsertBulk) UpdateMaxUses() *InvitationUpsertBulk {
+	return u.Update(func(s *InvitationUpsert) {
+		s.UpdateMaxUses()
+	})
+}
+
+// ClearMaxUses clears the value of the "max_uses" field.
+func (u *InvitationUpsertBulk) ClearMaxUses() *InvitationUpsertBulk {
+	return u.Update(func(s *InvitationUpsert) {
+		s.ClearMaxUses()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *InvitationUpsertBulk) SetExpiresAt(v time.Time) *InvitationUpsertBulk {
+	return u.Update(func(s *InvitationUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *InvitationUpsertBulk) UpdateExpiresAt() *InvitationUpsertBulk {
+	return u.Update(func(s *InvitationUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (u *InvitationUpsertBulk) ClearExpiresAt() *InvitationUpsertBulk {
+	return u.Update(func(s *InvitationUpsert) {
+		s.ClearExpiresAt()
 	})
 }
 

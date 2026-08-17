@@ -434,7 +434,7 @@ paths:
                   threadsByFachsemester:
                     description: |
                       Total threads authored by members currently recorded in
-                      each study semester (1-12), plus a bucket for members
+                      each study semester (1-11), plus a bucket for members
                       with no recorded semester and a bucket for members who
                       have finished ("Fertig"). Shows which cohorts are the
                       most and least engaged.
@@ -443,7 +443,7 @@ paths:
                   assetsByFachsemester:
                     description: |
                       Total files uploaded by members currently recorded in
-                      each study semester (1-12), plus a bucket for members
+                      each study semester (1-11), plus a bucket for members
                       with no recorded semester and a bucket for members who
                       have finished ("Fertig"). Shows which cohorts are
                       contributing the most and least material.
@@ -7946,7 +7946,7 @@ components:
         semester:
           type: integer
           description: |
-            The study semester number (1-12). Zero means the members have no
+            The study semester number (1-11). Zero means the members have no
             recorded study semester. -1 means the members have progressed
             beyond the final semester and are recorded as finished
             ("Fertig").
@@ -7969,7 +7969,7 @@ components:
         semester:
           type: integer
           description: |
-            The member's currently recorded study semester (1-12), zero if
+            The member's currently recorded study semester (1-11), zero if
             not recorded, or -1 if the member has finished ("Fertig").
         threadCount:
           type: integer

@@ -19,7 +19,7 @@ import (
 const (
 	// Min and Max bound a dentistry degree's semester count.
 	Min = 1
-	Max = 12
+	Max = 11
 
 	// Finished is returned by Current, and stored in metadata in place of a
 	// semester number, once a member has progressed beyond Max ("Fertig").

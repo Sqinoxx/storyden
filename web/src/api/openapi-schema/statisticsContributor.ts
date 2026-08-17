@@ -20,7 +20,7 @@ export interface StatisticsContributor {
   lastThreadAt: CreatedAt;
   /** The member's display name. */
   name: string;
-  /** The member's currently recorded study semester (1-12), zero if
+  /** The member's currently recorded study semester (1-11), zero if
 not recorded, or -1 if the member has finished ("Fertig").
  */
   semester: number;

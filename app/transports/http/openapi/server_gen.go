@@ -6625,7 +6625,7 @@ type StatisticsContributor struct {
 	// Name The member's display name.
 	Name string `json:"name"`
 
-	// Semester The member's currently recorded study semester (1-12), zero if
+	// Semester The member's currently recorded study semester (1-11), zero if
 	// not recorded, or -1 if the member has finished ("Fertig").
 	Semester int `json:"semester"`
 
@@ -6639,7 +6639,7 @@ type StatisticsFachsemesterPoint struct {
 	// Count Total threads or file uploads by members in this cohort.
 	Count int `json:"count"`
 
-	// Semester The study semester number (1-12). Zero means the members have no
+	// Semester The study semester number (1-11). Zero means the members have no
 	// recorded study semester. -1 means the members have progressed
 	// beyond the final semester and are recorded as finished
 	// ("Fertig").
@@ -31212,14 +31212,14 @@ type AdminStatisticsResponse struct {
 		AccountsYearly []StatisticsSeriesPoint `json:"accountsYearly"`
 
 		// AssetsByFachsemester Total files uploaded by members currently recorded in
-		// each study semester (1-12), plus a bucket for members
+		// each study semester (1-11), plus a bucket for members
 		// with no recorded semester and a bucket for members who
 		// have finished ("Fertig"). Shows which cohorts are
 		// contributing the most and least material.
 		AssetsByFachsemester []StatisticsFachsemesterPoint `json:"assetsByFachsemester"`
 
 		// ThreadsByFachsemester Total threads authored by members currently recorded in
-		// each study semester (1-12), plus a bucket for members
+		// each study semester (1-11), plus a bucket for members
 		// with no recorded semester and a bucket for members who
 		// have finished ("Fertig"). Shows which cohorts are the
 		// most and least engaged.
@@ -40713,14 +40713,14 @@ func ParseAdminStatisticsResponse(rsp *http.Response) (*AdminStatisticsResponse,
 			AccountsYearly []StatisticsSeriesPoint `json:"accountsYearly"`
 
 			// AssetsByFachsemester Total files uploaded by members currently recorded in
-			// each study semester (1-12), plus a bucket for members
+			// each study semester (1-11), plus a bucket for members
 			// with no recorded semester and a bucket for members who
 			// have finished ("Fertig"). Shows which cohorts are
 			// contributing the most and least material.
 			AssetsByFachsemester []StatisticsFachsemesterPoint `json:"assetsByFachsemester"`
 
 			// ThreadsByFachsemester Total threads authored by members currently recorded in
-			// each study semester (1-12), plus a bucket for members
+			// each study semester (1-11), plus a bucket for members
 			// with no recorded semester and a bucket for members who
 			// have finished ("Fertig"). Shows which cohorts are the
 			// most and least engaged.
@@ -57074,14 +57074,14 @@ type AdminStatistics200JSONResponse struct {
 	AccountsYearly []StatisticsSeriesPoint `json:"accountsYearly"`
 
 	// AssetsByFachsemester Total files uploaded by members currently recorded in
-	// each study semester (1-12), plus a bucket for members
+	// each study semester (1-11), plus a bucket for members
 	// with no recorded semester and a bucket for members who
 	// have finished ("Fertig"). Shows which cohorts are
 	// contributing the most and least material.
 	AssetsByFachsemester []StatisticsFachsemesterPoint `json:"assetsByFachsemester"`
 
 	// ThreadsByFachsemester Total threads authored by members currently recorded in
-	// each study semester (1-12), plus a bucket for members
+	// each study semester (1-11), plus a bucket for members
 	// with no recorded semester and a bucket for members who
 	// have finished ("Fertig"). Shows which cohorts are the
 	// most and least engaged.
@@ -74105,7 +74105,7 @@ var swaggerSpec = []string{
 	"GvNeSPHUDnq1nQm6Z7NWVQScwDh3O3gEGLKDywgrGkUb76ebfC2gwWtVpE/viB1KL9Uu7yFX2ZVO3lPC",
 	"wkWaXRxYyaK3fkXdd+ekrgxbpSeWHGmsDVulh+sYwnBteKbPpcBg5FSF/jPPbxUFgCbAXMYqM+7lGGF1",
 	"grzkgih2z9l60vXqX+xpUK+LBieSJ2FaX2mCHyXZTkG1QbTrs90CRCj/2mtsC8PmkUlnkgYLLJk2nbmf",
-	"vp86vkyxzIrROdGmyjfEtyePvhl/8+3XI/IvpiTh86mwb5r/GBJCx9+4ag3+sOzLN+eC6yXLyaPpyU/2",
+	"vp86vkyxzIrROdGmyjfEtyePvhl/883XI/IvpiTh86mwb5r/GBJCx9+4ag3+sOzLN+eC6yXLyaPpyU/2",
 	"KBbTk6+7ULHxTM+9aNaaL6Bi4yeaYJSwJwUATIQxnVqA8skAjOyaJrbL7Ia9a86sdaL9ZP0TzZa+n1eS",
 	"C9NTigwwMwHkADAUvUz0yK9ZKmLfGVKtCklz/TWQvBRsKtpnFY/6NcnkUqpkcahsyFa3hrU7jpvtlDAo",
 	"gAEjJA+1nwJbM3eg50hsE/L/WWIrGRU6oivt62ZNRQexTiwtdjRbKblQTGsoD8I20qkQcy6geoubB1Tv",
@@ -74257,7 +74257,7 @@ var swaggerSpec = []string{
 	"VjJtmPoaH7p2H250+5O9I+PK5W24QUM4Bey+/sqZIiHRs8o3U+G7J49+otkyDFaHYJdSuzWwENEtaMny",
 	"Cblo1COqU3eiXcypXs4kVd1RG1f1cT3ozfX5+U8oLzbbJPCCreuk/xVTJKebES7Wndt3j+3fgN1ww0rd",
 	"Ras4AX1aL+QKIrteSY62BXePqFJ0Y//th30uhVkOmltpv2zO7ptv8a/vcH7/h1E1aHobRlVzdn+Dv72L",
-	"ucET8OMmJtaEOGAZH9wHXecezurql1mlFCLShOvAxVQwmi3xXpD6Wnwz/ubbr0dkVVSAHFJldwxxY11n",
+	"ucET8OMmJtaEOGAZH9wHXecezurql1mlFCLShOvAxVQwmi3xXpD6Wnwz/uabr0dkVVSAHFJldwxxY11n",
 	"UwFXRcjoavnG7sJutSHrpZyKJb1nZM4F10uWk0fTk58s9S6mJ1/7eNj1kmdW4l6Cfg++ZXsbFJ9Vxtcr",
 	"wvspclIwqg0pqWGK0wLv256bH+9q5xE4jjXsDDx7Q/7zmZwCOm9aG8/Egi58ctk73ferzj1/ET0oK8CI",
 	"i56S5g39d/jbYTd02ER7GG88x/fHd92ovWw3ntn75bpu5D6mG0/uPfJcI1fnnutIpRNXvSUmeJkEZY7k",
@@ -74594,7 +74594,7 @@ var swaggerSpec = []string{
 	"zg9nF+xs4p/5MZdvkJu6Ougnr1+lmrBftJ7Ugr0x8g669FfQshmRc2LWJqiHGpvg5l/oB4G++XzsbQ4w",
 	"U4DGboLxcDMVPFQ9n5WlmLvjS7hCrbM66PnT9sMPg6NzXk7FsT8Ho+tto9sP+9F4fsdvpJ1rKx2ZhBvn",
 	"6BjyMDh6e80n24bCMw+Do3fcuuN4y94yqP3ww+Do/x6HJVwv5uL4w9wFKL5N06wZ5S0sQHfsPJrDNvdr",
-	"bcnDw8P/CwAA//9GKmcSNQ8GAA==",
+	"bcnDw8P/CwAA///OzjWpNQ8GAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

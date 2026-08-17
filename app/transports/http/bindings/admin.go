@@ -176,6 +176,9 @@ func (a *Admin) AdminStatistics(ctx context.Context, request openapi.AdminStatis
 			Categories:        stats.Totals.Categories,
 			ActiveAccounts7d:  stats.Totals.ActiveAccounts7d,
 			ActiveAccounts30d: stats.Totals.ActiveAccounts30d,
+			SessionsActive:    stats.Totals.SessionsActive,
+			SessionsExpired:   stats.Totals.SessionsExpired,
+			SessionsRevoked:   stats.Totals.SessionsRevoked,
 		},
 		AccountsDaily:         mapSeries(stats.AccountsDaily),
 		AccountsMonthly:       mapSeries(stats.AccountsMonthly),
@@ -187,6 +190,18 @@ func (a *Admin) AdminStatistics(ctx context.Context, request openapi.AdminStatis
 		ThreadsByFachsemester: mapFachsemesterSeries(stats.ThreadsByFachsemester),
 		AssetsByFachsemester:  mapFachsemesterSeries(stats.AssetsByFachsemester),
 		TopContributors:       mapContributors(stats.TopContributors),
+		LoginsDaily:           mapSeries(stats.LoginsDaily),
+		LoginsMonthly:         mapSeries(stats.LoginsMonthly),
+		LoginsYearly:          mapSeries(stats.LoginsYearly),
+		LoginsByHour:          mapHourSeries(stats.LoginsByHour),
+		LoginsByWeekday:       mapWeekdaySeries(stats.LoginsByWeekday),
+		ActiveAccountsDaily:   mapSeries(stats.ActiveAccountsDaily),
+		ActiveAccountsMonthly: mapSeries(stats.ActiveAccountsMonthly),
+		ActiveAccountsYearly:  mapSeries(stats.ActiveAccountsYearly),
+		AssetsDaily:           mapSeries(stats.AssetsDaily),
+		AssetsMonthly:         mapSeries(stats.AssetsMonthly),
+		AssetsYearly:          mapSeries(stats.AssetsYearly),
+		TopCategories:         mapCategorySeries(stats.TopCategories),
 	}, nil
 }
 
@@ -233,6 +248,40 @@ func mapContributors(contributors []statistics_querier.Contributor) []openapi.St
 			Semester:     c.Semester,
 			ThreadCount:  c.ThreadCount,
 			LastThreadAt: c.LastThreadAt,
+		}
+	}
+	return out
+}
+
+func mapHourSeries(points []statistics_querier.HourOfDayPoint) []openapi.StatisticsHourPoint {
+	out := make([]openapi.StatisticsHourPoint, len(points))
+	for i, p := range points {
+		out[i] = openapi.StatisticsHourPoint{
+			Hour:  p.Hour,
+			Count: p.Count,
+		}
+	}
+	return out
+}
+
+func mapWeekdaySeries(points []statistics_querier.WeekdayPoint) []openapi.StatisticsWeekdayPoint {
+	out := make([]openapi.StatisticsWeekdayPoint, len(points))
+	for i, p := range points {
+		out[i] = openapi.StatisticsWeekdayPoint{
+			Weekday: p.Weekday,
+			Count:   p.Count,
+		}
+	}
+	return out
+}
+
+func mapCategorySeries(points []statistics_querier.CategoryPoint) []openapi.StatisticsCategoryPoint {
+	out := make([]openapi.StatisticsCategoryPoint, len(points))
+	for i, p := range points {
+		out[i] = openapi.StatisticsCategoryPoint{
+			CategoryId:  openapi.Identifier(p.CategoryID.String()),
+			Name:        p.Name,
+			ThreadCount: p.ThreadCount,
 		}
 	}
 	return out

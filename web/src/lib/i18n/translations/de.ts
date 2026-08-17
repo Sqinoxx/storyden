@@ -369,6 +369,21 @@ export const de: Translations = {
     empty: "Du hast noch keine Einladungen erstellt.",
     countOne: "1 Einladung.",
     countMany: "{count} Einladungen.",
+    createMulti: "Mehrfach-Einladung generieren",
+    multiUsesLabel: "Anzahl der Nutzungen",
+    multiUsesHelp:
+      "Wie viele verschiedene Personen sich mit diesem Link registrieren können.",
+    expiryLabel: "Läuft ab nach",
+    expiryOptions: {
+      never: "Nie",
+      oneDay: "1 Tag",
+      sevenDays: "7 Tagen",
+      thirtyDays: "30 Tagen",
+    },
+    unlimitedUses: "Unbegrenzte Nutzungen",
+    usesCount: "{used} von {max} genutzt",
+    expiresOn: "Läuft ab am {date}",
+    expired: "Abgelaufen",
   },
   settings: {
     tabs: {

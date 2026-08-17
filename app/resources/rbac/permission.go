@@ -26,6 +26,7 @@ var writePermissions = []Permission{
 	PermissionCreatePost,
 	PermissionCreateReaction,
 	PermissionManagePosts,
+	PermissionPinPosts,
 	PermissionManageCategories,
 	PermissionCreateInvitation,
 	PermissionManageLibrary,

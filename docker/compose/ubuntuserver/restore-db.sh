@@ -26,7 +26,7 @@ fi
 
 env_value() {
   local key="$1" fallback="$2" value
-  value="$(grep -E "^${key}=" .env | tail -n1 | cut -d= -f2- || true)"
+  value="$(grep -E "^${key}=" .env | tail -n1 | cut -d= -f2- | tr -d '\r' || true)"
   if [ -z "$value" ]; then echo "$fallback"; else echo "$value"; fi
 }
 

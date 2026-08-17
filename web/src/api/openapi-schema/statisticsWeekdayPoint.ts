@@ -7,15 +7,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { ProfileReference } from "./profileReference";
 
-export interface InvitationProps {
-  creator: ProfileReference;
-  /** The point in time after which this invitation may no longer be used. Absent means it never expires. */
-  expires_at?: string;
-  /** The maximum number of accounts that may register using this invitation. Absent means unlimited uses. */
-  max_uses?: number;
-  message?: string;
-  /** The number of accounts that have already registered using this invitation. */
-  uses: number;
+/**
+ * A single data point of login activity for one weekday.
+ */
+export interface StatisticsWeekdayPoint {
+  count: number;
+  /** Day of the week, UTC (1=Monday..7=Sunday). */
+  weekday: number;
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/mail"
+	"time"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
@@ -36,6 +37,8 @@ var (
 	errEmailNotVerified        = fault.New("email not verified")
 	errAuthMethodAlreadyLinked = fault.New("authentication method already linked to another account")
 	errInviteRequired          = fault.New("invitation required", ftag.With(ftag.PermissionDenied))
+	errInviteExpired           = fault.New("invitation expired", ftag.With(ftag.PermissionDenied))
+	errInviteExhausted         = fault.New("invitation exhausted", ftag.With(ftag.PermissionDenied))
 	errRegistrationClosed      = fault.New("registration closed", ftag.With(ftag.PermissionDenied))
 )
 
@@ -172,6 +175,18 @@ func (s *Registrar) validateInvite(ctx context.Context, id xid.ID) error {
 		return fault.Wrap(errInviteRequired,
 			fctx.With(ctx),
 			fmsg.WithDesc("invalid invitation", "The invitation could not be found or is no longer valid."))
+	}
+
+	if expiresAt, ok := inv.ExpiresAt.Get(); ok && time.Now().After(expiresAt) {
+		return fault.Wrap(errInviteExpired,
+			fctx.With(ctx),
+			fmsg.WithDesc("invitation expired", "This invitation has expired and can no longer be used."))
+	}
+
+	if maxUses, ok := inv.MaxUses.Get(); ok && inv.Uses >= maxUses {
+		return fault.Wrap(errInviteExhausted,
+			fctx.With(ctx),
+			fmsg.WithDesc("invitation exhausted", "This invitation has already been used the maximum number of times."))
 	}
 
 	return nil

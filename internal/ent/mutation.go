@@ -17636,6 +17636,9 @@ type InvitationMutation struct {
 	updated_at     *time.Time
 	deleted_at     *time.Time
 	message        *string
+	max_uses       *int
+	addmax_uses    *int
+	expires_at     *time.Time
 	clearedFields  map[string]struct{}
 	creator        *xid.ID
 	clearedcreator bool
@@ -17957,6 +17960,125 @@ func (m *InvitationMutation) ResetCreatorAccountID() {
 	m.creator = nil
 }
 
+// SetMaxUses sets the "max_uses" field.
+func (m *InvitationMutation) SetMaxUses(i int) {
+	m.max_uses = &i
+	m.addmax_uses = nil
+}
+
+// MaxUses returns the value of the "max_uses" field in the mutation.
+func (m *InvitationMutation) MaxUses() (r int, exists bool) {
+	v := m.max_uses
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxUses returns the old "max_uses" field's value of the Invitation entity.
+// If the Invitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InvitationMutation) OldMaxUses(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxUses is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxUses requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxUses: %w", err)
+	}
+	return oldValue.MaxUses, nil
+}
+
+// AddMaxUses adds i to the "max_uses" field.
+func (m *InvitationMutation) AddMaxUses(i int) {
+	if m.addmax_uses != nil {
+		*m.addmax_uses += i
+	} else {
+		m.addmax_uses = &i
+	}
+}
+
+// AddedMaxUses returns the value that was added to the "max_uses" field in this mutation.
+func (m *InvitationMutation) AddedMaxUses() (r int, exists bool) {
+	v := m.addmax_uses
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearMaxUses clears the value of the "max_uses" field.
+func (m *InvitationMutation) ClearMaxUses() {
+	m.max_uses = nil
+	m.addmax_uses = nil
+	m.clearedFields[invitation.FieldMaxUses] = struct{}{}
+}
+
+// MaxUsesCleared returns if the "max_uses" field was cleared in this mutation.
+func (m *InvitationMutation) MaxUsesCleared() bool {
+	_, ok := m.clearedFields[invitation.FieldMaxUses]
+	return ok
+}
+
+// ResetMaxUses resets all changes to the "max_uses" field.
+func (m *InvitationMutation) ResetMaxUses() {
+	m.max_uses = nil
+	m.addmax_uses = nil
+	delete(m.clearedFields, invitation.FieldMaxUses)
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *InvitationMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *InvitationMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the Invitation entity.
+// If the Invitation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InvitationMutation) OldExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (m *InvitationMutation) ClearExpiresAt() {
+	m.expires_at = nil
+	m.clearedFields[invitation.FieldExpiresAt] = struct{}{}
+}
+
+// ExpiresAtCleared returns if the "expires_at" field was cleared in this mutation.
+func (m *InvitationMutation) ExpiresAtCleared() bool {
+	_, ok := m.clearedFields[invitation.FieldExpiresAt]
+	return ok
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *InvitationMutation) ResetExpiresAt() {
+	m.expires_at = nil
+	delete(m.clearedFields, invitation.FieldExpiresAt)
+}
+
 // SetCreatorID sets the "creator" edge to the Account entity by id.
 func (m *InvitationMutation) SetCreatorID(id xid.ID) {
 	m.creator = &id
@@ -18085,7 +18207,7 @@ func (m *InvitationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *InvitationMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, invitation.FieldCreatedAt)
 	}
@@ -18100,6 +18222,12 @@ func (m *InvitationMutation) Fields() []string {
 	}
 	if m.creator != nil {
 		fields = append(fields, invitation.FieldCreatorAccountID)
+	}
+	if m.max_uses != nil {
+		fields = append(fields, invitation.FieldMaxUses)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, invitation.FieldExpiresAt)
 	}
 	return fields
 }
@@ -18119,6 +18247,10 @@ func (m *InvitationMutation) Field(name string) (ent.Value, bool) {
 		return m.Message()
 	case invitation.FieldCreatorAccountID:
 		return m.CreatorAccountID()
+	case invitation.FieldMaxUses:
+		return m.MaxUses()
+	case invitation.FieldExpiresAt:
+		return m.ExpiresAt()
 	}
 	return nil, false
 }
@@ -18138,6 +18270,10 @@ func (m *InvitationMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldMessage(ctx)
 	case invitation.FieldCreatorAccountID:
 		return m.OldCreatorAccountID(ctx)
+	case invitation.FieldMaxUses:
+		return m.OldMaxUses(ctx)
+	case invitation.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Invitation field %s", name)
 }
@@ -18182,6 +18318,20 @@ func (m *InvitationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCreatorAccountID(v)
 		return nil
+	case invitation.FieldMaxUses:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxUses(v)
+		return nil
+	case invitation.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Invitation field %s", name)
 }
@@ -18189,13 +18339,21 @@ func (m *InvitationMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *InvitationMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addmax_uses != nil {
+		fields = append(fields, invitation.FieldMaxUses)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *InvitationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case invitation.FieldMaxUses:
+		return m.AddedMaxUses()
+	}
 	return nil, false
 }
 
@@ -18204,6 +18362,13 @@ func (m *InvitationMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *InvitationMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case invitation.FieldMaxUses:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxUses(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Invitation numeric field %s", name)
 }
@@ -18217,6 +18382,12 @@ func (m *InvitationMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(invitation.FieldMessage) {
 		fields = append(fields, invitation.FieldMessage)
+	}
+	if m.FieldCleared(invitation.FieldMaxUses) {
+		fields = append(fields, invitation.FieldMaxUses)
+	}
+	if m.FieldCleared(invitation.FieldExpiresAt) {
+		fields = append(fields, invitation.FieldExpiresAt)
 	}
 	return fields
 }
@@ -18237,6 +18408,12 @@ func (m *InvitationMutation) ClearField(name string) error {
 		return nil
 	case invitation.FieldMessage:
 		m.ClearMessage()
+		return nil
+	case invitation.FieldMaxUses:
+		m.ClearMaxUses()
+		return nil
+	case invitation.FieldExpiresAt:
+		m.ClearExpiresAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Invitation nullable field %s", name)
@@ -18260,6 +18437,12 @@ func (m *InvitationMutation) ResetField(name string) error {
 		return nil
 	case invitation.FieldCreatorAccountID:
 		m.ResetCreatorAccountID()
+		return nil
+	case invitation.FieldMaxUses:
+		m.ResetMaxUses()
+		return nil
+	case invitation.FieldExpiresAt:
+		m.ResetExpiresAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Invitation field %s", name)

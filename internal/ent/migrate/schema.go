@@ -543,6 +543,8 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "message", Type: field.TypeString, Nullable: true},
+		{Name: "max_uses", Type: field.TypeInt, Nullable: true},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
 		{Name: "creator_account_id", Type: field.TypeString, Size: 20},
 	}
 	// InvitationsTable holds the schema information for the "invitations" table.
@@ -553,7 +555,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "invitations_accounts_invitations",
-				Columns:    []*schema.Column{InvitationsColumns[5]},
+				Columns:    []*schema.Column{InvitationsColumns[7]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

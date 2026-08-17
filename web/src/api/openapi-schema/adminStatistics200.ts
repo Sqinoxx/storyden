@@ -7,11 +7,14 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
+import type { StatisticsCategoryPoint } from "./statisticsCategoryPoint";
 import type { StatisticsContributor } from "./statisticsContributor";
 import type { StatisticsFachsemesterPoint } from "./statisticsFachsemesterPoint";
+import type { StatisticsHourPoint } from "./statisticsHourPoint";
 import type { StatisticsSemesterPoint } from "./statisticsSemesterPoint";
 import type { StatisticsSeriesPoint } from "./statisticsSeriesPoint";
 import type { StatisticsTotals } from "./statisticsTotals";
+import type { StatisticsWeekdayPoint } from "./statisticsWeekdayPoint";
 
 export type AdminStatistics200 = {
   /** New accounts per day, most recent 30 days. */
@@ -20,15 +23,54 @@ export type AdminStatistics200 = {
   accountsMonthly: StatisticsSeriesPoint[];
   /** New accounts per year, most recent 5 years. */
   accountsYearly: StatisticsSeriesPoint[];
+  /** Distinct accounts that authored a post (thread or
+reply) per day, most recent 30 days.
+ */
+  activeAccountsDaily: StatisticsSeriesPoint[];
+  /** Distinct accounts that authored a post per month, most
+recent 12 months.
+ */
+  activeAccountsMonthly: StatisticsSeriesPoint[];
+  /** Distinct accounts that authored a post per year, most
+recent 5 years.
+ */
+  activeAccountsYearly: StatisticsSeriesPoint[];
   /** Total files uploaded by members currently recorded in
-each study semester (1-12), plus a bucket for members
+each study semester (1-11), plus a bucket for members
 with no recorded semester and a bucket for members who
 have finished ("Fertig"). Shows which cohorts are
 contributing the most and least material.
  */
   assetsByFachsemester: StatisticsFachsemesterPoint[];
+  /** New file uploads per day, most recent 30 days. */
+  assetsDaily: StatisticsSeriesPoint[];
+  /** New file uploads per month, most recent 12 months. */
+  assetsMonthly: StatisticsSeriesPoint[];
+  /** New file uploads per year, most recent 5 years. */
+  assetsYearly: StatisticsSeriesPoint[];
+  /** New sessions bucketed by hour of day (0-23, UTC), most
+recent 5 years, to reveal peak login times.
+ */
+  loginsByHour: StatisticsHourPoint[];
+  /** New sessions bucketed by weekday (1=Monday..7=Sunday,
+UTC), most recent 5 years, to reveal peak login days.
+ */
+  loginsByWeekday: StatisticsWeekdayPoint[];
+  /** New sessions per day, most recent 30 days. Approximates
+logins; a session is also created on account signup, so
+days with many new signups show elevated counts.
+ */
+  loginsDaily: StatisticsSeriesPoint[];
+  /** New sessions per month, most recent 12 months. See
+loginsDaily for the signup-session caveat.
+ */
+  loginsMonthly: StatisticsSeriesPoint[];
+  /** New sessions per year, most recent 5 years. See
+loginsDaily for the signup-session caveat.
+ */
+  loginsYearly: StatisticsSeriesPoint[];
   /** Total threads authored by members currently recorded in
-each study semester (1-12), plus a bucket for members
+each study semester (1-11), plus a bucket for members
 with no recorded semester and a bucket for members who
 have finished ("Fertig"). Shows which cohorts are the
 most and least engaged.
@@ -42,6 +84,10 @@ most and least engaged.
   threadsMonthly: StatisticsSeriesPoint[];
   /** New threads per year, most recent 5 years. */
   threadsYearly: StatisticsSeriesPoint[];
+  /** The most active forum categories by new thread count,
+most recent 5 years.
+ */
+  topCategories: StatisticsCategoryPoint[];
   /** The most active thread authors, most recent 5 years,
 with their study semester and most recent thread date.
  */

@@ -118,7 +118,7 @@ func (s *service) Create(ctx context.Context,
 
 func authoriseMutation(ctx context.Context, partial Partial) error {
 	if partial.Pinned.Ok() {
-		err := session.Authorise(ctx, nil, rbac.PermissionManagePosts)
+		err := session.Authorise(ctx, nil, rbac.PermissionPinPosts)
 		if err != nil {
 			return fault.Wrap(err,
 				fctx.With(ctx),
@@ -128,6 +128,21 @@ func authoriseMutation(ctx context.Context, partial Partial) error {
 	}
 
 	return nil
+}
+
+// isPinOnlyMutation reports whether the only field being changed is the
+// pinned state, so that PermissionPinPosts alone can authorise it without
+// also granting the broader PermissionManagePosts requirement.
+func isPinOnlyMutation(partial Partial) bool {
+	return partial.Pinned.Ok() &&
+		!partial.Title.Ok() &&
+		!partial.Content.Ok() &&
+		!partial.Category.Ok() &&
+		!partial.Tags.Ok() &&
+		!partial.Visibility.Ok() &&
+		!partial.URL.Ok() &&
+		!partial.Meta.Ok() &&
+		!partial.Assets.Ok()
 }
 
 // authoriseCategoryForCreate enforces the leaf-category rule for normal users:

@@ -375,10 +375,11 @@ paths:
       description: |
         Retrieve aggregate usage statistics for the instance, including
         account and thread growth over time, recent activity, a breakdown of
-        new threads by German academic term (semester), and a breakdown of
+        new threads by German academic term (semester), a breakdown of
         thread and file-upload activity by the authors' recorded study
-        semester (Fachsemester) with the most active members named. Intended
-        for the admin statistics dashboard.
+        semester (Fachsemester) with the most active members named, a login
+        history, and engagement breakdowns by category and session state.
+        Intended for the admin statistics dashboard.
       tags: [admin]
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
@@ -401,6 +402,18 @@ paths:
                   - threadsByFachsemester
                   - assetsByFachsemester
                   - topContributors
+                  - loginsDaily
+                  - loginsMonthly
+                  - loginsYearly
+                  - loginsByHour
+                  - loginsByWeekday
+                  - activeAccountsDaily
+                  - activeAccountsMonthly
+                  - activeAccountsYearly
+                  - assetsDaily
+                  - assetsMonthly
+                  - assetsYearly
+                  - topCategories
                 properties:
                   totals: { $ref: "#/components/schemas/StatisticsTotals" }
                   accountsDaily:
@@ -434,7 +447,7 @@ paths:
                   threadsByFachsemester:
                     description: |
                       Total threads authored by members currently recorded in
-                      each study semester (1-12), plus a bucket for members
+                      each study semester (1-11), plus a bucket for members
                       with no recorded semester and a bucket for members who
                       have finished ("Fertig"). Shows which cohorts are the
                       most and least engaged.
@@ -443,7 +456,7 @@ paths:
                   assetsByFachsemester:
                     description: |
                       Total files uploaded by members currently recorded in
-                      each study semester (1-12), plus a bucket for members
+                      each study semester (1-11), plus a bucket for members
                       with no recorded semester and a bucket for members who
                       have finished ("Fertig"). Shows which cohorts are
                       contributing the most and least material.
@@ -455,6 +468,73 @@ paths:
                       with their study semester and most recent thread date.
                     type: array
                     items: { $ref: "#/components/schemas/StatisticsContributor" }
+                  loginsDaily:
+                    description: |
+                      New sessions per day, most recent 30 days. Approximates
+                      logins; a session is also created on account signup, so
+                      days with many new signups show elevated counts.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  loginsMonthly:
+                    description: |
+                      New sessions per month, most recent 12 months. See
+                      loginsDaily for the signup-session caveat.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  loginsYearly:
+                    description: |
+                      New sessions per year, most recent 5 years. See
+                      loginsDaily for the signup-session caveat.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  loginsByHour:
+                    description: |
+                      New sessions bucketed by hour of day (0-23, UTC), most
+                      recent 5 years, to reveal peak login times.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsHourPoint" }
+                  loginsByWeekday:
+                    description: |
+                      New sessions bucketed by weekday (1=Monday..7=Sunday,
+                      UTC), most recent 5 years, to reveal peak login days.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsWeekdayPoint" }
+                  activeAccountsDaily:
+                    description: |
+                      Distinct accounts that authored a post (thread or
+                      reply) per day, most recent 30 days.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  activeAccountsMonthly:
+                    description: |
+                      Distinct accounts that authored a post per month, most
+                      recent 12 months.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  activeAccountsYearly:
+                    description: |
+                      Distinct accounts that authored a post per year, most
+                      recent 5 years.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  assetsDaily:
+                    description: New file uploads per day, most recent 30 days.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  assetsMonthly:
+                    description: New file uploads per month, most recent 12 months.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  assetsYearly:
+                    description: New file uploads per year, most recent 5 years.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  topCategories:
+                    description: |
+                      The most active forum categories by new thread count,
+                      most recent 5 years.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsCategoryPoint" }
 
   /admin/drive/folders:
     get:
@@ -7954,7 +8034,7 @@ components:
         semester:
           type: integer
           description: |
-            The study semester number (1-12). Zero means the members have no
+            The study semester number (1-11). Zero means the members have no
             recorded study semester. -1 means the members have progressed
             beyond the final semester and are recorded as finished
             ("Fertig").
@@ -7977,12 +8057,47 @@ components:
         semester:
           type: integer
           description: |
-            The member's currently recorded study semester (1-12), zero if
+            The member's currently recorded study semester (1-11), zero if
             not recorded, or -1 if the member has finished ("Fertig").
         threadCount:
           type: integer
           description: Total threads authored by this member in the window.
         lastThreadAt: { $ref: "#/components/schemas/CreatedAt" }
+
+    StatisticsHourPoint:
+      type: object
+      description: A single data point of login activity for one hour of the day.
+      required: [hour, count]
+      properties:
+        hour:
+          type: integer
+          description: Hour of the day, UTC (0-23).
+        count:
+          type: integer
+
+    StatisticsWeekdayPoint:
+      type: object
+      description: A single data point of login activity for one weekday.
+      required: [weekday, count]
+      properties:
+        weekday:
+          type: integer
+          description: Day of the week, UTC (1=Monday..7=Sunday).
+        count:
+          type: integer
+
+    StatisticsCategoryPoint:
+      type: object
+      description: A single data point of thread activity for one forum category.
+      required: [categoryId, name, threadCount]
+      properties:
+        categoryId: { $ref: "#/components/schemas/Identifier" }
+        name:
+          type: string
+          description: The category's display name.
+        threadCount:
+          type: integer
+          description: Total threads created in this category in the window.
 
     StatisticsTotals:
       type: object
@@ -7993,6 +8108,9 @@ components:
         - categories
         - activeAccounts7d
         - activeAccounts30d
+        - sessionsActive
+        - sessionsExpired
+        - sessionsRevoked
       properties:
         accounts:
           type: integer
@@ -8012,6 +8130,15 @@ components:
         activeAccounts30d:
           type: integer
           description: Distinct accounts that authored a post in the last 30 days.
+        sessionsActive:
+          type: integer
+          description: Sessions that are not revoked and not yet expired.
+        sessionsExpired:
+          type: integer
+          description: Sessions that are not revoked but have passed their expiry.
+        sessionsRevoked:
+          type: integer
+          description: Sessions that were explicitly revoked (e.g. by sign-out).
 
     ContentServiceSettings:
       type: object
@@ -9012,6 +9139,7 @@ components:
         - "READ_PUBLISHED_THREADS"
         - "CREATE_REACTION"
         - "MANAGE_POSTS"
+        - "PIN_POSTS"
         - "MANAGE_CATEGORIES"
         - "CREATE_INVITATION"
         # Library (Page tree nodes)
@@ -10614,17 +10742,34 @@ components:
 
     InvitationProps:
       type: object
-      required: [creator]
+      required: [creator, uses]
       properties:
         creator: { $ref: "#/components/schemas/ProfileReference" }
         message:
           type: string
+        max_uses:
+          type: integer
+          description: The maximum number of accounts that may register using this invitation. Absent means unlimited uses.
+        uses:
+          type: integer
+          description: The number of accounts that have already registered using this invitation.
+        expires_at:
+          type: string
+          format: date-time
+          description: The point in time after which this invitation may no longer be used. Absent means it never expires.
 
     InvitationInitialProps:
       type: object
       properties:
         message:
           type: string
+        max_uses:
+          type: integer
+          description: The maximum number of accounts that may register using this invitation. Omit for unlimited uses.
+        expires_at:
+          type: string
+          format: date-time
+          description: The point in time after which this invitation may no longer be used. Omit for an invitation that never expires.
 
     #
     # 888b    888          888    d8b  .d888 d8b                   888    d8b

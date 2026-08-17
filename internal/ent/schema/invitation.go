@@ -23,6 +23,18 @@ func (Invitation) Fields() []ent.Field {
 
 		field.String("creator_account_id").
 			GoType(xid.ID{}),
+
+		// MaxUses is the number of accounts that may register using this
+		// invitation. Nil means unlimited uses.
+		field.Int("max_uses").
+			Optional().
+			Nillable(),
+
+		// ExpiresAt is the point in time after which this invitation may no
+		// longer be used to register. Nil means it never expires.
+		field.Time("expires_at").
+			Optional().
+			Nillable(),
 	}
 }
 

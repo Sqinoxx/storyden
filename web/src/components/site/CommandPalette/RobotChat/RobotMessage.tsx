@@ -310,7 +310,7 @@ function RobotReplyCard({ data }: { data: RobotRenderCardData }) {
     isLoading: isThreadLoading,
   } = useThreadGet(
     isReplyLocation ? location.slug : "",
-    page ? { page: String(page) } : undefined,
+    { ...(page ? { page: String(page) } : {}), sort: "asc" },
     {
       swr: { enabled: Boolean(data.id && isReplyLocation && location.slug) },
     },

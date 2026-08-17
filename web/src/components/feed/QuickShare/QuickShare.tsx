@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ComposeField } from "@/components/ui/form/ComposeField";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { Input } from "@/components/ui/input";
-import { CreateIcon } from "@/components/ui/icons/Create";
+import { SendIcon } from "@/components/ui/icons/Send";
 import { Card } from "@/components/ui/rich-card";
 import { Box, CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
 import { button } from "@/styled-system/recipes";
@@ -153,8 +153,8 @@ export function QuickShare(props: Props) {
               variant="subtle"
               loading={form.formState.isSubmitting}
             >
-              <CreateIcon />
               {t.feed.share}
+              <SendIcon />
             </Button>
           </HStack>
         </WStack>

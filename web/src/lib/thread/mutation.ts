@@ -27,6 +27,7 @@ export function useThreadMutations(
   thread: ThreadReference,
   currentPage?: number,
   totalPages?: number,
+  sortOrder: "asc" | "desc" = "desc",
 ) {
   const sessionInitial = useSession();
   const sessionRef = useRef(sessionInitial);
@@ -58,12 +59,15 @@ export function useThreadMutations(
   };
 
   const createReply = async (reply: ReplyInitialProps) => {
-    // Only apply optimistic update if we're on the last page
-    // where the new reply will actually appear
-    const isLastPage =
-      !currentPage || !totalPages || currentPage === totalPages;
+    // Only apply optimistic update if we're on the page where the new
+    // reply will actually appear: the first page when sorted newest-first,
+    // the last page when sorted oldest-first.
+    const isTargetPage =
+      sortOrder === "desc"
+        ? !currentPage || currentPage === 1
+        : !currentPage || !totalPages || currentPage === totalPages;
 
-    if (isLastPage) {
+    if (isTargetPage) {
       const mutator: MutatorCallback<ThreadGetResponse> = (data) => {
         const session = sessionRef.current;
 
@@ -92,7 +96,10 @@ export function useThreadMutations(
           ...data,
           replies: {
             ...data.replies,
-            replies: [...data.replies.replies, newReply],
+            replies:
+              sortOrder === "desc"
+                ? [newReply, ...data.replies.replies]
+                : [...data.replies.replies, newReply],
           },
         };
 

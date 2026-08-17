@@ -66,9 +66,9 @@ export function useThreadScreen({
   });
   const [sortParam, setSortParam] = useQueryState(
     "sort",
-    parseAsString.withDefault("asc"),
+    parseAsString.withDefault("desc"),
   );
-  const sortOrder: "asc" | "desc" = sortParam === "desc" ? "desc" : "asc";
+  const sortOrder: "asc" | "desc" = sortParam === "asc" ? "asc" : "desc";
 
   const [resetKey, setResetKey] = useState("");
   const [isEmpty, setEmpty] = useState(
@@ -458,7 +458,7 @@ export function useThreadScreen({
       handleConfirmDelete,
       handleCancelDelete,
       handleSetSortOrder: (order: "asc" | "desc") =>
-        setSortParam(order === "asc" ? null : order),
+        setSortParam(order === "desc" ? null : order),
     },
   };
 }

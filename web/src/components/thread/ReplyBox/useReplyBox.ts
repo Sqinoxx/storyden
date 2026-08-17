@@ -19,6 +19,7 @@ export type Props = {
   initialSession?: Account;
   initialSettings?: Settings;
   thread: Thread;
+  sortOrder: "asc" | "desc";
 };
 
 type ReplyLocationState = {
@@ -32,13 +33,19 @@ export const FormSchema = z.object({
 });
 export type Form = z.infer<typeof FormSchema>;
 
-export function useReplyBox({ initialSession, initialSettings, thread }: Props) {
+export function useReplyBox({
+  initialSession,
+  initialSettings,
+  thread,
+  sortOrder,
+}: Props) {
   const session = useSession(initialSession, initialSettings);
   const { replyTo, clearReplyTo } = useReplyContext();
   const { createReply, revalidate } = useThreadMutations(
     thread,
     thread.replies.current_page,
     thread.replies.total_pages,
+    sortOrder,
   );
   const [resetKey, setResetKey] = useState("");
   const [isEmpty, setEmpty] = useState(true);
@@ -93,17 +100,24 @@ export function useReplyBox({ initialSession, initialSettings, thread }: Props) 
         setEmpty(true);
         clearReplyTo();
 
-        // If we are not on the last page, we need to inform the user that their
-        // reply is on a different page and provide them a link to navigate.
+        // If we are not on the page where the new reply appears, we need to
+        // inform the user and provide them a link to navigate there. A new
+        // reply is the newest one, so it lands on the first page when sorted
+        // newest-first, or the last page when sorted oldest-first.
         const currentPage = thread.replies.current_page;
         const totalPages = thread.replies.total_pages;
-        const isLastPage =
-          !currentPage || !totalPages || currentPage === totalPages;
-        if (!isLastPage && totalPages) {
+        const targetPage = sortOrder === "desc" ? 1 : (totalPages ?? 1);
+        const isOnTargetPage = !currentPage || currentPage === targetPage;
+        if (!isOnTargetPage && totalPages) {
+          const params = new URLSearchParams();
+          if (targetPage > 1) params.set("page", targetPage.toString());
+          if (sortOrder === "asc") params.set("sort", "asc");
+          const query = params.toString();
+
           setPostedReply({
             id,
-            pageNumber: totalPages,
-            permalink: `/t/${thread.slug}?page=${totalPages}#${id}`,
+            pageNumber: targetPage,
+            permalink: `/t/${thread.slug}${query ? `?${query}` : ""}#${id}`,
           });
         }
       },

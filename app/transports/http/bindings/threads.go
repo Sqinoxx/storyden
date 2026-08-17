@@ -292,7 +292,7 @@ func (i *Threads) ThreadGet(ctx context.Context, request openapi.ThreadGetReques
 	repliesPerPage, _ := i.pageSizes(ctx)
 	pp := deserialisePageParams(request.Params.Page, uint(repliesPerPage))
 
-	descending := request.Params.Sort != nil && *request.Params.Sort == "desc"
+	descending := request.Params.Sort == nil || *request.Params.Sort != "asc"
 
 	thread, err := i.thread_svc.Get(ctx, postID, pp, thread_querier.WithRepliesDescending(descending))
 	if err != nil {

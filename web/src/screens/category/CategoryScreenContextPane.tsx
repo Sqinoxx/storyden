@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { range } from "lodash";
 import { ChevronDown, ChevronUp, Download } from "lucide-react";
 
 import { CategoryBadge } from "@/components/category/CategoryBadge";
@@ -19,7 +20,7 @@ import { Floating } from "@/styled-system/patterns";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { useLanguage } from "@/lib/i18n";
 
-import { useThreadList } from "@/api/openapi-client/threads";
+import { threadList, useThreadList } from "@/api/openapi-client/threads";
 import { Props, useCategoryScreen } from "./CategoryScreen";
 
 const valueStyles = cva({
@@ -39,9 +40,9 @@ const valueStyles = cva({
 });
 
 /**
- * Collects all unique document assets from every thread on the current page,
- * using the same extraction logic as the ThreadCard component so that files
- * embedded in body HTML are also captured.
+ * Collects all unique document assets from the given threads, using the
+ * same extraction logic as the ThreadCard component so that files embedded
+ * in body HTML are also captured.
  */
 function collectAllDocumentAssets(threads: ThreadReference[]): Asset[] {
   const seen = new Set<string>();
@@ -65,15 +66,58 @@ export function CategoryScreenContextPane(props: Props) {
   const { t } = useLanguage();
   const [filesOpen, setFilesOpen] = useState(true);
 
+  const categories = props.slug ? [props.slug] : [];
+
   const { data: threadListData } = useThreadList(
-    {
-      categories: props.slug ? [props.slug] : [],
-    },
+    { categories },
     {
       swr: {
         fallbackData: props.initialThreadList,
       },
     }
+  );
+
+  // The list endpoint only returns one page of threads, but the sidebar
+  // needs files from every thread in the category, so once we know how
+  // many pages there are we fetch the rest and merge them in.
+  const [allThreads, setAllThreads] = useState<ThreadReference[]>(
+    (props.initialThreadList?.threads ?? []) as ThreadReference[],
+  );
+
+  useEffect(() => {
+    if (!threadListData) return;
+
+    const firstPageThreads = threadListData.threads as ThreadReference[];
+    const { total_pages } = threadListData;
+
+    if (total_pages <= 1) {
+      setAllThreads(firstPageThreads);
+      return;
+    }
+
+    let cancelled = false;
+
+    Promise.all(
+      range(2, total_pages + 1).map((page) =>
+        threadList({ categories, page: page.toString() }),
+      ),
+    ).then((rest) => {
+      if (cancelled) return;
+      setAllThreads([
+        ...firstPageThreads,
+        ...rest.flatMap((p) => p.threads as ThreadReference[]),
+      ]);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threadListData, props.slug]);
+
+  const documentAssets = useMemo(
+    () => collectAllDocumentAssets(allThreads),
+    [allThreads],
   );
 
   if (!ready) {
@@ -97,11 +141,6 @@ export function CategoryScreenContextPane(props: Props) {
       value: `${category.postCount}`,
     },
   ];
-
-  // Collect all document assets from every thread visible on this page,
-  // using the live SWR thread data so it updates dynamically.
-  const threads = ((threadListData?.threads ?? props.initialThreadList?.threads ?? []) as ThreadReference[]);
-  const documentAssets = collectAllDocumentAssets(threads);
 
   return (
     <LStack gap="3" w="full" height="full">

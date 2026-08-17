@@ -7,6 +7,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { OAuthClientRegisterProps } from './oAuthClientRegisterProps';
 
-export type OAuthClientRegisterBody = OAuthClientRegisterProps;
+/**
+ * A single data point of login activity for one weekday.
+ */
+export interface StatisticsWeekdayPoint {
+  count: number;
+  /** Day of the week, UTC (1=Monday..7=Sunday). */
+  weekday: number;
+}

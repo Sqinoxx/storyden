@@ -92,6 +92,11 @@ func TestAdminStatistics(t *testing.T) {
 				require.NoError(t, err)
 				r.Equal(http.StatusOK, uploadAsset.StatusCode(), "%s", string(uploadAsset.Body))
 
+				// Simulate two more logins for the member, on top of the
+				// admin and member sessions already issued above.
+				sh.WithSession(memberCtx)
+				sh.WithSession(memberCtx)
+
 				stats, err := cl.AdminStatisticsWithResponse(adminCtx, adminSession)
 				r.NoError(err)
 				r.Equal(http.StatusOK, stats.StatusCode())
@@ -148,6 +153,37 @@ func TestAdminStatistics(t *testing.T) {
 				a.EqualValues(3, contributor.Semester)
 				a.GreaterOrEqual(contributor.ThreadCount, 1)
 				a.WithinDuration(time.Now(), contributor.LastThreadAt, time.Minute)
+
+				a.Len(body.LoginsDaily, 30)
+				a.Len(body.LoginsMonthly, 12)
+				a.Len(body.LoginsYearly, 5)
+				a.Len(body.LoginsByHour, 24)
+				a.Len(body.LoginsByWeekday, 7)
+				a.Len(body.ActiveAccountsDaily, 30)
+				a.Len(body.ActiveAccountsMonthly, 12)
+				a.Len(body.ActiveAccountsYearly, 5)
+				a.Len(body.AssetsDaily, 30)
+				a.Len(body.AssetsMonthly, 12)
+				a.Len(body.AssetsYearly, 5)
+
+				// admin session + 3 member sessions (initial + 2 simulated
+				// repeat logins) were issued above, all today.
+				todayLogins := body.LoginsDaily[len(body.LoginsDaily)-1]
+				a.GreaterOrEqual(todayLogins.Count, 4)
+
+				todayActiveAccounts := body.ActiveAccountsDaily[len(body.ActiveAccountsDaily)-1]
+				a.GreaterOrEqual(todayActiveAccounts.Count, 1)
+
+				todayAssets := body.AssetsDaily[len(body.AssetsDaily)-1]
+				a.GreaterOrEqual(todayAssets.Count, 1)
+
+				a.GreaterOrEqual(body.Totals.SessionsActive, 4)
+
+				topCategory, found := lo.Find(body.TopCategories, func(c openapi.StatisticsCategoryPoint) bool {
+					return c.CategoryId == catResp.JSON200.Id
+				})
+				r.True(found, "the created category should appear in top categories")
+				a.GreaterOrEqual(topCategory.ThreadCount, 1)
 			})
 
 			t.Run("requires_admin_permission", func(t *testing.T) {

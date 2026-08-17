@@ -7,10 +7,9 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { OAuthDeviceAuthorisationListResult } from "./oAuthDeviceAuthorisationListResult";
+import type { OAuthDeviceAuthorisationListResult } from './oAuthDeviceAuthorisationListResult';
 
 /**
  * OAuth device authorisations.
  */
-export type OAuthDeviceAuthorisationListOKResponse =
-  OAuthDeviceAuthorisationListResult;
+export type OAuthDeviceAuthorisationListOKResponse = OAuthDeviceAuthorisationListResult;

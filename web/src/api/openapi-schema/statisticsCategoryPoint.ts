@@ -7,6 +7,15 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { OAuthClientRegisterProps } from './oAuthClientRegisterProps';
+import type { Identifier } from "./identifier";
 
-export type OAuthClientRegisterBody = OAuthClientRegisterProps;
+/**
+ * A single data point of thread activity for one forum category.
+ */
+export interface StatisticsCategoryPoint {
+  categoryId: Identifier;
+  /** The category's display name. */
+  name: string;
+  /** Total threads created in this category in the window. */
+  threadCount: number;
+}

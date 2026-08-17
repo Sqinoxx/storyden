@@ -252,10 +252,11 @@ export const useAdminOCRReindex = <
 /**
  * Retrieve aggregate usage statistics for the instance, including
 account and thread growth over time, recent activity, a breakdown of
-new threads by German academic term (semester), and a breakdown of
+new threads by German academic term (semester), a breakdown of
 thread and file-upload activity by the authors' recorded study
-semester (Fachsemester) with the most active members named. Intended
-for the admin statistics dashboard.
+semester (Fachsemester) with the most active members named, a login
+history, and engagement breakdowns by category and session state.
+Intended for the admin statistics dashboard.
 
  */
 export const adminStatistics = () => {

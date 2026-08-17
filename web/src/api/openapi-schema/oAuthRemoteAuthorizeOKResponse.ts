@@ -7,7 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { OAuthRemoteAuthorizeResult } from "./oAuthRemoteAuthorizeResult";
+import type { OAuthRemoteAuthorizeResult } from './oAuthRemoteAuthorizeResult';
 
 /**
  * Remote OAuth authorization URL.

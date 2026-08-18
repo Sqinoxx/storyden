@@ -47,7 +47,10 @@ export function CategoryIndex({
   const t = useTranslation();
   const session = useSession(initialSession, initialSettings);
 
-  const canPost = hasPermission(session, Permission.CREATE_POST);
+  const canPost =
+    threadListMode === "uncategorised"
+      ? hasPermission(session, Permission.POST_IN_ANY_CATEGORY)
+      : hasPermission(session, Permission.CREATE_POST);
   const effectiveShowQuickShare = showQuickShare && canPost;
 
   return (

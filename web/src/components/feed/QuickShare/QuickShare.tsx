@@ -16,7 +16,7 @@ import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { Input } from "@/components/ui/input";
 import { SendIcon } from "@/components/ui/icons/Send";
 import { Card } from "@/components/ui/rich-card";
-import { Box, CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
+import { Box, CardBox, HStack, styled } from "@/styled-system/jsx";
 import { button } from "@/styled-system/recipes";
 import { lstack } from "@/styled-system/patterns";
 import { useTranslation } from "@/lib/i18n";
@@ -88,83 +88,90 @@ export function QuickShare(props: Props) {
           />
         </Box>
 
-        <WStack
-          w="full"
-          justifyContent="space-between"
-          alignItems="center"
-          gap="2"
-          flexWrap="wrap"
-        >
-          <HStack alignItems="center" flexWrap="wrap" gap="2" flex="1" minW="0">
-            {props.showCategorySelect && (
-              <>
-                <CategoryTreeSelect
-                  control={form.control}
-                  name="category"
-                  rootId={props.initialCategory?.id}
-                />
+        <Box display="flex" flexDirection="column" w="full" gap="2">
+          {props.showCategorySelect && (
+            <HStack alignItems="center" flexWrap="wrap" gap="2">
+              <CategoryTreeSelect
+                control={form.control}
+                name="category"
+                rootId={props.initialCategory?.id}
+              />
 
-                <FormErrorText>
-                  {form.formState.errors["category"]?.message}
-                </FormErrorText>
-              </>
-            )}
+              <FormErrorText>
+                {form.formState.errors["category"]?.message}
+              </FormErrorText>
+            </HStack>
+          )}
 
-            <SemesterSelect control={form.control} name="semester" />
+          <Box
+            display={{ base: "grid", md: "flex" }}
+            gridTemplateColumns="1fr auto"
+            alignItems="center"
+            gap="2"
+            w="full"
+          >
+            <Box minW="0" flex={{ md: "none" }} order={{ md: 1 }}>
+              <SemesterSelect control={form.control} name="semester" />
+            </Box>
 
-            <TagListField
-              name="tags"
-              control={form.control}
-              attachments={uploadedAssets}
-            />
-          </HStack>
+            <HStack gap="2" flexShrink="0" order={{ md: 3 }} ml={{ md: "auto" }}>
+              <styled.label
+                className={button({ size: "sm", variant: "ghost" })}
+                htmlFor={fileInputId}
+                title={t.editor.uploadFile}
+                aria-disabled={isUploading}
+                opacity={isUploading ? "5" : "full"}
+                pointerEvents={isUploading ? "none" : "auto"}
+              >
+                📎 {t.editor.uploadFile}
+              </styled.label>
+              <styled.input
+                id={fileInputId}
+                type="file"
+                multiple
+                display="none"
+                accept="*"
+                disabled={isUploading}
+                onChange={async (e) => {
+                  const files = Array.from(e.currentTarget.files ?? []);
+                  e.currentTarget.value = "";
 
-          <HStack gap="2" ml="auto" flexShrink={0}>
-            <styled.label
-              className={button({ size: "sm", variant: "ghost" })}
-              htmlFor={fileInputId}
-              title={t.editor.uploadFile}
-              aria-disabled={isUploading}
-              opacity={isUploading ? "5" : "full"}
-              pointerEvents={isUploading ? "none" : "auto"}
-            >
-              📎 {t.editor.uploadFile}
-            </styled.label>
-            <styled.input
-              id={fileInputId}
-              type="file"
-              multiple
-              display="none"
-              accept="*"
-              disabled={isUploading}
-              onChange={async (e) => {
-                const files = Array.from(e.currentTarget.files ?? []);
-                e.currentTarget.value = "";
+                  const uploaded = await upload(files);
 
-                const uploaded = await upload(files);
+                  for (const { markup } of uploaded) {
+                    const current = form.getValues("body") ?? "";
+                    form.setValue("body", current + "<p>" + markup + "</p>");
+                  }
 
-                for (const { markup } of uploaded) {
-                  const current = form.getValues("body") ?? "";
-                  form.setValue("body", current + "<p>" + markup + "</p>");
-                }
+                  if (uploaded.length > 0) {
+                    handlers.handleAddAssets(uploaded.map((u) => u.asset));
+                  }
+                }}
+              />
+            </HStack>
 
-                if (uploaded.length > 0) {
-                  handlers.handleAddAssets(uploaded.map((u) => u.asset));
-                }
-              }}
-            />
+            <Box minW="0" flex={{ md: "1" }} order={{ md: 2 }}>
+              <TagListField
+                name="tags"
+                control={form.control}
+                attachments={uploadedAssets}
+                triggerProps={{ w: "full", minW: "0", maxW: "full" }}
+              />
+            </Box>
 
-            <Button
-              type="submit"
-              size="sm"
-              variant="subtle"
-              loading={form.formState.isSubmitting}
-            >
-              {t.feed.share}
-              <SendIcon />
-            </Button>
-          </HStack>
-        </WStack>
+            <Box flexShrink="0" order={{ md: 4 }} justifySelf="end">
+              <Button
+                type="submit"
+                size="sm"
+                variant="subtle"
+                loading={form.formState.isSubmitting}
+              >
+                {t.feed.share}
+                <SendIcon />
+              </Button>
+            </Box>
+          </Box>
+        </Box>
       </styled.form>
 
       {match(hydratedLink)

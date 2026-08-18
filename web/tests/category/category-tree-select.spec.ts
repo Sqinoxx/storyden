@@ -121,6 +121,22 @@ test("members cannot select a category that has sub-categories", async ({
   );
 });
 
+test("members without POST_IN_ANY_CATEGORY cannot QuickShare on the uncategorised feed", async ({
+  page,
+}) => {
+  const seed = unique("uncatqs");
+  await seedCategoryTree(seed);
+
+  await registerUser(page, unique("uncatuser").replace(/-/g, ""));
+
+  await page.goto("/d");
+  await dismissOnboarding(page);
+
+  await expect(
+    page.getByPlaceholder("Share a past exam, an exam question, or a tip..."),
+  ).toHaveCount(0);
+});
+
 test("the category tree is usable at mobile widths", async ({ page }) => {
   const seed = unique("treemob");
   const { names } = await seedCategoryTree(seed);

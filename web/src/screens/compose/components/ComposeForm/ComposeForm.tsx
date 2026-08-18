@@ -54,28 +54,41 @@ export function ComposeForm(props: Props) {
             bg="bg.default"
           >
             <WStack
-              flexDir={{
-                base: "column-reverse",
+              flexDirection={{
+                base: "column",
                 md: "row",
               }}
               alignItems={{
-                base: "end",
+                base: "stretch",
                 md: "center",
               }}
               gap="3"
             >
               <HStack width="full" flexWrap="wrap" gap="2">
                 <CategoryTreeSelect control={form.control} name="category" />
-                <SemesterSelect control={form.control} name="semester" />
-                <TagListField
-                  name="tags"
-                  control={form.control}
-                  initialTags={props.initialDraft?.tags}
-                  attachments={state.attachments}
-                />
+                <HStack
+                  flex="1"
+                  minW="[220px]"
+                  gap="2"
+                  flexDirection={{ base: "column", md: "row" }}
+                  alignItems={{ base: "stretch", md: "center" }}
+                >
+                  <Box flex="1" minW="0">
+                    <SemesterSelect control={form.control} name="semester" />
+                  </Box>
+                  <Box flex="1" minW="0">
+                    <TagListField
+                      name="tags"
+                      control={form.control}
+                      initialTags={props.initialDraft?.tags}
+                      attachments={state.attachments}
+                      triggerProps={{ w: "full", minW: "0", maxW: "full" }}
+                    />
+                  </Box>
+                </HStack>
               </HStack>
 
-              <HStack flexShrink={0} gap="2">
+              <HStack flexShrink={0} gap="2" justifyContent={{ base: "flex-end", md: "flex-start" }} width={{ base: "full", md: "auto" }}>
                 <Button
                   variant="ghost"
                   size="xs"

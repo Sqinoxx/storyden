@@ -1,21 +1,18 @@
-import { createListCollection } from "@ark-ui/react";
-
-import { useCategoryList } from "@/api/openapi-client/categories";
-
 import { AssetUploadEditor } from "@/components/asset/AssetUploadEditor/AssetUploadEditor";
+import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/CategoryTreeSelect";
 import { ColourPickerField } from "@/components/ui/ColourPickerField";
 import { Button } from "@/components/ui/button";
 import { FormControl } from "@/components/ui/form/FormControl";
 import { FormFeedback } from "@/components/ui/form/FormFeedback";
 import { FormHelperText } from "@/components/ui/form/FormHelperText";
 import { FormLabel } from "@/components/ui/form/FormLabel";
-import { SelectField } from "@/components/ui/form/SelectField";
 import { Input, InputPrefix } from "@/components/ui/input";
 import { WEB_ADDRESS } from "@/config";
 import {
   CATEGORY_COVER_HEIGHT,
   CATEGORY_COVER_WIDTH,
 } from "@/lib/category/cover";
+import { useTranslation } from "@/lib/i18n";
 import { HStack, VStack, WStack, styled } from "@/styled-system/jsx";
 
 import { CategoryCreateProps, useCategoryCreate } from "./useCategoryCreate";
@@ -25,19 +22,7 @@ export type { CategoryCreateProps };
 export function CategoryCreateScreen(props: CategoryCreateProps) {
   const { register, onSubmit, control, formState, handleImageUpload } =
     useCategoryCreate(props);
-
-  const { data: categoryListResult } = useCategoryList();
-  const categories = categoryListResult?.categories || [];
-
-  const categoryCollection = createListCollection({
-    items: [
-      { label: "No parent (root category)", value: "" },
-      ...categories.map((category) => ({
-        label: category.name,
-        value: category.id,
-      })),
-    ],
-  });
+  const t = useTranslation();
 
   const hostname = new URL(WEB_ADDRESS).host;
 
@@ -115,11 +100,11 @@ export function CategoryCreateScreen(props: CategoryCreateProps) {
 
         <FormControl>
           <FormLabel>Parent Category</FormLabel>
-          <SelectField
+          <CategoryTreeSelect
             name="parent"
             control={control}
-            collection={categoryCollection}
-            placeholder="Select a parent category"
+            selectable="all"
+            emptyOption={{ label: t.category.noParentCategory, value: "" }}
           />
           <FormHelperText>
             Choose a parent category to create a subcategory, or leave as root

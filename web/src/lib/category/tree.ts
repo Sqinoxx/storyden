@@ -35,6 +35,43 @@ export function buildCategoryTree(categories: Category[]): CategoryTree[] {
   return roots;
 }
 
+export function isLeafCategory(node: CategoryTree): boolean {
+  return node.children.length === 0;
+}
+
+export function findCategoryPath(
+  nodes: CategoryTree[],
+  id: string | undefined,
+): CategoryTree[] {
+  if (!id) {
+    return [];
+  }
+
+  for (const node of nodes) {
+    if (node.id === id) {
+      return [node];
+    }
+
+    const path = findCategoryPath(node.children, id);
+    if (path.length > 0) {
+      return [node, ...path];
+    }
+  }
+
+  return [];
+}
+
+export function findCategoryNode(
+  nodes: CategoryTree[],
+  id: string | undefined,
+): CategoryTree | null {
+  if (!id) {
+    return null;
+  }
+
+  return findNode(nodes, id);
+}
+
 export function isDescendant(
   nodes: CategoryTree[],
   ancestorId: string,

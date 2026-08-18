@@ -146,13 +146,12 @@ func isPinOnlyMutation(partial Partial) bool {
 }
 
 // authoriseCategoryForCreate enforces the leaf-category rule for normal users:
-//   - Admins / users with ManageCategories permission may post in any category
+//   - Users with PostInAnyCategory permission may post in any category
 //     (including parent categories) or without a category.
 //   - All other authenticated users MUST supply a category, and that category
 //     must be a leaf (i.e. it has no child categories).
 func (s *service) authoriseCategoryForCreate(ctx context.Context, partial Partial) error {
-	// If the caller has ManageCategories (admin / mod), skip all restrictions.
-	if err := session.Authorise(ctx, nil, rbac.PermissionManageCategories); err == nil {
+	if err := session.Authorise(ctx, nil, rbac.PermissionPostInAnyCategory); err == nil {
 		return nil
 	}
 

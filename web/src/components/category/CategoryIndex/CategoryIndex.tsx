@@ -47,11 +47,7 @@ export function CategoryIndex({
   const t = useTranslation();
   const session = useSession(initialSession, initialSettings);
 
-  // Gate the QuickShare box: only show it when the feature is enabled AND the
-  // user has ManageCategories (admin/mod). Normal users cannot post without a
-  // leaf category, and this index view only lists top-level / uncategorised
-  // threads, so there's nothing valid for them to post into here.
-  const canPost = hasPermission(session, Permission.MANAGE_CATEGORIES);
+  const canPost = hasPermission(session, Permission.CREATE_POST);
   const effectiveShowQuickShare = showQuickShare && canPost;
 
   return (

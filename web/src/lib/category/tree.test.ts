@@ -3,7 +3,13 @@ import * as assert from "uvu/assert";
 
 import type { Category } from "@/api/openapi-schema";
 
-import { buildCategoryTree, isDescendant } from "./tree";
+import {
+  buildCategoryTree,
+  findCategoryNode,
+  findCategoryPath,
+  isDescendant,
+  isLeafCategory,
+} from "./tree";
 
 function category(
   id: string,
@@ -71,6 +77,53 @@ test("isDescendant returns false when ancestor does not exist", () => {
 test("isDescendant does not treat a node as its own descendant", () => {
   const tree = buildCategoryTree([category("root", 1)]);
   assert.not.ok(isDescendant(tree, "root", "root"));
+});
+
+test("isLeafCategory only accepts nodes without children", () => {
+  const tree = buildCategoryTree([
+    category("root", 1),
+    category("leaf", 1, "root"),
+  ]);
+
+  assert.not.ok(isLeafCategory(tree[0]!));
+  assert.ok(isLeafCategory(tree[0]!.children[0]!));
+});
+
+test("findCategoryPath returns the full ancestor chain", () => {
+  const tree = buildCategoryTree([
+    category("vorklinik", 1),
+    category("semester-3", 1, "vorklinik"),
+    category("ppz", 1, "semester-3"),
+    category("klinik", 2),
+  ]);
+
+  assert.equal(
+    findCategoryPath(tree, "ppz").map((c) => c.id),
+    ["vorklinik", "semester-3", "ppz"],
+  );
+  assert.equal(
+    findCategoryPath(tree, "klinik").map((c) => c.id),
+    ["klinik"],
+  );
+});
+
+test("findCategoryPath returns empty for unknown or missing ids", () => {
+  const tree = buildCategoryTree([category("root", 1)]);
+
+  assert.equal(findCategoryPath(tree, "nope"), []);
+  assert.equal(findCategoryPath(tree, undefined), []);
+});
+
+test("findCategoryNode finds nested nodes and tolerates misses", () => {
+  const tree = buildCategoryTree([
+    category("root", 1),
+    category("mid", 1, "root"),
+    category("leaf", 1, "mid"),
+  ]);
+
+  assert.is(findCategoryNode(tree, "leaf")?.id, "leaf");
+  assert.is(findCategoryNode(tree, "missing"), null);
+  assert.is(findCategoryNode(tree, undefined), null);
 });
 
 test.run();

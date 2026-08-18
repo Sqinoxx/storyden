@@ -13,7 +13,7 @@ import {
 } from "@/api/openapi-schema";
 
 import { handle } from "@/api/client";
-import { NO_CATEGORY_VALUE } from "@/components/category/CategorySelect/useCategorySelect";
+import { NO_CATEGORY_VALUE } from "@/components/category/CategoryTreeSelect/useCategoryTreeSelect";
 import { Permission } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import {
@@ -44,7 +44,7 @@ export function useComposeForm({ initialDraft, editing }: Props) {
   const session = useSession();
   const canPostUncategorised = hasPermission(
     session,
-    Permission.MANAGE_CATEGORIES,
+    Permission.POST_IN_ANY_CATEGORY,
   );
 
   const [isPublishing, setIsPublishing] = useState(false);

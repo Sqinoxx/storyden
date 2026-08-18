@@ -41,6 +41,12 @@ export const PermissionDetails: Record<Permission, PermissionDetail> = {
     name: "Manage categories",
     description: "Create and edit categories.",
   },
+  [Permission.POST_IN_ANY_CATEGORY]: {
+    value: Permission.POST_IN_ANY_CATEGORY,
+    name: "Post in any category",
+    description:
+      "Create threads in parent categories or without a category at all, bypassing the rule that threads may only be posted in the deepest subcategory.",
+  },
   [Permission.CREATE_INVITATION]: {
     value: Permission.CREATE_INVITATION,
     name: "Create invitations",

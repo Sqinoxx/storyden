@@ -33,6 +33,7 @@ async function expectSignedIn(page: Page) {
 export async function registerUser(page: Page, username: string) {
   await page.goto("/register");
   await page.getByRole("textbox", { name: "username" }).fill(username);
+  await page.getByRole("combobox", { name: "Fachsemester" }).selectOption({ index: 1 });
   await page.getByRole("textbox", { name: "password" }).fill(PASSWORD);
   await page.getByRole("button", { name: "Register" }).click();
   await expectSignedIn(page);

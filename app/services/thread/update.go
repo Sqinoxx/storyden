@@ -2,6 +2,7 @@ package thread
 
 import (
 	"context"
+	"maps"
 
 	"github.com/Southclaws/dt"
 	"github.com/Southclaws/fault"
@@ -69,6 +70,13 @@ func (s *service) Update(ctx context.Context, threadID post.ID, partial Partial)
 		} else {
 			partial.Content = opt.New(stable.Content)
 		}
+	}
+
+	if v, ok := partial.Meta.Get(); ok {
+		merged := make(map[string]any, len(thr.Meta)+len(v))
+		maps.Copy(merged, thr.Meta)
+		maps.Copy(merged, v)
+		partial.Meta = opt.New(merged)
 	}
 
 	oldVisibility := thr.Visibility

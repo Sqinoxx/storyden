@@ -114,6 +114,7 @@ export function CategoryScreen(props: ScreenProps) {
         paginationBasePath={`/d/${data.category.slug}`}
         showCategorySelect={false}
         hideCategoryBadge={true}
+        enableSemesterGrouping={true}
         showQuickShare={showQuickShare}
       />
     </LStack>

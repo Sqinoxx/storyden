@@ -16,6 +16,13 @@ import { handle } from "@/api/client";
 import { NO_CATEGORY_VALUE } from "@/components/category/CategorySelect/useCategorySelect";
 import { Permission } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
+import {
+  parseTermKey,
+  termFor,
+  termKey,
+  threadTerm,
+  writeThreadSemesterMeta,
+} from "@/lib/thread/semester";
 import { hasPermission } from "@/utils/permissions";
 
 import { normalizeAssetPath } from "@/utils/asset";
@@ -26,6 +33,7 @@ export const FormShapeSchema = z.object({
   title: z.string().default(""),
   body: z.string().min(1),
   category: z.string().optional(),
+  semester: z.string().optional(),
   tags: z.string().array().optional(),
   url: z.string().optional(),
 });
@@ -54,14 +62,22 @@ export function useComposeForm({ initialDraft, editing }: Props) {
           body: initialDraft.body,
           tags: initialDraft.tags.map((t) => t.name),
           url: initialDraft.link?.url,
+          semester: termKey(threadTerm(initialDraft)),
         }
-      : {},
+      : { semester: termKey(termFor(new Date())) },
   });
+
+  const semesterMeta = (raw: string | undefined) => {
+    const term = parseTermKey(raw);
+
+    return term ? writeThreadSemesterMeta(initialDraft?.meta, term) : undefined;
+  };
 
   const saveDraft = async (data: FormShape, overrideAttachments?: Asset[]) => {
     const activeAttachments = overrideAttachments ?? attachments;
+    const { semester, ...rest } = data;
     const payload: ThreadInitialProps = {
-      ...data,
+      ...rest,
 
       // When saving a new draft, these are optional but must be explicitly set.
       title: data.title ?? "",
@@ -71,6 +87,8 @@ export function useComposeForm({ initialDraft, editing }: Props) {
       category: data.category === NO_CATEGORY_VALUE ? undefined : data.category,
 
       asset_ids: activeAttachments.map((a) => a.id),
+
+      meta: semesterMeta(semester),
 
       visibility: Visibility.draft,
     };
@@ -83,7 +101,14 @@ export function useComposeForm({ initialDraft, editing }: Props) {
     }
   };
 
-  const publish = async ({ title, body, category, tags, url }: FormShape) => {
+  const publish = async ({
+    title,
+    body,
+    category,
+    semester,
+    tags,
+    url,
+  }: FormShape) => {
     if (title.length < 1) {
       form.setError("title", {
         message: "Your post must have a title to be published",
@@ -107,6 +132,7 @@ export function useComposeForm({ initialDraft, editing }: Props) {
         tags,
         url,
         asset_ids: attachments.map((a) => a.id),
+        meta: semesterMeta(semester),
       });
       router.push(`/t/${slug}`);
     } else {
@@ -118,6 +144,7 @@ export function useComposeForm({ initialDraft, editing }: Props) {
         tags,
         url,
         asset_ids: attachments.map((a) => a.id),
+        meta: semesterMeta(semester),
       });
       router.push(`/t/${slug}`);
     }

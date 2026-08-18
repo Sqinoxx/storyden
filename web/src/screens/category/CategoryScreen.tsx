@@ -38,13 +38,17 @@ export function useCategoryScreen({ initialCategory, slug }: Props) {
   }
 
   const canEditCategory = hasPermission(session, Permission.MANAGE_CATEGORIES);
+  const canPostAnywhere = hasPermission(
+    session,
+    Permission.POST_IN_ANY_CATEGORY,
+  );
 
-  // Normal users may only create threads in leaf categories (no children).
-  // Admins/Mods (ManageCategories) can always post regardless.
+  // MANAGE_CATEGORIES no longer implies POST_IN_ANY_CATEGORY — the two are
+  // granted independently, so normal users may only post in leaf categories.
   const isLeafCategory =
     !data.children || data.children.length === 0;
 
-  const showQuickShare = canEditCategory || isLeafCategory;
+  const showQuickShare = canPostAnywhere || isLeafCategory;
 
   return {
     ready: true as const,

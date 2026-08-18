@@ -5,7 +5,13 @@ import { z } from "zod";
 
 import { handle } from "@/api/client";
 import { linkCreate } from "@/api/openapi-client/links";
-import { Account, Asset, Category, LinkReference } from "@/api/openapi-schema";
+import {
+  Account,
+  Asset,
+  Category,
+  LinkReference,
+  Permission,
+} from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { NO_CATEGORY_VALUE } from "@/components/category/CategoryTreeSelect/useCategoryTreeSelect";
 import { useFeedMutations } from "@/lib/feed/mutation";
@@ -15,6 +21,7 @@ import {
   termKey,
   writeThreadSemesterMeta,
 } from "@/lib/thread/semester";
+import { hasPermission } from "@/utils/permissions";
 import { useClickAway } from "@/utils/useClickAway";
 
 import { normalizeAssetPath } from "@/utils/asset";
@@ -36,6 +43,10 @@ export type Form = z.infer<typeof FormSchema>;
 
 export function useQuickShare({ initialCategory }: Props) {
   const session = useSession();
+  const canPostUncategorised = hasPermission(
+    session,
+    Permission.POST_IN_ANY_CATEGORY,
+  );
   const [editing, setEditing] = useState(false);
   const [postURL, setPostURL] = useState<string | null>(null);
   const [hydratedLink, setHydratedLink] = useState<
@@ -192,6 +203,16 @@ export function useQuickShare({ initialCategory }: Props) {
 
         if (!threadTitle) {
           throw new Error("Cannot post an empty thread.");
+        }
+
+        if (
+          !canPostUncategorised &&
+          (!data.category || data.category === NO_CATEGORY_VALUE)
+        ) {
+          form.setError("category", {
+            message: "You must select a category before publishing",
+          });
+          return;
         }
 
         // Filter uploadedAssets to only include assets that are actually still referenced in body HTML

@@ -17,23 +17,39 @@ export type Props = {
     | Category // An explicit category.
     | null; // Explicitly uncategorised.
   paginationBasePath: string;
+  enableSemesterGrouping?: boolean;
 };
 
 export type ThreadSortOrder = NonNullable<ThreadListParams["sort"]>;
 
+export const SEMESTER_VIEW = "semester";
+
+// Semester grouping happens client side because the term lives in each thread's
+// metadata, which the list endpoint cannot sort by. It shares the sort param so
+// the menu stays a single mutually exclusive choice.
+export type ThreadFeedView = ThreadSortOrder | typeof SEMESTER_VIEW;
+
 const DEFAULT_SORT: ThreadSortOrder = "newest";
 
 // "asc"/"desc" were the pre-API sort values and may still be in shared links.
-function parseSortOrder(value: string): ThreadSortOrder {
+function parseFeedView(value: string, semesterEnabled: boolean): ThreadFeedView {
   switch (value) {
     case "oldest":
     case "asc":
       return "oldest";
     case "activity":
       return "activity";
+    case SEMESTER_VIEW:
+      return semesterEnabled ? SEMESTER_VIEW : DEFAULT_SORT;
     default:
       return DEFAULT_SORT;
   }
+}
+
+// Grouping maps onto the newest-first query the category route already fetches
+// server side, so the SSR fallback stays valid and no refetch flashes on load.
+function apiSortFor(view: ThreadFeedView): ThreadSortOrder {
+  return view === SEMESTER_VIEW ? DEFAULT_SORT : view;
 }
 
 export function useThreadFeedScreen(props: Props) {
@@ -45,7 +61,7 @@ export function useThreadFeedScreen(props: Props) {
     "sort",
     parseAsString.withDefault(DEFAULT_SORT),
   );
-  const sortOrder = parseSortOrder(sortParam);
+  const view = parseFeedView(sortParam, props.enableSemesterGrouping ?? false);
 
   function handlePageChange(page: number) {
     setPage(page);
@@ -54,7 +70,7 @@ export function useThreadFeedScreen(props: Props) {
   const { data, error } = useThreadList(
     {
       page: page.toString(),
-      sort: sortOrder,
+      sort: apiSortFor(view),
       categories:
         props.category === undefined
           ? []
@@ -76,9 +92,10 @@ export function useThreadFeedScreen(props: Props) {
   return {
     ready: true as const,
     data,
-    sortOrder,
+    view,
+    isGrouped: view === SEMESTER_VIEW,
     handlePageChange,
-    handleSetSortOrder: (order: ThreadSortOrder) =>
-      setSortParam(order === DEFAULT_SORT ? null : order),
+    handleSetView: (next: ThreadFeedView) =>
+      setSortParam(next === DEFAULT_SORT ? null : next),
   };
 }

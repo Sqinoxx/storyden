@@ -9,6 +9,12 @@ import { Account, Asset, Category, LinkReference } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { NO_CATEGORY_VALUE } from "@/components/category/CategorySelect/useCategorySelect";
 import { useFeedMutations } from "@/lib/feed/mutation";
+import {
+  parseTermKey,
+  termFor,
+  termKey,
+  writeThreadSemesterMeta,
+} from "@/lib/thread/semester";
 import { useClickAway } from "@/utils/useClickAway";
 
 import { normalizeAssetPath } from "@/utils/asset";
@@ -23,6 +29,7 @@ export const FormSchema = z.object({
   title: z.string().optional(),
   body: z.string().optional(),
   category: z.string().optional(),
+  semester: z.string().optional(),
   tags: z.string().array().optional(),
 });
 export type Form = z.infer<typeof FormSchema>;
@@ -44,6 +51,7 @@ export function useQuickShare({ initialCategory }: Props) {
       title: "",
       body: undefined,
       category: initialCategory?.id,
+      semester: termKey(termFor(new Date())),
     },
   });
 
@@ -202,6 +210,8 @@ export function useQuickShare({ initialCategory }: Props) {
           new Set(activeUploadedAssets.map((a) => a.id).filter(Boolean)),
         );
 
+        const semester = parseTermKey(data.semester);
+
         const newThread = {
           title: threadTitle,
           body,
@@ -211,6 +221,9 @@ export function useQuickShare({ initialCategory }: Props) {
           tags: data.tags && data.tags.length > 0 ? data.tags : undefined,
           visibility: "published" as const,
           asset_ids: assetIds.length > 0 ? assetIds : undefined,
+          meta: semester
+            ? writeThreadSemesterMeta(undefined, semester)
+            : undefined,
         };
 
         await createThread(newThread, linkAvailable);
@@ -220,6 +233,7 @@ export function useQuickShare({ initialCategory }: Props) {
 
         form.resetField("title");
         form.resetField("body");
+        form.resetField("semester");
         form.setValue("tags", []);
         setUploadedAssets([]);
 

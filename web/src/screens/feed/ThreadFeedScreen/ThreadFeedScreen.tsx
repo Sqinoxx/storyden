@@ -4,6 +4,7 @@ import { type Account } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { FeedEmptyState } from "@/components/feed/FeedEmptyState";
 import { QuickShare } from "@/components/feed/QuickShare/QuickShare";
+import { SemesterGroupedThreadList } from "@/components/feed/SemesterGroups/SemesterGroupedThreadList";
 import { ThreadReferenceCard } from "@/components/post/ThreadCard";
 import { PaginationControls } from "@/components/site/PaginationControls/PaginationControls";
 import { Unready } from "@/components/site/Unready";
@@ -18,19 +19,21 @@ import { lstack } from "@/styled-system/patterns";
 
 import {
   Props,
-  ThreadSortOrder,
+  SEMESTER_VIEW,
+  ThreadFeedView,
   useThreadFeedScreen,
 } from "./useThreadFeedScreen";
 
-const SORT_ORDERS: ThreadSortOrder[] = ["newest", "activity", "oldest"];
+const SORT_ORDERS: ThreadFeedView[] = ["newest", "activity", "oldest"];
 
-function sortOrderLabels(
+function viewLabels(
   t: ReturnType<typeof useTranslation>,
-): Record<ThreadSortOrder, string> {
+): Record<ThreadFeedView, string> {
   return {
     newest: t.thread.sortNewestFirst,
     activity: t.thread.sortRecentActivity,
     oldest: t.thread.sortOldestFirst,
+    [SEMESTER_VIEW]: t.thread.sortBySemester,
   };
 }
 
@@ -42,6 +45,7 @@ export function ThreadFeedScreen({
   showCategorySelect,
   hideCategoryBadge = false,
   showQuickShare = true,
+  enableSemesterGrouping = false,
   initialSession,
   initialSettings,
 }: Props & {
@@ -68,6 +72,7 @@ export function ThreadFeedScreen({
         category={category}
         paginationBasePath={paginationBasePath}
         hideCategoryBadge={hideCategoryBadge}
+        enableSemesterGrouping={enableSemesterGrouping}
       />
     </LStack>
   );
@@ -79,9 +84,10 @@ export function ThreadFeed(props: Props & { hideCategoryBadge?: boolean }) {
     ready,
     error,
     data,
-    sortOrder,
+    view,
+    isGrouped,
     handlePageChange,
-    handleSetSortOrder,
+    handleSetView,
   } = useThreadFeedScreen(props);
 
   if (!ready) {
@@ -92,6 +98,10 @@ export function ThreadFeed(props: Props & { hideCategoryBadge?: boolean }) {
     return <FeedEmptyState />;
   }
 
+  const views: ThreadFeedView[] = props.enableSemesterGrouping
+    ? [...SORT_ORDERS, SEMESTER_VIEW]
+    : SORT_ORDERS;
+
   return (
     <VStack w="full">
       <WStack justifyContent="flex-end" w="full">
@@ -99,38 +109,41 @@ export function ThreadFeed(props: Props & { hideCategoryBadge?: boolean }) {
           <Menu.Trigger asChild>
             <Button variant="ghost" size="xs" aria-label={t.thread.sortBy}>
               <HStack gap="1" fontSize="xs">
-                {sortOrder === "oldest" ? (
+                {view === "oldest" ? (
                   <SortAscendingIcon width="3.5" height="3.5" />
                 ) : (
                   <SortDescendingIcon width="3.5" height="3.5" />
                 )}
-                <span>{sortOrderLabels(t)[sortOrder]}</span>
+                <span>{viewLabels(t)[view]}</span>
               </HStack>
             </Button>
           </Menu.Trigger>
           <Menu.Positioner>
             <Menu.Content minW="44">
               <Menu.ItemGroup id="feed-sort-options">
-                {SORT_ORDERS.map((order) => {
-                  const label = sortOrderLabels(t)[order];
+                {views.map((option) => {
+                  const label = viewLabels(t)[option];
                   const Icon =
-                    order === "oldest" ? SortAscendingIcon : SortDescendingIcon;
+                    option === "oldest" ? SortAscendingIcon : SortDescendingIcon;
 
                   return (
                     <Menu.Item
-                      key={order}
-                      value={order}
-                      onClick={() => handleSetSortOrder(order)}
+                      key={option}
+                      value={option}
+                      onClick={() => handleSetView(option)}
                       aria-label={label}
+                      display={
+                        option === SEMESTER_VIEW
+                          ? { base: "none", md: "flex" }
+                          : undefined
+                      }
                     >
                       <HStack gap="2" justifyContent="space-between" w="full">
                         <HStack gap="2">
                           <Icon width="4" height="4" />
                           <span>{label}</span>
                         </HStack>
-                        {sortOrder === order && (
-                          <CheckIcon width="4" height="4" />
-                        )}
+                        {view === option && <CheckIcon width="4" height="4" />}
                       </HStack>
                     </Menu.Item>
                   );
@@ -148,17 +161,24 @@ export function ThreadFeed(props: Props & { hideCategoryBadge?: boolean }) {
         pageSize={data.page_size}
         onClick={handlePageChange}
       />
-      <ol className={lstack()}>
-        {data.threads.map((t) => {
-          return (
-            <ThreadReferenceCard
-              key={t.slug}
-              thread={t}
-              hideCategoryBadge={props.hideCategoryBadge}
-            />
-          );
-        })}
-      </ol>
+      {isGrouped ? (
+        <SemesterGroupedThreadList
+          threads={data.threads}
+          hideCategoryBadge={props.hideCategoryBadge}
+        />
+      ) : (
+        <ol className={lstack()}>
+          {data.threads.map((t) => {
+            return (
+              <ThreadReferenceCard
+                key={t.slug}
+                thread={t}
+                hideCategoryBadge={props.hideCategoryBadge}
+              />
+            );
+          })}
+        </ol>
+      )}
 
       <PaginationControls
         path={props.paginationBasePath}

@@ -179,6 +179,7 @@ func (i *Threads) ThreadUpdate(ctx context.Context, request openapi.ThreadUpdate
 		Tags:       tags,
 		Category:   opt.NewPtrMap(request.Body.Category, deserialiseID),
 		Visibility: Visibility,
+		Meta:       opt.NewPtr((*map[string]any)(request.Body.Meta)),
 		Pinned:     pinned,
 		Assets:     assetIDs, // NEU
 	})

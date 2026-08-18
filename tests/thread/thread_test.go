@@ -848,6 +848,53 @@ func TestThreads(t *testing.T) {
 				a.Nil(threadUpdate.JSON200.Category)
 			})
 
+			t.Run("thread_meta_round_trip", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				title := "Meta thread " + uuid.NewString()
+
+				threadCreate := tests.AssertRequest(
+					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>an old exam</p>").Ptr(),
+						Category:   opt.New(cat1create.JSON200.Id).Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      title,
+						Meta: &openapi.Metadata{
+							"semester": map[string]any{"term": "2023-WS"},
+							"other":    "keep",
+						},
+					}, session1),
+				)(t, http.StatusOK)
+				r.NotNil(threadCreate.JSON200.Meta)
+				a.Equal("2023-WS", semesterTerm(*threadCreate.JSON200.Meta))
+
+				threadUpdate := tests.AssertRequest(
+					cl.ThreadUpdateWithResponse(root, threadCreate.JSON200.Slug, openapi.ThreadMutableProps{
+						Meta: &openapi.Metadata{
+							"semester": map[string]any{"term": "2026-SS"},
+						},
+					}, session1),
+				)(t, http.StatusOK)
+				r.NotNil(threadUpdate.JSON200.Meta)
+				a.Equal("2026-SS", semesterTerm(*threadUpdate.JSON200.Meta), "an update that only sends meta must persist it")
+				a.Equal("keep", (*threadUpdate.JSON200.Meta)["other"], "meta keys not sent in the update are preserved")
+
+				categoryFilter := []string{cat1create.JSON200.Slug}
+				threadlist := tests.AssertRequest(
+					cl.ThreadListWithResponse(root, &openapi.ThreadListParams{
+						Categories: &categoryFilter,
+					}),
+				)(t, http.StatusOK)
+
+				listed, found := lo.Find(threadlist.JSON200.Threads, func(th openapi.ThreadReference) bool {
+					return th.Id == threadCreate.JSON200.Id
+				})
+				r.True(found)
+				r.NotNil(listed.Meta)
+				a.Equal("2026-SS", semesterTerm(*listed.Meta), "thread references carry meta so feeds can group by it")
+			})
+
 			t.Run("thread_with_russian_slug", func(t *testing.T) {
 				a := assert.New(t)
 
@@ -881,4 +928,15 @@ func filterThreads(ts []openapi.ThreadReference, ids ...openapi.Identifier) []op
 	})
 
 	return filtered
+}
+
+func semesterTerm(meta openapi.Metadata) string {
+	semester, ok := meta["semester"].(map[string]any)
+	if !ok {
+		return ""
+	}
+
+	term, _ := semester["term"].(string)
+
+	return term
 }

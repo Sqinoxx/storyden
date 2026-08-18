@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { LinkReference } from "@/api/openapi-schema";
 import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
 import { CategorySelect } from "@/components/category/CategorySelect/CategorySelect";
+import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { FileAttachmentBadge } from "@/components/post/FileAttachmentList";
 import { Spinner } from "@/components/ui/Spinner";
@@ -104,6 +105,8 @@ export function QuickShare(props: Props) {
                 </FormErrorText>
               </>
             )}
+
+            <SemesterSelect control={form.control} name="semester" />
 
             <TagListField
               name="tags"

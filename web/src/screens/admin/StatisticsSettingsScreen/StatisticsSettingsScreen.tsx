@@ -37,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import * as Table from "@/components/ui/table";
 import { ProfileRoute } from "@/components/site/Navigation/Anchors/Profile";
 import { FINISHED_SEMESTER } from "@/lib/profile/academic";
+import { formatTermKeyLabel } from "@/lib/thread/semester";
 import { Box, Flex, Grid, HStack, Stack, styled } from "@/styled-system/jsx";
 
 type Granularity = "daily" | "monthly" | "yearly";
@@ -105,7 +106,7 @@ export function StatisticsSettingsScreen() {
   const semesterData = useMemo(
     () =>
       (data?.threadsBySemester ?? []).map((point) => ({
-        term: formatTerm(point.term),
+        term: formatTermKeyLabel(point.term),
         count: point.count,
       })),
     [data],
@@ -902,22 +903,6 @@ function formatDate(date: string, granularity: Granularity): string {
         timeZone: "UTC",
       });
   }
-}
-
-// formatTerm turns a backend term id like "2026-SS" into the conventional
-// German notation, e.g. "SS 26" or "WS 25/26".
-function formatTerm(term: string): string {
-  const [year, season] = term.split("-");
-  if (!year || !season) return term;
-
-  const shortYear = year.slice(2);
-
-  if (season === "WS") {
-    const nextYear = String(Number(year) + 1).slice(2);
-    return `WS ${shortYear}/${nextYear}`;
-  }
-
-  return `SS ${shortYear}`;
 }
 
 function formatFachsemester(semester: number): string {

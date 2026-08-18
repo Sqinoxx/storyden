@@ -160,7 +160,7 @@ func (s *service) Update(ctx context.Context, threadID post.ID, partial Partial)
 // cannot bypass the "category required" rule by removing the category from
 // an already-created thread during an update.
 func (s *service) authoriseCategoryForUpdate(ctx context.Context, thr *thread.Thread, partial Partial) error {
-	if err := session.Authorise(ctx, nil, rbac.PermissionManageCategories); err == nil {
+	if err := session.Authorise(ctx, nil, rbac.PermissionPostInAnyCategory); err == nil {
 		return nil
 	}
 

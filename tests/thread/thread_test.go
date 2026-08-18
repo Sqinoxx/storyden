@@ -848,6 +848,116 @@ func TestThreads(t *testing.T) {
 				a.Nil(threadUpdate.JSON200.Category)
 			})
 
+			t.Run("leaf_category_permission", func(t *testing.T) {
+				a := assert.New(t)
+
+				parentCat := tests.AssertRequest(
+					cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+						Colour:      "#0f0f0f",
+						Description: "leaf rule parent",
+						Name:        "Leaf Parent " + uuid.NewString(),
+					}, session1),
+				)(t, http.StatusOK)
+
+				childCat := tests.AssertRequest(
+					cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+						Colour:      "#0f0f0f",
+						Description: "leaf rule child",
+						Name:        "Leaf Child " + uuid.NewString(),
+						Parent:      lo.ToPtr(parentCat.JSON200.Id),
+					}, session1),
+				)(t, http.StatusOK)
+
+				// A member without PostInAnyCategory cannot post into a category
+				// that has sub-categories.
+				tests.AssertRequest(
+					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>into a parent</p>").Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      "Parent category thread " + uuid.NewString(),
+						Category:   opt.New(parentCat.JSON200.Id).Ptr(),
+					}, session2),
+				)(t, http.StatusBadRequest)
+
+				leafThread := tests.AssertRequest(
+					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>into a leaf</p>").Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      "Leaf category thread " + uuid.NewString(),
+						Category:   opt.New(childCat.JSON200.Id).Ptr(),
+					}, session2),
+				)(t, http.StatusOK)
+
+				// Nor may they move an existing thread up into the parent.
+				tests.AssertRequest(
+					cl.ThreadUpdateWithResponse(root, leafThread.JSON200.Slug, openapi.ThreadMutableProps{
+						Category: lo.ToPtr(parentCat.JSON200.Id),
+					}, session2),
+				)(t, http.StatusBadRequest)
+
+				// A role carrying only PostInAnyCategory lifts both restrictions.
+				postAnywhereRole := tests.AssertRequest(
+					cl.RoleCreateWithResponse(root, openapi.RoleCreateJSONRequestBody{
+						Name:        "post-anywhere-" + uuid.NewString(),
+						Colour:      "green",
+						Permissions: openapi.PermissionList{openapi.POSTINANYCATEGORY},
+					}, session1),
+				)(t, http.StatusOK)
+
+				posterCtx, posterAcc := e2e.WithAccount(root, aw, seed.Account_007_Freyr)
+				posterSession := sh.WithSession(posterCtx)
+
+				tests.AssertRequest(
+					cl.AccountAddRoleWithResponse(root, posterAcc.Handle, postAnywhereRole.JSON200.Id, session1),
+				)(t, http.StatusOK)
+
+				parentThread := tests.AssertRequest(
+					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>allowed into a parent</p>").Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      "Permitted parent thread " + uuid.NewString(),
+						Category:   opt.New(parentCat.JSON200.Id).Ptr(),
+					}, posterSession),
+				)(t, http.StatusOK)
+				if a.NotNil(parentThread.JSON200.Category) {
+					a.Equal(parentCat.JSON200.Id, parentThread.JSON200.Category.Id)
+				}
+
+				tests.AssertRequest(
+					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>no category at all</p>").Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      "Permitted uncategorised thread " + uuid.NewString(),
+					}, posterSession),
+				)(t, http.StatusOK)
+
+				// ManageCategories on its own no longer implies it, so the two
+				// can be granted independently.
+				manageCategoriesRole := tests.AssertRequest(
+					cl.RoleCreateWithResponse(root, openapi.RoleCreateJSONRequestBody{
+						Name:        "manage-categories-only-" + uuid.NewString(),
+						Colour:      "purple",
+						Permissions: openapi.PermissionList{openapi.MANAGECATEGORIES},
+					}, session1),
+				)(t, http.StatusOK)
+
+				curatorCtx, curatorAcc := e2e.WithAccount(root, aw, seed.Account_008_Heimdallr)
+				curatorSession := sh.WithSession(curatorCtx)
+
+				tests.AssertRequest(
+					cl.AccountAddRoleWithResponse(root, curatorAcc.Handle, manageCategoriesRole.JSON200.Id, session1),
+				)(t, http.StatusOK)
+
+				tests.AssertRequest(
+					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>curator into a parent</p>").Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      "Curator parent thread " + uuid.NewString(),
+						Category:   opt.New(parentCat.JSON200.Id).Ptr(),
+					}, curatorSession),
+				)(t, http.StatusBadRequest)
+			})
+
 			t.Run("thread_meta_round_trip", func(t *testing.T) {
 				r := require.New(t)
 				a := assert.New(t)

@@ -2,13 +2,16 @@ import { MenuSelectionDetails, Portal } from "@ark-ui/react";
 
 import { handle } from "@/api/client";
 import { useCategoryList } from "@/api/openapi-client/categories";
-import { ThreadReference } from "@/api/openapi-schema";
+import { Permission, ThreadReference } from "@/api/openapi-schema";
+import { useSession } from "@/auth";
 import { Unready } from "@/components/site/Unready";
 import { CategoryIcon } from "@/components/ui/icons/Category";
 import { SubmenuIcon } from "@/components/ui/icons/Submenu";
 import * as Menu from "@/components/ui/menu";
+import { CategoryTree, buildCategoryTree } from "@/lib/category/tree";
 import { useThreadMutations } from "@/lib/thread/mutation";
 import { HStack } from "@/styled-system/jsx";
+import { hasPermission } from "@/utils/permissions";
 
 import { CategoryBadge } from "../CategoryBadge";
 import {
@@ -74,15 +77,23 @@ export function CategoryMoveMenu(props: Props) {
 
       <Portal>
         <Menu.Positioner>
-          <LazyLoadedCategoryMoveMenuContent />
+          <LazyLoadedCategoryMoveMenuContent
+            onSelect={handlers.handleSelect}
+          />
         </Menu.Positioner>
       </Portal>
     </Menu.Root>
   );
 }
 
-function LazyLoadedCategoryMoveMenuContent() {
+function LazyLoadedCategoryMoveMenuContent({
+  onSelect,
+}: {
+  onSelect: (details: MenuSelectionDetails) => void;
+}) {
+  const session = useSession();
   const { data, error } = useCategoryList();
+
   if (!data) {
     return <Unready error={error} />;
   }
@@ -102,6 +113,12 @@ function LazyLoadedCategoryMoveMenuContent() {
     );
   }
 
+  const tree = buildCategoryTree(categories);
+  const canMoveAnywhere = hasPermission(
+    session,
+    Permission.POST_IN_ANY_CATEGORY,
+  );
+
   return (
     <Menu.Content minW="48" userSelect="none">
       <Menu.ItemGroup id="move">
@@ -109,14 +126,70 @@ function LazyLoadedCategoryMoveMenuContent() {
 
         <Menu.Separator />
 
-        {categories.map((c) => {
-          return (
-            <Menu.Item key={c.id} value={c.id}>
-              <CategoryBadge category={c} asLink={false} />
-            </Menu.Item>
-          );
-        })}
+        {tree.map((node) => (
+          <CategoryMoveMenuNode
+            key={node.id}
+            node={node}
+            canMoveAnywhere={canMoveAnywhere}
+            onSelect={onSelect}
+          />
+        ))}
       </Menu.ItemGroup>
     </Menu.Content>
+  );
+}
+
+function CategoryMoveMenuNode({
+  node,
+  canMoveAnywhere,
+  onSelect,
+}: {
+  node: CategoryTree;
+  canMoveAnywhere: boolean;
+  onSelect: (details: MenuSelectionDetails) => void;
+}) {
+  if (node.children.length === 0) {
+    return (
+      <Menu.Item value={node.id}>
+        <CategoryBadge category={node} asLink={false} />
+      </Menu.Item>
+    );
+  }
+
+  return (
+    <Menu.Root
+      size="xs"
+      positioning={{ placement: "right-start", gutter: -2 }}
+      onSelect={onSelect}
+    >
+      <Menu.TriggerItem justifyContent="space-between">
+        <CategoryBadge category={node} asLink={false} />
+        <SubmenuIcon />
+      </Menu.TriggerItem>
+
+      <Portal>
+        <Menu.Positioner>
+          <Menu.Content minW="48" userSelect="none">
+            {canMoveAnywhere && (
+              <>
+                <Menu.Item value={node.id}>
+                  <CategoryBadge category={node} asLink={false} />
+                </Menu.Item>
+                <Menu.Separator />
+              </>
+            )}
+
+            {node.children.map((child) => (
+              <CategoryMoveMenuNode
+                key={child.id}
+                node={child}
+                canMoveAnywhere={canMoveAnywhere}
+                onSelect={onSelect}
+              />
+            ))}
+          </Menu.Content>
+        </Menu.Positioner>
+      </Portal>
+    </Menu.Root>
   );
 }

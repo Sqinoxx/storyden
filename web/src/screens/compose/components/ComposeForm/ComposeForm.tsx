@@ -2,7 +2,7 @@
 
 import { FormProvider } from "react-hook-form";
 
-import { CategorySelect } from "@/components/category/CategorySelect/CategorySelect";
+import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/CategoryTreeSelect";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { Button } from "@/components/ui/button";
@@ -65,7 +65,7 @@ export function ComposeForm(props: Props) {
               gap="3"
             >
               <HStack width="full" flexWrap="wrap" gap="2">
-                <CategorySelect control={form.control} name="category" />
+                <CategoryTreeSelect control={form.control} name="category" />
                 <SemesterSelect control={form.control} name="semester" />
                 <TagListField
                   name="tags"

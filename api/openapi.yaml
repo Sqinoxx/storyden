@@ -9141,6 +9141,7 @@ components:
         - "MANAGE_POSTS"
         - "PIN_POSTS"
         - "MANAGE_CATEGORIES"
+        - "POST_IN_ANY_CATEGORY"
         - "CREATE_INVITATION"
         # Library (Page tree nodes)
         - "READ_PUBLISHED_LIBRARY"

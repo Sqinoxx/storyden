@@ -7,7 +7,7 @@ import { handle } from "@/api/client";
 import { linkCreate } from "@/api/openapi-client/links";
 import { Account, Asset, Category, LinkReference } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
-import { NO_CATEGORY_VALUE } from "@/components/category/CategorySelect/useCategorySelect";
+import { NO_CATEGORY_VALUE } from "@/components/category/CategoryTreeSelect/useCategoryTreeSelect";
 import { useFeedMutations } from "@/lib/feed/mutation";
 import {
   parseTermKey,
@@ -50,7 +50,12 @@ export function useQuickShare({ initialCategory }: Props) {
     defaultValues: {
       title: "",
       body: undefined,
-      category: initialCategory?.id,
+      // A category with children is not a valid posting target for members
+      // without PostInAnyCategory, so the tree picker starts empty there.
+      category:
+        (initialCategory?.children?.length ?? 0) > 0
+          ? undefined
+          : initialCategory?.id,
       semester: termKey(termFor(new Date())),
     },
   });

@@ -112,7 +112,7 @@ export function CategoryScreen(props: ScreenProps) {
         initialPageData={props.initialThreadList}
         category={category}
         paginationBasePath={`/d/${data.category.slug}`}
-        showCategorySelect={false}
+        showCategorySelect={(category.children?.length ?? 0) > 0}
         hideCategoryBadge={true}
         enableSemesterGrouping={true}
         showQuickShare={showQuickShare}

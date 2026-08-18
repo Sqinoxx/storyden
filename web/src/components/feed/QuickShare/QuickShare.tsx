@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 
 import { LinkReference } from "@/api/openapi-schema";
 import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
-import { CategorySelect } from "@/components/category/CategorySelect/CategorySelect";
+import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/CategoryTreeSelect";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { FileAttachmentBadge } from "@/components/post/FileAttachmentList";
@@ -98,7 +98,11 @@ export function QuickShare(props: Props) {
           <HStack alignItems="center" flexWrap="wrap" gap="2" flex="1" minW="0">
             {props.showCategorySelect && (
               <>
-                <CategorySelect control={form.control} name="category" />
+                <CategoryTreeSelect
+                  control={form.control}
+                  name="category"
+                  rootId={props.initialCategory?.id}
+                />
 
                 <FormErrorText>
                   {form.formState.errors["category"]?.message}

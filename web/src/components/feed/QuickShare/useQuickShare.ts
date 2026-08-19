@@ -127,6 +127,14 @@ export function useQuickShare({ initialCategory }: Props) {
     });
   };
 
+  // Files dropped or pasted into the composer are uploaded by the editor, which
+  // embeds them in the document itself and only reports the finished asset back
+  // here. Recording it is what lets handlePost resolve the asset IDs for the
+  // markup that is already in the body.
+  const handleComposerAssetUpload = (asset: Asset) => {
+    handleAddAssets([asset]);
+  };
+
   const handleRemoveAsset = (assetId: string) => {
     const targetAsset = uploadedAssets.find((a) => a.id === assetId || a.filename === assetId);
     setUploadedAssets((prev) => prev.filter((a) => a.id !== assetId && a.filename !== assetId));
@@ -290,6 +298,7 @@ export function useQuickShare({ initialCategory }: Props) {
       handleFocus,
       handlePost,
       handleAddAssets,
+      handleComposerAssetUpload,
       handleRemoveAsset,
     },
   };

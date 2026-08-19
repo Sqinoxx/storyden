@@ -1,4 +1,4 @@
-import { Page, expect } from "@playwright/test";
+import { Locator, Page, expect } from "@playwright/test";
 
 export const PASSWORD = "TestPassword123!";
 
@@ -119,6 +119,57 @@ export async function attachFiles(
   ]);
 
   await chooser.setFiles(files);
+}
+
+/**
+ * The quick share composer on the feed. It is the only form on that page that
+ * embeds a rich text editor, and its post button label is localised, so the
+ * editor is the stable anchor.
+ */
+export function quickShareForm(page: Page) {
+  return page
+    .locator("form")
+    .filter({ has: page.locator("[id^='rich-text-editor-']") })
+    .first();
+}
+
+/**
+ * Drags files in from outside the page and drops them on an element.
+ *
+ * Playwright cannot originate an OS-level file drag, so the DataTransfer is
+ * built inside the page and carried through the whole enter/over/drop sequence
+ * the way a real drag does — the composer tracks enter/leave to decide whether
+ * a drop is a file drop at all, so dispatching drop alone would not exercise it.
+ */
+export async function dropFiles(
+  page: Page,
+  target: Locator,
+  files: { name: string; mimeType: string; buffer: Buffer }[],
+) {
+  const payload = files.map((f) => ({
+    name: f.name,
+    mimeType: f.mimeType,
+    base64: f.buffer.toString("base64"),
+  }));
+
+  const dataTransfer = await page.evaluateHandle((items) => {
+    const dt = new DataTransfer();
+
+    for (const item of items) {
+      const binary = atob(item.base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      dt.items.add(new File([bytes], item.name, { type: item.mimeType }));
+    }
+
+    return dt;
+  }, payload);
+
+  await target.dispatchEvent("dragenter", { dataTransfer });
+  await target.dispatchEvent("dragover", { dataTransfer });
+  await target.dispatchEvent("drop", { dataTransfer });
 }
 
 export async function postReply(page: Page, body: string) {

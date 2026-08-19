@@ -33,6 +33,22 @@ import { LinkPreview } from "./plugins/LinkPreviewPlugin";
 
 const ERROR_UNSUPPORTED_FILE_TYPE = "File type not supported";
 
+/**
+ * Upload placeholders carry a blob URL and no asset, so they must never reach a
+ * form value that could be posted. Both the change callback and the incoming
+ * value comparison run through here so the two always agree on what the
+ * document looks like from the outside.
+ */
+function stripPendingUploads(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  doc
+    .querySelectorAll('[data-uploading="true"], [data-upload-error]')
+    .forEach((el) => el.remove());
+
+  return doc.body.innerHTML;
+}
+
 export type Block = "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
 export function useContentComposer(props: ContentComposerProps) {
@@ -174,22 +190,7 @@ export function useContentComposer(props: ContentComposerProps) {
     extensions,
     content: props.initialValue ?? "<p></p>",
     onUpdate: ({ editor }) => {
-      let html = editor.getHTML();
-
-      // Filter out elements that are still uploading or failed
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-      const uploadingElements = doc.querySelectorAll(
-        '[data-uploading="true"]',
-      );
-      const failedElements = doc.querySelectorAll("[data-upload-error]");
-
-      uploadingElements.forEach((el) => el.remove());
-      failedElements.forEach((el) => el.remove());
-
-      html = doc.body.innerHTML;
-
-      props.onChange?.(html, editor.isEmpty);
+      props.onChange?.(stripPendingUploads(editor.getHTML()), editor.isEmpty);
     },
   });
 
@@ -212,9 +213,22 @@ export function useContentComposer(props: ContentComposerProps) {
       return;
     }
 
-    if (props.value !== undefined && props.value !== editor.getHTML()) {
+    // Compared against the stripped HTML, not the raw document: onChange emits
+    // the document with in-flight upload placeholders removed, so a raw
+    // comparison always differs while an upload is running and the resulting
+    // setContent deletes the placeholder — which the cleanup plugin reads as
+    // the node being deleted and aborts the upload behind it.
+    if (
+      props.value !== undefined &&
+      props.value !== stripPendingUploads(editor.getHTML())
+    ) {
       queueMicrotask(() => {
-        if (editor && !editor.isDestroyed && props.value !== undefined && props.value !== editor.getHTML()) {
+        if (
+          editor &&
+          !editor.isDestroyed &&
+          props.value !== undefined &&
+          props.value !== stripPendingUploads(editor.getHTML())
+        ) {
           editor.commands.setContent(props.value);
         }
       });
@@ -470,7 +484,7 @@ export function useContentComposer(props: ContentComposerProps) {
       const uploadId = `upload-${Date.now()}-${uploadCounterRef.current}`;
       const isAttachment = !f.type.startsWith("image/");
 
-      if (isAttachment) {
+      if (isAttachment && !props.inlineAttachments) {
         // Non-image files (PDFs, docs, ZIPs) are attached at the bottom only, not inserted into the editor content.
         const abortController = new AbortController();
         setUploadingCount((prev) => prev + 1);
@@ -499,10 +513,11 @@ export function useContentComposer(props: ContentComposerProps) {
         continue;
       }
 
-      const nodeType = imageNode;
+      const nodeType = isAttachment ? fileAttachmentNode : imageNode;
 
-      // Create blob URL for immediate preview
-      const blobUrl = URL.createObjectURL(f);
+      // Only images have anything to preview before the upload finishes; the
+      // attachment node renders the filename and its own progress ring.
+      const blobUrl = isAttachment ? "" : URL.createObjectURL(f);
 
       // Create abort controller for this upload
       const abortController = new AbortController();
@@ -516,12 +531,18 @@ export function useContentComposer(props: ContentComposerProps) {
       });
 
       // Insert placeholder immediately
-      const attrs = {
-        src: blobUrl,
-        alt: f.name,
-        "data-upload-id": uploadId,
-        "data-uploading": "true",
-      };
+      const attrs = isAttachment
+        ? {
+            fileName: f.name,
+            "data-upload-id": uploadId,
+            "data-uploading": "true",
+          }
+        : {
+            src: blobUrl,
+            alt: f.name,
+            "data-upload-id": uploadId,
+            "data-uploading": "true",
+          };
 
       const placeholderNode = nodeType.create(attrs);
 
@@ -550,7 +571,7 @@ export function useContentComposer(props: ContentComposerProps) {
 
           currentState.doc.descendants((node, pos) => {
             if (
-              node.type.name === "image" &&
+              node.type.name === nodeType.name &&
               node.attrs["data-upload-id"] === uploadId
             ) {
               nodePos = pos;
@@ -560,14 +581,23 @@ export function useContentComposer(props: ContentComposerProps) {
           });
 
           if (nodePos !== null) {
-            const newAttrs = {
-              src: getAssetURL(asset.path),
-              alt: f.name,
-              "data-upload-id": null,
-              "data-uploading": null,
-              "data-upload-error": null,
-              "data-upload-progress": null,
-            };
+            const newAttrs = isAttachment
+              ? {
+                  href: getAssetURL(asset.path),
+                  fileName: f.name,
+                  "data-upload-id": null,
+                  "data-uploading": null,
+                  "data-upload-error": null,
+                  "data-upload-progress": null,
+                }
+              : {
+                  src: getAssetURL(asset.path),
+                  alt: f.name,
+                  "data-upload-id": null,
+                  "data-uploading": null,
+                  "data-upload-error": null,
+                  "data-upload-progress": null,
+                };
             // Update the node with the real URL and remove upload attrs
             const updateTransaction = currentState.tr.setNodeMarkup(
               nodePos,

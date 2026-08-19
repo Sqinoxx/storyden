@@ -79,12 +79,22 @@ export function QuickShare(props: Props) {
           }}
         />
 
-        <Box flex="1" minH="0" maxH="48" w="full" overflowX="hidden" overflowY="auto">
+        <Box
+          display="grid"
+          flex="1"
+          minH="0"
+          maxH="48"
+          w="full"
+          overflowX="hidden"
+          overflowY="auto"
+        >
           <ComposeField
             control={form.control}
             name="body"
             placeholder={t.feed.quickSharePlaceholder}
             resetKey={resetKey}
+            inlineAttachments
+            onAssetUpload={handlers.handleComposerAssetUpload}
           />
         </Box>
 

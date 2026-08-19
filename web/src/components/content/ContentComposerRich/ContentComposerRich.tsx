@@ -51,6 +51,7 @@ export function ContentComposerRich(props: ContentComposerProps) {
       w="full"
       gap="1"
       minHeight="10"
+      h={props.fillHeight ? "full" : undefined}
       onDragOver={handlers.handleDragOver}
       onDragEnter={handlers.handleDragEnter}
       onDragLeave={handlers.handleDragLeave}
@@ -73,10 +74,11 @@ export function ContentComposerRich(props: ContentComposerProps) {
       )}
       <div
         id={`editor-content-${uniqueID}`}
-        className={css({
-          height: "full",
-          width: "full",
-        })}
+        className={css(
+          props.fillHeight
+            ? { flex: "1", minHeight: "0", width: "full" }
+            : { height: "full", width: "full" },
+        )}
         suppressHydrationWarning
       >
         {editor ? (

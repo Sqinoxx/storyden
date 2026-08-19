@@ -19,4 +19,8 @@ export type ContentComposerProps = {
   // without such a list need them embedded, or a dropped document uploads and
   // then has nothing to show for it.
   inlineAttachments?: boolean;
+
+  // Stretches the editor to fill a tall parent container (e.g. the compose
+  // screen's card) instead of only hugging its typed content height.
+  fillHeight?: boolean;
 };

@@ -119,6 +119,7 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
 
   async function handleDrop(e: React.DragEvent<HTMLTextAreaElement>) {
     e.preventDefault();
+    e.stopPropagation();
 
     dragCounterRef.current = 0;
     setIsDragging(false);
@@ -220,9 +221,15 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
 
   function handleDragOver(e: React.DragEvent<HTMLTextAreaElement>) {
     e.preventDefault();
+    e.stopPropagation();
   }
 
   function handleDragEnter(e: React.DragEvent<HTMLTextAreaElement>) {
+    // Stopped so a drop directly on the editor isn't also picked up by an
+    // ancestor drop zone (the compose card wraps this editor in its own
+    // drag-and-drop handling) and uploaded a second time.
+    e.stopPropagation();
+
     // Incremented unconditionally so it stays paired with every dragleave,
     // including the ones fired by dragging a text selection around within
     // the textarea itself — that carries text/plain, not a file, but the
@@ -256,7 +263,9 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
     setDragFileCount(imageCount);
   }
 
-  function handleDragLeave() {
+  function handleDragLeave(e: React.DragEvent<HTMLTextAreaElement>) {
+    e.stopPropagation();
+
     dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
     if (dragCounterRef.current === 0) {
       setIsDragging(false);

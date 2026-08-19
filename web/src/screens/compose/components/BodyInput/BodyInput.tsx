@@ -24,6 +24,7 @@ export function BodyInput({ onAssetUpload }: PropsWithChildren<Props>) {
             onAssetUpload={onAssetUpload}
             initialValue={formState.defaultValues?.["body"]}
             value={field.value}
+            fillHeight
           />
         )}
         control={control}

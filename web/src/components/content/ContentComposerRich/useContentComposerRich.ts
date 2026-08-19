@@ -703,9 +703,15 @@ export function useContentComposer(props: ContentComposerProps) {
 
   function handleDragOver(e: React.DragEvent) {
     e.preventDefault();
+    e.stopPropagation();
   }
 
   function handleDragEnter(e: React.DragEvent) {
+    // Stopped so a drop directly on the editor isn't also picked up by an
+    // ancestor drop zone (the compose card wraps this editor in its own
+    // drag-and-drop handling) and uploaded a second time.
+    e.stopPropagation();
+
     // Incremented unconditionally so it stays paired with every dragleave,
     // including the ones fired by dragging existing content (e.g. an image)
     // around within the editor — those carry text/html, not a file, but the
@@ -741,7 +747,9 @@ export function useContentComposer(props: ContentComposerProps) {
     setDragFileCount(assetCount);
   }
 
-  function handleDragLeave() {
+  function handleDragLeave(e: React.DragEvent) {
+    e.stopPropagation();
+
     dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
     if (dragCounterRef.current === 0) {
       setIsDragging(false);
@@ -753,6 +761,7 @@ export function useContentComposer(props: ContentComposerProps) {
 
   async function handleDrop(e: React.DragEvent) {
     e.preventDefault();
+    e.stopPropagation();
 
     dragCounterRef.current = 0;
     setIsDragging(false);

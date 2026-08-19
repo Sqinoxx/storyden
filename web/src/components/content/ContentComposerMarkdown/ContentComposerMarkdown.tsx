@@ -86,7 +86,12 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
   }
 
   return (
-    <LStack position="relative" minHeight="10" maxHeight="fit">
+    <LStack
+      position="relative"
+      minHeight="10"
+      maxHeight={props.fillHeight ? undefined : "fit"}
+      h={props.fillHeight ? "full" : undefined}
+    >
       <ComposerTools
         enabled={!props.disabled}
         icon={<ChevronLeftIcon />}
@@ -141,6 +146,7 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
             lineHeight="relaxed"
             w="full"
             minHeight="0"
+            flex={props.fillHeight ? "1" : undefined}
             resize="none"
             appearance="none"
             border="none"

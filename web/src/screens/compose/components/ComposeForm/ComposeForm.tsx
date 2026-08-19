@@ -3,6 +3,7 @@
 import { FormProvider } from "react-hook-form";
 
 import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/CategoryTreeSelect";
+import { ContentDragOverlay } from "@/components/content/ContentDragOverlay";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { Button } from "@/components/ui/button";
@@ -14,11 +15,13 @@ import { BodyInput } from "../BodyInput/BodyInput";
 import { TitleInput } from "../TitleInput/TitleInput";
 
 import { Props, useComposeForm } from "./useComposeForm";
+import { useCardDragDrop } from "./useCardDragDrop";
 
 import { AssetUploadAction } from "@/components/asset/AssetUploadAction";
 
 export function ComposeForm(props: Props) {
   const { form, state, handlers } = useComposeForm(props);
+  const cardDragDrop = useCardDragDrop(handlers.handleAttach);
   const t = useTranslation();
 
   return (
@@ -125,6 +128,11 @@ export function ComposeForm(props: Props) {
             display="flex"
             flexDir="column"
             gap="4"
+            position="relative"
+            onDragOver={cardDragDrop.handlers.handleDragOver}
+            onDragEnter={cardDragDrop.handlers.handleDragEnter}
+            onDragLeave={cardDragDrop.handlers.handleDragLeave}
+            onDrop={cardDragDrop.handlers.handleDrop}
           >
             <Box w="full" pb="3" borderBottomWidth="thin" borderColor="border.subtle">
               <TitleInput />
@@ -184,6 +192,13 @@ export function ComposeForm(props: Props) {
                 </AssetUploadAction>
               </Box>
             </WStack>
+
+            {cardDragDrop.isDragging && (
+              <ContentDragOverlay
+                isError={cardDragDrop.isDragError}
+                message={cardDragDrop.getDragOverlayMessage()}
+              />
+            )}
           </CardBox>
         </CardBox>
       </FormProvider>

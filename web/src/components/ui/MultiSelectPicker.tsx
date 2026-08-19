@@ -284,6 +284,31 @@ export function MultiSelectPicker({
               />
             </Box>
 
+            {value.length > 0 && (
+              <Menu.ItemGroup pt="1">
+                <Menu.ItemGroupLabel>Selected</Menu.ItemGroupLabel>
+                {value.map((item) => {
+                  return (
+                    <Menu.Item
+                      key={item.value}
+                      value={item.value}
+                      closeOnSelect={false}
+                      asChild
+                    >
+                      <WStack alignItems="center" cursor="default">
+                        <span>{item.label}</span>
+
+                        <CancelAction
+                          onClick={handleRemoveItem(item)}
+                          aria-label={`Remove ${item.label}`}
+                        />
+                      </WStack>
+                    </Menu.Item>
+                  );
+                })}
+              </Menu.ItemGroup>
+            )}
+
             {queryError ? (
               <Menu.ItemGroup p="2">
                 <Unready error={queryError} />
@@ -291,7 +316,12 @@ export function MultiSelectPicker({
             ) : (
               <>
                 {filteredQueryResults && filteredQueryResults.length > 0 && (
-                  <Menu.ItemGroup>
+                  <Menu.ItemGroup
+                    borderTopWidth={value.length > 0 ? "thin" : undefined}
+                    borderColor={value.length > 0 ? "border.subtle" : undefined}
+                    mt={value.length > 0 ? "2" : undefined}
+                    pt={value.length > 0 ? "1" : undefined}
+                  >
                     <Menu.ItemGroupLabel>
                       <HStack gap="1.5" alignItems="center">
                         <TagIcon size={12} />
@@ -386,31 +416,6 @@ export function MultiSelectPicker({
                     </Menu.ItemGroup>
                   )}
               </>
-            )}
-
-            {value.length > 0 && (
-              <Menu.ItemGroup borderTopWidth="thin" borderColor="border.subtle" mt="2" pt="1">
-                <Menu.ItemGroupLabel>Selected</Menu.ItemGroupLabel>
-                {value.map((item) => {
-                  return (
-                    <Menu.Item
-                      key={item.value}
-                      value={item.value}
-                      closeOnSelect={false}
-                      asChild
-                    >
-                      <WStack alignItems="center" cursor="default">
-                        <span>{item.label}</span>
-
-                        <CancelAction
-                          onClick={handleRemoveItem(item)}
-                          aria-label={`Remove ${item.label}`}
-                        />
-                      </WStack>
-                    </Menu.Item>
-                  );
-                })}
-              </Menu.ItemGroup>
             )}
           </Menu.Content>
         </Menu.Positioner>

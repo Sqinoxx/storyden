@@ -12,6 +12,7 @@ import {
 import { useSession } from "@/auth";
 import { Byline } from "@/components/content/Byline";
 import { CollectionMenu } from "@/components/content/CollectionMenu/CollectionMenu";
+import { TagBadgeList } from "@/components/tag/TagBadgeList";
 
 import { Card } from "@/components/ui/rich-card";
 import { Box, HStack, LStack, styled } from "@/styled-system/jsx";
@@ -28,6 +29,7 @@ import {
 import { timestamp } from "@/utils/date";
 import { hasPermission } from "@/utils/permissions";
 import { useLanguage } from "@/lib/i18n";
+import { useSettings } from "@/lib/settings/settings-client";
 
 import { CategoryBadge } from "../category/CategoryBadge";
 import { PostReviewBadge } from "../thread/PostReviewBadge";
@@ -329,6 +331,8 @@ export const ThreadReferenceCard = memo(
 
     const { isConfirmingDelete, handlers } = useThreadCardModeration(thread);
     const { t } = useLanguage();
+    const { settings } = useSettings();
+    const showTags = settings?.metadata.postList.showTags ?? true;
 
     const title = thread.title || thread.link?.title || t.thread.untitled;
 
@@ -404,6 +408,11 @@ export const ThreadReferenceCard = memo(
         id={thread.id}
         title={title}
         titleIcon={isPinned ? <PinIcon w="4" /> : undefined}
+        titleAside={
+          showTags && thread.tags.length > 0 ? (
+            <TagBadgeList tags={thread.tags} />
+          ) : undefined
+        }
         text={textDescription}
         url={permalink}
         image={image}

@@ -113,6 +113,29 @@ export function InterfaceSettingsForm(props: Props) {
             Visible characters, not including HTML tags.
           </FormHelperText>
         </FormControl>
+
+        <FormControl>
+          <FormLabel>Post list tags</FormLabel>
+          <Controller
+            control={control}
+            name="showTagsInPostList"
+            render={({ field }) => (
+              <Checkbox
+                size="sm"
+                checked={!!field.value}
+                onCheckedChange={({ checked }) => {
+                  field.onChange(checked === true);
+                }}
+              >
+                Show tags in post list
+              </Checkbox>
+            )}
+          />
+          <FormHelperText>
+            When enabled, each post&apos;s tags are shown next to its title in
+            post lists on desktop.
+          </FormHelperText>
+        </FormControl>
       </CardBox>
     </styled.form>
   );

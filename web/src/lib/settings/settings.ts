@@ -39,6 +39,9 @@ export const DefaultFrontendConfig = {
     enabled: true,
     maxHeight: 160,
   },
+  postList: {
+    showTags: true,
+  },
 } as const;
 
 export const DefaultSettings = {
@@ -68,6 +71,11 @@ export const FrontendConfigurationSchema = z
         maxHeight: z.number().int().positive().max(2000).default(160),
       })
       .default({ enabled: true, maxHeight: 160 }),
+    postList: z
+      .object({
+        showTags: z.boolean().default(true),
+      })
+      .default({ showTags: true }),
   })
   .default(DefaultFrontendConfig);
 export type FrontendConfiguration = z.infer<typeof FrontendConfigurationSchema>;

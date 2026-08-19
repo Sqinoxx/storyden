@@ -18,6 +18,7 @@ export const FormSchema = z.object({
   signaturesEnabled: z.boolean(),
   signatureMaxHeight: z.number().int().min(32).max(2000),
   signatureMaxChars: z.number().int().min(1).max(10000),
+  showTagsInPostList: z.boolean(),
 });
 export type Form = z.infer<typeof FormSchema>;
 
@@ -32,6 +33,7 @@ export function useInterfaceSettings({ settings }: Props) {
       signatureMaxHeight: settings.metadata.signatures.maxHeight,
       signatureMaxChars:
         settings.services?.moderation?.signature_length_max ?? 500,
+      showTagsInPostList: settings.metadata.postList.showTags,
     },
   });
 
@@ -50,6 +52,9 @@ export function useInterfaceSettings({ settings }: Props) {
             signatures: {
               enabled: data.signaturesEnabled,
               maxHeight: data.signatureMaxHeight,
+            },
+            postList: {
+              showTags: data.showTagsInPostList,
             },
           },
           services: {

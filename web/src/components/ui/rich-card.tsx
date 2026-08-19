@@ -22,6 +22,7 @@ export type CardItem = {
   url: string;
   text?: string;
   titleIcon?: React.ReactNode;
+  titleAside?: React.ReactNode;
   content?: string;
   image?: string;
   header?: React.ReactNode;
@@ -38,6 +39,7 @@ export function Card({
   url,
   text,
   titleIcon,
+  titleAside,
   content,
   image,
   header,
@@ -116,6 +118,18 @@ export function Card({
                 {title}
               </Link>
             </styled.h1>
+
+            {titleAside && (
+              <Box
+                display={{ base: "none", md: "flex" }}
+                marginLeft="auto"
+                flexShrink="0"
+                position="relative"
+                zIndex="docked"
+              >
+                {titleAside}
+              </Box>
+            )}
           </styled.div>
         )}
 

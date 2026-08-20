@@ -20,3 +20,6 @@ backend
 clean
 migrate
 seed
+
+# Arbeitsdateien des Library-Importers (Inventar, Plan, Ledger)
+import-work/

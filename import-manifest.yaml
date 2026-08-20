@@ -1,0 +1,105 @@
+# Abbildung von GoogleDrive-Downloads auf den Library-Baum.
+#
+# Regeln werden der Reihe nach geprueft, die erste passende gewinnt. Die letzte
+# Regel ist ein Auffangnetz - wie viele Dateien dort landen, ist die Kennzahl
+# dafuer, wie vollstaendig dieses Manifest ist (siehe --plan --dry-run).
+#
+# Pfadmuster:  {name} faengt genau ein Segment, * eines ohne Capture,
+#              ** beliebig viele (als letztes Segment nutzbar als {path}).
+# Zielsegmente: sec: Abschnitt, sub: Fach, typ: Dokumenttyp - aufgeloest ueber
+#              import-vocab.yaml. Ohne Praefix ist das Segment ein reiner
+#              Ordnername ohne Tag.
+
+defaults:
+  root: Bibliothek
+  visibility: unlisted
+  child_schema: [Fach, Semester, Typ, Jahr, Dozent]
+
+  # Zweite, weitgehend redundante Kopie des Bestands. Verliert bei
+  # Inhaltsgleichheit die Auswahl des kanonischen Pfads.
+  demote:
+    - "Zusammenfassungen, Vorlesungen, Anki-Decks/Vorlesungen & Unterlagen"
+
+rules:
+  # --- Lose Dateien direkt unter einem der Top-Ordner. Muss vor den
+  #     {sec}-Regeln stehen, sonst wird der Dateiname zum Abschnittsordner. ---
+  - match: "Altklausuren/*"
+    target: "Sonstiges"
+  - match: "Klausuren&Prüfungen/*"
+    target: "Sonstiges"
+  - match: "Vorlesungen&Unterlagen/*"
+    target: "Sonstiges"
+  - match: "Altprotokolle/*"
+    target: "Sonstiges"
+  - match: "Zusammenfassungen, Vorlesungen, Anki-Decks/*"
+    target: "Sonstiges"
+
+  # --- Altklausuren ---
+  - match: "Altklausuren/{sec}/{fach}/**"
+    target: "sec:{sec}/sub:{fach}/typ:Altklausuren"
+    tags: ["typ:Altklausuren"]
+    properties: { Typ: Altklausur }
+
+  - match: "Altklausuren/{sec}/**"
+    target: "sec:{sec}/typ:Altklausuren"
+    tags: ["typ:Altklausuren"]
+    properties: { Typ: Altklausur }
+
+  # --- Klausuren & Pruefungen ---
+  - match: "Klausuren&Prüfungen/{sec}/{fach}/**"
+    target: "sec:{sec}/sub:{fach}/typ:Altklausuren"
+    tags: ["typ:Altklausuren"]
+    properties: { Typ: Altklausur }
+
+  - match: "Klausuren&Prüfungen/{sec}/**"
+    target: "sec:{sec}/typ:Altklausuren"
+    tags: ["typ:Altklausuren"]
+    properties: { Typ: Altklausur }
+
+  # --- Altprotokolle (Z1/Z2) ---
+  - match: "Altprotokolle/{sec}/**"
+    target: "sec:{sec}/typ:Gedächtnisprotokoll"
+    tags: ["typ:Gedächtnisprotokoll"]
+    properties: { Typ: Gedächtnisprotokoll }
+
+  # --- STEX-Zusammenfassungen ---
+  - match: "Vorlesungen&Unterlagen/STEX Zusammenfassungen/{fach}/**"
+    target: "sec:STEX/sub:{fach}/typ:Zusammenfassungen"
+    tags: ["typ:Zusammenfassung", "typ:STEX"]
+    properties: { Typ: Zusammenfassung }
+
+  # --- Vorlesungen & Unterlagen ---
+  - match: "Vorlesungen&Unterlagen/{sec}/{fach}/**"
+    target: "sec:{sec}/sub:{fach}/typ:Vorlesungen"
+    tags: ["typ:Vorlesung"]
+    properties: { Typ: Vorlesung }
+
+  - match: "Vorlesungen&Unterlagen/{sec}/**"
+    target: "sec:{sec}/typ:Vorlesungen"
+    tags: ["typ:Vorlesung"]
+    properties: { Typ: Vorlesung }
+
+  # --- Anki-Decks: eigener Zweig, weil sie keine Lesedokumente sind ---
+  - match: "Zusammenfassungen, Vorlesungen, Anki-Decks/Ankis/{sec}/{fach}/**"
+    target: "Anki-Decks/sec:{sec}/sub:{fach}"
+    tags: ["typ:Anki"]
+    properties: { Typ: Anki-Deck }
+
+  - match: "Zusammenfassungen, Vorlesungen, Anki-Decks/Ankis/{sec}/**"
+    target: "Anki-Decks/sec:{sec}"
+    tags: ["typ:Anki"]
+    properties: { Typ: Anki-Deck }
+
+  # --- Zweitkopie des Vorlesungsbestands: gleiche Ziele wie oben, damit die
+  #     wenigen Dateien die es NUR hier gibt nicht im Auffangnetz landen. ---
+  - match: "Zusammenfassungen, Vorlesungen, Anki-Decks/Vorlesungen & Unterlagen/{sec}/{fach}/**"
+    target: "sec:{sec}/sub:{fach}/typ:Vorlesungen"
+    tags: ["typ:Vorlesung"]
+    properties: { Typ: Vorlesung }
+
+  - match: "Zusammenfassungen, Vorlesungen, Anki-Decks/{typ}/**"
+    target: "Sonstiges/{typ}"
+
+  # --- Auffangnetz ---
+  - match: "**"
+    target: "Sonstiges"

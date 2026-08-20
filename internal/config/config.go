@@ -472,6 +472,8 @@ type Config struct {
 	OCRBackfillEnabled bool `default:"true" envconfig:"OCR_BACKFILL_ENABLED"`
 	// Number of pending assets to process per batch during the startup backfill.
 	OCRBackfillBatchSize int `default:"25" envconfig:"OCR_BACKFILL_BATCH_SIZE"`
+	// Number of assets processed concurrently by text extraction. Extraction shells out to CPU-bound external processes (tesseract, pdftoppm), so this should not exceed the number of available cores. The default of 1 keeps a small always-on deployment responsive; bulk import runs on a workstation can raise it considerably.
+	OCRConcurrency int `default:"1" envconfig:"OCR_CONCURRENCY"`
 	// Assets stuck in the `processing` status for longer than this duration (e.g. due to a crash mid-processing) are considered failed and picked up again.
 	OCRStuckTimeout time.Duration `default:"15m" envconfig:"OCR_STUCK_TIMEOUT"`
 

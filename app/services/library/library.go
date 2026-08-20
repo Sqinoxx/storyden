@@ -3,6 +3,7 @@ package library
 import (
 	"go.uber.org/fx"
 
+	"github.com/Southclaws/storyden/app/services/library/library_import"
 	"github.com/Southclaws/storyden/app/services/library/node_mutate"
 	"github.com/Southclaws/storyden/app/services/library/node_property_schema"
 	"github.com/Southclaws/storyden/app/services/library/node_read"
@@ -14,5 +15,6 @@ import (
 func Build() fx.Option {
 	return fx.Options(
 		fx.Provide(node_read.New, node_mutate.New, nodetree.New, node_visibility.New, node_property_schema.New, node_versioning.New),
+		fx.Provide(library_import.NewIngester, library_import.NewEnricher),
 	)
 }

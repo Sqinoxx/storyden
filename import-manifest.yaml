@@ -12,7 +12,12 @@
 
 defaults:
   root: Bibliothek
-  visibility: unlisted
+  # Die Website ist geschlossen/nur fuer eingeladene Mitglieder, daher ist
+  # published hier "sichtbar und durchsuchbar fuer eingeloggte Mitglieder",
+  # nicht oeffentlich im Internet. unlisted wuerde vom internen Suchindex
+  # ausgeschlossen (node_search.Search filtert hart auf published), das
+  # widerspraeche dem Ziel, das Archiv durchsuchbar zu machen.
+  visibility: published
   child_schema: [Fach, Semester, Typ, Jahr, Dozent]
 
   # Zweite, weitgehend redundante Kopie des Bestands. Verliert bei

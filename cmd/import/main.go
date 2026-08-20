@@ -406,6 +406,7 @@ func runSetVisibility(ctx context.Context, f flags, ingester *library_import.Ing
 
 	result, err := ingester.SetVisibility(ctx, vis, library_import.FixVisibilityOptions{
 		Ledger: ledger,
+		DryRun: f.dryRun,
 		Progress: func(done, total int, slug string) {
 			fmt.Printf("\r%d/%d  %-70.70s", done, total, slug)
 		},
@@ -414,7 +415,11 @@ func runSetVisibility(ctx context.Context, f flags, ingester *library_import.Ing
 		return err
 	}
 
-	fmt.Printf("\n%d nodes updated, %d already at %s\n", result.Updated, result.Skipped, vis)
+	verb := "updated"
+	if f.dryRun {
+		verb = "would be updated (dry run, nothing written)"
+	}
+	fmt.Printf("\n%d nodes %s, %d already at %s\n", result.Updated, verb, result.Skipped, vis)
 
 	return nil
 }

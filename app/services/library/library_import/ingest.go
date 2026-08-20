@@ -379,6 +379,7 @@ func PropertyMutations(schema *library.PropertySchema, current library.Propertie
 // FixVisibilityOptions configures a SetVisibility run.
 type FixVisibilityOptions struct {
 	Ledger   *Ledger
+	DryRun   bool
 	Progress func(done, total int, slug string)
 }
 
@@ -415,6 +416,11 @@ func (i *Ingester) SetVisibility(ctx context.Context, vis visibility.Visibility,
 
 		if node.Visibility == vis {
 			result.Skipped++
+			continue
+		}
+
+		if opts.DryRun {
+			result.Updated++
 			continue
 		}
 

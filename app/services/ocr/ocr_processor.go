@@ -7,6 +7,8 @@ import (
 	"io"
 	"log/slog"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Southclaws/fault"
@@ -45,8 +47,8 @@ type Processor struct {
 	objects      object.Storer
 	bus          *pubsub.Bus
 	// sem bounds concurrent extraction work (tesseract/rasterisation are
-	// CPU-bound external processes) to one at a time across both the live
-	// bus handler and the backfill loop.
+	// CPU-bound external processes) across both the live bus handler and the
+	// backfill loop. Sized by OCR_CONCURRENCY, which defaults to 1.
 	sem chan struct{}
 }
 
@@ -70,7 +72,7 @@ func NewProcessor(
 		assetWriter:  assetWriter,
 		objects:      objects,
 		bus:          bus,
-		sem:          make(chan struct{}, 1),
+		sem:          make(chan struct{}, concurrency(cfg)),
 	}
 
 	backfillCtx, cancelBackfill := context.WithCancel(ctx)
@@ -145,14 +147,7 @@ func (p *Processor) processPendingBatch(ctx context.Context) (int, error) {
 		return 0, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	for _, id := range pending {
-		if ctx.Err() != nil {
-			return 0, nil
-		}
-		if err := p.ProcessAsset(ctx, xid.ID(id)); err != nil {
-			p.logger.Warn("OCR backfill failed to process asset", slog.String("id", id.String()), slog.String("error", err.Error()))
-		}
-	}
+	p.processConcurrently(ctx, pending)
 
 	return len(pending), nil
 }
@@ -166,14 +161,59 @@ func (p *Processor) ProcessAllPending(ctx context.Context, limit int) (int, erro
 		return 0, err
 	}
 
-	processed := 0
-	for _, id := range pending {
-		if err := p.ProcessAsset(ctx, xid.ID(id)); err == nil {
-			processed++
-		}
+	return p.processConcurrently(ctx, pending), nil
+}
+
+// processConcurrently runs extraction over ids using a worker pool sized by
+// OCR_CONCURRENCY and returns how many succeeded. ProcessAsset still takes
+// p.sem, so the pool never outruns the configured bound even when the live
+// bus handler is working at the same time.
+func (p *Processor) processConcurrently(ctx context.Context, ids []asset.AssetID) int {
+	workers := concurrency(p.cfg)
+	if workers > len(ids) {
+		workers = len(ids)
+	}
+	if workers < 1 {
+		return 0
 	}
 
-	return processed, nil
+	queue := make(chan asset.AssetID)
+	var processed atomic.Int64
+	var wg sync.WaitGroup
+
+	wg.Add(workers)
+	for range workers {
+		go func() {
+			defer wg.Done()
+			for id := range queue {
+				if err := p.ProcessAsset(ctx, xid.ID(id)); err != nil {
+					p.logger.Warn("failed to process asset for text extraction", slog.String("id", id.String()), slog.String("error", err.Error()))
+					continue
+				}
+				processed.Add(1)
+			}
+		}()
+	}
+
+	for _, id := range ids {
+		if ctx.Err() != nil {
+			break
+		}
+		queue <- id
+	}
+	close(queue)
+	wg.Wait()
+
+	return int(processed.Load())
+}
+
+// concurrency clamps OCR_CONCURRENCY to at least 1 so a zero or negative
+// value in the environment cannot deadlock the pool.
+func concurrency(cfg config.Config) int {
+	if cfg.OCRConcurrency < 1 {
+		return 1
+	}
+	return cfg.OCRConcurrency
 }
 
 func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {

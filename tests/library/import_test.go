@@ -317,6 +317,17 @@ rules:
 			r.NoError(err)
 			a.Equal(visibility.VisibilityUnlisted, before.Visibility, "the fixture manifest still defaults to unlisted")
 
+			// A dry run must report what it would do without touching the DB —
+			// this is the exact case that slipped through uncovered the first
+			// time SetVisibility shipped.
+			dry, err := ingester.SetVisibility(adminCtx, visibility.VisibilityPublished, library_import.FixVisibilityOptions{Ledger: ledger, DryRun: true})
+			r.NoError(err)
+			a.Equal(9, dry.Updated)
+
+			stillUnlisted, err := nq.Get(adminCtx, library.NewKey(leafSlug))
+			r.NoError(err)
+			a.Equal(visibility.VisibilityUnlisted, stillUnlisted.Visibility, "dry run must not write anything")
+
 			result, err := ingester.SetVisibility(adminCtx, visibility.VisibilityPublished, library_import.FixVisibilityOptions{Ledger: ledger})
 			r.NoError(err)
 			a.Equal(9, result.Updated)

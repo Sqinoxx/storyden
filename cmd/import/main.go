@@ -15,6 +15,7 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/account_repo"
+	"github.com/Southclaws/storyden/app/resources/asset/asset_writer"
 	"github.com/Southclaws/storyden/app/resources/rbac"
 	"github.com/Southclaws/storyden/app/resources/visibility"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
@@ -32,10 +33,17 @@ const usage = `Import a directory tree into the library.
   import --phase ocr                   extract text from everything pending
   import --phase enrich                fill properties from filename and text
   import --phase set-visibility        retarget every imported node's visibility
+  import --phase reset-ocr             requeue assets skipped for an environment reason
 
 Phases are resumable and expect to be run in this order. Run apply with
 OCR_ENABLED=false, then ocr with OCR_ENABLED=true and OCR_CONCURRENCY set to
 the number of cores you are willing to give it.
+
+reset-ocr exists because "skipped" is a terminal OCR status: if a run had a
+missing OCR binary or too low a size cap, those assets are marked skipped and
+never revisited by a normal ocr phase. reset-ocr requeues only the ones
+skipped for one of those two environment reasons — assets skipped for a
+genuinely unsupported file type are left alone.
 `
 
 type flags struct {
@@ -55,7 +63,7 @@ type flags struct {
 func main() {
 	f := flags{}
 
-	flag.StringVar(&f.phase, "phase", "", "scan | vocab | plan | apply | ocr | enrich | set-visibility")
+	flag.StringVar(&f.phase, "phase", "", "scan | vocab | plan | apply | ocr | enrich | set-visibility | reset-ocr")
 	flag.StringVar(&f.root, "root", "", "source directory to import")
 	flag.StringVar(&f.work, "work", "./import-work", "directory for inventory, plan and ledger files")
 	flag.StringVar(&f.manifest, "manifest", "./import-manifest.yaml", "path to the manifest")
@@ -99,8 +107,9 @@ func main() {
 		enricher *library_import.Enricher,
 		processor *ocr.Processor,
 		accounts *account_repo.Repository,
+		assets *asset_writer.Writer,
 	) {
-		if err := run(ctx, f, ingester, enricher, processor, accounts); err != nil {
+		if err := run(ctx, f, ingester, enricher, processor, accounts, assets); err != nil {
 			fatal(err)
 		}
 	}))
@@ -113,6 +122,7 @@ func run(
 	enricher *library_import.Enricher,
 	processor *ocr.Processor,
 	accounts *account_repo.Repository,
+	assets *asset_writer.Writer,
 ) error {
 	switch f.phase {
 	case "vocab":
@@ -125,6 +135,8 @@ func run(
 		return runEnrich(ctx, f, enricher, accounts)
 	case "set-visibility":
 		return runSetVisibility(ctx, f, ingester, accounts)
+	case "reset-ocr":
+		return runResetOCR(ctx, assets)
 	}
 
 	return fmt.Errorf("unknown phase %q", f.phase)
@@ -379,6 +391,27 @@ func runOCR(ctx context.Context, processor *ocr.Processor) error {
 	}
 
 	fmt.Printf("\rextracted text from %d assets\n", total)
+
+	return nil
+}
+
+// environmentOCRSkipReasons are the ocr_error prefixes the OCR processor
+// writes when the problem is the run's own setup rather than the file:
+// no working OCR binary, or a file over the configured size cap. These are
+// what reset-ocr requeues; a genuinely unsupported MIME type is left as
+// skipped since retrying it can never succeed.
+var environmentOCRSkipReasons = []string{
+	"ocr engine unavailable",
+	"file exceeds max size of",
+}
+
+func runResetOCR(ctx context.Context, assets *asset_writer.Writer) error {
+	ids, err := assets.ResetOCRByErrorPrefix(ctx, environmentOCRSkipReasons)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%d assets requeued for text extraction\n", len(ids))
 
 	return nil
 }

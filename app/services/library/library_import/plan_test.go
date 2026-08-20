@@ -110,7 +110,7 @@ func TestPlanMapsRealSourcePathsOntoTheTree(t *testing.T) {
 
 			assert.Equal(t, tt.wantTree, containerPath(t, plan, file.ParentSlug))
 			assert.Equal(t, tt.wantTags, file.Tags)
-			assert.Equal(t, "unlisted", file.Visibility)
+			assert.Equal(t, "published", file.Visibility)
 		})
 	}
 }

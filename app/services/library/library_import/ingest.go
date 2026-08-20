@@ -375,3 +375,55 @@ func PropertyMutations(schema *library.PropertySchema, current library.Propertie
 
 	return out
 }
+
+// FixVisibilityOptions configures a SetVisibility run.
+type FixVisibilityOptions struct {
+	Ledger   *Ledger
+	Progress func(done, total int, slug string)
+}
+
+type FixVisibilityResult struct {
+	Updated int
+	Skipped int
+}
+
+// SetVisibility retargets every node the ledger recorded to vis. It exists
+// because a manifest visibility change (as happened when unlisted turned out
+// to exclude nodes from search entirely) should not require re-running the
+// whole import — the ledger already knows exactly which nodes this importer
+// created, so only those are touched.
+func (i *Ingester) SetVisibility(ctx context.Context, vis visibility.Visibility, opts FixVisibilityOptions) (*FixVisibilityResult, error) {
+	if opts.Ledger == nil {
+		return nil, fault.New("SetVisibility needs the import ledger to know which nodes to touch")
+	}
+
+	result := &FixVisibilityResult{}
+
+	records := opts.Ledger.Records()
+	for n, rec := range records {
+		if opts.Progress != nil {
+			opts.Progress(n+1, len(records), rec.Slug)
+		}
+
+		node, err := i.querier.Get(ctx, library.NewKey(rec.Slug))
+		if err != nil {
+			if isNotFound(err) {
+				continue
+			}
+			return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to load "+rec.Slug))
+		}
+
+		if node.Visibility == vis {
+			result.Skipped++
+			continue
+		}
+
+		if _, err := i.nodes.Update(ctx, library.NewKey(rec.Slug), node_mutate.Partial{Visibility: opt.New(vis)}); err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to update visibility on "+rec.Slug))
+		}
+
+		result.Updated++
+	}
+
+	return result, nil
+}

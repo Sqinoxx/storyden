@@ -101,6 +101,19 @@ func main() {
 		return
 	}
 
+	// Every other phase boots the full service graph, which always wires the
+	// OCR processor regardless of --phase. Its startup backfill loop is
+	// meant for the always-on server; here it would fire uninvited on every
+	// invocation (vocab, apply, reset-ocr, ...) using whatever OCR
+	// environment this particular shell happens to have — already caused
+	// real damage once, marking assets permanently "skipped" with a
+	// misconfigured engine while a --phase reset-ocr call was still running.
+	// --phase ocr drives extraction explicitly via ProcessAllPending below,
+	// so the backfill loop is never wanted, on any phase.
+	if err := os.Setenv("OCR_BACKFILL_ENABLED", "false"); err != nil {
+		fatal(err)
+	}
+
 	script.Run(fx.Invoke(func(
 		ctx context.Context,
 		ingester *library_import.Ingester,

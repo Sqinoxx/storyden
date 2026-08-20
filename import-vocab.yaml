@@ -1,0 +1,210 @@
+# Vokabular fuer den GoogleDrive-Downloads-Import.
+#
+# renames  laufen einmalig ueber tag_writer.Rename und nehmen bestehende
+#          Verknuepfungen mit.
+# sections/subjects/types bilden die drei Achsen ab, auf die Ordnernamen
+#          normalisiert werden. tag = Tag im Forum, display = Knotenname im
+#          Baum, aliases = Schreibweisen wie sie im Quellordner vorkommen.
+#
+# Zuordnung: exakter Treffer gewinnt, sonst der laengste Alias der im
+# Ordnernamen vorkommt. Aliase unter 4 Zeichen greifen nur exakt, deshalb sind
+# fuer MKG, KFO, HNO, PPZ, AC, TPK und PRO die Langformen ausgeschrieben.
+
+renames:
+  parodondologie: parodontologie
+  pharmalogie: pharmakologie
+  gedächnisprotokoll: gedächtnisprotokoll
+
+sections:
+  - tag: vorklinik
+    display: Vorklinik
+    aliases: ["Vorklinik", "Vorklinik (1.-4. Semester)"]
+  - tag: z1
+    display: Z1
+    aliases: ["Z1"]
+  - tag: z2
+    display: Z2
+    aliases: ["Z2", "Zwischenklinik (5.-6. Semester)"]
+  - tag: z3
+    display: Z3
+    aliases: ["Z3"]
+  - tag: klinik
+    display: Klinik
+    aliases: ["Klinik", "Klinik (7.-10. Semester)"]
+  - tag: stex
+    display: Staatsexamen
+    aliases: ["STEX", "Staatsexamen", "STEX Zusammenfassungen"]
+
+subjects:
+  - tag: anatomie
+    display: Anatomie
+    aliases: ["Anatomie"]
+  - tag: neuroanatomie
+    display: Neuroanatomie
+    aliases: ["Neuroanatomie"]
+  - tag: physiologie
+    display: Physiologie
+    aliases: ["Physiologie"]
+  - tag: biochemie
+    display: Biochemie
+    aliases: ["Biochemie"]
+  - tag: histologie
+    display: Histologie
+    aliases: ["Histologie", "Histo"]
+  - tag: histopathologie
+    display: Histopathologie
+    aliases: ["HistoPatho", "Histopathologie", "Histopathologie (7. Semester)"]
+  - tag: pathologie
+    display: Pathologie
+    aliases: ["Pathologie", "Patho", "Pathologie für Zahnmediziner (5. Semester)"]
+  - tag: chemie
+    display: Chemie
+    aliases: ["AC", "Allgemeine Chemie", "Anatomie-Chemie-vorklinisches auf unimedics.de!"]
+  - tag: physik
+    display: Physik
+    aliases: ["Physik"]
+  - tag: terminologie
+    display: Terminologie
+    aliases: ["Terminologie"]
+  - tag: werkstoffkunde
+    display: Werkstoffkunde
+    aliases: ["Werkstoffkunde", "Klinische Werkstoffkunde (5.&6.)"]
+  - tag: dentale-technologie
+    display: Dentale Technologie
+    aliases: ["Dentale Technologie", "Dentale Technologie (4. Semester)"]
+  - tag: tpk
+    display: TPK
+    aliases: ["TPK", "Technisch-propädeutischer Kurs"]
+  - tag: phantom
+    display: Phantom
+    aliases: ["Phantom I", "Phantom II", "Phantomkurs"]
+  - tag: ppz
+    display: PPZ
+    aliases: ["PPZ", "PPZ (3. Semester)"]
+  - tag: mkg
+    display: MKG
+    aliases:
+      - "MKG"
+      - "MKG - Radio"
+      - "MKG (Radio, AnEx, Auscultando, Spritzenkurs)"
+      - "MKG - zahnärztlich-chirurgische Propädeutik und Notfallmedizin"
+      - "Mund-Kiefer-Gesichtschirurgie"
+  - tag: kons
+    display: Kons
+    aliases: ["Kons", "Zahnerhaltung", "ZEP-Kons - Zahnerhaltung am Phantom (6. Semester)"]
+  - tag: endo
+    display: Endodontie
+    aliases: ["Endo", "Endodontie"]
+  - tag: parodontologie
+    display: Parodontologie
+    aliases: ["Paro", "Parodontologie"]
+  - tag: prothetik
+    display: Prothetik
+    aliases: ["Prothetik", "PRO", "Zahnersatzkunde", "PRO Zahnersatzkunde am Phantom (5. Semester)"]
+  - tag: kfo
+    display: KFO
+    aliases: ["KFO", "KFO (5.&6.)", "KFO (8.-9. Semester)", "Kieferorthopädie"]
+  - tag: radiologie
+    display: Radiologie
+    aliases: ["Radiologie", "Radiologie für Zahnmediziner (5. Semester)"]
+  - tag: mikrobiologie
+    display: Mikrobiologie
+    aliases: ["MiBi", "Mikrobiologie", "Mikrobiologie & Hygiene"]
+  - tag: hygiene
+    display: Hygiene
+    aliases: ["Hygiene"]
+  - tag: pharmakologie
+    display: Pharmakologie
+    aliases: ["Pharma", "Pharmakologie"]
+  - tag: dermatologie
+    display: Dermatologie
+    aliases: ["Derma", "Dermatologie"]
+  - tag: hno
+    display: HNO
+    aliases: ["HNO", "Hals-Nasen-Ohren"]
+  - tag: innere-medizin
+    display: Innere Medizin
+    aliases: ["Innere", "Innere Medizin"]
+  - tag: chirurgie
+    display: Allgemeine Chirurgie
+    aliases: ["Allgemeine Chirurgie", "Chirurgie"]
+  - tag: klinische-chemie
+    display: Klinische Chemie
+    aliases: ["Klinische Chemie"]
+  - tag: notfallmedizin
+    display: Notfallmedizin
+    aliases: ["Notfallmedizin", "Notfallmedizin (7. Semester)"]
+  - tag: schmerzmedizin
+    display: Schmerzmedizin
+    aliases: ["Schmerzmedizin", "Schmerzmedizin (8. Semester)"]
+  - tag: berufskunde
+    display: Berufskunde
+    aliases: ["Berufskunde", "Berufsfeldkunde", "Berufsfelderkundung", "Berufsfeldkunde (9. Semester)", "Berufsfelderkundung (1. Semester)"]
+  - tag: ethik
+    display: Ethik und Geschichte
+    aliases: ["Ethik", "Ethik und Geschichte", "Ethik und Geschichte (7. Semester)"]
+  - tag: gesundheitswissenschaften
+    display: Gesundheitswissenschaften
+    aliases: ["Gesundheitswissenschaften", "Gesundheitswissenschaften (9. Semester)"]
+  - tag: wissenschaftliches-arbeiten
+    display: Wissenschaftliches Arbeiten
+    aliases: ["Wissenschaftliches Arbeiten", "Wissenschaftliches Arbeiten (5. Semester)"]
+  - tag: integrierter-kurs
+    display: Integrierter Kurs
+    aliases: ["Integrierter Kurs", "Integrierter Kurs (8. Semester)"]
+  - tag: biologie
+    display: Biologie
+    aliases: ["Biologie", "Bio"]
+  - tag: medat
+    display: MedAT
+    aliases: ["MedAT", "Medizinertest"]
+  - tag: studienordnung
+    display: Neue Studienordnung
+    aliases: ["00 Neue Studienordnung", "00 Neue Studienordung", "Neue Studienordnung", "Studienordnung"]
+
+types:
+  - tag: altklausur
+    display: Altklausuren
+    aliases: ["Altklausuren", "Altklausur", "Klausuren&Prüfungen", "Klausuren"]
+  - tag: haupt-klausur
+    display: Hauptklausuren
+    aliases: ["Hauptklausur", "Haupt-Klausur"]
+  - tag: wh-klausur
+    display: Wiederholungsklausuren
+    aliases: ["Wiederholungsklausur", "WH-Klausur", "Wdh"]
+  - tag: gedächtnisprotokoll
+    display: Gedächtnisprotokolle
+    aliases: ["Gedächtnisprotokoll", "Protokolle", "Altprotokolle"]
+  - tag: vorlesung
+    display: Vorlesungen
+    aliases: ["Vorlesungen", "Vorlesung", "Vorlesungen&Unterlagen", "Vorlesungen & Unterlagen", "Unterlagen"]
+  - tag: zusammenfassung
+    display: Zusammenfassungen
+    aliases: ["Zusammenfassung", "Zusammenfassungen"]
+  - tag: lernzettel
+    display: Lernzettel
+    aliases: ["Lernzettel", "Lernkarten"]
+  - tag: skript
+    display: Skripte
+    aliases: ["Skript", "Skripte"]
+  - tag: anki
+    display: Anki-Decks
+    aliases: ["Anki", "Ankis", "Anki-Decks", "Ankikarten"]
+  - tag: testat
+    display: Testate
+    aliases: ["Testat", "Testate"]
+  - tag: physikum
+    display: Physikum
+    aliases: ["Physikum", "Vorphysikum"]
+  - tag: stex
+    display: Staatsexamen
+    aliases: ["STEX", "Staatsexamen"]
+  - tag: tipp
+    display: Tipps
+    aliases: ["Tipp", "Tipps"]
+  - tag: mit-lösung
+    display: Mit Lösung
+    aliases: ["Mit Lösung", "Lösungen"]
+  - tag: video
+    display: Videos
+    aliases: ["Videos", "Video"]

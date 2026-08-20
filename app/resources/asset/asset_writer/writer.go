@@ -12,6 +12,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
+	"github.com/Southclaws/storyden/internal/ent/predicate"
 	"github.com/Southclaws/storyden/internal/mime"
 )
 
@@ -173,6 +174,52 @@ func (w *Writer) ResetOCRForReindex(ctx context.Context, limit int) ([]xid.ID, e
 		)).
 		Order(ent.Asc(ent_asset.FieldID)).
 		Limit(limit).
+		IDs(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	_, err = w.db.Asset.Update().
+		Where(ent_asset.IDIn(ids...)).
+		SetOcrStatus(ent_asset.OcrStatusPending).
+		ClearOcrError().
+		ClearOcrText().
+		ClearOcrProcessedAt().
+		Save(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return ids, nil
+}
+
+// ResetOCRByErrorPrefix resets assets skipped or failed for one of the given
+// reasons (matched by prefix against ocr_error) back to pending. Unlike
+// ResetOCRForReindex it never touches completed assets or skips left by a
+// genuinely unsupported MIME type — only the reasons named are retried, which
+// matters when a misconfigured run (missing OCR binary, wrong file size cap)
+// marks assets "skipped" for an environment reason rather than a real one;
+// that status is otherwise terminal and never revisited by the normal queue.
+func (w *Writer) ResetOCRByErrorPrefix(ctx context.Context, reasons []string) ([]xid.ID, error) {
+	if len(reasons) == 0 {
+		return nil, nil
+	}
+
+	predicates := make([]predicate.Asset, 0, len(reasons))
+	for _, reason := range reasons {
+		predicates = append(predicates, ent_asset.OcrErrorHasPrefix(reason))
+	}
+
+	ids, err := w.db.Asset.Query().
+		Where(
+			ent_asset.OcrStatusIn(ent_asset.OcrStatusSkipped, ent_asset.OcrStatusFailed),
+			ent_asset.Or(predicates...),
+		).
+		Order(ent.Asc(ent_asset.FieldID)).
 		IDs(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))

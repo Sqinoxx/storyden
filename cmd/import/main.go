@@ -16,6 +16,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/account_repo"
 	"github.com/Southclaws/storyden/app/resources/rbac"
+	"github.com/Southclaws/storyden/app/resources/visibility"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/library/library_import"
 	"github.com/Southclaws/storyden/app/services/ocr"
@@ -30,6 +31,7 @@ const usage = `Import a directory tree into the library.
   import --phase apply  --root <dir>   create nodes and upload assets
   import --phase ocr                   extract text from everything pending
   import --phase enrich                fill properties from filename and text
+  import --phase set-visibility        retarget every imported node's visibility
 
 Phases are resumable and expect to be run in this order. Run apply with
 OCR_ENABLED=false, then ocr with OCR_ENABLED=true and OCR_CONCURRENCY set to
@@ -37,27 +39,29 @@ the number of cores you are willing to give it.
 `
 
 type flags struct {
-	phase     string
-	root      string
-	work      string
-	manifest  string
-	vocab     string
-	owner     string
-	limitRoot string
-	dryRun    bool
-	noHash    bool
-	limit     int
+	phase      string
+	root       string
+	work       string
+	manifest   string
+	vocab      string
+	owner      string
+	limitRoot  string
+	visibility string
+	dryRun     bool
+	noHash     bool
+	limit      int
 }
 
 func main() {
 	f := flags{}
 
-	flag.StringVar(&f.phase, "phase", "", "scan | vocab | plan | apply | ocr | enrich")
+	flag.StringVar(&f.phase, "phase", "", "scan | vocab | plan | apply | ocr | enrich | set-visibility")
 	flag.StringVar(&f.root, "root", "", "source directory to import")
 	flag.StringVar(&f.work, "work", "./import-work", "directory for inventory, plan and ledger files")
 	flag.StringVar(&f.manifest, "manifest", "./import-manifest.yaml", "path to the manifest")
 	flag.StringVar(&f.vocab, "vocab-file", "./import-vocab.yaml", "path to the vocabulary")
 	flag.StringVar(&f.owner, "owner", "", "handle of the account that will own imported nodes")
+	flag.StringVar(&f.visibility, "visibility", "", "target visibility for --phase set-visibility (draft | unlisted | review | published)")
 	flag.StringVar(&f.limitRoot, "limit-root", "", "only process paths under this prefix")
 	flag.BoolVar(&f.dryRun, "dry-run", false, "report what would happen without writing")
 	flag.BoolVar(&f.noHash, "no-hash", false, "scan without hashing, for a fast manifest coverage check")
@@ -119,6 +123,8 @@ func run(
 		return runOCR(ctx, processor)
 	case "enrich":
 		return runEnrich(ctx, f, enricher, accounts)
+	case "set-visibility":
+		return runSetVisibility(ctx, f, ingester, accounts)
 	}
 
 	return fmt.Errorf("unknown phase %q", f.phase)
@@ -373,6 +379,42 @@ func runOCR(ctx context.Context, processor *ocr.Processor) error {
 	}
 
 	fmt.Printf("\rextracted text from %d assets\n", total)
+
+	return nil
+}
+
+func runSetVisibility(ctx context.Context, f flags, ingester *library_import.Ingester, accounts *account_repo.Repository) error {
+	if f.visibility == "" {
+		return fmt.Errorf("--visibility is required for set-visibility (draft | unlisted | review | published)")
+	}
+
+	vis, err := visibility.NewVisibility(f.visibility)
+	if err != nil {
+		return err
+	}
+
+	ctx, err = importerContext(ctx, accounts, f.owner)
+	if err != nil {
+		return err
+	}
+
+	ledger, err := library_import.OpenLedger(filepath.Join(f.work, "import-state.jsonl"))
+	if err != nil {
+		return err
+	}
+	defer ledger.Close()
+
+	result, err := ingester.SetVisibility(ctx, vis, library_import.FixVisibilityOptions{
+		Ledger: ledger,
+		Progress: func(done, total int, slug string) {
+			fmt.Printf("\r%d/%d  %-70.70s", done, total, slug)
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("\n%d nodes updated, %d already at %s\n", result.Updated, result.Skipped, vis)
 
 	return nil
 }

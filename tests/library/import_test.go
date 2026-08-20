@@ -16,6 +16,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/library/node_querier"
 	"github.com/Southclaws/storyden/app/resources/rbac"
 	"github.com/Southclaws/storyden/app/resources/seed"
+	"github.com/Southclaws/storyden/app/resources/visibility"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/library/library_import"
 	"github.com/Southclaws/storyden/internal/config"
@@ -243,6 +244,94 @@ func TestLibraryImportIsResumable(t *testing.T) {
 			a.Zero(second.FilesIngested)
 			a.Equal(9, second.FilesSkipped)
 			a.Zero(second.ContainersCreated, "containers should be reused, not recreated")
+		}))
+	}))
+}
+
+// This is exactly the situation that motivated SetVisibility: a manifest
+// default is discovered to be wrong only after real content is already
+// imported (unlisted turned out to be excluded from search entirely), and
+// re-running the whole import is not an option once assets are uploaded and
+// OCR has run. The ledger has to be enough to retarget every node that was
+// actually created.
+func TestLibraryImportSetVisibility(t *testing.T) {
+	cfg := &config.Config{OCREnabled: false, OCRBackfillEnabled: false}
+
+	root := fixtureTree(t)
+
+	// Deliberately decoupled from the real import-manifest.yaml: this test
+	// simulates the exact situation that motivated SetVisibility (a manifest
+	// default turns out to be wrong after real content already imported), so
+	// it needs to control the starting visibility itself rather than track
+	// whatever the shared manifest currently says.
+	_, vocab := loadImportConfig(t)
+	manifestData := []byte(`defaults:
+  root: Bibliothek
+  visibility: unlisted
+rules:
+  - match: "**"
+    target: "{path}"
+`)
+	manifest, err := library_import.ParseManifest(manifestData)
+	require.NoError(t, err)
+
+	integration.Test(t, cfg, e2e.Setup(), fx.Invoke(func(
+		ctx context.Context,
+		lc fx.Lifecycle,
+		aw *account_writer.Writer,
+		ingester *library_import.Ingester,
+		nq *node_querier.Querier,
+	) {
+		lc.Append(fx.StartHook(func() {
+			a := assert.New(t)
+			r := require.New(t)
+
+			accCtx, acc := e2e.WithAccount(ctx, aw, seed.Account_001_Odin)
+			adminCtx := session.WithAccountPermissions(accCtx, *acc, rbac.NewList(rbac.PermissionAdministrator))
+
+			inv, err := library_import.Scan(adminCtx, root, library_import.ScanOptions{Demote: manifest.Defaults.Demote})
+			r.NoError(err)
+
+			deduped := library_import.Dedupe(inv.Entries, manifest.Defaults.Demote)
+			plan, err := library_import.NewPlanner(manifest, vocab).Plan(deduped.Canonical)
+			r.NoError(err)
+
+			ledgerPath := filepath.Join(t.TempDir(), "import-state.jsonl")
+			ledger, err := library_import.OpenLedger(ledgerPath)
+			r.NoError(err)
+			defer ledger.Close()
+
+			applied, err := ingester.Apply(adminCtx, plan, library_import.IngestOptions{Root: root, Owner: acc.ID, Ledger: ledger})
+			r.NoError(err)
+			r.Equal(9, applied.FilesIngested)
+
+			var leafSlug string
+			for _, f := range plan.Files {
+				if f.Entry.Path == "Altklausuren/Vorklinik (1.-4. Semester)/Physiologie/Klausur 2019.pdf" {
+					leafSlug = f.Slug
+				}
+			}
+			r.NotEmpty(leafSlug)
+
+			before, err := nq.Get(adminCtx, library.NewKey(leafSlug))
+			r.NoError(err)
+			a.Equal(visibility.VisibilityUnlisted, before.Visibility, "the fixture manifest still defaults to unlisted")
+
+			result, err := ingester.SetVisibility(adminCtx, visibility.VisibilityPublished, library_import.FixVisibilityOptions{Ledger: ledger})
+			r.NoError(err)
+			a.Equal(9, result.Updated)
+			a.Zero(result.Skipped)
+
+			after, err := nq.Get(adminCtx, library.NewKey(leafSlug))
+			r.NoError(err)
+			a.Equal(visibility.VisibilityPublished, after.Visibility)
+
+			// A second run against the same target must be a pure no-op, since
+			// a large archive's fix pass will often be interrupted and resumed.
+			again, err := ingester.SetVisibility(adminCtx, visibility.VisibilityPublished, library_import.FixVisibilityOptions{Ledger: ledger})
+			r.NoError(err)
+			a.Zero(again.Updated)
+			a.Equal(9, again.Skipped)
 		}))
 	}))
 }

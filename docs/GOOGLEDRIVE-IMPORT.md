@@ -118,17 +118,48 @@ Wiederaufnahme ergibt sich von selbst über die Spalte `ocr_status`.
 
 ### 6. Properties füllen
 
-```bash
-LANGUAGE_MODEL_PROVIDER=openai OPENAI_API_KEY=... \
-  go run ./cmd/import --phase enrich --owner sqinox --dry-run
-```
+Schickt Dateiname, Ordner und die ersten 4.000 Zeichen des erkannten Texts an
+ein Sprachmodell und füllt Fach, Semester, Jahr und Dozent. Tags werden
+ausschließlich aus dem Vokabular vergeben; alles andere wird verworfen.
 
-Schickt Dateiname und die ersten 4.000 Zeichen des erkannten Texts an das
-Modell und füllt Fach, Semester, Typ, Jahr und Dozent. Tags werden ausschließlich
-aus dem Vokabular vergeben; alles andere wird verworfen.
+**Der vom Import gesetzte `Typ` wird nicht überschrieben.** Er stammt
+deterministisch aus dem Ordnerpfad und ist damit verlässlicher als eine
+Modellschätzung. Nur leere Felder werden befüllt — `--overwrite` hebt das auf.
 
 Diese Phase ist die einzige, die Daten nach außen gibt. Ohne sie bleibt der
-Import vollständig lokal, nur die Property-Spalten bleiben dann leer.
+Import vollständig lokal, nur die Property-Spalten bleiben leer.
+
+**Mit Gemini** (kostenloses Kontingent, kein Zahlungsmittel nötig). Key auf
+<https://aistudio.google.com/apikey> erzeugen:
+
+```powershell
+$env:LANGUAGE_MODEL_PROVIDER = "google"
+$env:GOOGLE_AI_API_KEY = "..."
+go run ./cmd/import --phase enrich --owner sqinox --limit 5 --dry-run
+```
+
+**Mit OpenAI** stattdessen `LANGUAGE_MODEL_PROVIDER=openai` und `OPENAI_API_KEY`.
+
+| Variable | Default | Zweck |
+|---|---|---|
+| `GOOGLE_AI_MODEL` | `gemini-2.5-flash-lite` | Wird am 16.10.2026 abgeschaltet, Nachfolger `gemini-3.1-flash-lite` |
+| `GOOGLE_AI_MAX_RPM` | `15` | Gratis-Kontingent. Mit aktivierter Abrechnung deutlich höher setzbar |
+| `GOOGLE_AI_MAX_RETRIES` | `3` | Backoff-Versuche bei 429 und 5xx |
+
+Das Gratis-Kontingent erlaubt 15 Anfragen/Minute und 1.000/Tag. Bei rund 2.400
+Dokumenten verteilt sich der Lauf also über etwa drei Tage. Ist das Tageslimit
+erreicht, **bricht der Lauf sauber ab** statt den Rest in denselben Fehler
+laufen zu lassen, und meldet, wie weit er gekommen ist. Am nächsten Tag genügt
+derselbe Befehl.
+
+Bereits verarbeitete Dokumente stehen in `import-work/enrich-state.jsonl` und
+werden übersprungen — auch die, bei denen das Modell nichts Verwertbares
+geliefert hat. Ohne diese Datei würden Dokumente ohne erkennbaren Dozenten bei
+jedem Lauf erneut Kontingent kosten.
+
+Am Ende wird der Tokenverbrauch ausgegeben. Zur Einordnung: der gesamte Bestand
+liegt bei Flash-Lite grob bei 3,5 Mio Input- und 0,3 Mio Output-Tokens, also
+unter einem halben Dollar, falls doch mit Abrechnung gefahren wird.
 
 ## Danach
 

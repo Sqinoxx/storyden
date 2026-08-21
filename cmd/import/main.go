@@ -56,6 +56,7 @@ type flags struct {
 	limitRoot  string
 	visibility string
 	dryRun     bool
+	overwrite  bool
 	noHash     bool
 	limit      int
 }
@@ -72,6 +73,7 @@ func main() {
 	flag.StringVar(&f.visibility, "visibility", "", "target visibility for --phase set-visibility (draft | unlisted | review | published)")
 	flag.StringVar(&f.limitRoot, "limit-root", "", "only process paths under this prefix")
 	flag.BoolVar(&f.dryRun, "dry-run", false, "report what would happen without writing")
+	flag.BoolVar(&f.overwrite, "overwrite", false, "enrich: let the model replace property values that are already set")
 	flag.BoolVar(&f.noHash, "no-hash", false, "scan without hashing, for a fast manifest coverage check")
 	flag.IntVar(&f.limit, "limit", 0, "stop after this many files (0 = no limit)")
 	flag.Usage = func() { fmt.Fprint(os.Stderr, usage); flag.PrintDefaults() }
@@ -487,10 +489,18 @@ func runEnrich(ctx context.Context, f flags, enricher *library_import.Enricher, 
 	}
 	defer ledger.Close()
 
+	state, err := library_import.OpenLedger(filepath.Join(f.work, "enrich-state.jsonl"))
+	if err != nil {
+		return err
+	}
+	defer state.Close()
+
 	result, err := enricher.Enrich(ctx, vocab, library_import.EnrichOptions{
-		Ledger: ledger,
-		Limit:  f.limit,
-		DryRun: f.dryRun,
+		Ledger:    ledger,
+		State:     state,
+		Limit:     f.limit,
+		DryRun:    f.dryRun,
+		Overwrite: f.overwrite,
 		Progress: func(done int, name string) {
 			fmt.Printf("\r%d  %-70.70s", done, name)
 		},
@@ -500,6 +510,17 @@ func runEnrich(ctx context.Context, f flags, enricher *library_import.Enricher, 
 	}
 
 	fmt.Printf("\n%d nodes enriched, %d skipped, %d failed\n", result.Enriched, result.Skipped, result.Failed)
+
+	if total := result.Usage.Total(); total > 0 {
+		fmt.Printf("tokens: %d in, %d out\n", result.Usage.InputTokens, result.Usage.OutputTokens)
+	}
+
+	// Hitting the daily quota is the expected path on the free tier, not a
+	// failure, so this exits zero and tells the operator how to continue.
+	if result.Aborted {
+		fmt.Printf("\nstopped early: %s\n", result.AbortReason)
+		fmt.Println("the quota resets at midnight Pacific time — rerun the same command to continue where this left off")
+	}
 
 	return nil
 }

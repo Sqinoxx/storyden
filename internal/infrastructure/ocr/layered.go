@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
@@ -18,6 +19,11 @@ import (
 // rasterBatchPages is how many PDF pages are rendered to disk at a time
 // before being OCR'd and deleted again.
 const rasterBatchPages = 8
+
+// pdfTextLayerTimeout bounds how long the embedded-text-layer attempt gets
+// before falling back to rasterisation. Real documents, even long ones,
+// parse in a small fraction of this; it exists for the pathological case.
+const pdfTextLayerTimeout = 60 * time.Second
 
 // LayeredClient extracts text from images directly via imageOCR, and from
 // PDFs by first trying the pure-Go embedded text layer, falling back to
@@ -62,7 +68,10 @@ func (c *LayeredClient) ExtractText(ctx context.Context, data []byte, mimeType s
 }
 
 func (c *LayeredClient) extractPDF(ctx context.Context, data []byte) (Result, error) {
-	text, pages, err := extractPDFTextLayer(data)
+	textCtx, cancel := context.WithTimeout(ctx, pdfTextLayerTimeout)
+	defer cancel()
+
+	text, pages, err := extractPDFTextLayer(textCtx, data)
 	if err != nil {
 		c.logger.Warn("pdf text layer extraction failed, will try rasterisation fallback", slog.String("error", err.Error()))
 	}

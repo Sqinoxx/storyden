@@ -132,7 +132,9 @@ func (p *Processor) processPendingBatches(ctx context.Context) {
 
 		n, err := p.processPendingBatch(ctx)
 		if err != nil {
-			p.logger.Error("OCR backfill batch failed", slog.String("error", err.Error()))
+			if !errors.Is(err, ErrExtractionAbandoned) {
+				p.logger.Error("OCR backfill batch failed", slog.String("error", err.Error()))
+			}
 			return
 		}
 		if n == 0 {
@@ -147,13 +149,15 @@ func (p *Processor) processPendingBatch(ctx context.Context) (int, error) {
 		return 0, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	p.processConcurrently(ctx, pending)
-
-	return len(pending), nil
+	return p.processConcurrently(ctx, pending)
 }
 
 // ProcessAllPending processes up to limit pending/stuck assets, returning
-// how many were processed. Used by the admin reindex endpoint.
+// how many were processed. Used by the admin reindex endpoint and by
+// cmd/import's --phase ocr. A non-nil error wrapping ErrExtractionAbandoned
+// means one asset was skipped after exceeding its time budget and the
+// caller should stop looping rather than start another batch in the same
+// process.
 func (p *Processor) ProcessAllPending(ctx context.Context, limit int) (int, error) {
 	pending, err := p.assetQuerier.GetPendingOCR(ctx, limit, p.cfg.OCRStuckTimeout)
 	if err != nil {
@@ -161,25 +165,39 @@ func (p *Processor) ProcessAllPending(ctx context.Context, limit int) (int, erro
 		return 0, err
 	}
 
-	return p.processConcurrently(ctx, pending), nil
+	return p.processConcurrently(ctx, pending)
 }
 
 // processConcurrently runs extraction over ids using a worker pool sized by
 // OCR_CONCURRENCY and returns how many succeeded. ProcessAsset still takes
 // p.sem, so the pool never outruns the configured bound even when the live
-// bus handler is working at the same time.
-func (p *Processor) processConcurrently(ctx context.Context, ids []asset.AssetID) int {
+// bus handler is working at the same time. Once any worker hits
+// ErrExtractionAbandoned, no further ids are dispatched (workers in flight
+// still finish or abandon on their own) and that error is returned so the
+// caller stops rather than starting more batches in the same process.
+func (p *Processor) processConcurrently(ctx context.Context, ids []asset.AssetID) (int, error) {
 	workers := concurrency(p.cfg)
 	if workers > len(ids) {
 		workers = len(ids)
 	}
 	if workers < 1 {
-		return 0
+		return 0, nil
 	}
 
 	queue := make(chan asset.AssetID)
 	var processed atomic.Int64
+	var abandoned atomic.Bool
 	var wg sync.WaitGroup
+
+	// stop is closed the instant any worker abandons an asset, so the
+	// producer below can drop out of a blocked `queue <- id` send rather
+	// than completing it: checking abandoned.Load() before the send isn't
+	// enough on its own, since with a single worker the check can pass
+	// while that worker is still 20s deep in the very call that's about to
+	// set it, letting one extra asset slip into the same time-bounded but
+	// still-costly exposure window.
+	stop := make(chan struct{})
+	var stopOnce sync.Once
 
 	wg.Add(workers)
 	for range workers {
@@ -187,6 +205,11 @@ func (p *Processor) processConcurrently(ctx context.Context, ids []asset.AssetID
 			defer wg.Done()
 			for id := range queue {
 				if err := p.ProcessAsset(ctx, xid.ID(id)); err != nil {
+					if errors.Is(err, ErrExtractionAbandoned) {
+						abandoned.Store(true)
+						stopOnce.Do(func() { close(stop) })
+						continue
+					}
 					p.logger.Warn("failed to process asset for text extraction", slog.String("id", id.String()), slog.String("error", err.Error()))
 					continue
 				}
@@ -195,16 +218,24 @@ func (p *Processor) processConcurrently(ctx context.Context, ids []asset.AssetID
 		}()
 	}
 
+dispatch:
 	for _, id := range ids {
-		if ctx.Err() != nil {
-			break
+		select {
+		case <-ctx.Done():
+			break dispatch
+		case <-stop:
+			break dispatch
+		case queue <- id:
 		}
-		queue <- id
 	}
 	close(queue)
 	wg.Wait()
 
-	return int(processed.Load())
+	if abandoned.Load() {
+		return int(processed.Load()), ErrExtractionAbandoned
+	}
+
+	return int(processed.Load()), nil
 }
 
 // concurrency clamps OCR_CONCURRENCY to at least 1 so a zero or negative
@@ -214,6 +245,54 @@ func concurrency(cfg config.Config) int {
 		return 1
 	}
 	return cfg.OCRConcurrency
+}
+
+// ErrExtractionAbandoned is returned when a single asset's extraction call
+// didn't return within extractionTimeout. Go has no way to force a stuck
+// goroutine to stop, so the call is left running rather than killed: this
+// error tells the caller to stop dispatching further work in this process
+// so it can exit soon, which is the only thing that actually reclaims
+// whatever the abandoned goroutine is holding.
+//
+// This is not theoretical: a 374KB, well-formed, linearized PDF drove a
+// single ExtractText call to 25GB+ RSS within seconds via what's presumably
+// a pathological path inside the pdf library's page parser, on a machine
+// that had already BSOD'd four times from OCR-driven memory pressure. The
+// per-page ctx check in extractPDFTextLayer doesn't help here because the
+// call never returns from a single page to be checked between iterations.
+var ErrExtractionAbandoned = errors.New("ocr: extraction abandoned after exceeding time budget")
+
+// extractionTimeout bounds a single asset's ExtractText call, covering both
+// the text-layer attempt and the (already page/DPI-bounded) rasterisation
+// fallback. Both normally finish in well under this - the one observed
+// pathological file drove RSS to 24GB+ within 15s, so this stays tight
+// rather than generous. A var, not a const, so tests can shrink it instead
+// of waiting out the real budget.
+var extractionTimeout = 20 * time.Second
+
+// awaitExtraction runs fn in its own goroutine and returns its result, or
+// (zero value, ErrExtractionAbandoned) if it doesn't complete within
+// timeout. fn keeps running after a timeout - Go has no way to force a
+// goroutine to stop - so this only bounds how long the caller waits, not
+// what the abandoned call itself does with memory or CPU in the background.
+func awaitExtraction(timeout time.Duration, fn func() (infra_ocr.Result, error)) (infra_ocr.Result, error) {
+	type outcome struct {
+		result infra_ocr.Result
+		err    error
+	}
+
+	outcomeCh := make(chan outcome, 1)
+	go func() {
+		res, err := fn()
+		outcomeCh <- outcome{res, err}
+	}()
+
+	select {
+	case o := <-outcomeCh:
+		return o.result, o.err
+	case <-time.After(timeout):
+		return infra_ocr.Result{}, ErrExtractionAbandoned
+	}
 }
 
 func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
@@ -287,8 +366,16 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 	p.logger.Info("starting text extraction for asset", slog.String("id", id.String()), slog.String("filename", a.Name.String()))
 	_, _ = p.assetWriter.UpdateOCRProcessing(ctx, id)
 
-	result, err := p.ocrClient.ExtractText(ctx, data, mimeStr)
+	result, err := awaitExtraction(extractionTimeout, func() (infra_ocr.Result, error) {
+		return p.ocrClient.ExtractText(ctx, data, mimeStr)
+	})
 	if err != nil {
+		if errors.Is(err, ErrExtractionAbandoned) {
+			p.logger.Error("text extraction exceeded time budget, abandoning asset to bound memory use",
+				slog.String("id", id.String()), slog.String("filename", a.Name.String()), slog.Duration("timeout", extractionTimeout))
+			_, _ = p.assetWriter.UpdateOCRSkipped(ctx, id, "text extraction exceeded time budget")
+			return ErrExtractionAbandoned
+		}
 		return p.handleExtractionError(ctx, id, err)
 	}
 

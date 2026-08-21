@@ -7,15 +7,34 @@ import (
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/invopop/jsonschema"
-	"github.com/openai/openai-go"
-	"github.com/openai/openai-go/packages/param"
-	"github.com/openai/openai-go/shared"
 )
 
+// StructuredPrompter is implemented by providers that can be constrained to
+// emit JSON matching a schema. Keeping this an interface rather than a type
+// switch means a test can substitute a fake, which is what makes the callers
+// of PromptObject testable at all.
+type StructuredPrompter interface {
+	PromptObjectJSON(ctx context.Context, description, input string, schema any) (string, error)
+}
+
+// Usage counts tokens consumed since a provider was constructed.
+type Usage struct {
+	InputTokens  int
+	OutputTokens int
+}
+
+func (u Usage) Total() int { return u.InputTokens + u.OutputTokens }
+
+// UsageReporter is implemented by providers that track token consumption, so a
+// batch job can report what a run actually cost.
+type UsageReporter interface {
+	Usage() Usage
+}
+
 func PromptObject[T any](ctx context.Context, prompter Prompter, description, input string, schema T) (*T, error) {
-	s, ok := prompter.(*OpenAI)
+	structured, ok := prompter.(StructuredPrompter)
 	if !ok {
-		return nil, fault.New("structured prompt only supported with OpenAI prompter")
+		return nil, fault.Wrap(ErrStructuredUnsupported, fctx.With(ctx))
 	}
 
 	serialisedSchema, err := schemaFromObjectInstance(schema)
@@ -23,45 +42,17 @@ func PromptObject[T any](ctx context.Context, prompter Prompter, description, in
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	res, err := s.client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
-		Model: openai.ChatModelGPT4_1,
-		Messages: []openai.ChatCompletionMessageParamUnion{
-			openai.UserMessage(input),
-		},
-		ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
-			OfJSONSchema: &shared.ResponseFormatJSONSchemaParam{
-				JSONSchema: shared.ResponseFormatJSONSchemaJSONSchemaParam{
-					Name:        "json_schema",
-					Strict:      param.NewOpt(true),
-					Description: param.NewOpt(description),
-					Schema:      serialisedSchema,
-				},
-			},
-		},
-	})
+	payload, err := structured.PromptObjectJSON(ctx, description, input, serialisedSchema)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
-	if len(res.Choices) == 0 {
-		return nil, fault.New("result choices are empty")
+
+	if payload == "" {
+		return nil, fault.New("result json is empty", fctx.With(ctx))
 	}
-
-	if res.Choices[0].Message.JSON.Content.Raw() == "" {
-		return nil, fault.New("result json is empty")
-	}
-
-	choice := res.Choices[0]
-
-	if choice.Message.JSON.Content.Valid() == false {
-		// TODO: Retry a few times with a backoff?
-		return nil, fault.New("result is not valid JSON")
-	}
-
-	payload := choice.Message.Content
 
 	var result T
-	err = json.Unmarshal([]byte(payload), &result)
-	if err != nil {
+	if err := json.Unmarshal([]byte(payload), &result); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 

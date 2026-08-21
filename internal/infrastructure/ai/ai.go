@@ -18,10 +18,13 @@ type Prompter interface {
 	EmbeddingFunc() func(ctx context.Context, text string) ([]float32, error)
 }
 
-func New(cfg config.Config) (Prompter, error) {
+func New(ctx context.Context, cfg config.Config) (Prompter, error) {
 	switch cfg.LanguageModelProvider {
 	case "openai":
 		return newOpenAI(cfg)
+
+	case "google":
+		return newGoogle(ctx, cfg)
 
 	case "mock":
 		return newMock()

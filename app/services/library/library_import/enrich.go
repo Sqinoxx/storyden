@@ -2,6 +2,7 @@ package library_import
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"strings"
 
@@ -32,17 +33,39 @@ func NewEnricher(
 }
 
 type EnrichOptions struct {
-	Ledger   *Ledger
-	Limit    int
-	DryRun   bool
-	Progress func(done int, name string)
+	Ledger *Ledger
+	// State records which documents have already been shown to the model. It is
+	// separate from the property check because the model legitimately returns
+	// nothing for fields like Dozent on many documents; without it those nodes
+	// would count as outstanding forever and every rerun would pay for them
+	// again instead of converging.
+	State  *Ledger
+	Limit  int
+	DryRun bool
+	// Overwrite allows the model to replace property values that are already
+	// set. Off by default because the import derives Typ deterministically from
+	// the folder path, which is more trustworthy than an inference.
+	Overwrite bool
+	Progress  func(done int, name string)
 }
 
 type EnrichResult struct {
 	Enriched int
 	Skipped  int
 	Failed   int
+	// Aborted is set when the run stopped early rather than reaching the end of
+	// the ledger, which on the free Gemini tier happens once the daily quota is
+	// spent. The run is resumable: already-filled nodes are skipped next time.
+	Aborted     bool
+	AbortReason string
+	Usage       ai.Usage
 }
+
+// enrichFields are the properties this pass populates. A node is only skipped
+// when every one of them already has a value — checking "any value present"
+// would skip the entire library, since the import already fills Typ from the
+// manifest rules.
+var enrichFields = []string{"Fach", "Semester", "Typ", "Jahr", "Dozent"}
 
 type classification struct {
 	Titel    string   `json:"titel" jsonschema:"title=Titel,description=Ein lesbarer Titel des Dokuments ohne Dateiendung"`
@@ -85,15 +108,27 @@ func (e *Enricher) Enrich(ctx context.Context, vocab *Vocabulary, opts EnrichOpt
 			continue
 		}
 
-		if hasFilledProperties(node) {
-			result.Skipped++
-			continue
+		if !opts.Overwrite {
+			alreadyVisited := opts.State != nil && opts.State.Has(rec.SHA256)
+			if alreadyVisited || len(missingEnrichFields(node)) == 0 {
+				result.Skipped++
+				continue
+			}
 		}
 
 		input := buildPrompt(node, vocab, allowed)
 
 		out, err := ai.PromptObject(ctx, e.prompter, "Klassifiziert ein Studiendokument der Zahnmedizin.", input, classification{})
 		if err != nil {
+			// A spent quota would otherwise fail every remaining node in turn,
+			// so stop and let the operator resume once it resets.
+			if errors.Is(err, ai.ErrRateLimited) {
+				result.Aborted = true
+				result.AbortReason = "rate limited by the language model provider"
+				e.logger.Warn("aborting enrichment, provider quota exhausted", slog.String("slug", rec.Slug))
+				break
+			}
+
 			result.Failed++
 			e.logger.Warn("classification failed", slog.String("slug", rec.Slug), slog.String("error", err.Error()))
 			continue
@@ -111,19 +146,40 @@ func (e *Enricher) Enrich(ctx context.Context, vocab *Vocabulary, opts EnrichOpt
 			continue
 		}
 
-		if err := e.apply(ctx, node, out, allowed); err != nil {
+		if err := e.apply(ctx, node, out, allowed, opts.Overwrite); err != nil {
 			result.Failed++
 			e.logger.Warn("failed to write enrichment", slog.String("slug", rec.Slug), slog.String("error", err.Error()))
 			continue
 		}
 
+		if opts.State != nil {
+			if err := opts.State.Record(rec); err != nil {
+				return nil, fault.Wrap(err, fctx.With(ctx))
+			}
+		}
+
 		result.Enriched++
+	}
+
+	if reporter, ok := e.prompter.(ai.UsageReporter); ok {
+		result.Usage = reporter.Usage()
 	}
 
 	return result, nil
 }
 
-func (e *Enricher) apply(ctx context.Context, node *library.Node, out *classification, allowed map[string]struct{}) error {
+func (e *Enricher) apply(ctx context.Context, node *library.Node, out *classification, allowed map[string]struct{}, overwrite bool) error {
+	writable := map[string]struct{}{}
+	if overwrite {
+		for _, f := range enrichFields {
+			writable[f] = struct{}{}
+		}
+	} else {
+		for _, f := range missingEnrichFields(node) {
+			writable[f] = struct{}{}
+		}
+	}
+
 	values := map[string]string{}
 	for name, value := range map[string]string{
 		"Fach":     out.Fach,
@@ -132,9 +188,13 @@ func (e *Enricher) apply(ctx context.Context, node *library.Node, out *classific
 		"Jahr":     out.Jahr,
 		"Dozent":   out.Dozent,
 	} {
-		if value != "" {
-			values[name] = value
+		if value == "" {
+			continue
 		}
+		if _, ok := writable[name]; !ok {
+			continue
+		}
+		values[name] = value
 	}
 
 	props := library.PropertyMutationList{}
@@ -209,19 +269,28 @@ func buildPrompt(node *library.Node, vocab *Vocabulary, allowed map[string]struc
 	return b.String()
 }
 
-func hasFilledProperties(node *library.Node) bool {
-	table, ok := node.Properties.Get()
-	if !ok {
-		return false
-	}
+// missingEnrichFields reports which of the enrichable properties are still
+// empty on a node. A node with no property table at all counts as fully
+// missing, so it is offered to the model rather than silently skipped.
+func missingEnrichFields(node *library.Node) []string {
+	filled := map[string]struct{}{}
 
-	for _, p := range table.Properties {
-		if v, ok := p.Value.Get(); ok && v != "" {
-			return true
+	if table, ok := node.Properties.Get(); ok {
+		for _, p := range table.Properties {
+			if v, ok := p.Value.Get(); ok && v != "" {
+				filled[p.Field.Name] = struct{}{}
+			}
 		}
 	}
 
-	return false
+	missing := []string{}
+	for _, name := range enrichFields {
+		if _, ok := filled[name]; !ok {
+			missing = append(missing, name)
+		}
+	}
+
+	return missing
 }
 
 func allowedTags(vocab *Vocabulary) map[string]struct{} {

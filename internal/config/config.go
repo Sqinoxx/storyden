@@ -578,12 +578,26 @@ type Config struct {
 	MCPEnabled bool `default:"false" envconfig:"MCP_ENABLED"`
 	/*
 	   The provider for language model features.
-
-	   `openai` is currently the only supported provider.
+	   - `openai` for OpenAI.
+	   - `google` for Gemini via the Gemini Developer API (an API key from Google AI Studio, not a Google AI Pro/Ultra subscription, which does not grant API access).
 	*/
 	LanguageModelProvider string `envconfig:"LANGUAGE_MODEL_PROVIDER"`
 	// When `LANGUAGE_MODEL_PROVIDER` is set to `openai`, this is the API key for the OpenAI API.
 	OpenAIKey string `envconfig:"OPENAI_API_KEY"`
+	// When `LANGUAGE_MODEL_PROVIDER` is set to `google`, this is the API key for the Gemini Developer API, from https://aistudio.google.com/apikey.
+	GoogleAIKey string `envconfig:"GOOGLE_AI_API_KEY"`
+	/*
+	   The Gemini model used for prompting and structured output when `LANGUAGE_MODEL_PROVIDER` is `google`.
+
+	   Note that `gemini-2.5-flash-lite` is scheduled for shutdown on 2026-10-16; `gemini-3.1-flash-lite` is its successor at a higher price per token.
+	*/
+	GoogleAIModel string `default:"gemini-2.5-flash-lite" envconfig:"GOOGLE_AI_MODEL"`
+	// The Gemini model used for embeddings when `LANGUAGE_MODEL_PROVIDER` is `google`.
+	GoogleAIEmbeddingModel string `default:"gemini-embedding-001" envconfig:"GOOGLE_AI_EMBEDDING_MODEL"`
+	// Requests per minute allowed against the Gemini API. The default matches the free AI Studio tier for Flash-Lite; raise it once billing is enabled. Zero or less disables pacing entirely.
+	GoogleAIMaxRPM int `default:"15" envconfig:"GOOGLE_AI_MAX_RPM"`
+	// How many times a rate-limited or transient Gemini request is retried with exponential backoff before giving up.
+	GoogleAIMaxRetries int `default:"3" envconfig:"GOOGLE_AI_MAX_RETRIES"`
 
 	// -
 	// Semdex

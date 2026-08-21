@@ -79,3 +79,11 @@ func normalizeVector(vec []float32) []float32 {
 
 	return r
 }
+
+// PromptObjectJSON returns an empty JSON object, which unmarshals into any
+// schema as zero values. That is enough to exercise the full call chain
+// without a network, while leaving assertions about real values to tests that
+// supply their own fake.
+func (o *Mock) PromptObjectJSON(ctx context.Context, description, input string, schema any) (string, error) {
+	return "{}", nil
+}

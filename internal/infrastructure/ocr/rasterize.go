@@ -17,9 +17,11 @@ import (
 // (i.e. scanned documents).
 type Rasterizer interface {
 	Available() bool
-	// Rasterize renders up to maxPages pages of the PDF at pdfPath into PNG
-	// files inside outDir, and returns their paths in page order.
-	Rasterize(ctx context.Context, pdfPath, outDir string, maxPages, dpi int) ([]string, error)
+	// Rasterize renders pages firstPage..lastPage (1-based, inclusive) of the
+	// PDF at pdfPath into PNG files inside outDir, and returns their paths in
+	// page order. Rendering a range rather than the whole document lets the
+	// caller bound how much temporary disk one PDF occupies at a time.
+	Rasterize(ctx context.Context, pdfPath, outDir string, firstPage, lastPage, dpi int) ([]string, error)
 }
 
 // PopplerRasterizer shells out to `pdftoppm` (part of poppler-utils).
@@ -43,7 +45,7 @@ func NewPopplerRasterizer(binaryPath string) *PopplerRasterizer {
 
 func (p *PopplerRasterizer) Available() bool { return p.available }
 
-func (p *PopplerRasterizer) Rasterize(ctx context.Context, pdfPath, outDir string, maxPages, dpi int) ([]string, error) {
+func (p *PopplerRasterizer) Rasterize(ctx context.Context, pdfPath, outDir string, firstPage, lastPage, dpi int) ([]string, error) {
 	if !p.available {
 		return nil, fault.Wrap(ErrEngineUnavailable, fctx.With(ctx), fmsg.With("pdftoppm binary not found"))
 	}
@@ -53,8 +55,8 @@ func (p *PopplerRasterizer) Rasterize(ctx context.Context, pdfPath, outDir strin
 	args := []string{
 		"-png",
 		"-r", strconv.Itoa(dpi),
-		"-f", "1",
-		"-l", strconv.Itoa(maxPages),
+		"-f", strconv.Itoa(firstPage),
+		"-l", strconv.Itoa(lastPage),
 		pdfPath,
 		outputPrefix,
 	}

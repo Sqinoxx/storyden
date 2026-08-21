@@ -7,6 +7,8 @@ import (
 	"github.com/Southclaws/fault/fctx"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
+	"github.com/openai/openai-go/packages/param"
+	"github.com/openai/openai-go/shared"
 	"github.com/philippgille/chromem-go"
 
 	"github.com/Southclaws/storyden/internal/config"
@@ -83,4 +85,38 @@ func (o *OpenAI) PromptStream(ctx context.Context, input string) (func(yield fun
 
 func (o *OpenAI) EmbeddingFunc() func(ctx context.Context, text string) ([]float32, error) {
 	return o.ef
+}
+
+func (o *OpenAI) PromptObjectJSON(ctx context.Context, description, input string, schema any) (string, error) {
+	res, err := o.client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+		Model: openai.ChatModelGPT4_1,
+		Messages: []openai.ChatCompletionMessageParamUnion{
+			openai.UserMessage(input),
+		},
+		ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
+			OfJSONSchema: &shared.ResponseFormatJSONSchemaParam{
+				JSONSchema: shared.ResponseFormatJSONSchemaJSONSchemaParam{
+					Name:        "json_schema",
+					Strict:      param.NewOpt(true),
+					Description: param.NewOpt(description),
+					Schema:      schema,
+				},
+			},
+		},
+	})
+	if err != nil {
+		return "", fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if len(res.Choices) == 0 {
+		return "", fault.New("result choices are empty", fctx.With(ctx))
+	}
+
+	choice := res.Choices[0]
+
+	if !choice.Message.JSON.Content.Valid() {
+		return "", fault.New("result is not valid JSON", fctx.With(ctx))
+	}
+
+	return choice.Message.Content, nil
 }

@@ -10,14 +10,21 @@ import (
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/packages/param"
 	"github.com/openai/openai-go/shared"
+	"google.golang.org/genai"
 )
 
 func PromptObject[T any](ctx context.Context, prompter Prompter, description, input string, schema T) (*T, error) {
-	s, ok := prompter.(*OpenAI)
-	if !ok {
-		return nil, fault.New("structured prompt only supported with OpenAI prompter")
+	switch p := prompter.(type) {
+	case *OpenAI:
+		return promptObjectOpenAI(ctx, p, description, input, schema)
+	case *Google:
+		return promptObjectGoogle(ctx, p, description, input, schema)
+	default:
+		return nil, fault.New("structured prompt only supported with OpenAI or Google prompters")
 	}
+}
 
+func promptObjectOpenAI[T any](ctx context.Context, s *OpenAI, description, input string, schema T) (*T, error) {
 	serialisedSchema, err := schemaFromObjectInstance(schema)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -62,6 +69,36 @@ func PromptObject[T any](ctx context.Context, prompter Prompter, description, in
 	var result T
 	err = json.Unmarshal([]byte(payload), &result)
 	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return &result, nil
+}
+
+func promptObjectGoogle[T any](ctx context.Context, g *Google, description, input string, schema T) (*T, error) {
+	serialisedSchema, err := schemaFromObjectInstance(schema)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	res, err := g.client.Models.GenerateContent(ctx, g.model, []*genai.Content{
+		genai.NewContentFromText(input, genai.RoleUser),
+	}, &genai.GenerateContentConfig{
+		ResponseMIMEType:   "application/json",
+		ResponseJsonSchema: serialisedSchema,
+		SystemInstruction:  genai.NewContentFromText(description, genai.RoleUser),
+	})
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	payload := res.Text()
+	if payload == "" {
+		return nil, fault.New("result json is empty")
+	}
+
+	var result T
+	if err := json.Unmarshal([]byte(payload), &result); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 

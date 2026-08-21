@@ -2,6 +2,7 @@ package ocr
 
 import (
 	"bytes"
+	"context"
 	"strings"
 	"unicode"
 
@@ -19,7 +20,15 @@ const (
 // every stage (opening the reader, and each individual page) is guarded by
 // recover. A panic on one page does not discard text already extracted from
 // other pages.
-func extractPDFTextLayer(data []byte) (text string, pages int, err error) {
+//
+// The per-page loop checks ctx between pages so a pathological document
+// (one whose page count or per-page structure makes parsing unexpectedly
+// slow, e.g. a corrupted or maliciously crafted PDF) is bounded by the
+// caller's timeout instead of running - and growing its in-memory buffer -
+// unattended. This is what actually blew up a real run: a single file drove
+// the importer to 25GB+ RSS with no rasterisation subprocess in sight, which
+// only fit this loop.
+func extractPDFTextLayer(ctx context.Context, data []byte) (text string, pages int, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fault.Newf("pdf text layer extraction panicked: %v", r)
@@ -36,15 +45,21 @@ func extractPDFTextLayer(data []byte) (text string, pages int, err error) {
 	var buf bytes.Buffer
 	fonts := make(map[string]*pdf.Font)
 
+	extracted := 0
 	for i := 1; i <= numPages; i++ {
+		if ctx.Err() != nil {
+			break
+		}
+
 		pageText, ok := extractPDFPage(rd, i, fonts)
 		if ok {
 			buf.WriteString(pageText)
 			buf.WriteString("\n")
 		}
+		extracted++
 	}
 
-	return buf.String(), numPages, nil
+	return buf.String(), extracted, nil
 }
 
 // extractPDFPage extracts the plain text of a single page, recovering from

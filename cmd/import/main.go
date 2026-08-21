@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -393,13 +394,23 @@ func runOCR(ctx context.Context, processor *ocr.Processor) error {
 	total := 0
 	for {
 		n, err := processor.ProcessAllPending(ctx, 200)
+		total += n
 		if err != nil {
+			if errors.Is(err, ocr.ErrExtractionAbandoned) {
+				// The offending asset is already marked skipped in the DB.
+				// Go can't force-stop the goroutine that's still stuck on
+				// it, so the only way to actually reclaim what it's holding
+				// is to end this process - re-running --phase ocr continues
+				// with the next pending asset.
+				fmt.Printf("\rextracted text from %d assets\n", total)
+				fmt.Println("one asset exceeded its extraction time budget and was skipped; stopping this run to release its memory. Re-run --phase ocr to continue.")
+				return nil
+			}
 			return err
 		}
 		if n == 0 {
 			break
 		}
-		total += n
 		fmt.Printf("\rextracted text from %d assets", total)
 	}
 
@@ -450,10 +461,15 @@ func runSetVisibility(ctx context.Context, f flags, ingester *library_import.Ing
 	}
 	defer ledger.Close()
 
+	last := time.Now()
 	result, err := ingester.SetVisibility(ctx, vis, library_import.FixVisibilityOptions{
 		Ledger: ledger,
 		DryRun: f.dryRun,
 		Progress: func(done, total int, slug string) {
+			if time.Since(last) < time.Second {
+				return
+			}
+			last = time.Now()
 			fmt.Printf("\r%d/%d  %-70.70s", done, total, slug)
 		},
 	})
@@ -487,11 +503,16 @@ func runEnrich(ctx context.Context, f flags, enricher *library_import.Enricher, 
 	}
 	defer ledger.Close()
 
+	last := time.Now()
 	result, err := enricher.Enrich(ctx, vocab, library_import.EnrichOptions{
 		Ledger: ledger,
 		Limit:  f.limit,
 		DryRun: f.dryRun,
 		Progress: func(done int, name string) {
+			if time.Since(last) < time.Second {
+				return
+			}
+			last = time.Now()
 			fmt.Printf("\r%d  %-70.70s", done, name)
 		},
 	})

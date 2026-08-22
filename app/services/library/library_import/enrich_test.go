@@ -1,12 +1,16 @@
 package library_import
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/Southclaws/opt"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/Southclaws/storyden/app/resources/library"
+	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
 )
 
 func nodeWithProperties(values map[string]string) *library.Node {
@@ -61,4 +65,46 @@ func TestMissingEnrichFieldsHandlesNodeWithoutProperties(t *testing.T) {
 	t.Parallel()
 
 	assert.ElementsMatch(t, enrichFields, missingEnrichFields(&library.Node{}))
+}
+
+func testVocabulary(t *testing.T) *Vocabulary {
+	t.Helper()
+
+	data, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "import-vocab.yaml"))
+	require.NoError(t, err)
+
+	v, err := ParseVocabulary(data)
+	require.NoError(t, err)
+
+	return v
+}
+
+func nodeWithTags(names ...string) *library.Node {
+	node := &library.Node{}
+	for _, n := range names {
+		node.Tags = append(node.Tags, &tag_ref.Tag{Name: tag_ref.NewName(n)})
+	}
+	return node
+}
+
+// The folder placement is how the material was actually filed, so it decides
+// the subject. The model disagreed with it on 30% of a real sample, nearly
+// always for the worse.
+func TestSubjectFromTagsPrefersTheFolderSubject(t *testing.T) {
+	t.Parallel()
+
+	vocab := testVocabulary(t)
+
+	assert.Equal(t, "MKG", subjectFromTags(nodeWithTags("klinik", "mkg", "altklausur"), vocab))
+	assert.Equal(t, "Dentale Technologie", subjectFromTags(nodeWithTags("vorklinik", "dentale-technologie"), vocab))
+}
+
+// Where the folder named no subject the model is the only source available.
+func TestSubjectFromTagsEmptyWithoutASubjectTag(t *testing.T) {
+	t.Parallel()
+
+	vocab := testVocabulary(t)
+
+	assert.Empty(t, subjectFromTags(nodeWithTags("klinik", "altklausur"), vocab), "section and type tags are not subjects")
+	assert.Empty(t, subjectFromTags(&library.Node{}, vocab))
 }

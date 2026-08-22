@@ -115,7 +115,7 @@ func TestEnrichVisitsNodesThatAlreadyHaveTypSet(t *testing.T) {
 
 	fake := &fakePrompter{reply: func(_ int, input string) (string, error) {
 		if strings.Contains(input, "Klausur 2019") {
-			return `{"titel":"Physiologie Klausur 2019","fach":"mkg","semester":"2","typ":"Zusammenfassung","jahr":"2019","dozent":"Koch","tags":["physiologie","nicht-im-vokabular"]}`, nil
+			return `{"titel":"Physiologie Klausur 2019","fach":"mkg","semester":"2","typ":"Zusammenfassung","jahr":"2019","dozent":"Koch","tags":["mit-lösung","klinik","mkg","nicht-im-vokabular"]}`, nil
 		}
 		return "{}", nil
 	}}
@@ -197,8 +197,16 @@ func TestEnrichVisitsNodesThatAlreadyHaveTypSet(t *testing.T) {
 				a.Equal("Altklausur", props["Typ"], "the manifest value must survive")
 
 				tags := tagNamesOf(after)
-				a.Contains(tags, "physiologie")
+				a.Contains(tags, "mit-lösung", "a type the folder cannot show is worth adding")
 				a.NotContains(tags, "nicht-im-vokabular", "tags outside the vocabulary are dropped")
+
+				// Section and subject follow from the folder. Letting the model
+				// add them produced nodes tagged both vorklinik and klinik on
+				// real data, which then match contradictory filters.
+				a.NotContains(tags, "klinik", "the model may not contradict the folder section")
+				a.NotContains(tags, "mkg", "the model may not contradict the folder subject")
+				a.Contains(tags, "vorklinik", "the folder tags stay untouched")
+				a.Contains(tags, "physiologie")
 			}))
 		}))
 }

@@ -248,12 +248,23 @@ func (e *Enricher) apply(ctx context.Context, node *library.Node, out *classific
 
 	// Tags outside the vocabulary are dropped rather than created: the point of
 	// classifying against a closed set is that the set stays closed.
+	//
+	// Only type tags are accepted. Section and subject follow from the folder,
+	// which the import already tagged, so the model can only either repeat them
+	// or contradict them — and it did contradict them, tagging 5 of the first 39
+	// documents both vorklinik and klinik. Type is the one axis that genuinely
+	// is not always visible from the path: whether a paper carries solutions or
+	// is a recalled exam only shows in the content.
 	kept := []string{}
 	for _, t := range out.Tags {
 		normalised := strings.ToLower(strings.TrimSpace(t))
-		if _, ok := allowed[normalised]; ok {
-			kept = append(kept, normalised)
+		if _, ok := allowed[normalised]; !ok {
+			continue
 		}
+		if !isTypeTag(vocab, normalised) {
+			continue
+		}
+		kept = append(kept, normalised)
 	}
 
 	if len(kept) > 0 {
@@ -273,6 +284,17 @@ func (e *Enricher) apply(ctx context.Context, node *library.Node, out *classific
 	}
 
 	return nil
+}
+
+// isTypeTag reports whether a vocabulary tag names a document type, the only
+// axis the model is trusted to contribute.
+func isTypeTag(vocab *Vocabulary, tag string) bool {
+	for _, term := range vocab.Types {
+		if term.Tag == tag {
+			return true
+		}
+	}
+	return false
 }
 
 // subjectFromTags returns the display name of the subject the node is tagged

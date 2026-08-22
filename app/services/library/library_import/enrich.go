@@ -3,6 +3,7 @@ package library_import
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strings"
 
@@ -61,6 +62,13 @@ type EnrichResult struct {
 	Usage       ai.Usage
 }
 
+// maxConsecutiveFailures stops a run whose every request fails for the same
+// systemic reason — a model name the account cannot call, a rejected schema, a
+// bad key. Without it a misconfiguration walks the entire ledger at the paced
+// request rate, which is hours of wall clock and, on a paid tier, real money
+// spent on nothing.
+const maxConsecutiveFailures = 8
+
 // enrichFields are the properties this pass populates. A node is only skipped
 // when every one of them already has a value — checking "any value present"
 // would skip the entire library, since the import already fills Typ from the
@@ -91,6 +99,8 @@ func (e *Enricher) Enrich(ctx context.Context, vocab *Vocabulary, opts EnrichOpt
 	allowed := allowedTags(vocab)
 
 	done := 0
+	consecutiveFailures := 0
+	var lastFailure error
 	for _, rec := range opts.Ledger.Records() {
 		if opts.Limit > 0 && result.Enriched >= opts.Limit {
 			break
@@ -130,9 +140,21 @@ func (e *Enricher) Enrich(ctx context.Context, vocab *Vocabulary, opts EnrichOpt
 			}
 
 			result.Failed++
+			consecutiveFailures++
+			lastFailure = err
 			e.logger.Warn("classification failed", slog.String("slug", rec.Slug), slog.String("error", err.Error()))
+
+			if consecutiveFailures >= maxConsecutiveFailures {
+				result.Aborted = true
+				result.AbortReason = fmt.Sprintf("%d consecutive failures, last error: %s", consecutiveFailures, lastFailure)
+				e.logger.Error("aborting enrichment, every request is failing the same way", slog.String("error", lastFailure.Error()))
+				break
+			}
+
 			continue
 		}
+
+		consecutiveFailures = 0
 
 		if opts.DryRun {
 			e.logger.Info("would enrich",

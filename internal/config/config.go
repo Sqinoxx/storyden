@@ -472,10 +472,10 @@ type Config struct {
 	OCRBackfillEnabled bool `default:"true" envconfig:"OCR_BACKFILL_ENABLED"`
 	// Number of pending assets to process per batch during the startup backfill.
 	OCRBackfillBatchSize int `default:"25" envconfig:"OCR_BACKFILL_BATCH_SIZE"`
-	// Number of assets processed concurrently by text extraction. Extraction shells out to CPU-bound external processes (tesseract, pdftoppm), so this should not exceed the number of available cores. The default of 1 keeps a small always-on deployment responsive; bulk import runs on a workstation can raise it considerably.
-	OCRConcurrency int `default:"1" envconfig:"OCR_CONCURRENCY"`
 	// Assets stuck in the `processing` status for longer than this duration (e.g. due to a crash mid-processing) are considered failed and picked up again.
 	OCRStuckTimeout time.Duration `default:"15m" envconfig:"OCR_STUCK_TIMEOUT"`
+	// Number of assets processed concurrently by text extraction. Extraction shells out to CPU-bound external processes (tesseract, pdftoppm), so this should not exceed the number of available cores. The default of 1 keeps a small always-on deployment responsive; bulk import runs on a workstation can raise it considerably.
+	OCRConcurrency int `default:"1" envconfig:"OCR_CONCURRENCY"`
 
 	// -
 	// Message queue
@@ -578,20 +578,21 @@ type Config struct {
 	MCPEnabled bool `default:"false" envconfig:"MCP_ENABLED"`
 	/*
 	   The provider for language model features.
+
 	   - `openai` for OpenAI.
-	   - `google` for Gemini via the Gemini Developer API (an API key from Google AI Studio, not a Google AI Pro/Ultra subscription, which does not grant API access).
+	   - `google` for Gemini via the Gemini Developer API.
 	*/
 	LanguageModelProvider string `envconfig:"LANGUAGE_MODEL_PROVIDER"`
 	// When `LANGUAGE_MODEL_PROVIDER` is set to `openai`, this is the API key for the OpenAI API.
 	OpenAIKey string `envconfig:"OPENAI_API_KEY"`
-	// When `LANGUAGE_MODEL_PROVIDER` is set to `google`, this is the API key for the Gemini Developer API, from https://aistudio.google.com/apikey.
+	// When `LANGUAGE_MODEL_PROVIDER` is set to `google`, this is the API key for the Gemini Developer API, from https://aistudio.google.com/apikey. A Google AI Pro/Ultra subscription is a consumer chat product and does not grant API access.
 	GoogleAIKey string `envconfig:"GOOGLE_AI_API_KEY"`
 	/*
 	   The Gemini model used for prompting and structured output when `LANGUAGE_MODEL_PROVIDER` is `google`.
 
-	   Note that `gemini-2.5-flash-lite` is scheduled for shutdown on 2026-10-16; `gemini-3.1-flash-lite` is its successor at a higher price per token.
+	   Note that the models endpoint lists models an account cannot actually call: `gemini-2.5-flash-lite` still appears there but returns 404 for accounts that postdate its retirement to new users. Verify a change with a real request rather than the model list.
 	*/
-	GoogleAIModel string `default:"gemini-2.5-flash-lite" envconfig:"GOOGLE_AI_MODEL"`
+	GoogleAIModel string `default:"gemini-3.5-flash-lite" envconfig:"GOOGLE_AI_MODEL"`
 	// The Gemini model used for embeddings when `LANGUAGE_MODEL_PROVIDER` is `google`.
 	GoogleAIEmbeddingModel string `default:"gemini-embedding-001" envconfig:"GOOGLE_AI_EMBEDDING_MODEL"`
 	// Requests per minute allowed against the Gemini API. The default matches the free AI Studio tier for Flash-Lite; raise it once billing is enabled. Zero or less disables pacing entirely.

@@ -2,6 +2,8 @@ package library_test
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -79,6 +81,23 @@ func enrichFixture(t *testing.T) string {
 		abs := filepath.Join(root, filepath.FromSlash(rel))
 		require.NoError(t, os.MkdirAll(filepath.Dir(abs), 0o755))
 		require.NoError(t, os.WriteFile(abs, []byte(content), 0o644))
+	}
+
+	return root
+}
+
+// enrichFixtureN builds a tree of n documents, for cases that need more files
+// than the consecutive-failure threshold.
+func enrichFixtureN(t *testing.T, n int) string {
+	t.Helper()
+
+	root := t.TempDir()
+
+	for i := range n {
+		rel := fmt.Sprintf("Altklausuren/Vorklinik (1.-4. Semester)/Physiologie/Klausur %d.pdf", 2000+i)
+		abs := filepath.Join(root, filepath.FromSlash(rel))
+		require.NoError(t, os.MkdirAll(filepath.Dir(abs), 0o755))
+		require.NoError(t, os.WriteFile(abs, fmt.Appendf(nil, "inhalt %d", i), 0o644))
 	}
 
 	return root
@@ -285,4 +304,63 @@ func tagNamesOf(node *library.Node) []string {
 		out = append(out, t.Name.String())
 	}
 	return out
+}
+
+// A wrong model name, a rejected schema or a bad key fails every request
+// identically. Without a circuit breaker the run walks the whole ledger at the
+// paced request rate — this actually happened, burning 155 documents of wall
+// clock against a model the account could not call.
+func TestEnrichAbortsWhenEveryRequestFailsTheSameWay(t *testing.T) {
+	cfg := &config.Config{OCREnabled: false, OCRBackfillEnabled: false}
+
+	// More documents than the breaker threshold, so the run has something to
+	// stop short of.
+	root := enrichFixtureN(t, 20)
+	manifest, vocab := loadImportConfig(t)
+
+	systemic := errors.New("NOT_FOUND: model is not available to this account")
+	fake := &fakePrompter{reply: func(int, string) (string, error) {
+		return "", systemic
+	}}
+
+	integration.Test(t, cfg, e2e.Setup(),
+		fx.Decorate(func(ai.Prompter) ai.Prompter { return fake }),
+		fx.Invoke(func(
+			ctx context.Context,
+			lc fx.Lifecycle,
+			aw *account_writer.Writer,
+			ingester *library_import.Ingester,
+			enricher *library_import.Enricher,
+		) {
+			lc.Append(fx.StartHook(func() {
+				a := assert.New(t)
+				r := require.New(t)
+
+				accCtx, acc := e2e.WithAccount(ctx, aw, seed.Account_001_Odin)
+				adminCtx := session.WithAccountPermissions(accCtx, *acc, rbac.NewList(rbac.PermissionAdministrator))
+
+				inv, err := library_import.Scan(adminCtx, root, library_import.ScanOptions{Demote: manifest.Defaults.Demote})
+				r.NoError(err)
+
+				deduped := library_import.Dedupe(inv.Entries, manifest.Defaults.Demote)
+				plan, err := library_import.NewPlanner(manifest, vocab).Plan(deduped.Canonical)
+				r.NoError(err)
+
+				ledger, err := library_import.OpenLedger(filepath.Join(t.TempDir(), "import-state.jsonl"))
+				r.NoError(err)
+				defer ledger.Close()
+
+				_, err = ingester.Apply(adminCtx, plan, library_import.IngestOptions{Root: root, Owner: acc.ID, Ledger: ledger})
+				r.NoError(err)
+
+				result, err := enricher.Enrich(adminCtx, vocab, library_import.EnrichOptions{Ledger: ledger})
+				r.NoError(err)
+
+				a.True(result.Aborted, "a systemic failure must stop the run")
+				a.Contains(result.AbortReason, "consecutive failures")
+				a.Zero(result.Enriched)
+				a.Less(result.Failed, 20, "the run must stop well short of the full ledger")
+				a.Equal(result.Failed, fake.callCount(), "no request may be made after the breaker trips")
+			}))
+		}))
 }

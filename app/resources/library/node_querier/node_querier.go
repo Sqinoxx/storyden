@@ -137,16 +137,44 @@ func (q *Querier) Get(ctx context.Context, qk library.QueryKey, opts ...Option) 
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	applyVisibilityRulesPredicate := func(nq *ent.NodeQuery) {
+	// Apply visibility rules to the specific node being requested:
+	// - published nodes are visible to everyone
+	// - non-published nodes are not visible to anyone except the owner
+	// - library managers/administrators can fetch a node of any visibility,
+	//   including drafts, so they can review and apply submitted changes
+	//   for a page they've been directed to (e.g. from the review queue)
+	applyTargetVisibilityRulesPredicate := func(nq *ent.NodeQuery) {
 		if !o.visibilityRules {
 			return
 		}
 
-		// Apply visibility rules:
-		// - published nodes are visible to everyone
-		// - non-published nodes are not visible to anyone except the owner
 		if acc, ok := requestingAccount.Get(); ok {
+			canManage := acc.Roles.Permissions().HasAny(rbac.PermissionAdministrator, rbac.PermissionManageLibrary)
 
+			if !canManage {
+				nq.Where(node.Or(
+					node.AccountID(xid.ID(*o.requestingAccount)),
+					node.VisibilityEQ(node.VisibilityPublished),
+				))
+			}
+		} else {
+			nq.Where(node.VisibilityEQ(node.VisibilityPublished))
+		}
+	}
+
+	// Apply visibility rules to the node's children, i.e. when browsing a
+	// page's contents rather than reviewing a specific submitted page:
+	// - published nodes are visible to everyone
+	// - review nodes are additionally visible to managers/administrators
+	// - drafts and unlisted nodes are only visible to their owner, even for
+	//   managers/administrators, since they haven't been submitted yet and
+	//   may contain private, unfinished work
+	applyChildVisibilityRulesPredicate := func(nq *ent.NodeQuery) {
+		if !o.visibilityRules {
+			return
+		}
+
+		if acc, ok := requestingAccount.Get(); ok {
 			canViewInReview := acc.Roles.Permissions().HasAny(rbac.PermissionAdministrator, rbac.PermissionManageLibrary)
 
 			if canViewInReview {
@@ -189,10 +217,10 @@ func (q *Querier) Get(ctx context.Context, qk library.QueryKey, opts ...Option) 
 			psq.WithFields()
 		})
 
-	applyVisibilityRulesPredicate(query)
+	applyTargetVisibilityRulesPredicate(query)
 
 	query.WithNodes(func(cq *ent.NodeQuery) {
-		applyVisibilityRulesPredicate(cq)
+		applyChildVisibilityRulesPredicate(cq)
 
 		cq.
 			WithAssets().
@@ -304,7 +332,10 @@ func (q *Querier) ListChildren(ctx context.Context, qk library.QueryKey, pp pagi
 
 		// Apply visibility rules:
 		// - published nodes are visible to everyone
-		// - non-published nodes are not visible to anyone except the owner
+		// - review nodes are additionally visible to managers/administrators
+		// - drafts and unlisted nodes are only visible to their owner, even
+		//   for managers/administrators, since they haven't been submitted
+		//   yet and may contain private, unfinished work
 		if acc, ok := requestingAccount.Get(); ok {
 
 			canViewInReview := acc.Roles.Permissions().HasAny(rbac.PermissionAdministrator, rbac.PermissionManageLibrary)

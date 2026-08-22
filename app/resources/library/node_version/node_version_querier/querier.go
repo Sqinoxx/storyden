@@ -38,18 +38,18 @@ type NodeFilter struct {
 func (f NodeFilter) Predicates(qk library.QueryKey) []predicate.Node {
 	predicates := []predicate.Node{qk.Predicate()}
 
+	// Library managers can see and act on versions of nodes of any
+	// visibility, including drafts, since that's required to review and
+	// apply submitted changes on pages that haven't been published yet.
+	if f.CanManage {
+		return predicates
+	}
+
 	if accountID, ok := f.AccountID.Get(); ok {
-		if f.CanManage {
-			predicates = append(predicates, node.Or(
-				node.AccountID(xid.ID(accountID)),
-				node.VisibilityIn(node.VisibilityPublished, node.VisibilityReview),
-			))
-		} else {
-			predicates = append(predicates, node.Or(
-				node.AccountID(xid.ID(accountID)),
-				node.VisibilityEQ(node.VisibilityPublished),
-			))
-		}
+		predicates = append(predicates, node.Or(
+			node.AccountID(xid.ID(accountID)),
+			node.VisibilityEQ(node.VisibilityPublished),
+		))
 	} else {
 		predicates = append(predicates, node.VisibilityEQ(node.VisibilityPublished))
 	}

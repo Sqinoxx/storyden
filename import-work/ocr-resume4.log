@@ -1,0 +1,6 @@
+time=2026-08-21T19:59:26.467+02:00 level=INFO msg="starting text extraction for asset" id=da3gdfeqbbt3vq4fekv0 filename=da3gdfeqbbt3vq4fekv0-2020_-pdf
+time=2026-08-21T19:59:46.533+02:00 level=ERROR msg="text extraction exceeded time budget, abandoning asset to bound memory use" id=da3gdfeqbbt3vq4fekv0 filename=da3gdfeqbbt3vq4fekv0-2020_-pdf timeout=20s
+extracted text from 0 assets
+one asset exceeded its extraction time budget and was skipped; stopping this run to release its memory. Re-run --phase ocr to continue.
+time=2026-08-21T19:59:46.550+02:00 level=INFO msg="configured plugin runtime provider" provider=local
+time=2026-08-21T19:59:46.550+02:00 level=INFO msg="configured plugin runtime server url" server_url=http://localhost:8000

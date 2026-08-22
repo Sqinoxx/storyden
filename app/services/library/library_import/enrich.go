@@ -168,7 +168,7 @@ func (e *Enricher) Enrich(ctx context.Context, vocab *Vocabulary, opts EnrichOpt
 			continue
 		}
 
-		if err := e.apply(ctx, node, out, allowed, opts.Overwrite); err != nil {
+		if err := e.apply(ctx, node, out, vocab, allowed, opts.Overwrite); err != nil {
 			result.Failed++
 			e.logger.Warn("failed to write enrichment", slog.String("slug", rec.Slug), slog.String("error", err.Error()))
 			continue
@@ -190,7 +190,7 @@ func (e *Enricher) Enrich(ctx context.Context, vocab *Vocabulary, opts EnrichOpt
 	return result, nil
 }
 
-func (e *Enricher) apply(ctx context.Context, node *library.Node, out *classification, allowed map[string]struct{}, overwrite bool) error {
+func (e *Enricher) apply(ctx context.Context, node *library.Node, out *classification, vocab *Vocabulary, allowed map[string]struct{}, overwrite bool) error {
 	writable := map[string]struct{}{}
 	if overwrite {
 		for _, f := range enrichFields {
@@ -202,9 +202,21 @@ func (e *Enricher) apply(ctx context.Context, node *library.Node, out *classific
 		}
 	}
 
+	// The import already tagged the node with the subject its folder implied,
+	// and that placement is how the material was actually filed. Measured
+	// against 30 sample documents the model disagreed with the folder on 30% of
+	// them, nearly always for the worse ("Dentale Technologie" read as
+	// prothetik, PPZ as kons), and a Fach column contradicting the node's own
+	// tag is visible nonsense. So the folder wins, and the model only fills the
+	// gap where the folder named no subject at all.
+	fach := subjectFromTags(node, vocab)
+	if fach == "" {
+		fach = out.Fach
+	}
+
 	values := map[string]string{}
 	for name, value := range map[string]string{
-		"Fach":     out.Fach,
+		"Fach":     fach,
 		"Semester": out.Semester,
 		"Typ":      out.Typ,
 		"Jahr":     out.Jahr,
@@ -261,6 +273,26 @@ func (e *Enricher) apply(ctx context.Context, node *library.Node, out *classific
 	}
 
 	return nil
+}
+
+// subjectFromTags returns the display name of the subject the node is tagged
+// with, which the import derived from the folder path. Empty when the folder
+// named no subject the vocabulary knows.
+func subjectFromTags(node *library.Node, vocab *Vocabulary) string {
+	for _, t := range node.Tags {
+		name := t.Name.String()
+		for _, term := range vocab.Subjects {
+			if term.Tag != name {
+				continue
+			}
+			if term.Display != "" {
+				return term.Display
+			}
+			return term.Tag
+		}
+	}
+
+	return ""
 }
 
 func buildPrompt(node *library.Node, vocab *Vocabulary, allowed map[string]struct{}) string {

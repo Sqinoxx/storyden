@@ -25,6 +25,43 @@ import (
 	ent_tag "github.com/Southclaws/storyden/internal/ent/tag"
 )
 
+// ocrTextSearchColumn is a generated tsvector column (see
+// internal/infrastructure/db.addOCRTextSearchIndex) derived from
+// assets.ocr_text. Matching against it instead of running ILIKE directly on
+// ocr_text lets Postgres use a GIN index without ever reading the — large,
+// TOASTed — raw text at query time.
+const ocrTextSearchColumn = "ocr_text_tsv"
+
+// ocrTextMatches matches search results against a document's extracted text.
+// On Postgres this queries ocrTextSearchColumn so the GIN index can serve it;
+// on SQLite/libSQL, which have no tsvector/GIN equivalent and no generated
+// column to query, it falls back to a case-insensitive substring scan.
+//
+// The query terms are matched as lexeme prefixes rather than with
+// websearch_to_tsquery's whole-word matching: German freely compounds words
+// ("Anatomieprüfung" stems to one lexeme, "anatomiepruef"), so a search for
+// "anatomie" would otherwise miss it entirely. Prefix matching restores
+// close-to-substring recall while still hitting the GIN index.
+func ocrTextMatches(driverName, searchTerm string) predicate.Asset {
+	if driverName != "pgx" {
+		return ent_asset.OcrTextContainsFold(searchTerm)
+	}
+
+	return predicate.Asset(func(s *sql.Selector) {
+		// sql.ExprP's "?" placeholders are not rewritten for Postgres (which
+		// needs "$1"), so the argument is bound through sql.P/Arg instead,
+		// which is dialect-aware.
+		s.Where(sql.P(func(b *sql.Builder) {
+			b.WriteString(ocrTextSearchColumn + ` @@ (
+				SELECT to_tsquery('german', string_agg(lexeme || ':*', ' & '))
+				FROM unnest(tsvector_to_array(to_tsvector('german', `)
+			b.Arg(searchTerm)
+			b.WriteString(`))) AS lexeme
+			)`)
+		}))
+	})
+}
+
 type Search interface {
 	Search(ctx context.Context, params pagination.Parameters, opts ...Option) (*pagination.Result[*library.Node], error)
 }
@@ -108,7 +145,7 @@ func (s *service) Search(ctx context.Context, params pagination.Parameters, opts
 		// empty ContainsFold("") degenerates to LIKE '%%', which matches
 		// every row, so it must never be included unconditionally.
 		predicates := []predicate.Node{
-			node.HasAssetsWith(ent_asset.OcrTextContainsFold(searchTerm)),
+			node.HasAssetsWith(ocrTextMatches(s.raw.DriverName(), searchTerm)),
 		}
 		if nameContains != "" {
 			predicates = append(predicates, node.NameContainsFold(nameContains))

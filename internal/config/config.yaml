@@ -788,6 +788,13 @@
       description: |-
         Assets stuck in the `processing` status for longer than this duration (e.g. due to a crash mid-processing) are considered failed and picked up again.
 
+    - env: "OCR_CONCURRENCY"
+      name: OCRConcurrency
+      type: int
+      default: "1"
+      description: |-
+        Number of assets processed concurrently by text extraction. Extraction shells out to CPU-bound external processes (tesseract, pdftoppm), so this should not exceed the number of available cores. The default of 1 keeps a small always-on deployment responsive; bulk import runs on a workstation can raise it considerably.
+
 - section: Message queue
   description: |-
     Configuration for message/job queue. This is not required for Storyden to run, but it can improve performance, reliability and reduce memory usage in larger deployments.
@@ -936,13 +943,50 @@
       description: |-
         The provider for language model features.
 
-        `openai` is currently the only supported provider.
+        - `openai` for OpenAI.
+        - `google` for Gemini via the Gemini Developer API.
 
     - env: "OPENAI_API_KEY"
       name: OpenAIKey
       type: string
       description: |-
         When `LANGUAGE_MODEL_PROVIDER` is set to `openai`, this is the API key for the OpenAI API.
+
+    - env: "GOOGLE_AI_API_KEY"
+      name: GoogleAIKey
+      type: string
+      description: |-
+        When `LANGUAGE_MODEL_PROVIDER` is set to `google`, this is the API key for the Gemini Developer API, from https://aistudio.google.com/apikey. A Google AI Pro/Ultra subscription is a consumer chat product and does not grant API access.
+
+    - env: "GOOGLE_AI_MODEL"
+      name: GoogleAIModel
+      type: string
+      default: "gemini-3.5-flash-lite"
+      description: |-
+        The Gemini model used for prompting and structured output when `LANGUAGE_MODEL_PROVIDER` is `google`.
+
+        Note that the models endpoint lists models an account cannot actually call: `gemini-2.5-flash-lite` still appears there but returns 404 for accounts that postdate its retirement to new users. Verify a change with a real request rather than the model list.
+
+    - env: "GOOGLE_AI_EMBEDDING_MODEL"
+      name: GoogleAIEmbeddingModel
+      type: string
+      default: "gemini-embedding-001"
+      description: |-
+        The Gemini model used for embeddings when `LANGUAGE_MODEL_PROVIDER` is `google`.
+
+    - env: "GOOGLE_AI_MAX_RPM"
+      name: GoogleAIMaxRPM
+      type: int
+      default: "15"
+      description: |-
+        Requests per minute allowed against the Gemini API. The default matches the free AI Studio tier for Flash-Lite; raise it once billing is enabled. Zero or less disables pacing entirely.
+
+    - env: "GOOGLE_AI_MAX_RETRIES"
+      name: GoogleAIMaxRetries
+      type: int
+      default: "3"
+      description: |-
+        How many times a rate-limited or transient Gemini request is retried with exponential backoff before giving up.
 
 - section: Semdex
   description: |-

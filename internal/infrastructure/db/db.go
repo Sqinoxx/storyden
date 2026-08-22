@@ -32,6 +32,7 @@ import (
 	"github.com/Southclaws/storyden/internal/config"
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_account "github.com/Southclaws/storyden/internal/ent/account"
+	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	ent_email "github.com/Southclaws/storyden/internal/ent/email"
 	ent_post "github.com/Southclaws/storyden/internal/ent/post"
 	"github.com/Southclaws/storyden/internal/infrastructure/instrumentation/tracing"
@@ -158,15 +159,22 @@ func newEntClient(lc fx.Lifecycle, tf tracing.Factory, cfg config.Config, db *sq
 				}
 			}
 
-			// Run migrations with hooks and index cleanup.
-			if err := client.Schema.Create(
-				ctx,
+			applyHooks := []schema.MigrateOption{
 				schema.WithDropIndex(true),
 				schema.WithDropColumn(true),
 				schema.WithApplyHook(populateLastReplyAt()),
 				schema.WithApplyHook(migrateReplyVisibility()),
 				schema.WithApplyHook(migrateAccountVerifiedStatus()),
-			); err != nil {
+			}
+
+			// pg_trgm powers a GIN index below; it's a Postgres extension with
+			// no SQLite/libSQL equivalent, so only wire it up for Postgres.
+			if driver == "pgx" {
+				applyHooks = append(applyHooks, schema.WithApplyHook(addOCRTextSearchIndex()))
+			}
+
+			// Run migrations with hooks and index cleanup.
+			if err := client.Schema.Create(ctx, applyHooks...); err != nil {
 				return fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to run schema migration"))
 			}
 
@@ -377,6 +385,46 @@ func migrateReplyVisibility() schema.ApplyHook {
 			`, []any{}, nil)
 			if err != nil {
 				return fault.Wrap(err, fmsg.With("failed to migrate reply visibility from draft to published"))
+			}
+
+			return nil
+		})
+	}
+}
+
+// ocrTextSearchColumn is a generated tsvector column derived from
+// assets.ocr_text. Library search matches against this column rather than
+// running ILIKE over ocr_text directly: ocr_text is large (full extracted PDF
+// text) and TOASTed, so any predicate touching it — even through a trigram
+// index, which still needs to recheck candidates against the real column —
+// pays a per-row decompression cost. A GIN index over the generated column
+// answers matches without ever touching ocr_text at query time. See
+// node_search.Search, which is the only place this column is queried.
+const ocrTextSearchColumn = "ocr_text_tsv"
+
+// addOCRTextSearchIndex adds the generated tsvector column and its GIN index
+// described above. Both are created with IF NOT EXISTS, so this is safe to
+// run on every startup.
+func addOCRTextSearchIndex() schema.ApplyHook {
+	return func(next schema.Applier) schema.Applier {
+		return schema.ApplyFunc(func(ctx context.Context, conn dialect.ExecQuerier, plan *migrate.Plan) error {
+			if err := next.Apply(ctx, conn, plan); err != nil {
+				return err
+			}
+
+			err := conn.Exec(ctx, fmt.Sprintf(`
+				ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s tsvector
+				GENERATED ALWAYS AS (to_tsvector('german', coalesce(%s, ''))) STORED
+			`, ent_asset.Table, ocrTextSearchColumn, ent_asset.FieldOcrText), []any{}, nil)
+			if err != nil {
+				return fault.Wrap(err, fmsg.With("failed to add ocr_text search column"))
+			}
+
+			err = conn.Exec(ctx, fmt.Sprintf(`
+				CREATE INDEX IF NOT EXISTS assets_ocr_text_tsv_idx ON %s USING GIN (%s)
+			`, ent_asset.Table, ocrTextSearchColumn), []any{}, nil)
+			if err != nil {
+				return fault.Wrap(err, fmsg.With("failed to create ocr_text search index"))
 			}
 
 			return nil

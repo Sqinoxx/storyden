@@ -19,6 +19,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldAccountID holds the string denoting the account_id field in the database.
 	FieldAccountID = "account_id"
+	// FieldTokenHash holds the string denoting the token_hash field in the database.
+	FieldTokenHash = "token_hash"
 	// FieldExpiresAt holds the string denoting the expires_at field in the database.
 	FieldExpiresAt = "expires_at"
 	// FieldRevokedAt holds the string denoting the revoked_at field in the database.
@@ -47,6 +49,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldAccountID,
+	FieldTokenHash,
 	FieldExpiresAt,
 	FieldRevokedAt,
 	FieldRefreshedAt,
@@ -69,6 +72,8 @@ var (
 	DefaultCreatedAt func() time.Time
 	// AccountIDValidator is a validator for the "account_id" field. It is called by the builders before save.
 	AccountIDValidator func(string) error
+	// TokenHashValidator is a validator for the "token_hash" field. It is called by the builders before save.
+	TokenHashValidator func(string) error
 	// DefaultLifetimeSeconds holds the default value on creation for the "lifetime_seconds" field.
 	DefaultLifetimeSeconds int
 	// DefaultPersistent holds the default value on creation for the "persistent" field.
@@ -95,6 +100,11 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByAccountID orders the results by the account_id field.
 func ByAccountID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAccountID, opts...).ToFunc()
+}
+
+// ByTokenHash orders the results by the token_hash field.
+func ByTokenHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTokenHash, opts...).ToFunc()
 }
 
 // ByExpiresAt orders the results by the expires_at field.

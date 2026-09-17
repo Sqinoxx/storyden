@@ -44,12 +44,30 @@ func TestPasswordReset(t *testing.T) {
 						Query string `json:"query"`
 						Url   string `json:"url"`
 					}{
-						Url:   "http://localhost:3000/reset",
+						Url:   "/reset",
 						Query: "token",
 					},
 				})
 				r.NoError(err)
 				r.Equal(http.StatusNotFound, request.StatusCode())
+			})
+
+			t.Run("off_origin_link_url_rejected", func(t *testing.T) {
+				r := require.New(t)
+
+				email := xid.New().String() + "@storyden.org"
+				request, err := cl.AuthPasswordResetRequestEmailWithResponse(root, openapi.AuthEmailPasswordReset{
+					Email: email,
+					TokenUrl: struct {
+						Query string `json:"query"`
+						Url   string `json:"url"`
+					}{
+						Url:   "https://evil.tld/reset",
+						Query: "token",
+					},
+				})
+				r.NoError(err)
+				r.Equal(http.StatusBadRequest, request.StatusCode())
 			})
 
 			t.Run("reset_password", func(t *testing.T) {
@@ -77,7 +95,7 @@ func TestPasswordReset(t *testing.T) {
 						Query string `json:"query"`
 						Url   string `json:"url"`
 					}{
-						Url:   "http://localhost:3000/reset",
+						Url:   "/reset",
 						Query: "token",
 					},
 				})

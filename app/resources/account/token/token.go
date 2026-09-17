@@ -1,44 +1,71 @@
 package token
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"time"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/opt"
 	"github.com/Southclaws/storyden/app/resources/account"
-	"github.com/rs/xid"
 )
 
 var (
 	ErrTokenExpired = fault.New("token expired")
 	ErrTokenRevoked = fault.New("token revoked")
+	ErrInvalidToken = fault.New("invalid token")
 )
 
-type Token struct{ xid.ID }
+// secretLength is the size, in bytes, of a session token's random secret.
+// 32 bytes (256 bits) from crypto/rand is unguessable well beyond any
+// practical brute-force budget.
+const secretLength = 32
 
-func FromString(b string) (Token, error) {
-	id, err := xid.FromString(b)
-	if err != nil {
-		return Token{}, err
+// Token is an opaque, unguessable session credential. Only its Hash is ever
+// persisted; the raw secret exists solely in the value handed to the client
+// (cookie or bearer header), so reading the database cannot produce a valid
+// token.
+type Token struct{ secret []byte }
+
+// Generate creates a new random session token.
+func Generate() Token {
+	b := make([]byte, secretLength)
+	if _, err := rand.Read(b); err != nil {
+		panic("crypto/rand unavailable: " + err.Error())
 	}
 
-	return Token{id}, nil
+	return Token{secret: b}
 }
 
-func Generate() Token {
-	return Token{xid.New()}
+// FromString parses a token from its client-facing (base64url) form.
+func FromString(s string) (Token, error) {
+	b, err := base64.RawURLEncoding.DecodeString(s)
+	if err != nil {
+		return Token{}, fault.Wrap(err)
+	}
+
+	if len(b) != secretLength {
+		return Token{}, ErrInvalidToken
+	}
+
+	return Token{secret: b}, nil
 }
 
-func (t Token) Bytes() []byte {
-	return t.ID.Bytes()
+// Hash is the value actually stored in and looked up from the database, so
+// that the raw token never needs to be persisted anywhere.
+func (t Token) Hash() string {
+	sum := sha256.Sum256(t.secret)
+	return hex.EncodeToString(sum[:])
 }
 
 func (t Token) String() string {
-	return t.ID.String()
+	return base64.RawURLEncoding.EncodeToString(t.secret)
 }
 
-// MarshalJSON encodes the token as a bare string (`"c5n4mpk1..."`).
+// MarshalJSON encodes the token as a bare string.
 func (t Token) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.String())
 }
@@ -49,11 +76,13 @@ func (t *Token) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &s); err != nil {
 		return err
 	}
-	id, err := xid.FromString(s)
+
+	tok, err := FromString(s)
 	if err != nil {
 		return err
 	}
-	*t = Token{id}
+
+	*t = tok
 	return nil
 }
 

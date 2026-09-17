@@ -23,6 +23,8 @@ type Session struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// AccountID holds the value of the "account_id" field.
 	AccountID xid.ID `json:"account_id,omitempty"`
+	// TokenHash holds the value of the "token_hash" field.
+	TokenHash *string `json:"-"`
 	// ExpiresAt holds the value of the "expires_at" field.
 	ExpiresAt time.Time `json:"expires_at,omitempty"`
 	// RevokedAt holds the value of the "revoked_at" field.
@@ -68,6 +70,8 @@ func (*Session) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case session.FieldLifetimeSeconds:
 			values[i] = new(sql.NullInt64)
+		case session.FieldTokenHash:
+			values[i] = new(sql.NullString)
 		case session.FieldCreatedAt, session.FieldExpiresAt, session.FieldRevokedAt, session.FieldRefreshedAt:
 			values[i] = new(sql.NullTime)
 		case session.FieldID, session.FieldAccountID:
@@ -104,6 +108,13 @@ func (_m *Session) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field account_id", values[i])
 			} else if value != nil {
 				_m.AccountID = *value
+			}
+		case session.FieldTokenHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field token_hash", values[i])
+			} else if value.Valid {
+				_m.TokenHash = new(string)
+				*_m.TokenHash = value.String
 			}
 		case session.FieldExpiresAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -183,6 +194,8 @@ func (_m *Session) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("account_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.AccountID))
+	builder.WriteString(", ")
+	builder.WriteString("token_hash=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("expires_at=")
 	builder.WriteString(_m.ExpiresAt.Format(time.ANSIC))

@@ -148,6 +148,39 @@ func TestSessionExpiry(t *testing.T) {
 					time.Now().Add(2*token.RefreshInterval), token.RefreshInterval))
 			})
 
+			t.Run("session_tokens_are_random_not_derivable_ids", func(t *testing.T) {
+				a := assert.New(t)
+				r := require.New(t)
+
+				cookieA := sessionCookie(t, signUp(t, nil))
+				cookieB := sessionCookie(t, signUp(t, nil))
+
+				a.NotEqual(cookieA.Value, cookieB.Value)
+
+				tokA, err := token.FromString(cookieA.Value)
+				r.NoError(err)
+				tokB, err := token.FromString(cookieB.Value)
+				r.NoError(err)
+
+				// The token must not be (or be derived from) a sequential/
+				// predictable ID such as an xid: hashes of two freshly
+				// issued tokens must not collide, and the value stored for
+				// lookups must differ from the client-facing token itself.
+				a.NotEqual(tokA.Hash(), tokB.Hash())
+				a.NotEqual(cookieA.Value, tokA.Hash())
+			})
+
+			t.Run("a_raw_xid_is_not_a_valid_session_token", func(t *testing.T) {
+				r := require.New(t)
+
+				resp, err := cl.AccountGetWithResponse(root, func(ctx context.Context, req *http.Request) error {
+					req.AddCookie(&http.Cookie{Name: "storyden-session", Value: xid.New().String()})
+					return nil
+				})
+				r.NoError(err)
+				r.Equal(http.StatusUnauthorized, resp.StatusCode())
+			})
+
 			t.Run("legacy_sessions_keep_their_expiry", func(t *testing.T) {
 				a := assert.New(t)
 

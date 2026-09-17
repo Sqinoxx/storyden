@@ -45,6 +45,20 @@ func (_c *SessionCreate) SetAccountID(v xid.ID) *SessionCreate {
 	return _c
 }
 
+// SetTokenHash sets the "token_hash" field.
+func (_c *SessionCreate) SetTokenHash(v string) *SessionCreate {
+	_c.mutation.SetTokenHash(v)
+	return _c
+}
+
+// SetNillableTokenHash sets the "token_hash" field if the given value is not nil.
+func (_c *SessionCreate) SetNillableTokenHash(v *string) *SessionCreate {
+	if v != nil {
+		_c.SetTokenHash(*v)
+	}
+	return _c
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (_c *SessionCreate) SetExpiresAt(v time.Time) *SessionCreate {
 	_c.mutation.SetExpiresAt(v)
@@ -192,6 +206,11 @@ func (_c *SessionCreate) check() error {
 			return &ValidationError{Name: "account_id", err: fmt.Errorf(`ent: validator failed for field "Session.account_id": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.TokenHash(); ok {
+		if err := session.TokenHashValidator(v); err != nil {
+			return &ValidationError{Name: "token_hash", err: fmt.Errorf(`ent: validator failed for field "Session.token_hash": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.ExpiresAt(); !ok {
 		return &ValidationError{Name: "expires_at", err: errors.New(`ent: missing required field "Session.expires_at"`)}
 	}
@@ -248,6 +267,10 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(session.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
+	}
+	if value, ok := _c.mutation.TokenHash(); ok {
+		_spec.SetField(session.FieldTokenHash, field.TypeString, value)
+		_node.TokenHash = &value
 	}
 	if value, ok := _c.mutation.ExpiresAt(); ok {
 		_spec.SetField(session.FieldExpiresAt, field.TypeTime, value)
@@ -438,6 +461,9 @@ func (u *SessionUpsertOne) UpdateNewValues() *SessionUpsertOne {
 		}
 		if _, exists := u.create.mutation.AccountID(); exists {
 			s.SetIgnore(session.FieldAccountID)
+		}
+		if _, exists := u.create.mutation.TokenHash(); exists {
+			s.SetIgnore(session.FieldTokenHash)
 		}
 	}))
 	return u
@@ -749,6 +775,9 @@ func (u *SessionUpsertBulk) UpdateNewValues() *SessionUpsertBulk {
 			}
 			if _, exists := b.mutation.AccountID(); exists {
 				s.SetIgnore(session.FieldAccountID)
+			}
+			if _, exists := b.mutation.TokenHash(); exists {
+				s.SetIgnore(session.FieldTokenHash)
 			}
 		}
 	}))

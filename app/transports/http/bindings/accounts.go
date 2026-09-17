@@ -29,11 +29,11 @@ import (
 	"github.com/Southclaws/storyden/app/services/account/account_auth"
 	"github.com/Southclaws/storyden/app/services/account/account_deletion"
 	"github.com/Southclaws/storyden/app/services/account/account_email"
-	"github.com/Southclaws/storyden/app/services/account/semester"
 	"github.com/Southclaws/storyden/app/services/account/account_manage"
 	"github.com/Southclaws/storyden/app/services/account/account_moderation_note"
 	"github.com/Southclaws/storyden/app/services/account/account_role_assign"
 	"github.com/Southclaws/storyden/app/services/account/account_update"
+	"github.com/Southclaws/storyden/app/services/account/semester"
 	"github.com/Southclaws/storyden/app/services/authentication"
 	"github.com/Southclaws/storyden/app/services/authentication/provider/password/password_reset"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
@@ -103,7 +103,6 @@ func NewAccounts(
 		webAddress:            cfg.PublicWebAddress,
 	}
 }
-
 
 var (
 	ErrSelfAdminRoleChange = fault.New("cannot change own admin role", ftag.With(ftag.InvalidArgument), fmsg.WithDesc("admin role", "You cannot change your own admin role."))
@@ -454,7 +453,7 @@ func (i *Accounts) AccountUpdate(ctx context.Context, request openapi.AccountUpd
 		Name:      opt.NewPtr(request.Body.Name),
 		Bio:       opt.NewPtr(request.Body.Bio),
 		Signature: signature,
-		Links: links,
+		Links:     links,
 		// Merged rather than replaced so a client updating one preference does
 		// not wipe the others, and normalised so the server anchors the chosen
 		// semester to the term it was chosen in.
@@ -884,7 +883,7 @@ func (h *Accounts) AccountEmailPasswordReset(ctx context.Context, request openap
 	accountID := account.AccountID(openapi.ParseID(request.AccountId))
 	emailAddressID := openapi.ParseID(request.Body.EmailAddressId)
 
-	lt, err := password_reset.NewLinkTemplate(request.Body.TokenUrl.Url, request.Body.TokenUrl.Query)
+	lt, err := password_reset.NewLinkTemplate(h.webAddress, request.Body.TokenUrl.Url, request.Body.TokenUrl.Query)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -909,4 +908,3 @@ func (h *Accounts) AccountDelete(ctx context.Context, request openapi.AccountDel
 
 	return openapi.AccountDelete204Response{}, nil
 }
-

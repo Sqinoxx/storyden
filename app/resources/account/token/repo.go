@@ -2,6 +2,7 @@ package token
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/Southclaws/fault"
@@ -73,7 +74,7 @@ func (r *cachedRepo) Revoke(ctx context.Context, token Token) error {
 func (r *cachedRepo) Validate(ctx context.Context, t Token) (*Validated, error) {
 	sess, found, err := r.get(ctx, t)
 	if err != nil {
-		return nil, r.delete(ctx, t)
+		return nil, errors.Join(err, r.delete(ctx, t))
 	}
 
 	if found {
@@ -95,7 +96,7 @@ func (r *cachedRepo) Validate(ctx context.Context, t Token) (*Validated, error) 
 }
 
 func (r *cachedRepo) get(ctx context.Context, t Token) (*Validated, bool, error) {
-	raw, err := r.store.Get(ctx, t.ID.String())
+	raw, err := r.store.Get(ctx, t.String())
 	if err != nil {
 		// Cache miss, found=false
 		// TODO: Expose a "cache miss" error/return value and distinguish
@@ -136,7 +137,7 @@ func (r *cachedRepo) cache(ctx context.Context, s Session) error {
 }
 
 func (r *cachedRepo) delete(ctx context.Context, token Token) error {
-	err := r.store.Delete(ctx, token.ID.String())
+	err := r.store.Delete(ctx, token.String())
 	if err != nil {
 		return err
 	}

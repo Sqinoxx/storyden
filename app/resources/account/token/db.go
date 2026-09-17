@@ -65,11 +65,11 @@ func (r *persistedRepository) Issue(ctx context.Context, accountID account.Accou
 		o.lifetime = Expiry
 	}
 
-	token := Token{xid.New()}
+	tok := Generate()
 	now := time.Now()
 
 	create := r.db.Session.Create().
-		SetID(token.ID).
+		SetTokenHash(tok.Hash()).
 		SetAccountID(xid.ID(accountID)).
 		SetExpiresAt(now.Add(o.lifetime)).
 		SetRefreshedAt(now).
@@ -81,26 +81,26 @@ func (r *persistedRepository) Issue(ctx context.Context, accountID account.Accou
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	return Map(result), nil
+	return Map(result, tok), nil
 }
 
 // Refresh slides the session's expiry forward by its own lifetime. Legacy
 // sessions, which have no recorded lifetime, are returned untouched so that
 // deploying this cannot shorten sessions issued before it.
 func (r *persistedRepository) Refresh(ctx context.Context, t Token) (*Session, error) {
-	current, err := r.db.Session.Query().Where(session.ID(t.ID)).Only(ctx)
+	current, err := r.db.Session.Query().Where(session.TokenHash(t.Hash())).Only(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	if current.LifetimeSeconds <= 0 {
-		return Map(current), nil
+		return Map(current, t), nil
 	}
 
 	now := time.Now()
 	lifetime := time.Duration(current.LifetimeSeconds) * time.Second
 
-	updated, err := r.db.Session.UpdateOneID(t.ID).
+	updated, err := current.Update().
 		SetExpiresAt(now.Add(lifetime)).
 		SetRefreshedAt(now).
 		Save(ctx)
@@ -108,11 +108,11 @@ func (r *persistedRepository) Refresh(ctx context.Context, t Token) (*Session, e
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	return Map(updated), nil
+	return Map(updated, t), nil
 }
 
-func (r *persistedRepository) Revoke(ctx context.Context, id Token) error {
-	update := r.db.Session.Update().Where(session.ID(id.ID))
+func (r *persistedRepository) Revoke(ctx context.Context, t Token) error {
+	update := r.db.Session.Update().Where(session.TokenHash(t.Hash()))
 
 	update.SetRevokedAt(time.Now())
 
@@ -125,14 +125,14 @@ func (r *persistedRepository) Revoke(ctx context.Context, id Token) error {
 }
 
 func (r *persistedRepository) Validate(ctx context.Context, t Token) (*Validated, error) {
-	query := r.db.Session.Query().Where(session.ID(t.ID))
+	query := r.db.Session.Query().Where(session.TokenHash(t.Hash()))
 
 	result, err := query.Only(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	v, err := Map(result).Validate()
+	v, err := Map(result, t).Validate()
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -140,9 +140,11 @@ func (r *persistedRepository) Validate(ctx context.Context, t Token) (*Validated
 	return v, nil
 }
 
-func Map(s *ent.Session) *Session {
+// Map builds a Session from a database row plus the raw token the caller
+// already holds, since only the token's hash is ever persisted.
+func Map(s *ent.Session, t Token) *Session {
 	return &Session{
-		Token:       Token{s.ID},
+		Token:       t,
 		AccountID:   account.AccountID(s.AccountID),
 		ExpiresAt:   s.ExpiresAt,
 		RevokedAt:   opt.NewPtr(s.RevokedAt),

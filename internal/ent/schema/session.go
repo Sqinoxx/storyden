@@ -22,6 +22,22 @@ func (Session) Fields() []ent.Field {
 			GoType(xid.ID{}).
 			NotEmpty(),
 
+		// SHA-256 hash of the random session secret handed to the client.
+		// Only the hash is stored so that reading the database (a backup, a
+		// leaked dump) cannot be turned back into a usable session token.
+		//
+		// Optional purely so that ALTER TABLE can add this column to an
+		// existing sessions table without a backfill; every session issued
+		// by this codebase always sets it, so a NULL row is simply one
+		// issued before this field existed and can never match a token.
+		field.String("token_hash").
+			Immutable().
+			Optional().
+			Nillable().
+			NotEmpty().
+			Unique().
+			Sensitive(),
+
 		// Mutable so that the sliding inactivity window can be extended.
 		field.Time("expires_at"),
 

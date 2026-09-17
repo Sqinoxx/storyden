@@ -35,6 +35,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/oauthdeviceauthorisation"
 	"github.com/Southclaws/storyden/internal/ent/oauthrefreshtoken"
 	"github.com/Southclaws/storyden/internal/ent/oauthremoteconnection"
+	"github.com/Southclaws/storyden/internal/ent/passwordresettoken"
 	"github.com/Southclaws/storyden/internal/ent/plugin"
 	"github.com/Southclaws/storyden/internal/ent/post"
 	"github.com/Southclaws/storyden/internal/ent/postread"
@@ -548,6 +549,21 @@ func (_u *AccountUpdate) AddOauthRefreshTokens(v ...*OAuthRefreshToken) *Account
 		ids[i] = v[i].ID
 	}
 	return _u.AddOauthRefreshTokenIDs(ids...)
+}
+
+// AddPasswordResetTokenIDs adds the "password_reset_tokens" edge to the PasswordResetToken entity by IDs.
+func (_u *AccountUpdate) AddPasswordResetTokenIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.AddPasswordResetTokenIDs(ids...)
+	return _u
+}
+
+// AddPasswordResetTokens adds the "password_reset_tokens" edges to the PasswordResetToken entity.
+func (_u *AccountUpdate) AddPasswordResetTokens(v ...*PasswordResetToken) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPasswordResetTokenIDs(ids...)
 }
 
 // AddOauthRemoteConnectionIDs adds the "oauth_remote_connections" edge to the OAuthRemoteConnection entity by IDs.
@@ -1312,6 +1328,27 @@ func (_u *AccountUpdate) RemoveOauthRefreshTokens(v ...*OAuthRefreshToken) *Acco
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOauthRefreshTokenIDs(ids...)
+}
+
+// ClearPasswordResetTokens clears all "password_reset_tokens" edges to the PasswordResetToken entity.
+func (_u *AccountUpdate) ClearPasswordResetTokens() *AccountUpdate {
+	_u.mutation.ClearPasswordResetTokens()
+	return _u
+}
+
+// RemovePasswordResetTokenIDs removes the "password_reset_tokens" edge to PasswordResetToken entities by IDs.
+func (_u *AccountUpdate) RemovePasswordResetTokenIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.RemovePasswordResetTokenIDs(ids...)
+	return _u
+}
+
+// RemovePasswordResetTokens removes "password_reset_tokens" edges to PasswordResetToken entities.
+func (_u *AccountUpdate) RemovePasswordResetTokens(v ...*PasswordResetToken) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePasswordResetTokenIDs(ids...)
 }
 
 // ClearOauthRemoteConnections clears all "oauth_remote_connections" edges to the OAuthRemoteConnection entity.
@@ -2830,6 +2867,51 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(oauthrefreshtoken.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PasswordResetTokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.PasswordResetTokensTable,
+			Columns: []string{account.PasswordResetTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passwordresettoken.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPasswordResetTokensIDs(); len(nodes) > 0 && !_u.mutation.PasswordResetTokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.PasswordResetTokensTable,
+			Columns: []string{account.PasswordResetTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passwordresettoken.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PasswordResetTokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.PasswordResetTokensTable,
+			Columns: []string{account.PasswordResetTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passwordresettoken.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -4465,6 +4547,21 @@ func (_u *AccountUpdateOne) AddOauthRefreshTokens(v ...*OAuthRefreshToken) *Acco
 	return _u.AddOauthRefreshTokenIDs(ids...)
 }
 
+// AddPasswordResetTokenIDs adds the "password_reset_tokens" edge to the PasswordResetToken entity by IDs.
+func (_u *AccountUpdateOne) AddPasswordResetTokenIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.AddPasswordResetTokenIDs(ids...)
+	return _u
+}
+
+// AddPasswordResetTokens adds the "password_reset_tokens" edges to the PasswordResetToken entity.
+func (_u *AccountUpdateOne) AddPasswordResetTokens(v ...*PasswordResetToken) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPasswordResetTokenIDs(ids...)
+}
+
 // AddOauthRemoteConnectionIDs adds the "oauth_remote_connections" edge to the OAuthRemoteConnection entity by IDs.
 func (_u *AccountUpdateOne) AddOauthRemoteConnectionIDs(ids ...xid.ID) *AccountUpdateOne {
 	_u.mutation.AddOauthRemoteConnectionIDs(ids...)
@@ -5227,6 +5324,27 @@ func (_u *AccountUpdateOne) RemoveOauthRefreshTokens(v ...*OAuthRefreshToken) *A
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOauthRefreshTokenIDs(ids...)
+}
+
+// ClearPasswordResetTokens clears all "password_reset_tokens" edges to the PasswordResetToken entity.
+func (_u *AccountUpdateOne) ClearPasswordResetTokens() *AccountUpdateOne {
+	_u.mutation.ClearPasswordResetTokens()
+	return _u
+}
+
+// RemovePasswordResetTokenIDs removes the "password_reset_tokens" edge to PasswordResetToken entities by IDs.
+func (_u *AccountUpdateOne) RemovePasswordResetTokenIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.RemovePasswordResetTokenIDs(ids...)
+	return _u
+}
+
+// RemovePasswordResetTokens removes "password_reset_tokens" edges to PasswordResetToken entities.
+func (_u *AccountUpdateOne) RemovePasswordResetTokens(v ...*PasswordResetToken) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePasswordResetTokenIDs(ids...)
 }
 
 // ClearOauthRemoteConnections clears all "oauth_remote_connections" edges to the OAuthRemoteConnection entity.
@@ -6775,6 +6893,51 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(oauthrefreshtoken.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PasswordResetTokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.PasswordResetTokensTable,
+			Columns: []string{account.PasswordResetTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passwordresettoken.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPasswordResetTokensIDs(); len(nodes) > 0 && !_u.mutation.PasswordResetTokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.PasswordResetTokensTable,
+			Columns: []string{account.PasswordResetTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passwordresettoken.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PasswordResetTokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.PasswordResetTokensTable,
+			Columns: []string{account.PasswordResetTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passwordresettoken.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

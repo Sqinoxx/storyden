@@ -403,6 +403,8 @@ var (
 		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},
 		{Name: "email_address", Type: field.TypeString, Unique: true, Size: 254},
 		{Name: "verification_code", Type: field.TypeString, Size: 6},
+		{Name: "code_expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "code_attempts", Type: field.TypeInt, Default: 0},
 		{Name: "verified", Type: field.TypeBool, Default: "false"},
 		{Name: "account_id", Type: field.TypeString, Nullable: true, Size: 20},
 	}
@@ -414,7 +416,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "emails_accounts_emails",
-				Columns:    []*schema.Column{EmailsColumns[5]},
+				Columns:    []*schema.Column{EmailsColumns[7]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -1140,6 +1142,36 @@ var (
 				Name:    "oauthremoteconnection_resource_url_authorization_server_added_by",
 				Unique:  true,
 				Columns: []*schema.Column{OauthRemoteConnectionsColumns[3], OauthRemoteConnectionsColumns[7], OauthRemoteConnectionsColumns[26]},
+			},
+		},
+	}
+	// PasswordResetTokensColumns holds the columns for the "password_reset_tokens" table.
+	PasswordResetTokensColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 20},
+		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},
+		{Name: "jti", Type: field.TypeString},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "used_at", Type: field.TypeTime, Nullable: true},
+		{Name: "account_id", Type: field.TypeString, Size: 20},
+	}
+	// PasswordResetTokensTable holds the schema information for the "password_reset_tokens" table.
+	PasswordResetTokensTable = &schema.Table{
+		Name:       "password_reset_tokens",
+		Columns:    PasswordResetTokensColumns,
+		PrimaryKey: []*schema.Column{PasswordResetTokensColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "password_reset_tokens_accounts_password_reset_tokens",
+				Columns:    []*schema.Column{PasswordResetTokensColumns[5]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "passwordresettoken_jti",
+				Unique:  true,
+				Columns: []*schema.Column{PasswordResetTokensColumns[2]},
 			},
 		},
 	}
@@ -2039,6 +2071,7 @@ var (
 		OauthRefreshTokensTable,
 		OauthRemoteAuthorisationFlowsTable,
 		OauthRemoteConnectionsTable,
+		PasswordResetTokensTable,
 		PluginsTable,
 		PostsTable,
 		PostReadsTable,
@@ -2127,6 +2160,7 @@ func init() {
 	OauthRefreshTokensTable.ForeignKeys[2].RefTable = OauthRefreshTokensTable
 	OauthRemoteAuthorisationFlowsTable.ForeignKeys[0].RefTable = OauthRemoteConnectionsTable
 	OauthRemoteConnectionsTable.ForeignKeys[0].RefTable = AccountsTable
+	PasswordResetTokensTable.ForeignKeys[0].RefTable = AccountsTable
 	PluginsTable.ForeignKeys[0].RefTable = AccountsTable
 	PostsTable.ForeignKeys[0].RefTable = AccountsTable
 	PostsTable.ForeignKeys[1].RefTable = CategoriesTable

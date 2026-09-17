@@ -46,6 +46,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/oauthrefreshtoken"
 	"github.com/Southclaws/storyden/internal/ent/oauthremoteauthorisationflow"
 	"github.com/Southclaws/storyden/internal/ent/oauthremoteconnection"
+	"github.com/Southclaws/storyden/internal/ent/passwordresettoken"
 	"github.com/Southclaws/storyden/internal/ent/plugin"
 	"github.com/Southclaws/storyden/internal/ent/post"
 	"github.com/Southclaws/storyden/internal/ent/postread"
@@ -136,6 +137,8 @@ type Client struct {
 	OAuthRemoteAuthorisationFlow *OAuthRemoteAuthorisationFlowClient
 	// OAuthRemoteConnection is the client for interacting with the OAuthRemoteConnection builders.
 	OAuthRemoteConnection *OAuthRemoteConnectionClient
+	// PasswordResetToken is the client for interacting with the PasswordResetToken builders.
+	PasswordResetToken *PasswordResetTokenClient
 	// Plugin is the client for interacting with the Plugin builders.
 	Plugin *PluginClient
 	// Post is the client for interacting with the Post builders.
@@ -219,6 +222,7 @@ func (c *Client) init() {
 	c.OAuthRefreshToken = NewOAuthRefreshTokenClient(c.config)
 	c.OAuthRemoteAuthorisationFlow = NewOAuthRemoteAuthorisationFlowClient(c.config)
 	c.OAuthRemoteConnection = NewOAuthRemoteConnectionClient(c.config)
+	c.PasswordResetToken = NewPasswordResetTokenClient(c.config)
 	c.Plugin = NewPluginClient(c.config)
 	c.Post = NewPostClient(c.config)
 	c.PostRead = NewPostReadClient(c.config)
@@ -362,6 +366,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OAuthRefreshToken:            NewOAuthRefreshTokenClient(cfg),
 		OAuthRemoteAuthorisationFlow: NewOAuthRemoteAuthorisationFlowClient(cfg),
 		OAuthRemoteConnection:        NewOAuthRemoteConnectionClient(cfg),
+		PasswordResetToken:           NewPasswordResetTokenClient(cfg),
 		Plugin:                       NewPluginClient(cfg),
 		Post:                         NewPostClient(cfg),
 		PostRead:                     NewPostReadClient(cfg),
@@ -432,6 +437,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OAuthRefreshToken:            NewOAuthRefreshTokenClient(cfg),
 		OAuthRemoteAuthorisationFlow: NewOAuthRemoteAuthorisationFlowClient(cfg),
 		OAuthRemoteConnection:        NewOAuthRemoteConnectionClient(cfg),
+		PasswordResetToken:           NewPasswordResetTokenClient(cfg),
 		Plugin:                       NewPluginClient(cfg),
 		Post:                         NewPostClient(cfg),
 		PostRead:                     NewPostReadClient(cfg),
@@ -489,11 +495,11 @@ func (c *Client) Use(hooks ...Hook) {
 		c.NodeVersion, c.Notification, c.OAuthAuthorisationCode,
 		c.OAuthAuthorisationRequest, c.OAuthClient, c.OAuthDeviceAuthorisation,
 		c.OAuthRefreshToken, c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection,
-		c.Plugin, c.Post, c.PostRead, c.Property, c.PropertySchema,
-		c.PropertySchemaField, c.React, c.Report, c.Robot, c.RobotMCPServer,
-		c.RobotMCPTool, c.RobotProviderModel, c.RobotSession, c.RobotSessionMessage,
-		c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role, c.Session, c.Setting,
-		c.Tag, c.Warning,
+		c.PasswordResetToken, c.Plugin, c.Post, c.PostRead, c.Property,
+		c.PropertySchema, c.PropertySchemaField, c.React, c.Report, c.Robot,
+		c.RobotMCPServer, c.RobotMCPTool, c.RobotProviderModel, c.RobotSession,
+		c.RobotSessionMessage, c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role,
+		c.Session, c.Setting, c.Tag, c.Warning,
 	} {
 		n.Use(hooks...)
 	}
@@ -510,11 +516,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.NodeVersion, c.Notification, c.OAuthAuthorisationCode,
 		c.OAuthAuthorisationRequest, c.OAuthClient, c.OAuthDeviceAuthorisation,
 		c.OAuthRefreshToken, c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection,
-		c.Plugin, c.Post, c.PostRead, c.Property, c.PropertySchema,
-		c.PropertySchemaField, c.React, c.Report, c.Robot, c.RobotMCPServer,
-		c.RobotMCPTool, c.RobotProviderModel, c.RobotSession, c.RobotSessionMessage,
-		c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role, c.Session, c.Setting,
-		c.Tag, c.Warning,
+		c.PasswordResetToken, c.Plugin, c.Post, c.PostRead, c.Property,
+		c.PropertySchema, c.PropertySchemaField, c.React, c.Report, c.Robot,
+		c.RobotMCPServer, c.RobotMCPTool, c.RobotProviderModel, c.RobotSession,
+		c.RobotSessionMessage, c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role,
+		c.Session, c.Setting, c.Tag, c.Warning,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -583,6 +589,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OAuthRemoteAuthorisationFlow.mutate(ctx, m)
 	case *OAuthRemoteConnectionMutation:
 		return c.OAuthRemoteConnection.mutate(ctx, m)
+	case *PasswordResetTokenMutation:
+		return c.PasswordResetToken.mutate(ctx, m)
 	case *PluginMutation:
 		return c.Plugin.mutate(ctx, m)
 	case *PostMutation:
@@ -1035,6 +1043,22 @@ func (c *AccountClient) QueryOauthRefreshTokens(_m *Account) *OAuthRefreshTokenQ
 			sqlgraph.From(account.Table, account.FieldID, id),
 			sqlgraph.To(oauthrefreshtoken.Table, oauthrefreshtoken.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, account.OauthRefreshTokensTable, account.OauthRefreshTokensColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPasswordResetTokens queries the password_reset_tokens edge of a Account.
+func (c *AccountClient) QueryPasswordResetTokens(_m *Account) *PasswordResetTokenQuery {
+	query := (&PasswordResetTokenClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(passwordresettoken.Table, passwordresettoken.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.PasswordResetTokensTable, account.PasswordResetTokensColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -6634,6 +6658,155 @@ func (c *OAuthRemoteConnectionClient) mutate(ctx context.Context, m *OAuthRemote
 	}
 }
 
+// PasswordResetTokenClient is a client for the PasswordResetToken schema.
+type PasswordResetTokenClient struct {
+	config
+}
+
+// NewPasswordResetTokenClient returns a client for the PasswordResetToken from the given config.
+func NewPasswordResetTokenClient(c config) *PasswordResetTokenClient {
+	return &PasswordResetTokenClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `passwordresettoken.Hooks(f(g(h())))`.
+func (c *PasswordResetTokenClient) Use(hooks ...Hook) {
+	c.hooks.PasswordResetToken = append(c.hooks.PasswordResetToken, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `passwordresettoken.Intercept(f(g(h())))`.
+func (c *PasswordResetTokenClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PasswordResetToken = append(c.inters.PasswordResetToken, interceptors...)
+}
+
+// Create returns a builder for creating a PasswordResetToken entity.
+func (c *PasswordResetTokenClient) Create() *PasswordResetTokenCreate {
+	mutation := newPasswordResetTokenMutation(c.config, OpCreate)
+	return &PasswordResetTokenCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PasswordResetToken entities.
+func (c *PasswordResetTokenClient) CreateBulk(builders ...*PasswordResetTokenCreate) *PasswordResetTokenCreateBulk {
+	return &PasswordResetTokenCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PasswordResetTokenClient) MapCreateBulk(slice any, setFunc func(*PasswordResetTokenCreate, int)) *PasswordResetTokenCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PasswordResetTokenCreateBulk{err: fmt.Errorf("calling to PasswordResetTokenClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PasswordResetTokenCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PasswordResetTokenCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PasswordResetToken.
+func (c *PasswordResetTokenClient) Update() *PasswordResetTokenUpdate {
+	mutation := newPasswordResetTokenMutation(c.config, OpUpdate)
+	return &PasswordResetTokenUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PasswordResetTokenClient) UpdateOne(_m *PasswordResetToken) *PasswordResetTokenUpdateOne {
+	mutation := newPasswordResetTokenMutation(c.config, OpUpdateOne, withPasswordResetToken(_m))
+	return &PasswordResetTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PasswordResetTokenClient) UpdateOneID(id xid.ID) *PasswordResetTokenUpdateOne {
+	mutation := newPasswordResetTokenMutation(c.config, OpUpdateOne, withPasswordResetTokenID(id))
+	return &PasswordResetTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PasswordResetToken.
+func (c *PasswordResetTokenClient) Delete() *PasswordResetTokenDelete {
+	mutation := newPasswordResetTokenMutation(c.config, OpDelete)
+	return &PasswordResetTokenDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PasswordResetTokenClient) DeleteOne(_m *PasswordResetToken) *PasswordResetTokenDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PasswordResetTokenClient) DeleteOneID(id xid.ID) *PasswordResetTokenDeleteOne {
+	builder := c.Delete().Where(passwordresettoken.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PasswordResetTokenDeleteOne{builder}
+}
+
+// Query returns a query builder for PasswordResetToken.
+func (c *PasswordResetTokenClient) Query() *PasswordResetTokenQuery {
+	return &PasswordResetTokenQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePasswordResetToken},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PasswordResetToken entity by its id.
+func (c *PasswordResetTokenClient) Get(ctx context.Context, id xid.ID) (*PasswordResetToken, error) {
+	return c.Query().Where(passwordresettoken.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PasswordResetTokenClient) GetX(ctx context.Context, id xid.ID) *PasswordResetToken {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAccount queries the account edge of a PasswordResetToken.
+func (c *PasswordResetTokenClient) QueryAccount(_m *PasswordResetToken) *AccountQuery {
+	query := (&AccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(passwordresettoken.Table, passwordresettoken.FieldID, id),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, passwordresettoken.AccountTable, passwordresettoken.AccountColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PasswordResetTokenClient) Hooks() []Hook {
+	return c.hooks.PasswordResetToken
+}
+
+// Interceptors returns the client interceptors.
+func (c *PasswordResetTokenClient) Interceptors() []Interceptor {
+	return c.inters.PasswordResetToken
+}
+
+func (c *PasswordResetTokenClient) mutate(ctx context.Context, m *PasswordResetTokenMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PasswordResetTokenCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PasswordResetTokenUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PasswordResetTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PasswordResetTokenDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PasswordResetToken mutation op: %q", m.Op())
+	}
+}
+
 // PluginClient is a client for the Plugin schema.
 type PluginClient struct {
 	config
@@ -10299,11 +10472,11 @@ type (
 		Event, EventParticipant, Invitation, LikePost, Link, MentionProfile,
 		ModerationNote, Node, NodeVersion, Notification, OAuthAuthorisationCode,
 		OAuthAuthorisationRequest, OAuthClient, OAuthDeviceAuthorisation,
-		OAuthRefreshToken, OAuthRemoteAuthorisationFlow, OAuthRemoteConnection, Plugin,
-		Post, PostRead, Property, PropertySchema, PropertySchemaField, React, Report,
-		Robot, RobotMCPServer, RobotMCPTool, RobotProviderModel, RobotSession,
-		RobotSessionMessage, RobotWorkspace, RobotWorkspaceInstance, Role, Session,
-		Setting, Tag, Warning []ent.Hook
+		OAuthRefreshToken, OAuthRemoteAuthorisationFlow, OAuthRemoteConnection,
+		PasswordResetToken, Plugin, Post, PostRead, Property, PropertySchema,
+		PropertySchemaField, React, Report, Robot, RobotMCPServer, RobotMCPTool,
+		RobotProviderModel, RobotSession, RobotSessionMessage, RobotWorkspace,
+		RobotWorkspaceInstance, Role, Session, Setting, Tag, Warning []ent.Hook
 	}
 	inters struct {
 		Account, AccountFollow, AccountRoles, Asset, AuditLog, Authentication, Category,
@@ -10311,11 +10484,11 @@ type (
 		Event, EventParticipant, Invitation, LikePost, Link, MentionProfile,
 		ModerationNote, Node, NodeVersion, Notification, OAuthAuthorisationCode,
 		OAuthAuthorisationRequest, OAuthClient, OAuthDeviceAuthorisation,
-		OAuthRefreshToken, OAuthRemoteAuthorisationFlow, OAuthRemoteConnection, Plugin,
-		Post, PostRead, Property, PropertySchema, PropertySchemaField, React, Report,
-		Robot, RobotMCPServer, RobotMCPTool, RobotProviderModel, RobotSession,
-		RobotSessionMessage, RobotWorkspace, RobotWorkspaceInstance, Role, Session,
-		Setting, Tag, Warning []ent.Interceptor
+		OAuthRefreshToken, OAuthRemoteAuthorisationFlow, OAuthRemoteConnection,
+		PasswordResetToken, Plugin, Post, PostRead, Property, PropertySchema,
+		PropertySchemaField, React, Report, Robot, RobotMCPServer, RobotMCPTool,
+		RobotProviderModel, RobotSession, RobotSessionMessage, RobotWorkspace,
+		RobotWorkspaceInstance, Role, Session, Setting, Tag, Warning []ent.Interceptor
 	}
 )
 

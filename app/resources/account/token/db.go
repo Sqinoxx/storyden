@@ -11,6 +11,7 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/internal/ent"
+	"github.com/Southclaws/storyden/internal/ent/predicate"
 	"github.com/Southclaws/storyden/internal/ent/session"
 )
 
@@ -109,6 +110,32 @@ func (r *persistedRepository) Refresh(ctx context.Context, t Token) (*Session, e
 	}
 
 	return Map(updated, t), nil
+}
+
+// RevokeAllForAccount revokes every currently-active session belonging to an
+// account and returns the hashes of the rows it revoked.
+func (r *persistedRepository) RevokeAllForAccount(ctx context.Context, accountID account.AccountID) ([]string, error) {
+	pred := []predicate.Session{
+		session.AccountID(xid.ID(accountID)),
+		session.RevokedAtIsNil(),
+	}
+
+	var hashes []string
+	if err := r.db.Session.Query().
+		Where(pred...).
+		Select(session.FieldTokenHash).
+		Scan(ctx, &hashes); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := r.db.Session.Update().
+		Where(pred...).
+		SetRevokedAt(time.Now()).
+		Exec(ctx); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return hashes, nil
 }
 
 func (r *persistedRepository) Revoke(ctx context.Context, t Token) error {

@@ -82,6 +82,8 @@ const (
 	EdgeOauthAuthorisationRequests = "oauth_authorisation_requests"
 	// EdgeOauthRefreshTokens holds the string denoting the oauth_refresh_tokens edge name in mutations.
 	EdgeOauthRefreshTokens = "oauth_refresh_tokens"
+	// EdgePasswordResetTokens holds the string denoting the password_reset_tokens edge name in mutations.
+	EdgePasswordResetTokens = "password_reset_tokens"
 	// EdgeOauthRemoteConnections holds the string denoting the oauth_remote_connections edge name in mutations.
 	EdgeOauthRemoteConnections = "oauth_remote_connections"
 	// EdgeDriveFolders holds the string denoting the drive_folders edge name in mutations.
@@ -265,6 +267,13 @@ const (
 	OauthRefreshTokensInverseTable = "oauth_refresh_tokens"
 	// OauthRefreshTokensColumn is the table column denoting the oauth_refresh_tokens relation/edge.
 	OauthRefreshTokensColumn = "account_id"
+	// PasswordResetTokensTable is the table that holds the password_reset_tokens relation/edge.
+	PasswordResetTokensTable = "password_reset_tokens"
+	// PasswordResetTokensInverseTable is the table name for the PasswordResetToken entity.
+	// It exists in this package in order to avoid circular dependency with the "passwordresettoken" package.
+	PasswordResetTokensInverseTable = "password_reset_tokens"
+	// PasswordResetTokensColumn is the table column denoting the password_reset_tokens relation/edge.
+	PasswordResetTokensColumn = "account_id"
 	// OauthRemoteConnectionsTable is the table that holds the oauth_remote_connections relation/edge.
 	OauthRemoteConnectionsTable = "oauth_remote_connections"
 	// OauthRemoteConnectionsInverseTable is the table name for the OAuthRemoteConnection entity.
@@ -877,6 +886,20 @@ func ByOauthRefreshTokens(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 	}
 }
 
+// ByPasswordResetTokensCount orders the results by password_reset_tokens count.
+func ByPasswordResetTokensCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPasswordResetTokensStep(), opts...)
+	}
+}
+
+// ByPasswordResetTokens orders the results by password_reset_tokens terms.
+func ByPasswordResetTokens(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPasswordResetTokensStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOauthRemoteConnectionsCount orders the results by oauth_remote_connections count.
 func ByOauthRemoteConnectionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1357,6 +1380,13 @@ func newOauthRefreshTokensStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OauthRefreshTokensInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OauthRefreshTokensTable, OauthRefreshTokensColumn),
+	)
+}
+func newPasswordResetTokensStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PasswordResetTokensInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PasswordResetTokensTable, PasswordResetTokensColumn),
 	)
 }
 func newOauthRemoteConnectionsStep() *sqlgraph.Step {

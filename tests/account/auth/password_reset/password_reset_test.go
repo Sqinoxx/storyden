@@ -114,9 +114,25 @@ func TestPasswordReset(t *testing.T) {
 
 				r.Equal(signup.JSON200.Id, reset.JSON200.Id)
 
-				get, err := cl.AccountGetWithResponse(root, signupSession)
+				// The session from before the reset must not survive it (B4):
+				// otherwise a stolen session would outlive the credential
+				// that was used to kick it out.
+				staleGet, err := cl.AccountGetWithResponse(root, signupSession)
+				r.NoError(err)
+				r.Equal(http.StatusUnauthorized, staleGet.StatusCode())
+
+				resetSession := e2e.WithSessionFromHeader(t, root, reset.HTTPResponse.Header)
+				get, err := cl.AccountGetWithResponse(root, resetSession)
 				tests.Ok(t, err, get)
 				a.Equal(signup.JSON200.Id, get.JSON200.Id)
+
+				// B3: the same reset link must not work a second time.
+				reuse, err := cl.AuthPasswordResetWithResponse(root, openapi.AuthPasswordResetJSONRequestBody{
+					Token: token,
+					New:   "yetanotherpassword",
+				})
+				r.NoError(err)
+				r.Equal(http.StatusUnauthorized, reuse.StatusCode())
 			})
 		}))
 	}))

@@ -112,6 +112,9 @@ func (Account) Edges() []ent.Edge {
 		edge.To("oauth_refresh_tokens", OAuthRefreshToken.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 
+		edge.To("password_reset_tokens", PasswordResetToken.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
+
 		edge.To("oauth_remote_connections", OAuthRemoteConnection.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 

@@ -36,6 +36,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/oauthrefreshtoken"
 	"github.com/Southclaws/storyden/internal/ent/oauthremoteauthorisationflow"
 	"github.com/Southclaws/storyden/internal/ent/oauthremoteconnection"
+	"github.com/Southclaws/storyden/internal/ent/passwordresettoken"
 	"github.com/Southclaws/storyden/internal/ent/plugin"
 	"github.com/Southclaws/storyden/internal/ent/post"
 	"github.com/Southclaws/storyden/internal/ent/postread"
@@ -581,8 +582,12 @@ func init() {
 	emailDescVerificationCode := emailFields[2].Descriptor()
 	// email.VerificationCodeValidator is a validator for the "verification_code" field. It is called by the builders before save.
 	email.VerificationCodeValidator = emailDescVerificationCode.Validators[0].(func(string) error)
+	// emailDescCodeAttempts is the schema descriptor for code_attempts field.
+	emailDescCodeAttempts := emailFields[4].Descriptor()
+	// email.DefaultCodeAttempts holds the default value on creation for the code_attempts field.
+	email.DefaultCodeAttempts = emailDescCodeAttempts.Default.(int)
 	// emailDescVerified is the schema descriptor for verified field.
-	emailDescVerified := emailFields[3].Descriptor()
+	emailDescVerified := emailFields[5].Descriptor()
 	// email.DefaultVerified holds the default value on creation for the verified field.
 	email.DefaultVerified = emailDescVerified.Default.(bool)
 	// emailDescID is the schema descriptor for id field.
@@ -1324,6 +1329,41 @@ func init() {
 	// oauthremoteconnection.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	oauthremoteconnection.IDValidator = func() func(string) error {
 		validators := oauthremoteconnectionDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	passwordresettokenMixin := schema.PasswordResetToken{}.Mixin()
+	passwordresettokenMixinFields0 := passwordresettokenMixin[0].Fields()
+	_ = passwordresettokenMixinFields0
+	passwordresettokenMixinFields1 := passwordresettokenMixin[1].Fields()
+	_ = passwordresettokenMixinFields1
+	passwordresettokenFields := schema.PasswordResetToken{}.Fields()
+	_ = passwordresettokenFields
+	// passwordresettokenDescCreatedAt is the schema descriptor for created_at field.
+	passwordresettokenDescCreatedAt := passwordresettokenMixinFields1[0].Descriptor()
+	// passwordresettoken.DefaultCreatedAt holds the default value on creation for the created_at field.
+	passwordresettoken.DefaultCreatedAt = passwordresettokenDescCreatedAt.Default.(func() time.Time)
+	// passwordresettokenDescJti is the schema descriptor for jti field.
+	passwordresettokenDescJti := passwordresettokenFields[0].Descriptor()
+	// passwordresettoken.JtiValidator is a validator for the "jti" field. It is called by the builders before save.
+	passwordresettoken.JtiValidator = passwordresettokenDescJti.Validators[0].(func(string) error)
+	// passwordresettokenDescID is the schema descriptor for id field.
+	passwordresettokenDescID := passwordresettokenMixinFields0[0].Descriptor()
+	// passwordresettoken.DefaultID holds the default value on creation for the id field.
+	passwordresettoken.DefaultID = passwordresettokenDescID.Default.(func() xid.ID)
+	// passwordresettoken.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	passwordresettoken.IDValidator = func() func(string) error {
+		validators := passwordresettokenDescID.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),

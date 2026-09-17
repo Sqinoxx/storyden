@@ -42,6 +42,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/oauthrefreshtoken"
 	"github.com/Southclaws/storyden/internal/ent/oauthremoteauthorisationflow"
 	"github.com/Southclaws/storyden/internal/ent/oauthremoteconnection"
+	"github.com/Southclaws/storyden/internal/ent/passwordresettoken"
 	"github.com/Southclaws/storyden/internal/ent/plugin"
 	"github.com/Southclaws/storyden/internal/ent/post"
 	"github.com/Southclaws/storyden/internal/ent/postread"
@@ -153,6 +154,7 @@ func checkColumn(t, c string) error {
 			oauthrefreshtoken.Table:            oauthrefreshtoken.ValidColumn,
 			oauthremoteauthorisationflow.Table: oauthremoteauthorisationflow.ValidColumn,
 			oauthremoteconnection.Table:        oauthremoteconnection.ValidColumn,
+			passwordresettoken.Table:           passwordresettoken.ValidColumn,
 			plugin.Table:                       plugin.ValidColumn,
 			post.Table:                         post.ValidColumn,
 			postread.Table:                     postread.ValidColumn,

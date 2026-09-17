@@ -35,6 +35,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/oauthdeviceauthorisation"
 	"github.com/Southclaws/storyden/internal/ent/oauthrefreshtoken"
 	"github.com/Southclaws/storyden/internal/ent/oauthremoteconnection"
+	"github.com/Southclaws/storyden/internal/ent/passwordresettoken"
 	"github.com/Southclaws/storyden/internal/ent/plugin"
 	"github.com/Southclaws/storyden/internal/ent/post"
 	"github.com/Southclaws/storyden/internal/ent/postread"
@@ -513,6 +514,21 @@ func (_c *AccountCreate) AddOauthRefreshTokens(v ...*OAuthRefreshToken) *Account
 		ids[i] = v[i].ID
 	}
 	return _c.AddOauthRefreshTokenIDs(ids...)
+}
+
+// AddPasswordResetTokenIDs adds the "password_reset_tokens" edge to the PasswordResetToken entity by IDs.
+func (_c *AccountCreate) AddPasswordResetTokenIDs(ids ...xid.ID) *AccountCreate {
+	_c.mutation.AddPasswordResetTokenIDs(ids...)
+	return _c
+}
+
+// AddPasswordResetTokens adds the "password_reset_tokens" edges to the PasswordResetToken entity.
+func (_c *AccountCreate) AddPasswordResetTokens(v ...*PasswordResetToken) *AccountCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPasswordResetTokenIDs(ids...)
 }
 
 // AddOauthRemoteConnectionIDs adds the "oauth_remote_connections" edge to the OAuthRemoteConnection entity by IDs.
@@ -1392,6 +1408,22 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(oauthrefreshtoken.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PasswordResetTokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.PasswordResetTokensTable,
+			Columns: []string{account.PasswordResetTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passwordresettoken.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

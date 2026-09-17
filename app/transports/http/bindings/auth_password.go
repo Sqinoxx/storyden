@@ -89,12 +89,14 @@ func (i *Authentication) AuthPasswordUpdate(ctx context.Context, request openapi
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	previous := i.currentSessionPersistence(ctx)
+
 	acc, err := i.passwordAuthProvider.UpdatePassword(ctx, id, request.Body.Old, request.Body.New)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := i.reissueForCurrentSession(ctx, acc.ID)
+	t, err := i.si.IssueLike(ctx, acc.ID, previous)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -110,12 +112,14 @@ func (i *Authentication) AuthPasswordUpdate(ctx context.Context, request openapi
 }
 
 func (i *Authentication) AuthPasswordReset(ctx context.Context, request openapi.AuthPasswordResetRequestObject) (openapi.AuthPasswordResetResponseObject, error) {
+	previous := i.currentSessionPersistence(ctx)
+
 	acc, err := i.passwordAuthProvider.ResetPassword(ctx, request.Body.Token, request.Body.New)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	t, err := i.reissueForCurrentSession(ctx, acc.ID)
+	t, err := i.si.IssueLike(ctx, acc.ID, previous)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

@@ -91,21 +91,27 @@ func rememberMe(v *openapi.AuthRememberMe) session.IssueParams {
 	return session.IssueParams{RememberMe: v != nil && *v}
 }
 
-// reissueForCurrentSession issues a session that keeps the persistence of the
-// one making the request, so that changing a password does not silently
-// downgrade a remembered login into a browser session.
-func (i *Authentication) reissueForCurrentSession(ctx context.Context, accountID account.AccountID) (*token.Session, error) {
-	previous := opt.NewEmpty[token.Session]()
-
+// currentSessionPersistence reads the persistence flag of the session making
+// the current request. Callers that are about to revoke every session for
+// the account (a password change) must capture this *before* doing so, since
+// afterwards the lookup can no longer succeed.
+func (i *Authentication) currentSessionPersistence(ctx context.Context) opt.Optional[token.Session] {
 	if raw, ok := session.GetSessionToken(ctx).Get(); ok {
 		if t, err := token.FromString(raw); err == nil {
 			if v, err := i.tokenRepo.Validate(ctx, t); err == nil {
-				previous = opt.New(token.Session(*v))
+				return opt.New(token.Session(*v))
 			}
 		}
 	}
 
-	return i.si.IssueLike(ctx, accountID, previous)
+	return opt.NewEmpty[token.Session]()
+}
+
+// reissueForCurrentSession issues a session that keeps the persistence of the
+// one making the request, so that changing a password does not silently
+// downgrade a remembered login into a browser session.
+func (i *Authentication) reissueForCurrentSession(ctx context.Context, accountID account.AccountID) (*token.Session, error) {
+	return i.si.IssueLike(ctx, accountID, i.currentSessionPersistence(ctx))
 }
 
 func (o *Authentication) AuthProviderList(ctx context.Context, request openapi.AuthProviderListRequestObject) (openapi.AuthProviderListResponseObject, error) {

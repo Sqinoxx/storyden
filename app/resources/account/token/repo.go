@@ -17,6 +17,12 @@ type Repository interface {
 	Refresh(context.Context, Token) (*Session, error)
 	Revoke(context.Context, Token) error
 	Validate(context.Context, Token) (*Validated, error)
+
+	// RevokeAllForAccount revokes every currently-active session for an
+	// account, e.g. when its password changes. It returns the hashes of the
+	// sessions it revoked so a caching layer can evict them immediately
+	// instead of waiting out their TTL.
+	RevokeAllForAccount(ctx context.Context, accountID account.AccountID) ([]string, error)
 }
 
 type cachedRepo struct {
@@ -71,6 +77,21 @@ func (r *cachedRepo) Revoke(ctx context.Context, token Token) error {
 	return nil
 }
 
+func (r *cachedRepo) RevokeAllForAccount(ctx context.Context, accountID account.AccountID) ([]string, error) {
+	hashes, err := r.repo.RevokeAllForAccount(ctx, accountID)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	for _, hash := range hashes {
+		if err := r.store.Delete(ctx, hash); err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+	}
+
+	return hashes, nil
+}
+
 func (r *cachedRepo) Validate(ctx context.Context, t Token) (*Validated, error) {
 	sess, found, err := r.get(ctx, t)
 	if err != nil {
@@ -96,7 +117,7 @@ func (r *cachedRepo) Validate(ctx context.Context, t Token) (*Validated, error) 
 }
 
 func (r *cachedRepo) get(ctx context.Context, t Token) (*Validated, bool, error) {
-	raw, err := r.store.Get(ctx, t.String())
+	raw, err := r.store.Get(ctx, t.Hash())
 	if err != nil {
 		// Cache miss, found=false
 		// TODO: Expose a "cache miss" error/return value and distinguish
@@ -128,7 +149,7 @@ func (r *cachedRepo) cache(ctx context.Context, s Session) error {
 		return nil
 	}
 
-	err = r.store.Set(ctx, s.Token.String(), string(payload), ttl)
+	err = r.store.Set(ctx, s.Token.Hash(), string(payload), ttl)
 	if err != nil {
 		return err
 	}
@@ -137,7 +158,7 @@ func (r *cachedRepo) cache(ctx context.Context, s Session) error {
 }
 
 func (r *cachedRepo) delete(ctx context.Context, token Token) error {
-	err := r.store.Delete(ctx, token.String())
+	err := r.store.Delete(ctx, token.Hash())
 	if err != nil {
 		return err
 	}

@@ -15,6 +15,8 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
 	"github.com/Southclaws/storyden/app/resources/account/email"
+	"github.com/Southclaws/storyden/app/resources/account/password_reset_token"
+	"github.com/Southclaws/storyden/app/resources/account/token"
 	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/services/account/register"
 	"github.com/Southclaws/storyden/app/services/authentication/email_verify"
@@ -45,6 +47,8 @@ type Provider struct {
 	er           *email.Repository
 	register     *register.Registrar
 	resetter     *password_reset.EmailResetter
+	sessions     token.Repository
+	resetTokens  password_reset_token.Repository
 
 	// TODO: Replace with an MQ message and sender job.
 	sender *email_verify.Verifier
@@ -61,6 +65,8 @@ func New(
 	er *email.Repository,
 	register *register.Registrar,
 	resetter *password_reset.EmailResetter,
+	sessions token.Repository,
+	resetTokens password_reset_token.Repository,
 	sender *email_verify.Verifier,
 ) *Provider {
 	return &Provider{
@@ -72,8 +78,27 @@ func New(
 		er:           er,
 		register:     register,
 		resetter:     resetter,
+		sessions:     sessions,
+		resetTokens:  resetTokens,
 		sender:       sender,
 	}
+}
+
+// revokeExistingCredentials invalidates every active session and any other
+// still-open password reset token for the account. Called whenever the
+// password actually changes, so that a stolen session or an unused reset
+// link from an earlier request cannot outlive the credential it was issued
+// under.
+func (p *Provider) revokeExistingCredentials(ctx context.Context, accountID account.AccountID) error {
+	if _, err := p.sessions.RevokeAllForAccount(ctx, accountID); err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := p.resetTokens.RevokeAllForAccount(ctx, accountID); err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return nil
 }
 
 func (p *Provider) Service() authentication.Service { return service }
@@ -167,11 +192,15 @@ func (b *Provider) UpdatePassword(ctx context.Context, aid account.AccountID, ol
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if err := b.revokeExistingCredentials(ctx, auth.Account.ID); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	return &auth.Account, nil
 }
 
-func (p *Provider) ResetPassword(ctx context.Context, token string, newpassword string) (*account.Account, error) {
-	accountID, err := p.resetter.Verify(ctx, token)
+func (p *Provider) ResetPassword(ctx context.Context, resetToken string, newpassword string) (*account.Account, error) {
+	accountID, err := p.resetter.Verify(ctx, resetToken)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -194,6 +223,10 @@ func (p *Provider) ResetPassword(ctx context.Context, token string, newpassword 
 
 	auth, err = p.auth.Update(ctx, auth.ID, authentication.WithToken(hashed))
 	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := p.revokeExistingCredentials(ctx, auth.Account.ID); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 

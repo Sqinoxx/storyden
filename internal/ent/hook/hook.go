@@ -369,6 +369,18 @@ func (f OAuthRemoteConnectionFunc) Mutate(ctx context.Context, m ent.Mutation) (
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OAuthRemoteConnectionMutation", m)
 }
 
+// The PasswordResetTokenFunc type is an adapter to allow the use of ordinary
+// function as PasswordResetToken mutator.
+type PasswordResetTokenFunc func(context.Context, *ent.PasswordResetTokenMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PasswordResetTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PasswordResetTokenMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PasswordResetTokenMutation", m)
+}
+
 // The PluginFunc type is an adapter to allow the use of ordinary
 // function as Plugin mutator.
 type PluginFunc func(context.Context, *ent.PluginMutation) (ent.Value, error)

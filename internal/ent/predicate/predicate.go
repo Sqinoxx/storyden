@@ -96,6 +96,9 @@ type OAuthRemoteAuthorisationFlow func(*sql.Selector)
 // OAuthRemoteConnection is the predicate function for oauthremoteconnection builders.
 type OAuthRemoteConnection func(*sql.Selector)
 
+// PasswordResetToken is the predicate function for passwordresettoken builders.
+type PasswordResetToken func(*sql.Selector)
+
 // Plugin is the predicate function for plugin builders.
 type Plugin func(*sql.Selector)
 

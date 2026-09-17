@@ -74,6 +74,8 @@ type Tx struct {
 	OAuthRemoteAuthorisationFlow *OAuthRemoteAuthorisationFlowClient
 	// OAuthRemoteConnection is the client for interacting with the OAuthRemoteConnection builders.
 	OAuthRemoteConnection *OAuthRemoteConnectionClient
+	// PasswordResetToken is the client for interacting with the PasswordResetToken builders.
+	PasswordResetToken *PasswordResetTokenClient
 	// Plugin is the client for interacting with the Plugin builders.
 	Plugin *PluginClient
 	// Post is the client for interacting with the Post builders.
@@ -277,6 +279,7 @@ func (tx *Tx) init() {
 	tx.OAuthRefreshToken = NewOAuthRefreshTokenClient(tx.config)
 	tx.OAuthRemoteAuthorisationFlow = NewOAuthRemoteAuthorisationFlowClient(tx.config)
 	tx.OAuthRemoteConnection = NewOAuthRemoteConnectionClient(tx.config)
+	tx.PasswordResetToken = NewPasswordResetTokenClient(tx.config)
 	tx.Plugin = NewPluginClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
 	tx.PostRead = NewPostReadClient(tx.config)

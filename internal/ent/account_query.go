@@ -35,6 +35,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/oauthdeviceauthorisation"
 	"github.com/Southclaws/storyden/internal/ent/oauthrefreshtoken"
 	"github.com/Southclaws/storyden/internal/ent/oauthremoteconnection"
+	"github.com/Southclaws/storyden/internal/ent/passwordresettoken"
 	"github.com/Southclaws/storyden/internal/ent/plugin"
 	"github.com/Southclaws/storyden/internal/ent/post"
 	"github.com/Southclaws/storyden/internal/ent/postread"
@@ -80,6 +81,7 @@ type AccountQuery struct {
 	withOauthAuthorisationCodes           *OAuthAuthorisationCodeQuery
 	withOauthAuthorisationRequests        *OAuthAuthorisationRequestQuery
 	withOauthRefreshTokens                *OAuthRefreshTokenQuery
+	withPasswordResetTokens               *PasswordResetTokenQuery
 	withOauthRemoteConnections            *OAuthRemoteConnectionQuery
 	withDriveFolders                      *DriveFolderQuery
 	withClaimedOauthDeviceAuthorisations  *OAuthDeviceAuthorisationQuery
@@ -553,6 +555,28 @@ func (_q *AccountQuery) QueryOauthRefreshTokens() *OAuthRefreshTokenQuery {
 			sqlgraph.From(account.Table, account.FieldID, selector),
 			sqlgraph.To(oauthrefreshtoken.Table, oauthrefreshtoken.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, account.OauthRefreshTokensTable, account.OauthRefreshTokensColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPasswordResetTokens chains the current query on the "password_reset_tokens" edge.
+func (_q *AccountQuery) QueryPasswordResetTokens() *PasswordResetTokenQuery {
+	query := (&PasswordResetTokenClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(passwordresettoken.Table, passwordresettoken.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.PasswordResetTokensTable, account.PasswordResetTokensColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1321,6 +1345,7 @@ func (_q *AccountQuery) Clone() *AccountQuery {
 		withOauthAuthorisationCodes:           _q.withOauthAuthorisationCodes.Clone(),
 		withOauthAuthorisationRequests:        _q.withOauthAuthorisationRequests.Clone(),
 		withOauthRefreshTokens:                _q.withOauthRefreshTokens.Clone(),
+		withPasswordResetTokens:               _q.withPasswordResetTokens.Clone(),
 		withOauthRemoteConnections:            _q.withOauthRemoteConnections.Clone(),
 		withDriveFolders:                      _q.withDriveFolders.Clone(),
 		withClaimedOauthDeviceAuthorisations:  _q.withClaimedOauthDeviceAuthorisations.Clone(),
@@ -1559,6 +1584,17 @@ func (_q *AccountQuery) WithOauthRefreshTokens(opts ...func(*OAuthRefreshTokenQu
 		opt(query)
 	}
 	_q.withOauthRefreshTokens = query
+	return _q
+}
+
+// WithPasswordResetTokens tells the query-builder to eager-load the nodes that are connected to
+// the "password_reset_tokens" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithPasswordResetTokens(opts ...func(*PasswordResetTokenQuery)) *AccountQuery {
+	query := (&PasswordResetTokenClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPasswordResetTokens = query
 	return _q
 }
 
@@ -1915,7 +1951,7 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 	var (
 		nodes       = []*Account{}
 		_spec       = _q.querySpec()
-		loadedTypes = [44]bool{
+		loadedTypes = [45]bool{
 			_q.withSessions != nil,
 			_q.withPlugins != nil,
 			_q.withEmails != nil,
@@ -1935,6 +1971,7 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 			_q.withOauthAuthorisationCodes != nil,
 			_q.withOauthAuthorisationRequests != nil,
 			_q.withOauthRefreshTokens != nil,
+			_q.withPasswordResetTokens != nil,
 			_q.withOauthRemoteConnections != nil,
 			_q.withDriveFolders != nil,
 			_q.withClaimedOauthDeviceAuthorisations != nil,
@@ -2119,6 +2156,15 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 			func(n *Account) { n.Edges.OauthRefreshTokens = []*OAuthRefreshToken{} },
 			func(n *Account, e *OAuthRefreshToken) {
 				n.Edges.OauthRefreshTokens = append(n.Edges.OauthRefreshTokens, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPasswordResetTokens; query != nil {
+		if err := _q.loadPasswordResetTokens(ctx, query, nodes,
+			func(n *Account) { n.Edges.PasswordResetTokens = []*PasswordResetToken{} },
+			func(n *Account, e *PasswordResetToken) {
+				n.Edges.PasswordResetTokens = append(n.Edges.PasswordResetTokens, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2908,6 +2954,36 @@ func (_q *AccountQuery) loadOauthRefreshTokens(ctx context.Context, query *OAuth
 	}
 	query.Where(predicate.OAuthRefreshToken(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(account.OauthRefreshTokensColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AccountID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "account_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *AccountQuery) loadPasswordResetTokens(ctx context.Context, query *PasswordResetTokenQuery, nodes []*Account, init func(*Account), assign func(*Account, *PasswordResetToken)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[xid.ID]*Account)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(passwordresettoken.FieldAccountID)
+	}
+	query.Where(predicate.PasswordResetToken(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(account.PasswordResetTokensColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

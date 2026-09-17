@@ -21,6 +21,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/role/role_querier"
 	"github.com/Southclaws/storyden/app/resources/account/role/role_repo"
 	"github.com/Southclaws/storyden/app/resources/account/role/role_writer"
+	"github.com/Southclaws/storyden/app/resources/account/password_reset_token"
 	"github.com/Southclaws/storyden/app/resources/account/token"
 	"github.com/Southclaws/storyden/app/resources/account/warning/warning_repo"
 	"github.com/Southclaws/storyden/app/resources/asset/asset_querier"
@@ -175,5 +176,6 @@ func Build() fx.Option {
 			llm_provider.New,
 		),
 		token.Build(),
+		password_reset_token.Build(),
 	)
 }

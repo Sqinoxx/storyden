@@ -124,6 +124,42 @@ func TestUsernamePasswordAuth(t *testing.T) {
 				r.Equal(http.StatusOK, signin2.StatusCode())
 			})
 
+			t.Run("change_password_revokes_other_sessions", func(t *testing.T) {
+				r := require.New(t)
+
+				handle := xid.New().String()
+
+				signup, err := cl.AuthPasswordSignupWithResponse(root, nil, openapi.AuthPair{
+					Identifier: handle,
+					Token:      "password",
+				})
+				r.NoError(err)
+				r.Equal(http.StatusOK, signup.StatusCode())
+				session1 := e2e.WithSessionFromHeader(t, root, signup.HTTPResponse.Header)
+
+				// A second, independent login - e.g. another device.
+				signin, err := cl.AuthPasswordSigninWithResponse(root, openapi.AuthPair{
+					Identifier: handle,
+					Token:      "password",
+				})
+				r.NoError(err)
+				r.Equal(http.StatusOK, signin.StatusCode())
+				session2 := e2e.WithSessionFromHeader(t, root, signin.HTTPResponse.Header)
+
+				change, err := cl.AuthPasswordUpdateWithResponse(root, openapi.AuthPasswordMutableProps{
+					Old: "password",
+					New: "wordpass",
+				}, session2)
+				r.NoError(err)
+				r.Equal(http.StatusOK, change.StatusCode())
+
+				// B4: changing the password from session2 must invalidate
+				// session1 too, not just log the caller back in.
+				staleGet, err := cl.AccountGetWithResponse(root, session1)
+				r.NoError(err)
+				r.Equal(http.StatusUnauthorized, staleGet.StatusCode())
+			})
+
 			t.Run("register_fail_invalid_password", func(t *testing.T) {
 				handle := xid.New().String()
 

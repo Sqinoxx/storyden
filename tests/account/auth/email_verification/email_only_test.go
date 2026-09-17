@@ -120,6 +120,58 @@ func TestEmailOnlyAuth(t *testing.T) {
 				tests.Ok(t, err, verified)
 				a.Equal(openapi.AccountVerifiedStatusNone, verified.JSON200.VerifiedStatus)
 			})
+
+			t.Run("verify_code_cannot_be_reused", func(t *testing.T) {
+				r := require.New(t)
+
+				address := xid.New().String() + "@storyden.org"
+				emailCount := inbox.Count()
+
+				signup, err := cl.AuthEmailSignupWithResponse(root, nil, openapi.AuthEmailSignupJSONRequestBody{Email: address})
+				tests.Ok(t, err, signup)
+
+				accountID := account.AccountID(openapi.GetAccountID(signup.JSON200.Id))
+				session := sh.WithSession(e2e.WithAccountID(root, accountID))
+
+				verification := tests.WaitForNextEmail(t, inbox, emailCount)
+				code := regexp.MustCompile(`verify your account: ([0-9]{6})`).FindStringSubmatch(verification.Plain)[1]
+
+				first, err := cl.AuthEmailVerifyWithResponse(root, openapi.AuthEmailVerifyJSONRequestBody{Email: address, Code: code}, session)
+				tests.Ok(t, err, first)
+
+				// B5: the same code must not verify a second time.
+				second, err := cl.AuthEmailVerifyWithResponse(root, openapi.AuthEmailVerifyJSONRequestBody{Email: address, Code: code}, session)
+				r.NoError(err)
+				r.Equal(http.StatusUnauthorized, second.StatusCode())
+			})
+
+			t.Run("verify_locks_out_after_too_many_wrong_attempts", func(t *testing.T) {
+				r := require.New(t)
+
+				address := xid.New().String() + "@storyden.org"
+				emailCount := inbox.Count()
+
+				signup, err := cl.AuthEmailSignupWithResponse(root, nil, openapi.AuthEmailSignupJSONRequestBody{Email: address})
+				tests.Ok(t, err, signup)
+
+				accountID := account.AccountID(openapi.GetAccountID(signup.JSON200.Id))
+				session := sh.WithSession(e2e.WithAccountID(root, accountID))
+
+				verification := tests.WaitForNextEmail(t, inbox, emailCount)
+				code := regexp.MustCompile(`verify your account: ([0-9]{6})`).FindStringSubmatch(verification.Plain)[1]
+
+				for i := 0; i < 5; i++ {
+					resp, err := cl.AuthEmailVerifyWithResponse(root, openapi.AuthEmailVerifyJSONRequestBody{Email: address, Code: "000000"}, session)
+					r.NoError(err)
+					r.Equal(http.StatusUnauthorized, resp.StatusCode())
+				}
+
+				// B5: even the correct code is rejected once the attempt
+				// budget for it is spent - a new one must be requested.
+				resp, err := cl.AuthEmailVerifyWithResponse(root, openapi.AuthEmailVerifyJSONRequestBody{Email: address, Code: code}, session)
+				r.NoError(err)
+				r.Equal(http.StatusUnauthorized, resp.StatusCode())
+			})
 		}))
 	}))
 }

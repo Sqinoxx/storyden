@@ -25,8 +25,10 @@ data.db*
 
 # gotta ignore the literal filename of the backend build for agents because
 # they don't use .exe file extension so it's tough to catch-all for binaries.
-# these files are basically just the contents of ./cmd/
-backend
-clean
-migrate
-seed
+# these files are basically just the contents of ./cmd/. Anchored to the repo
+# root (leading /) so this doesn't also match same-named source directories,
+# e.g. internal/ent/migrate/ or app/resources/seed/.
+/backend
+/clean
+/migrate
+/seed

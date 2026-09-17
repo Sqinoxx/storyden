@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -61,6 +62,47 @@ func (_u *EmailUpdate) SetNillableVerificationCode(v *string) *EmailUpdate {
 	if v != nil {
 		_u.SetVerificationCode(*v)
 	}
+	return _u
+}
+
+// SetCodeExpiresAt sets the "code_expires_at" field.
+func (_u *EmailUpdate) SetCodeExpiresAt(v time.Time) *EmailUpdate {
+	_u.mutation.SetCodeExpiresAt(v)
+	return _u
+}
+
+// SetNillableCodeExpiresAt sets the "code_expires_at" field if the given value is not nil.
+func (_u *EmailUpdate) SetNillableCodeExpiresAt(v *time.Time) *EmailUpdate {
+	if v != nil {
+		_u.SetCodeExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearCodeExpiresAt clears the value of the "code_expires_at" field.
+func (_u *EmailUpdate) ClearCodeExpiresAt() *EmailUpdate {
+	_u.mutation.ClearCodeExpiresAt()
+	return _u
+}
+
+// SetCodeAttempts sets the "code_attempts" field.
+func (_u *EmailUpdate) SetCodeAttempts(v int) *EmailUpdate {
+	_u.mutation.ResetCodeAttempts()
+	_u.mutation.SetCodeAttempts(v)
+	return _u
+}
+
+// SetNillableCodeAttempts sets the "code_attempts" field if the given value is not nil.
+func (_u *EmailUpdate) SetNillableCodeAttempts(v *int) *EmailUpdate {
+	if v != nil {
+		_u.SetCodeAttempts(*v)
+	}
+	return _u
+}
+
+// AddCodeAttempts adds value to the "code_attempts" field.
+func (_u *EmailUpdate) AddCodeAttempts(v int) *EmailUpdate {
+	_u.mutation.AddCodeAttempts(v)
 	return _u
 }
 
@@ -152,6 +194,18 @@ func (_u *EmailUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.VerificationCode(); ok {
 		_spec.SetField(email.FieldVerificationCode, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.CodeExpiresAt(); ok {
+		_spec.SetField(email.FieldCodeExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.CodeExpiresAtCleared() {
+		_spec.ClearField(email.FieldCodeExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.CodeAttempts(); ok {
+		_spec.SetField(email.FieldCodeAttempts, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCodeAttempts(); ok {
+		_spec.AddField(email.FieldCodeAttempts, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.Verified(); ok {
 		_spec.SetField(email.FieldVerified, field.TypeBool, value)
 	}
@@ -237,6 +291,47 @@ func (_u *EmailUpdateOne) SetNillableVerificationCode(v *string) *EmailUpdateOne
 	if v != nil {
 		_u.SetVerificationCode(*v)
 	}
+	return _u
+}
+
+// SetCodeExpiresAt sets the "code_expires_at" field.
+func (_u *EmailUpdateOne) SetCodeExpiresAt(v time.Time) *EmailUpdateOne {
+	_u.mutation.SetCodeExpiresAt(v)
+	return _u
+}
+
+// SetNillableCodeExpiresAt sets the "code_expires_at" field if the given value is not nil.
+func (_u *EmailUpdateOne) SetNillableCodeExpiresAt(v *time.Time) *EmailUpdateOne {
+	if v != nil {
+		_u.SetCodeExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearCodeExpiresAt clears the value of the "code_expires_at" field.
+func (_u *EmailUpdateOne) ClearCodeExpiresAt() *EmailUpdateOne {
+	_u.mutation.ClearCodeExpiresAt()
+	return _u
+}
+
+// SetCodeAttempts sets the "code_attempts" field.
+func (_u *EmailUpdateOne) SetCodeAttempts(v int) *EmailUpdateOne {
+	_u.mutation.ResetCodeAttempts()
+	_u.mutation.SetCodeAttempts(v)
+	return _u
+}
+
+// SetNillableCodeAttempts sets the "code_attempts" field if the given value is not nil.
+func (_u *EmailUpdateOne) SetNillableCodeAttempts(v *int) *EmailUpdateOne {
+	if v != nil {
+		_u.SetCodeAttempts(*v)
+	}
+	return _u
+}
+
+// AddCodeAttempts adds value to the "code_attempts" field.
+func (_u *EmailUpdateOne) AddCodeAttempts(v int) *EmailUpdateOne {
+	_u.mutation.AddCodeAttempts(v)
 	return _u
 }
 
@@ -357,6 +452,18 @@ func (_u *EmailUpdateOne) sqlSave(ctx context.Context) (_node *Email, err error)
 	}
 	if value, ok := _u.mutation.VerificationCode(); ok {
 		_spec.SetField(email.FieldVerificationCode, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CodeExpiresAt(); ok {
+		_spec.SetField(email.FieldCodeExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.CodeExpiresAtCleared() {
+		_spec.ClearField(email.FieldCodeExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.CodeAttempts(); ok {
+		_spec.SetField(email.FieldCodeAttempts, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCodeAttempts(); ok {
+		_spec.AddField(email.FieldCodeAttempts, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Verified(); ok {
 		_spec.SetField(email.FieldVerified, field.TypeBool, value)

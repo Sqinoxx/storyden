@@ -2,8 +2,10 @@ package email
 
 import (
 	"context"
+	"crypto/subtle"
 	"log/slog"
 	"net/mail"
+	"time"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
@@ -16,6 +18,15 @@ import (
 	"github.com/Southclaws/storyden/internal/ent"
 	account_ent "github.com/Southclaws/storyden/internal/ent/account"
 	email_ent "github.com/Southclaws/storyden/internal/ent/email"
+)
+
+const (
+	// codeLifespan is how long a verification/login code stays valid.
+	codeLifespan = 10 * time.Minute
+
+	// maxCodeAttempts is how many wrong codes are tolerated before the
+	// current code is locked out and a new one must be requested.
+	maxCodeAttempts = 5
 )
 
 type Repository struct {
@@ -49,7 +60,9 @@ func (r *Repository) Add(ctx context.Context,
 		// Already claimed by this account, update the record
 		update := r.db.Email.UpdateOne(existing).
 			Where(email_ent.EmailAddress(email.Address)).
-			SetVerificationCode(code)
+			SetVerificationCode(code).
+			SetCodeExpiresAt(time.Now().Add(codeLifespan)).
+			SetCodeAttempts(0)
 
 		if existing.AccountID == nil {
 			update.SetAccountID(xid.ID(accountID))
@@ -70,7 +83,8 @@ func (r *Repository) Add(ctx context.Context,
 	create := r.db.Email.Create().
 		SetAccountID(xid.ID(accountID)).
 		SetEmailAddress(email.Address).
-		SetVerificationCode(code)
+		SetVerificationCode(code).
+		SetCodeExpiresAt(time.Now().Add(codeLifespan))
 
 	result, err := create.Save(ctx)
 	if err != nil {
@@ -85,31 +99,77 @@ func (r *Repository) Add(ctx context.Context,
 	return account.MapEmail(result), nil
 }
 
-func (r *Repository) GetCode(ctx context.Context, emailAddress mail.Address) (string, error) {
-	q := r.db.Email.Query().
-		Where(email_ent.EmailAddress(emailAddress.Address))
-
-	result, err := q.Only(ctx)
+// Regenerate replaces an email's verification code with a freshly issued one,
+// resetting its expiry and attempt counter. Used whenever a code is resent,
+// so that resending never just re-sends a value that may already be
+// known/guessed and is otherwise valid indefinitely.
+func (r *Repository) Regenerate(ctx context.Context, emailAddress mail.Address, code string) error {
+	n, err := r.db.Email.Update().
+		Where(email_ent.EmailAddress(emailAddress.Address)).
+		SetVerificationCode(code).
+		SetCodeExpiresAt(time.Now().Add(codeLifespan)).
+		SetCodeAttempts(0).
+		Save(ctx)
 	if err != nil {
-		return "", fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.Internal))
+		return fault.Wrap(err, fctx.With(ctx))
 	}
 
-	return result.VerificationCode, nil
+	if n == 0 {
+		return fault.New("email address not found", fctx.With(ctx), ftag.With(ftag.NotFound))
+	}
+
+	return nil
 }
 
+// LookupCode verifies a code against the one on file for an address. A code
+// that has expired, or has already been guessed wrong too many times since
+// it was issued, is rejected even if the value matches. On success the code
+// is cleared so that it cannot be used again.
 func (r *Repository) LookupCode(ctx context.Context, emailAddress mail.Address, code string) (*account.Account, bool, error) {
-	q := r.db.Account.
-		Query().
-		Where(
-			account_ent.HasEmailsWith(
-				email_ent.EmailAddress(emailAddress.Address),
-				email_ent.VerificationCode(code),
-			),
-		).
-		WithEmails().
-		WithAuthentication()
+	rec, err := r.db.Email.Query().
+		Where(email_ent.EmailAddress(emailAddress.Address)).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, false, nil
+		}
 
-	result, err := q.Only(ctx)
+		return nil, false, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.Internal))
+	}
+
+	if rec.AccountID == nil {
+		return nil, false, nil
+	}
+
+	expired := rec.CodeExpiresAt == nil || rec.CodeExpiresAt.Before(time.Now())
+	locked := rec.CodeAttempts >= maxCodeAttempts
+	match := subtle.ConstantTimeCompare([]byte(rec.VerificationCode), []byte(code)) == 1
+
+	if expired || locked || !match {
+		if !locked {
+			if err := r.db.Email.UpdateOneID(rec.ID).AddCodeAttempts(1).Exec(ctx); err != nil {
+				return nil, false, fault.Wrap(err, fctx.With(ctx))
+			}
+		}
+
+		return nil, false, nil
+	}
+
+	// Consume the code so a second use of the same value fails, then load the
+	// account the same way the old code-matching query used to.
+	if err := r.db.Email.UpdateOneID(rec.ID).
+		SetVerificationCode("").
+		ClearCodeExpiresAt().
+		SetCodeAttempts(0).
+		Exec(ctx); err != nil {
+		return nil, false, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	result, err := r.db.Account.Query().
+		Where(account_ent.ID(*rec.AccountID)).
+		WithEmails().
+		WithAuthentication().
+		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, false, nil

@@ -40,6 +40,18 @@ func (Email) Fields() []ent.Field {
 			MaxLen(6).
 			Comment("A six digit code that is sent to the email address to verify ownership"),
 
+		// Nil (as well as a past time) is treated as expired, so rows written
+		// before this field existed require a fresh code rather than being
+		// treated as having a permanently valid one.
+		field.Time("code_expires_at").
+			Optional().
+			Nillable().
+			Comment("When the current verification code expires"),
+
+		field.Int("code_attempts").
+			Default(0).
+			Comment("Failed verification attempts against the current code; locked out past a limit"),
+
 		field.Bool("verified").
 			Default(false).
 			Annotations(entsql.Default("false")).

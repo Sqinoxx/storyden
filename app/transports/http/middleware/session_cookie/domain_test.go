@@ -37,6 +37,25 @@ func TestDomainType(t *testing.T) {
 	r.Error(err)
 }
 
+// TestStringDoesNotMutateReceiver covers B21: String() used to reverse its
+// receiver's backing array in place, so calling it more than once (or
+// calling it before another method that assumes a stable element order)
+// silently corrupted the Domain value.
+func TestStringDoesNotMutateReceiver(t *testing.T) {
+	r := require.New(t)
+
+	d, err := DomainFromString("sub.example.com")
+	r.NoError(err)
+
+	r.Equal("sub.example.com", d.String(), "first call")
+	r.Equal("sub.example.com", d.String(), "second call must be identical, not re-reversed")
+	r.Equal(Domain{"com", "example", "sub"}, d, "the receiver itself must be untouched")
+
+	other, err := DomainFromString("example.com")
+	r.NoError(err)
+	r.True(d.IsSubdomainOf(other), "comparisons after String() must still use the canonical ordering")
+}
+
 func TestIsSubdomainOf(t *testing.T) {
 	r := require.New(t)
 

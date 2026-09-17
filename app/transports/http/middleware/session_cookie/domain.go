@@ -34,7 +34,12 @@ func DomainFromString(s string) (Domain, error) {
 }
 
 func (d Domain) String() string {
-	parts := d
+	// A slice header copy still points at the same backing array, so
+	// reversing it in place would mutate the receiver on every call -
+	// silently flipping d's element order out from under any other method
+	// (IsSubdomainOf, IsEqual, ...) that assumes a stable, canonical
+	// (TLD-first) ordering. Clone first so String is a read, not a mutation.
+	parts := slices.Clone(d)
 	slices.Reverse(parts)
 	return strings.Join(parts, ".")
 }

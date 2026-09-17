@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/mail"
 	"strings"
-	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
@@ -100,8 +99,8 @@ func (p *Provider) oauthConfig(redirect string) *oauth2.Config {
 }
 
 // Link returns the URL to redirect a user to Keycloak for authentication.
-func (p *Provider) Link(redirectPath string) (string, error) {
-	state, err := p.ed.Encrypt(map[string]any{"redirect": redirectPath}, time.Minute*10)
+func (p *Provider) Link(redirectPath string, nonce string) (string, error) {
+	state, err := oauth.NewState(p.ed, redirectPath, nonce)
 	if err != nil {
 		return "", fault.Wrap(err)
 	}
@@ -110,16 +109,12 @@ func (p *Provider) Link(redirectPath string) (string, error) {
 }
 
 // Login completes the OAuth2 flow: exchanges code, verifies ID token, and returns the Account.
-func (p *Provider) Login(ctx context.Context, state, code string) (*account.Account, error) {
-	c, err := p.ed.Decrypt(state)
+func (p *Provider) Login(ctx context.Context, state, nonce, code string) (*account.Account, error) {
+	redirect, err := oauth.VerifyState(p.ed, state, nonce)
 	if err != nil {
-		return nil, fault.Wrap(err,
-			fctx.With(ctx),
-			fmsg.WithDesc("failed to decrypt state value", "This link has expired, please try again."),
-		)
+		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	redirect := c["redirect"].(string)
 	oac := p.oauthConfig(redirect)
 	tok, err := oac.Exchange(ctx, code)
 	if err != nil {

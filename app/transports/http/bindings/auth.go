@@ -4,13 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/Southclaws/dt"
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/fault/ftag"
 	"github.com/Southclaws/opt"
+	"github.com/labstack/echo/v4"
 
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
@@ -47,6 +50,13 @@ type Authentication struct {
 	webAddress                    url.URL
 }
 
+// oauthStateCookieName carries the anti-CSRF nonce for an in-progress OAuth
+// login: set by AuthProviderList, embedded into each provider's `state`,
+// and checked again by OAuthProviderCallback.
+const oauthStateCookieName = "storyden-oauth-state"
+
+type oauthStateContextKey struct{}
+
 func NewAuthentication(
 	cfg config.Config,
 	logger *slog.Logger,
@@ -61,7 +71,22 @@ func NewAuthentication(
 	authManager *auth_svc.Manager,
 	emailVerifier *email_verify.Verifier,
 	access_key *access_key.Repository,
+	router *echo.Echo,
 ) Authentication {
+	// The strict OpenAPI handler for OAuthProviderCallback has no access to
+	// the raw request, so the incoming cookie is read here and threaded
+	// through the context (same approach as the WebAuthn session cookie).
+	router.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if ck, err := c.Cookie(oauthStateCookieName); err == nil {
+				r := c.Request()
+				c.SetRequest(r.WithContext(context.WithValue(r.Context(), oauthStateContextKey{}, ck.Value)))
+			}
+
+			return next(c)
+		}
+	})
+
 	return Authentication{
 		logger:                        logger,
 		cj:                            cj,
@@ -77,6 +102,33 @@ func NewAuthentication(
 		access_key:                    access_key,
 		webAddress:                    cfg.PublicWebAddress,
 	}
+}
+
+// oauthStateNonceFromContext reads the nonce set by the middleware above.
+func oauthStateNonceFromContext(ctx context.Context) string {
+	nonce, _ := ctx.Value(oauthStateContextKey{}).(string)
+	return nonce
+}
+
+// newOAuthStateCookie generates a fresh anti-CSRF nonce for a login or
+// account-linking attempt, along with the cookie that carries it back to the
+// browser. The nonce must also be embedded into every OAuth provider's
+// `state` for this response via serialiseAuthProvider.
+func newOAuthStateCookie() (nonce string, cookie *http.Cookie, err error) {
+	nonce, err = oauth.NewNonce()
+	if err != nil {
+		return "", nil, err
+	}
+
+	return nonce, &http.Cookie{
+		Name:     oauthStateCookieName,
+		Value:    nonce,
+		Expires:  time.Now().Add(10 * time.Minute),
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Secure:   true,
+		HttpOnly: true,
+	}, nil
 }
 
 // alwaysRemember is used by flows with no request body to carry the choice in
@@ -125,19 +177,25 @@ func (o *Authentication) AuthProviderList(ctx context.Context, request openapi.A
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	list, err := dt.MapErr(providers, serialiseAuthProvider(buildRedirectURL(o.webAddress)))
+	nonce, cookie, err := newOAuthStateCookie()
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	list, err := dt.MapErr(providers, serialiseAuthProvider(buildRedirectURL(o.webAddress), nonce))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	mode := settings.AuthenticationMode.Or(authentication.ModeHandle)
 
-	return openapi.AuthProviderList200JSONResponse{
-		AuthProviderListOKJSONResponse: openapi.AuthProviderListOKJSONResponse{
-			Providers: list,
-			Mode:      openapi.AuthMode(mode.String()),
-		},
-	}, nil
+	resp := openapi.AuthProviderListOKJSONResponse{
+		Headers: openapi.AuthProviderListOKResponseHeaders{SetCookie: cookie.String()},
+	}
+	resp.Body.Mode = openapi.AuthMode(mode.String())
+	resp.Body.Providers = list
+
+	return openapi.AuthProviderList200JSONResponse{AuthProviderListOKJSONResponse: resp}, nil
 }
 
 func (a *Authentication) AuthProviderLogout(ctx context.Context, request openapi.AuthProviderLogoutRequestObject) (openapi.AuthProviderLogoutResponseObject, error) {
@@ -245,12 +303,12 @@ func buildRedirectURL(webAddress url.URL) func(s authentication.Service) url.URL
 	}
 }
 
-func serialiseAuthProvider(redirectFn func(authentication.Service) url.URL) func(p auth_svc.Provider) (openapi.AuthProvider, error) {
+func serialiseAuthProvider(redirectFn func(authentication.Service) url.URL, nonce string) func(p auth_svc.Provider) (openapi.AuthProvider, error) {
 	return func(p auth_svc.Provider) (openapi.AuthProvider, error) {
 		if op, ok := p.(auth_svc.OAuthProvider); ok {
 			uri := redirectFn(p.Service())
 
-			link, err := op.Link(uri.String())
+			link, err := op.Link(uri.String(), nonce)
 			if err != nil {
 				return openapi.AuthProvider{}, fault.Wrap(err)
 			}

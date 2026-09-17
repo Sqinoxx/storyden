@@ -24,13 +24,18 @@ type Provider interface {
 type OAuthProvider interface {
 	// Link will, for providers that support it, provide a URL to a third-party
 	// authenticator. OAuth providers use this to start the authentication flow.
-	Link(redirect string) (string, error)
+	// nonce is an anti-CSRF value the caller has also set in a short-lived
+	// cookie, bound into the returned state so Login can reject a state/code
+	// pair completed in a different browser (login CSRF).
+	Link(redirect string, nonce string) (string, error)
 
 	// Login is a function that will validate and authenticate a user given that
 	// the provider is happy with the input. The input format differs depending
 	// on the provider. For example, an OAuth provider will use `state` and
 	// `secret` as the `state` and `code` components of the OAuth2 specification
 	// and a simple password-based provider may simply want the account handle
-	// in the `state` and their password in the `secret`.
-	Login(ctx context.Context, state, secret string) (*account.Account, error)
+	// in the `state` and their password in the `secret`. nonce is the value
+	// from the caller's storyden-oauth-state cookie, checked against the one
+	// embedded in state by Link.
+	Login(ctx context.Context, state, nonce, secret string) (*account.Account, error)
 }

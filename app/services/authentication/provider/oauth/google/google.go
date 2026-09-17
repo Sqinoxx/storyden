@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/mail"
 	"strings"
-	"time"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
@@ -77,10 +76,8 @@ func (p *Provider) oauthConfig(redirect string) *oauth2.Config {
 	}
 }
 
-func (p *Provider) Link(redirectPath string) (string, error) {
-	state, err := p.ed.Encrypt(map[string]any{
-		"redirect": redirectPath,
-	}, time.Minute*10)
+func (p *Provider) Link(redirectPath string, nonce string) (string, error) {
+	state, err := oauth.NewState(p.ed, redirectPath, nonce)
 	if err != nil {
 		return "", fault.Wrap(err)
 	}
@@ -90,16 +87,13 @@ func (p *Provider) Link(redirectPath string) (string, error) {
 	return oac.AuthCodeURL(state, oauth2.AccessTypeOffline), nil
 }
 
-func (p *Provider) Login(ctx context.Context, state, code string) (*account.Account, error) {
-	c, err := p.ed.Decrypt(state)
+func (p *Provider) Login(ctx context.Context, state, nonce, code string) (*account.Account, error) {
+	redirect, err := oauth.VerifyState(p.ed, state, nonce)
 	if err != nil {
-		return nil, fault.Wrap(err,
-			fctx.With(ctx),
-			fmsg.WithDesc("failed to decrypt state value", "This link has expired, please try again."),
-		)
+		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	oac := p.oauthConfig(c["redirect"].(string))
+	oac := p.oauthConfig(redirect)
 
 	token, err := oac.Exchange(ctx, code, oauth2.AccessTypeOffline)
 	if err != nil {

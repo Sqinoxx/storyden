@@ -555,20 +555,28 @@ func (i *Accounts) AccountAuthProviderList(ctx context.Context, request openapi.
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	available, err := dt.MapErr(providers, serialiseAuthProvider(buildRedirectURL(i.webAddress)))
+	nonce, cookie, err := newOAuthStateCookie()
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	active, err := dt.MapErr(authmethods, serialiseAuthMethod(i.webAddress))
+	available, err := dt.MapErr(providers, serialiseAuthProvider(buildRedirectURL(i.webAddress), nonce))
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	active, err := dt.MapErr(authmethods, serialiseAuthMethod(i.webAddress, nonce))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	return openapi.AccountAuthProviderList200JSONResponse{
 		AccountAuthProviderListOKJSONResponse: openapi.AccountAuthProviderListOKJSONResponse{
-			Available: available,
-			Active:    active,
+			Body: openapi.AccountAuthMethods{
+				Available: available,
+				Active:    active,
+			},
+			Headers: openapi.AccountAuthProviderListOKResponseHeaders{SetCookie: cookie.String()},
 		},
 	}, nil
 }
@@ -599,20 +607,28 @@ func (i *Accounts) AccountAuthMethodDelete(ctx context.Context, request openapi.
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	available, err := dt.MapErr(providers, serialiseAuthProvider(buildRedirectURL(i.webAddress)))
+	nonce, cookie, err := newOAuthStateCookie()
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	active, err := dt.MapErr(authmethods, serialiseAuthMethod(i.webAddress))
+	available, err := dt.MapErr(providers, serialiseAuthProvider(buildRedirectURL(i.webAddress), nonce))
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	active, err := dt.MapErr(authmethods, serialiseAuthMethod(i.webAddress, nonce))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	return openapi.AccountAuthMethodDelete200JSONResponse{
 		AccountAuthProviderListOKJSONResponse: openapi.AccountAuthProviderListOKJSONResponse{
-			Available: available,
-			Active:    active,
+			Body: openapi.AccountAuthMethods{
+				Available: available,
+				Active:    active,
+			},
+			Headers: openapi.AccountAuthProviderListOKResponseHeaders{SetCookie: cookie.String()},
 		},
 	}, nil
 }
@@ -836,9 +852,9 @@ func (h *Accounts) AccountRoleRemoveBadge(ctx context.Context, request openapi.A
 	}, nil
 }
 
-func serialiseAuthMethod(webAddress url.URL) func(in *account_auth.AuthMethod) (openapi.AccountAuthMethod, error) {
+func serialiseAuthMethod(webAddress url.URL, nonce string) func(in *account_auth.AuthMethod) (openapi.AccountAuthMethod, error) {
 	return func(in *account_auth.AuthMethod) (openapi.AccountAuthMethod, error) {
-		p, err := serialiseAuthProvider(buildRedirectURL(webAddress))(in.Provider)
+		p, err := serialiseAuthProvider(buildRedirectURL(webAddress), nonce)(in.Provider)
 		if err != nil {
 			return openapi.AccountAuthMethod{}, fault.Wrap(err)
 		}

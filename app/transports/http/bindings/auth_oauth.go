@@ -28,7 +28,7 @@ func (o *Authentication) OAuthProviderCallback(ctx context.Context, request open
 		return nil, fault.New("provider is not an OAuth provider", fctx.With(ctx), ftag.With(ftag.InvalidArgument))
 	}
 
-	account, err := op.Login(ctx, request.Body.State, request.Body.Code)
+	account, err := op.Login(ctx, request.Body.State, oauthStateNonceFromContext(ctx), request.Body.Code)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

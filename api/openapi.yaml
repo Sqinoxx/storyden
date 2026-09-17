@@ -6267,6 +6267,15 @@ components:
 
     AuthProviderListOK:
       description: OK
+      headers:
+        "Set-Cookie":
+          description: |
+            An anti-CSRF nonce for any OAuth providers in the response, bound
+            into each provider's `state` value and verified again by
+            `OAuthProviderCallback` so a state/code pair obtained on one
+            browser cannot be replayed into another (login CSRF).
+          schema:
+            type: string
       content:
         application/json:
           schema:
@@ -6540,6 +6549,14 @@ components:
 
     AccountAuthProviderListOK:
       description: OK
+      headers:
+        "Set-Cookie":
+          description: |
+            An anti-CSRF nonce for any OAuth "connect" links in the response,
+            bound into each provider's `state` the same way as
+            AuthProviderListOK - see there for why.
+          schema:
+            type: string
       content:
         application/json:
           schema:

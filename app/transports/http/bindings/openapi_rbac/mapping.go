@@ -778,15 +778,18 @@ func (m *Mapping) NodeUpdate() (bool, *rbac.Permission) {
 }
 
 func (m *Mapping) NodeGenerateContent() (bool, *rbac.Permission) {
-	return true, nil // See NOTE.
+	// These call out to an LLM on the caller's behalf, which costs money and
+	// third-party API quota - gated the same as the robot/chat features so a
+	// member without robot access can't run up either.
+	return true, &rbac.PermissionUseRobots
 }
 
 func (m *Mapping) NodeGenerateTags() (bool, *rbac.Permission) {
-	return true, nil // See NOTE.
+	return true, &rbac.PermissionUseRobots
 }
 
 func (m *Mapping) NodeGenerateTitle() (bool, *rbac.Permission) {
-	return true, nil // See NOTE.
+	return true, &rbac.PermissionUseRobots
 }
 
 func (m *Mapping) NodeDelete() (bool, *rbac.Permission) {

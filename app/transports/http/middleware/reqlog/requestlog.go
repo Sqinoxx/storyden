@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"runtime/debug"
 	"time"
 
@@ -12,6 +13,40 @@ import (
 	"github.com/Southclaws/storyden/internal/infrastructure/instrumentation/kv"
 	"github.com/Southclaws/storyden/internal/infrastructure/instrumentation/spanner"
 )
+
+const redacted = "[redacted]"
+
+// redactedQueryKeys lists query parameters that carry a bearer-equivalent
+// secret (OAuth codes/state/tokens, password reset/verification tokens): a
+// value that, on its own, lets whoever reads the logs act as the request's
+// caller. Logs are often shipped to, retained by, and accessed through
+// systems with a much wider audience than the app or its database, so these
+// must never appear in them even though the request itself is legitimate.
+var redactedQueryKeys = map[string]bool{
+	"code":          true,
+	"state":         true,
+	"token":         true,
+	"user_code":     true,
+	"access_token":  true,
+	"refresh_token": true,
+}
+
+// redactedQuery renders a URL's query string with sensitive values replaced,
+// preserving every key (including repeated ones) so the shape of the request
+// is still visible for debugging.
+func redactedQuery(u *url.URL) string {
+	values := u.Query()
+
+	for key := range values {
+		if redactedQueryKeys[key] {
+			for i := range values[key] {
+				values[key][i] = redacted
+			}
+		}
+	}
+
+	return values.Encode()
+}
 
 type Middleware struct {
 	ins spanner.Instrumentation
@@ -57,7 +92,7 @@ func (m *Middleware) WithLogger() func(http.Handler) http.Handler {
 				kv.String("http.request.header.origin", origin),
 				kv.String("client.address", clientAddress),
 				kv.String("http.request.method", r.Method),
-				kv.String("url.query", r.URL.Query().Encode()),
+				kv.String("url.query", redactedQuery(r.URL)),
 				kv.Int("http.request.body.size", int(r.ContentLength)),
 			)
 			defer span.End()

@@ -788,6 +788,13 @@
       description: |-
         Assets stuck in the `processing` status for longer than this duration (e.g. due to a crash mid-processing) are considered failed and picked up again.
 
+    - env: "OCR_TIMEOUT"
+      name: OCRTimeout
+      type: time.Duration
+      default: "60s"
+      description: |-
+        Maximum duration allowed for a single asset's text extraction (e.g. Tesseract/rasterisation). An asset that exceeds this is marked skipped rather than retried, so a single pathological file can't tie up the OCR worker indefinitely.
+
 - section: Message queue
   description: |-
     Configuration for message/job queue. This is not required for Storyden to run, but it can improve performance, reliability and reduce memory usage in larger deployments.

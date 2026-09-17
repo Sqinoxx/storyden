@@ -247,7 +247,7 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 	p.logger.Info("starting text extraction for asset", slog.String("id", id.String()), slog.String("filename", a.Name.String()))
 	_, _ = p.assetWriter.UpdateOCRProcessing(ctx, id)
 
-	result, err := p.ocrClient.ExtractText(ctx, data, mimeStr)
+	result, err := p.extractText(ctx, data, mimeStr)
 	if err != nil {
 		return p.handleExtractionError(ctx, id, err)
 	}
@@ -275,12 +275,42 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 	return nil
 }
 
+// errOCRTimeout marks an extraction that ran past the configured deadline.
+// It's distinct from a generic failure because retrying it would just hang
+// again for the same duration - a single pathological file (e.g. a huge or
+// adversarially crafted PDF) would otherwise tie up the single-slot OCR
+// worker on every backfill pass, starving every other pending asset.
+var errOCRTimeout = errors.New("ocr extraction timed out")
+
+// extractText bounds a single extraction attempt so that one slow or stuck
+// engine invocation can't hold the processor's single concurrency slot (and
+// therefore every other pending asset) forever.
+func (p *Processor) extractText(ctx context.Context, data []byte, mimeStr string) (infra_ocr.Result, error) {
+	extractCtx, cancel := context.WithTimeout(ctx, p.cfg.OCRTimeout)
+	defer cancel()
+
+	result, err := p.ocrClient.ExtractText(extractCtx, data, mimeStr)
+	if err != nil && errors.Is(extractCtx.Err(), context.DeadlineExceeded) {
+		return infra_ocr.Result{}, errOCRTimeout
+	}
+
+	return result, err
+}
+
 // handleExtractionError maps typed extraction errors onto the right terminal
 // status: a missing engine binary or an unsupported/textless document is a
 // permanent, expected condition (skipped, not retried), while anything else
 // is a transient failure (failed, retried by the backfill).
 func (p *Processor) handleExtractionError(ctx context.Context, id xid.ID, err error) error {
 	switch {
+	case errors.Is(err, errOCRTimeout):
+		p.logger.Warn("OCR extraction timed out, skipping asset",
+			slog.String("id", id.String()),
+			slog.Duration("timeout", p.cfg.OCRTimeout),
+		)
+		_, werr := p.assetWriter.UpdateOCRSkipped(ctx, id, fmt.Sprintf("text extraction exceeded the %s timeout", p.cfg.OCRTimeout))
+		return werr
+
 	case errors.Is(err, infra_ocr.ErrEngineUnavailable):
 		p.logger.Warn("OCR engine unavailable, skipping asset", slog.String("id", id.String()))
 		_, werr := p.assetWriter.UpdateOCRSkipped(ctx, id, "ocr engine unavailable")

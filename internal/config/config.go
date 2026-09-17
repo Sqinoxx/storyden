@@ -474,6 +474,8 @@ type Config struct {
 	OCRBackfillBatchSize int `default:"25" envconfig:"OCR_BACKFILL_BATCH_SIZE"`
 	// Assets stuck in the `processing` status for longer than this duration (e.g. due to a crash mid-processing) are considered failed and picked up again.
 	OCRStuckTimeout time.Duration `default:"15m" envconfig:"OCR_STUCK_TIMEOUT"`
+	// Maximum duration allowed for a single asset's text extraction (e.g. Tesseract/rasterisation). An asset that exceeds this is marked skipped rather than retried, so a single pathological file can't tie up the OCR worker indefinitely.
+	OCRTimeout time.Duration `default:"60s" envconfig:"OCR_TIMEOUT"`
 
 	// -
 	// Message queue

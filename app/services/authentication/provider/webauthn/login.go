@@ -2,6 +2,7 @@ package webauthn
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 
 	"github.com/Southclaws/dt"
@@ -11,6 +12,7 @@ import (
 	"github.com/Southclaws/fault/ftag"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/samber/lo"
 
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
@@ -121,5 +123,39 @@ func (p *Provider) FinishLogin(ctx context.Context,
 		return nil, nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	// ValidateLogin only updates the credential in memory. Without writing
+	// the new SignCount back, every future login is checked against the
+	// value from registration, so a cloned authenticator replaying an old
+	// (or now-stale) count would never be caught.
+	if err := p.persistCredential(ctx, acc.ID, ams, cred); err != nil {
+		return nil, nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	return cred, &acc.Account, nil
+}
+
+// persistCredential writes an updated credential (as produced by
+// ValidateLogin, carrying the new sign count and clone-warning state) back
+// to the auth method record it came from.
+func (p *Provider) persistCredential(ctx context.Context, accountID account.AccountID, ams []*authentication.Authentication, cred *webauthn.Credential) error {
+	identifier := base64.RawURLEncoding.EncodeToString(cred.ID)
+
+	am, found := lo.Find(ams, func(a *authentication.Authentication) bool {
+		return a.Identifier == identifier
+	})
+	if !found {
+		return fault.Wrap(ErrNoAuthRecord, fctx.With(ctx))
+	}
+
+	encoded, err := json.Marshal(cred)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	_, err = p.auth_repo.Update(ctx, am.ID, authentication.WithToken(string(encoded)))
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return nil
 }

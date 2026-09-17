@@ -3,12 +3,13 @@ package bindings
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/Southclaws/dt"
@@ -27,11 +28,25 @@ import (
 	"github.com/Southclaws/storyden/app/transports/http/middleware/session_cookie"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 	"github.com/Southclaws/storyden/internal/config"
+	"github.com/Southclaws/storyden/internal/infrastructure/cache"
 )
 
-const cookieName = "storyden-webauthn-session"
+const (
+	cookieName          = "storyden-webauthn-session"
+	webauthnSessionTTL  = 5 * time.Minute
+	webauthnCachePrefix = "webauthn-session:"
+)
 
 var errNoCookie = fault.New("no webauthn session cookie")
+
+type webauthnSessionContextKey struct{}
+
+// webauthnSessionRef carries the cache key alongside the decoded session data
+// so the binding that consumes it can delete it (one-time use) afterwards.
+type webauthnSessionRef struct {
+	cacheKey string
+	data     *webauthn.SessionData
+}
 
 type WebAuthn struct {
 	cj           *session_cookie.Jar
@@ -39,6 +54,7 @@ type WebAuthn struct {
 	accountQuery *account_querier.Querier
 	wa           *waprovider.Provider
 	address      url.URL
+	cache        cache.Store
 }
 
 func NewWebAuthn(
@@ -47,22 +63,28 @@ func NewWebAuthn(
 	accountQuery *account_querier.Querier,
 	cj *session_cookie.Jar,
 	wa *waprovider.Provider,
+	cacheStore cache.Store,
 	router *echo.Echo,
 ) WebAuthn {
-	// in order to retain context across the credential request and creation,
-	// a session cookie is used which stores the webauthn session information.
+	// In order to retain context across the credential request and creation,
+	// a cookie carries a random reference to the actual session data, which
+	// is kept server-side. The cookie previously held the session data
+	// itself (base64 JSON), which a client could freely edit - e.g. to
+	// downgrade UserVerification or swap the allowed credential list, since
+	// nothing was signed. Only the server can write and read this cache.
 	router.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if s, err := c.Cookie(cookieName); err == nil {
+			if ck, err := c.Cookie(cookieName); err == nil {
+				key := webauthnCachePrefix + ck.Value
 
-				r := base64.NewDecoder(base64.URLEncoding, strings.NewReader(s.Value))
-
-				session := &webauthn.SessionData{}
-				if err := json.NewDecoder(r).Decode(&session); err == nil {
-					r := c.Request()
-					ctx := r.Context()
-					ctx = context.WithValue(ctx, "webauthn", session)
-					c.SetRequest(r.WithContext(ctx))
+				if raw, err := cacheStore.Get(c.Request().Context(), key); err == nil {
+					session := &webauthn.SessionData{}
+					if err := json.Unmarshal([]byte(raw), session); err == nil {
+						r := c.Request()
+						ref := webauthnSessionRef{cacheKey: key, data: session}
+						ctx := context.WithValue(r.Context(), webauthnSessionContextKey{}, ref)
+						c.SetRequest(r.WithContext(ctx))
+					}
 				}
 			}
 
@@ -70,7 +92,50 @@ func NewWebAuthn(
 		}
 	})
 
-	return WebAuthn{cj, si, accountQuery, wa, cfg.PublicAPIAddress}
+	return WebAuthn{cj, si, accountQuery, wa, cfg.PublicAPIAddress, cacheStore}
+}
+
+// startWebAuthnSession stores session data server-side under a fresh random
+// ID and returns the cookie that carries only that ID to the client.
+func (a *WebAuthn) startWebAuthnSession(ctx context.Context, sessionData *webauthn.SessionData) (*http.Cookie, error) {
+	id := make([]byte, 32)
+	if _, err := rand.Read(id); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	value := hex.EncodeToString(id)
+
+	j, err := json.Marshal(sessionData)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := a.cache.Set(ctx, webauthnCachePrefix+value, string(j), webauthnSessionTTL); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return &http.Cookie{
+		Name:     cookieName,
+		Value:    value,
+		Expires:  time.Now().Add(webauthnSessionTTL),
+		SameSite: http.SameSiteDefaultMode,
+		Path:     "/",
+		Domain:   a.address.Hostname(),
+		Secure:   true,
+		HttpOnly: true,
+	}, nil
+}
+
+// consumeWebAuthnSession reads the session data stashed by the middleware
+// and deletes it from the cache so it cannot be used a second time.
+func consumeWebAuthnSession(ctx context.Context, a *WebAuthn) (*webauthn.SessionData, error) {
+	ref, ok := ctx.Value(webauthnSessionContextKey{}).(webauthnSessionRef)
+	if !ok {
+		return nil, fault.Wrap(errNoCookie, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	_ = a.cache.Delete(ctx, ref.cacheKey)
+
+	return ref.data, nil
 }
 
 func (a *WebAuthn) WebAuthnRequestCredential(ctx context.Context, request openapi.WebAuthnRequestCredentialRequestObject) (openapi.WebAuthnRequestCredentialResponseObject, error) {
@@ -79,27 +144,9 @@ func (a *WebAuthn) WebAuthnRequestCredential(ctx context.Context, request openap
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	// Encode the session data as a base64 JSON string
-
-	j, err := json.Marshal(sessionData)
+	cookie, err := a.startWebAuthnSession(ctx, sessionData)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
-	}
-
-	value := base64.URLEncoding.EncodeToString(j)
-
-	// save the base64 as a cookie for the WebAuthnMakeCredential call
-
-	cookie := http.Cookie{
-		Name:  cookieName,
-		Value: value,
-		// Expire this exchange after 10 minutes
-		Expires:  time.Now().Add(time.Minute * 10),
-		SameSite: http.SameSiteDefaultMode,
-		Path:     "/",
-		Domain:   a.address.Hostname(),
-		Secure:   true,
-		HttpOnly: true,
 	}
 
 	return openapi.WebAuthnRequestCredential200JSONResponse{
@@ -113,13 +160,9 @@ func (a *WebAuthn) WebAuthnRequestCredential(ctx context.Context, request openap
 }
 
 func (a *WebAuthn) WebAuthnMakeCredential(ctx context.Context, request openapi.WebAuthnMakeCredentialRequestObject) (openapi.WebAuthnMakeCredentialResponseObject, error) {
-	c := ctx.Value("webauthn")
-	session, ok := c.(*webauthn.SessionData)
-	if !ok {
-		return nil, fault.Wrap(errNoCookie,
-			fctx.With(ctx),
-			ftag.With(ftag.InvalidArgument),
-		)
+	session, err := consumeWebAuthnSession(ctx, a)
+	if err != nil {
+		return nil, err
 	}
 
 	// NOTE: This is a hack due to oapi-codegen not giving us raw JSON.
@@ -175,25 +218,9 @@ func (a *WebAuthn) WebAuthnGetAssertion(ctx context.Context, request openapi.Web
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	j, err := json.Marshal(sessionData)
+	cookie, err := a.startWebAuthnSession(ctx, sessionData)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
-	}
-
-	value := base64.URLEncoding.EncodeToString(j)
-
-	// save the base64 as a cookie for the WebAuthnMakeCredential call
-
-	cookie := http.Cookie{
-		Name:  cookieName,
-		Value: value,
-		// Expire this exchange after 10 minutes
-		Expires:  time.Now().Add(time.Minute * 10),
-		SameSite: http.SameSiteDefaultMode,
-		Path:     "/",
-		Domain:   a.address.Hostname(),
-		Secure:   true,
-		HttpOnly: true,
 	}
 
 	return openapi.WebAuthnGetAssertion200JSONResponse{
@@ -207,13 +234,9 @@ func (a *WebAuthn) WebAuthnGetAssertion(ctx context.Context, request openapi.Web
 }
 
 func (a *WebAuthn) WebAuthnMakeAssertion(ctx context.Context, request openapi.WebAuthnMakeAssertionRequestObject) (openapi.WebAuthnMakeAssertionResponseObject, error) {
-	c := ctx.Value("webauthn")
-	session, ok := c.(*webauthn.SessionData)
-	if !ok {
-		return nil, fault.Wrap(errNoCookie,
-			fctx.With(ctx),
-			ftag.With(ftag.InvalidArgument),
-		)
+	session, err := consumeWebAuthnSession(ctx, a)
+	if err != nil {
+		return nil, err
 	}
 
 	// something here is messing up userHandle

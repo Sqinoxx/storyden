@@ -6,7 +6,7 @@
 # target instead of running the Go toolchain under QEMU. Matters for arm64
 # builds on an amd64 host (Raspberry Pi deployments) where emulating the
 # compiler costs 10-20 minutes.
-FROM --platform=$BUILDPLATFORM docker.io/golang:1.26.4-alpine AS api-builder
+FROM --platform=$BUILDPLATFORM docker.io/golang:1.26.6-alpine AS api-builder
 
 ARG TARGETARCH
 

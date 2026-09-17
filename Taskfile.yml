@@ -149,6 +149,17 @@ tasks:
       - go run ./cmd/seed
 
   # -
+  # Security
+  # -
+
+  audit:go:
+    desc: >
+      Scans Go dependencies for known vulnerabilities reachable from this
+      codebase, using govulncheck. Installs it if not already on PATH.
+    cmds:
+      - go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+  # -
   # End to end tests
   # -
 

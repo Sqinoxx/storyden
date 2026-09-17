@@ -18,6 +18,15 @@ func NewServer(lc fx.Lifecycle, logger *slog.Logger, cfg config.Config, router *
 	server := &http.Server{
 		Handler: router,
 		Addr:    cfg.ListenAddr,
+
+		// No ReadTimeout/WriteTimeout: uploads and SSE responses legitimately
+		// run far longer than any fixed deadline would allow. ReadHeaderTimeout
+		// alone is enough to stop a client from holding a connection open by
+		// trickling headers one byte at a time (Slowloris), and IdleTimeout
+		// bounds how long an idle keep-alive connection can be held.
+		ReadHeaderTimeout: 10 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    1 << 20,
 	}
 
 	wctx, cancel := context.WithCancel(context.Background())

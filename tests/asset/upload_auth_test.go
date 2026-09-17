@@ -89,6 +89,20 @@ func TestBinaryUpload_Authorisation(t *testing.T) {
 				r.NoError(err)
 				r.Equal(http.StatusOK, resp.StatusCode())
 			})
+
+			// B18: avatar uploads used to be written to storage unvalidated
+			// and later served back with a hardcoded image/png content type.
+			t.Run("set avatar rejects a non-image file", func(t *testing.T) {
+				r := require.New(t)
+
+				text := []byte("<html><body><script>alert(1)</script></body></html>")
+
+				resp, err := cl.AccountSetAvatarWithBodyWithResponse(root,
+					&openapi.AccountSetAvatarParams{ContentLength: int64(len(text))},
+					"text/html", bytes.NewReader(text), memberSession)
+				r.NoError(err)
+				r.Equal(http.StatusBadRequest, resp.StatusCode())
+			})
 		}))
 	}))
 }

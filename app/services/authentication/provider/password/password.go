@@ -15,6 +15,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/account/authentication"
 	"github.com/Southclaws/storyden/app/resources/account/email"
+	"github.com/Southclaws/storyden/app/resources/account/loginguard"
 	"github.com/Southclaws/storyden/app/resources/account/password_reset_token"
 	"github.com/Southclaws/storyden/app/resources/account/token"
 	"github.com/Southclaws/storyden/app/resources/settings"
@@ -49,6 +50,7 @@ type Provider struct {
 	resetter     *password_reset.EmailResetter
 	sessions     token.Repository
 	resetTokens  password_reset_token.Repository
+	loginGuard   *loginguard.Guard
 
 	// TODO: Replace with an MQ message and sender job.
 	sender *email_verify.Verifier
@@ -67,6 +69,7 @@ func New(
 	resetter *password_reset.EmailResetter,
 	sessions token.Repository,
 	resetTokens password_reset_token.Repository,
+	loginGuard *loginguard.Guard,
 	sender *email_verify.Verifier,
 ) *Provider {
 	return &Provider{
@@ -80,6 +83,7 @@ func New(
 		resetter:     resetter,
 		sessions:     sessions,
 		resetTokens:  resetTokens,
+		loginGuard:   loginGuard,
 		sender:       sender,
 	}
 }

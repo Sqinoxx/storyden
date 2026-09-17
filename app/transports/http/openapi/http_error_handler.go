@@ -19,6 +19,7 @@ import (
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/trace"
 
+	"github.com/Southclaws/storyden/app/resources/account/loginguard"
 	"github.com/Southclaws/storyden/internal/ent"
 )
 
@@ -176,6 +177,8 @@ func statusFromErrorKind(k ftag.Kind) int {
 		return http.StatusUnauthorized
 	case ftag.Cancelled:
 		return http.StatusBadGateway
+	case loginguard.KindLockedOut:
+		return http.StatusTooManyRequests
 	default:
 		return http.StatusInternalServerError
 	}
@@ -195,6 +198,8 @@ func errorKindFromStatus(s int) ftag.Kind {
 		return ftag.Unauthenticated
 	case http.StatusBadGateway:
 		return ftag.Cancelled
+	case http.StatusTooManyRequests:
+		return loginguard.KindLockedOut
 	default:
 		return ftag.Internal
 	}

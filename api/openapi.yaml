@@ -1371,6 +1371,7 @@ paths:
   /auth/password/signup:
     post:
       operationId: AuthPasswordSignup
+      x-storyden: { rate-limit-cost: 25 }
       description: Register a new account with a username and password.
       tags: [auth]
       parameters: [$ref: "#/components/parameters/InvitationIDQueryParam"]
@@ -1384,6 +1385,7 @@ paths:
   /auth/password/signin:
     post:
       operationId: AuthPasswordSignin
+      x-storyden: { rate-limit-cost: 25 }
       description: Sign in to an existing account with a username and password.
       tags: [auth]
       requestBody: { $ref: "#/components/requestBodies/AuthPassword" }
@@ -1425,6 +1427,7 @@ paths:
   /auth/password/reset:
     post:
       operationId: AuthPasswordReset
+      x-storyden: { rate-limit-cost: 25 }
       description: |
         Complete a password-reset flow using a token that was provided to the
         member via a reset request operation such as `AuthEmailPasswordReset`.
@@ -1440,6 +1443,7 @@ paths:
   /auth/email-password/signup:
     post:
       operationId: AuthEmailPasswordSignup
+      x-storyden: { rate-limit-cost: 25 }
       description: Register a new account with a email and password.
       tags: [auth]
       parameters: [$ref: "#/components/parameters/InvitationIDQueryParam"]
@@ -1453,6 +1457,7 @@ paths:
   /auth/email-password/signin:
     post:
       operationId: AuthEmailPasswordSignin
+      x-storyden: { rate-limit-cost: 25 }
       description: Sign in to an existing account with a email and password.
       tags: [auth]
       requestBody: { $ref: "#/components/requestBodies/AuthEmailPassword" }
@@ -1466,6 +1471,7 @@ paths:
   /auth/email-password/reset:
     post:
       operationId: AuthPasswordResetRequestEmail
+      x-storyden: { rate-limit-cost: 25 }
       description: |
         Request password reset email to be sent to the specified email address.
       tags: [auth]
@@ -1514,6 +1520,7 @@ paths:
   /auth/email/signin:
     post:
       operationId: AuthEmailSignin
+      x-storyden: { rate-limit-cost: 25 }
       description: |
         Sign in to an existing account with an email and optional password. The
         behaviour of this endpoint depends on how the instance is configured. If
@@ -1531,6 +1538,7 @@ paths:
   /auth/email/verify:
     post:
       operationId: AuthEmailVerify
+      x-storyden: { rate-limit-cost: 25 }
       description: |
         Verify an email address using a token that was emailed to one of the
         account's email addresses either set via sign up or added later.
@@ -1896,6 +1904,7 @@ paths:
   /auth/webauthn/assert:
     post:
       operationId: WebAuthnMakeAssertion
+      x-storyden: { rate-limit-cost: 25 }
       description: Complete the credential assertion and sign in to an account.
       tags: [auth]
       security: [webauthn: []]
@@ -1909,6 +1918,7 @@ paths:
   /auth/phone:
     post:
       operationId: PhoneRequestCode
+      x-storyden: { rate-limit-cost: 25 }
       description: |
         Start the authentication flow with a phone number. The handler will send
         a one-time code to the provided phone number which must then be sent to
@@ -1925,6 +1935,7 @@ paths:
   /auth/phone/{account_handle}:
     put:
       operationId: PhoneSubmitCode
+      x-storyden: { rate-limit-cost: 25 }
       description: |
         Complete the phone number authentication flow by submitting the one-time
         code that was sent to the user's phone.
@@ -2259,6 +2270,7 @@ paths:
   /accounts/{account_id}/auth/email-password/reset:
     post:
       operationId: AccountEmailPasswordReset
+      x-storyden: { rate-limit-cost: 25 }
       description: |
         Send a password reset email for the specified account. This is intended
         for admin. This will trigger a password reset email to the specified
@@ -3555,6 +3567,7 @@ paths:
   /nodes/{node_slug}/title:
     post:
       operationId: NodeGenerateTitle
+      x-storyden: { rate-limit-cost: 50 }
       description: |
         Generate a proposed title for the specified node. Will not actually
         mutate the specified node, instead will return a proposal based on the
@@ -3573,6 +3586,7 @@ paths:
   /nodes/{node_slug}/tags:
     post:
       operationId: NodeGenerateTags
+      x-storyden: { rate-limit-cost: 50 }
       description: |
         Generate proposed tags for the specified node. Will not actually mutate
         the specified node, instead will return a proposal based on the output
@@ -3591,6 +3605,7 @@ paths:
   /nodes/{node_slug}/content:
     post:
       operationId: NodeGenerateContent
+      x-storyden: { rate-limit-cost: 50 }
       description: |
         Generate proposed content for the specified node. Will not actually
         mutate the specified node, instead will return a proposal based on the

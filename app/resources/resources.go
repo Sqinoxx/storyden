@@ -12,16 +12,17 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/email"
 	"github.com/Southclaws/storyden/app/resources/account/invitation/invitation_querier"
 	"github.com/Southclaws/storyden/app/resources/account/invitation/invitation_writer"
+	"github.com/Southclaws/storyden/app/resources/account/loginguard"
 	"github.com/Southclaws/storyden/app/resources/account/moderation_note/moderation_note_querier"
 	"github.com/Southclaws/storyden/app/resources/account/moderation_note/moderation_note_writer"
 	"github.com/Southclaws/storyden/app/resources/account/notification/notify_querier"
 	"github.com/Southclaws/storyden/app/resources/account/notification/notify_writer"
+	"github.com/Southclaws/storyden/app/resources/account/password_reset_token"
 	"github.com/Southclaws/storyden/app/resources/account/role/role_assign"
 	"github.com/Southclaws/storyden/app/resources/account/role/role_hydrate"
 	"github.com/Southclaws/storyden/app/resources/account/role/role_querier"
 	"github.com/Southclaws/storyden/app/resources/account/role/role_repo"
 	"github.com/Southclaws/storyden/app/resources/account/role/role_writer"
-	"github.com/Southclaws/storyden/app/resources/account/password_reset_token"
 	"github.com/Southclaws/storyden/app/resources/account/token"
 	"github.com/Southclaws/storyden/app/resources/account/warning/warning_repo"
 	"github.com/Southclaws/storyden/app/resources/asset/asset_querier"
@@ -177,5 +178,6 @@ func Build() fx.Option {
 		),
 		token.Build(),
 		password_reset_token.Build(),
+		loginguard.Build(),
 	)
 }

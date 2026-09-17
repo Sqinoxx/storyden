@@ -160,6 +160,37 @@ func TestUsernamePasswordAuth(t *testing.T) {
 				r.Equal(http.StatusUnauthorized, staleGet.StatusCode())
 			})
 
+			t.Run("repeated_wrong_password_locks_out_the_handle", func(t *testing.T) {
+				r := require.New(t)
+
+				handle := xid.New().String()
+
+				signup, err := cl.AuthPasswordSignupWithResponse(root, nil, openapi.AuthPair{
+					Identifier: handle,
+					Token:      "correctpassword",
+				})
+				r.NoError(err)
+				r.Equal(http.StatusOK, signup.StatusCode())
+
+				for i := 0; i < 5; i++ {
+					resp, err := cl.AuthPasswordSigninWithResponse(root, openapi.AuthPair{
+						Identifier: handle,
+						Token:      "wrongpassword",
+					})
+					r.NoError(err)
+					r.Equal(http.StatusUnauthorized, resp.StatusCode())
+				}
+
+				// B7: even the correct password is rejected once the account
+				// is locked out, with 429 rather than a plain 401.
+				resp, err := cl.AuthPasswordSigninWithResponse(root, openapi.AuthPair{
+					Identifier: handle,
+					Token:      "correctpassword",
+				})
+				r.NoError(err)
+				r.Equal(http.StatusTooManyRequests, resp.StatusCode())
+			})
+
 			t.Run("register_fail_invalid_password", func(t *testing.T) {
 				handle := xid.New().String()
 

@@ -53,6 +53,10 @@ func (p *Provider) RegisterWithHandle(ctx context.Context, handle string, passwo
 }
 
 func (b *Provider) LoginWithHandle(ctx context.Context, handle string, password string) (*account.Account, error) {
+	if err := b.loginGuard.Check(ctx, handle); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	if len(password) < 8 {
 		return nil, fault.Wrap(ErrPasswordTooShort,
 			fctx.With(ctx),
@@ -66,6 +70,7 @@ func (b *Provider) LoginWithHandle(ctx context.Context, handle string, password 
 	}
 
 	if !exists {
+		b.loginGuard.RecordFailure(ctx, handle)
 		return nil, fault.Wrap(ErrNotFound,
 			fctx.With(ctx),
 			ftag.With(ftag.NotFound),
@@ -78,6 +83,7 @@ func (b *Provider) LoginWithHandle(ctx context.Context, handle string, password 
 	}
 
 	if !exists {
+		b.loginGuard.RecordFailure(ctx, handle)
 		return nil, fault.Wrap(ErrNoPassword,
 			fctx.With(ctx),
 			ftag.With(ftag.InvalidArgument),
@@ -94,11 +100,14 @@ func (b *Provider) LoginWithHandle(ctx context.Context, handle string, password 
 	}
 
 	if !match {
+		b.loginGuard.RecordFailure(ctx, handle)
 		return nil, fault.Wrap(ErrPasswordMismatch,
 			fctx.With(ctx),
 			ftag.With(ftag.Unauthenticated),
 			fmsg.WithDesc("mismatch", "The provided password did not match the account."))
 	}
+
+	b.loginGuard.Reset(ctx, handle)
 
 	return &a.Account, nil
 }

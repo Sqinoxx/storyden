@@ -70,6 +70,10 @@ func (p *Provider) RegisterWithEmail(ctx context.Context, email mail.Address, pa
 }
 
 func (p *Provider) LoginWithEmail(ctx context.Context, emailAddress mail.Address, password string) (*account.Account, error) {
+	if err := p.loginGuard.Check(ctx, emailAddress.Address); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	enabled, err := p.isEmailAvailable(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -90,6 +94,7 @@ func (p *Provider) LoginWithEmail(ctx context.Context, emailAddress mail.Address
 		return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to get account"))
 	}
 	if !exists {
+		p.loginGuard.RecordFailure(ctx, emailAddress.Address)
 		return nil, fault.Wrap(ErrNotFound,
 			fctx.With(ctx),
 			ftag.With(ftag.NotFound),
@@ -107,6 +112,7 @@ func (p *Provider) LoginWithEmail(ctx context.Context, emailAddress mail.Address
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 	if !exists {
+		p.loginGuard.RecordFailure(ctx, emailAddress.Address)
 		return nil, fault.Wrap(ErrNoPassword,
 			fctx.With(ctx),
 			ftag.With(ftag.InvalidArgument),
@@ -119,11 +125,14 @@ func (p *Provider) LoginWithEmail(ctx context.Context, emailAddress mail.Address
 	}
 
 	if !match {
+		p.loginGuard.RecordFailure(ctx, emailAddress.Address)
 		return nil, fault.Wrap(ErrPasswordMismatch,
 			fctx.With(ctx),
 			ftag.With(ftag.Unauthenticated),
 			fmsg.WithDesc("mismatch", "The provided password did not match the account."))
 	}
+
+	p.loginGuard.Reset(ctx, emailAddress.Address)
 
 	return &a.Account, nil
 }

@@ -23,7 +23,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 $target = "${ServerUser}@${ServerHost}"
-$dumpPath = Join-Path $PSScriptRoot "db.sql"
+$backupDir = Join-Path $PSScriptRoot "backups"
+New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
+$dumpPath = Join-Path $backupDir "db.sql"
 
 Write-Host "1/3 Dump auf dem Server erzeugen ($target) ..."
 ssh $target "cd $RemoteDir && docker compose exec -T postgres pg_dump -U $PgUser -d $PgDb --no-owner --no-privileges > /tmp/db.sql"
@@ -47,7 +49,7 @@ try {
     # nicht eingerichtet ist, schlaegt das fehl. Git Bash direkt verwenden.
     $gitBash = "C:\Program Files\Git\bin\bash.exe"
     if (-not (Test-Path $gitBash)) { throw "Git Bash nicht gefunden unter $gitBash" }
-    & $gitBash restore-db.sh db.sql
+    & $gitBash restore-db.sh backups/db.sql
     if ($LASTEXITCODE -ne 0) { throw "restore-db.sh fehlgeschlagen (Exit $LASTEXITCODE)" }
 } finally {
     Pop-Location

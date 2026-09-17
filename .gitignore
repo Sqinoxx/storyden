@@ -5,6 +5,16 @@ data/
 node_modules/
 GoogleDrive-Downloads/
 
+# database dumps must never be tracked - they contain production secrets
+# and PII (see docker/compose/ubuntuserver/sync-db-to-pc.ps1)
+DB-Backups/
+import-work/
+docker/compose/**/db.sql
+db.sql
+*.sql.gz
+
+.claude/worktrees/
+
 *.exe
 *.db*
 

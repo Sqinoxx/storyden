@@ -4,3 +4,4 @@ ddns/
 transfer/
 backups/
 backup.log
+db.sql

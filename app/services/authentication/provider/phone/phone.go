@@ -2,8 +2,13 @@ package phone
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
@@ -29,6 +34,46 @@ var (
 	errNotFound            = fault.New("account not found")
 	errOneTimeCodeMismatch = fault.New("one time code mismatch")
 )
+
+const (
+	// codeLifespan is how long an SMS one-time code stays valid.
+	codeLifespan = 10 * time.Minute
+
+	// maxCodeAttempts caps wrong guesses against a single issued code before
+	// it is locked out and a new one must be requested via Register.
+	maxCodeAttempts = 5
+)
+
+// hashCode is what's actually persisted, so a database read can't be turned
+// back into a usable code.
+func hashCode(code string) string {
+	sum := sha256.Sum256([]byte(code))
+	return hex.EncodeToString(sum[:])
+}
+
+// codeAttempts reads the failed-attempt counter out of the auth record's
+// free-form metadata.
+func codeAttempts(metadata interface{}) int {
+	m, ok := metadata.(map[string]interface{})
+	if !ok {
+		return 0
+	}
+
+	n, ok := m["attempts"].(float64)
+	if !ok {
+		return 0
+	}
+
+	return int(n)
+}
+
+// invalidated returns an unguessable value to overwrite a consumed code with,
+// so it can never be replayed.
+func invalidated() string {
+	b := make([]byte, 32)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
+}
 
 var (
 	requiredMode = authentication.ModePhone
@@ -166,7 +211,8 @@ func (p *Provider) Register(ctx context.Context, handle string, phone string, in
 		return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to generate code"))
 	}
 
-	_, err = p.auth.Create(ctx, acc.ID, service, authentication.TokenTypeNone, phone, code, nil)
+	_, err = p.auth.Create(ctx, acc.ID, service, authentication.TokenTypeNone, phone, hashCode(code), nil,
+		authentication.WithExpiresAt(time.Now().Add(codeLifespan)))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to create account authentication instance"))
 	}
@@ -215,12 +261,27 @@ func (p *Provider) Login(ctx context.Context, handle string, onetimecode string)
 		return nil, fault.Wrap(errNoPhoneAuth)
 	}
 
-	if phoneauth.Token != onetimecode {
+	attempts := codeAttempts(phoneauth.Metadata)
+	locked := attempts >= maxCodeAttempts
+	match := subtle.ConstantTimeCompare([]byte(phoneauth.Token), []byte(hashCode(onetimecode))) == 1
+
+	if locked || phoneauth.IsExpired() || !match {
+		if !locked {
+			_, _ = p.auth.Update(ctx, phoneauth.ID,
+				authentication.WithMetadata(map[string]any{"attempts": attempts + 1}))
+		}
+
 		return nil, fault.Wrap(errOneTimeCodeMismatch,
 			fctx.With(ctx),
 			ftag.With(ftag.PermissionDenied),
 			fmsg.WithDesc("mismatch", "The code did not match."),
 		)
+	}
+
+	// Consume the code so it cannot be replayed; the next login request goes
+	// through Register again, which always issues a fresh one.
+	if _, err := p.auth.Update(ctx, phoneauth.ID, authentication.WithToken(invalidated())); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	return &acc.Account, nil

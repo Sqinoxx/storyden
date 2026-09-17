@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"context"
+	"time"
 
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/internal/ent"
@@ -45,5 +46,19 @@ func WithToken(token string) Option {
 func WithName(name string) Option {
 	return func(am *ent.AuthenticationMutation) {
 		am.SetName(name)
+	}
+}
+
+// WithExpiresAt sets when a short-lived credential (e.g. a one-time code)
+// stops being accepted, regardless of whether it's otherwise correct.
+func WithExpiresAt(t time.Time) Option {
+	return func(am *ent.AuthenticationMutation) {
+		am.SetExpiresAt(t)
+	}
+}
+
+func WithMetadata(metadata map[string]any) Option {
+	return func(am *ent.AuthenticationMutation) {
+		am.SetMetadata(metadata)
 	}
 }

@@ -39,6 +39,41 @@ var (
 
 var tokenType = authentication.TokenTypePasswordHash
 
+// dummyPasswordHash is checked against whenever a login fails before ever
+// reaching a real password comparison (unknown handle/email, or an account
+// with no password method), so that response timing doesn't leak which of
+// those happened versus an ordinary wrong password (B8).
+var dummyPasswordHash = mustHash("not-a-real-password-just-for-timing")
+
+func mustHash(password string) string {
+	hash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		panic(err)
+	}
+	return hash
+}
+
+// passwordMismatchError is the single error returned for every login
+// failure - unknown identifier, an account with no password method, or a
+// genuine wrong password - so a client cannot distinguish them by status or
+// message (B8).
+func passwordMismatchError(ctx context.Context) error {
+	return fault.Wrap(ErrPasswordMismatch,
+		fctx.With(ctx),
+		ftag.With(ftag.Unauthenticated),
+		fmsg.WithDesc("mismatch", "The provided password did not match the account."))
+}
+
+// rejectUnknownIdentifier is used in place of a real password comparison when
+// the identifier doesn't resolve to a checkable password, so that a missing
+// account or auth method takes the same time as a wrong password rather than
+// short-circuiting and leaking which case it was (B8).
+func rejectUnknownIdentifier(ctx context.Context, password string) error {
+	_, _, _ = argon2id.CheckHash(password, dummyPasswordHash)
+
+	return passwordMismatchError(ctx)
+}
+
 type Provider struct {
 	logger       *slog.Logger
 	settings     *settings.SettingsRepository

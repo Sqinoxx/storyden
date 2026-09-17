@@ -95,10 +95,7 @@ func (p *Provider) LoginWithEmail(ctx context.Context, emailAddress mail.Address
 	}
 	if !exists {
 		p.loginGuard.RecordFailure(ctx, emailAddress.Address)
-		return nil, fault.Wrap(ErrNotFound,
-			fctx.With(ctx),
-			ftag.With(ftag.NotFound),
-			fmsg.WithDesc("not found", "No account was found with the provided email address."))
+		return nil, rejectUnknownIdentifier(ctx, password)
 	}
 
 	if err := acc.RejectSuspended(); err != nil {
@@ -113,10 +110,7 @@ func (p *Provider) LoginWithEmail(ctx context.Context, emailAddress mail.Address
 	}
 	if !exists {
 		p.loginGuard.RecordFailure(ctx, emailAddress.Address)
-		return nil, fault.Wrap(ErrNoPassword,
-			fctx.With(ctx),
-			ftag.With(ftag.InvalidArgument),
-			fmsg.WithDesc("no password", "The specified account does not use email-password authentication. Please try a different method."))
+		return nil, rejectUnknownIdentifier(ctx, password)
 	}
 
 	match, _, err := argon2id.CheckHash(password, a.Token)
@@ -126,10 +120,7 @@ func (p *Provider) LoginWithEmail(ctx context.Context, emailAddress mail.Address
 
 	if !match {
 		p.loginGuard.RecordFailure(ctx, emailAddress.Address)
-		return nil, fault.Wrap(ErrPasswordMismatch,
-			fctx.With(ctx),
-			ftag.With(ftag.Unauthenticated),
-			fmsg.WithDesc("mismatch", "The provided password did not match the account."))
+		return nil, passwordMismatchError(ctx)
 	}
 
 	p.loginGuard.Reset(ctx, emailAddress.Address)
@@ -151,7 +142,9 @@ func (p *Provider) RequestReset(ctx context.Context, emailAddress mail.Address, 
 		return fault.Wrap(err, fctx.With(ctx))
 	}
 	if !exists {
-		return fault.Wrap(ErrNotFound, fctx.With(ctx), fmsg.With("failed to get account"))
+		// Report success regardless, so this endpoint cannot be used to
+		// discover which addresses have accounts (B8).
+		return nil
 	}
 
 	err = p.resetter.SendPasswordReset(ctx, acc.ID, emailAddress, lt)

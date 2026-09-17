@@ -133,11 +133,13 @@ func TestAccountEmails(t *testing.T) {
 				remove, err := cl.AccountEmailRemoveWithResponse(root, addEmail2.JSON200.Id, session)
 				tests.Ok(t, err, remove)
 
+				// B8: an unknown/removed email is indistinguishable from a
+				// wrong password, so this is 401 rather than 404.
 				loginWithEmail, err := cl.AuthEmailPasswordSigninWithResponse(root, openapi.AuthEmailPasswordSigninJSONRequestBody{
 					Email:    email2,
 					Password: password,
 				})
-				tests.Status(t, err, loginWithEmail, http.StatusNotFound)
+				tests.Status(t, err, loginWithEmail, http.StatusUnauthorized)
 			})
 
 			t.Run("add_unclaimed_email", func(t *testing.T) {

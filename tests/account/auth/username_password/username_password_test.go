@@ -2,6 +2,7 @@ package username_password_test
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
 
@@ -17,6 +18,19 @@ import (
 	"github.com/Southclaws/storyden/internal/integration/e2e"
 	"github.com/Southclaws/storyden/tests"
 )
+
+// withoutTraceID normalises a problem+json error body for comparison by
+// dropping the per-request trace ID, the only field expected to differ
+// between two otherwise-identical error responses.
+func withoutTraceID(t *testing.T, body []byte) map[string]any {
+	t.Helper()
+
+	var m map[string]any
+	require.NoError(t, json.Unmarshal(body, &m))
+	delete(m, "trace_id")
+
+	return m
+}
 
 func TestUsernamePasswordAuth(t *testing.T) {
 	t.Parallel()
@@ -189,6 +203,38 @@ func TestUsernamePasswordAuth(t *testing.T) {
 				})
 				r.NoError(err)
 				r.Equal(http.StatusTooManyRequests, resp.StatusCode())
+			})
+
+			t.Run("unknown_handle_and_wrong_password_are_indistinguishable", func(t *testing.T) {
+				r := require.New(t)
+
+				handle := xid.New().String()
+
+				signup, err := cl.AuthPasswordSignupWithResponse(root, nil, openapi.AuthPair{
+					Identifier: handle,
+					Token:      "correctpassword",
+				})
+				r.NoError(err)
+				r.Equal(http.StatusOK, signup.StatusCode())
+
+				wrongPassword, err := cl.AuthPasswordSigninWithResponse(root, openapi.AuthPair{
+					Identifier: handle,
+					Token:      "wrongpassword",
+				})
+				r.NoError(err)
+
+				unknownHandle, err := cl.AuthPasswordSigninWithResponse(root, openapi.AuthPair{
+					Identifier: xid.New().String(),
+					Token:      "wrongpassword",
+				})
+				r.NoError(err)
+
+				// B8: neither the status nor the body (aside from the
+				// per-request trace ID) should reveal whether the handle
+				// exists.
+				r.Equal(http.StatusUnauthorized, wrongPassword.StatusCode())
+				r.Equal(wrongPassword.StatusCode(), unknownHandle.StatusCode())
+				r.Equal(withoutTraceID(t, wrongPassword.Body), withoutTraceID(t, unknownHandle.Body))
 			})
 
 			t.Run("register_fail_invalid_password", func(t *testing.T) {

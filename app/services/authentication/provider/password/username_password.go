@@ -71,10 +71,7 @@ func (b *Provider) LoginWithHandle(ctx context.Context, handle string, password 
 
 	if !exists {
 		b.loginGuard.RecordFailure(ctx, handle)
-		return nil, fault.Wrap(ErrNotFound,
-			fctx.With(ctx),
-			ftag.With(ftag.NotFound),
-			fmsg.WithDesc("not found", "No account was found with the provided handle."))
+		return nil, rejectUnknownIdentifier(ctx, password)
 	}
 
 	a, exists, err := b.auth.LookupByTokenType(ctx, acc.ID, tokenType, acc.ID.String())
@@ -84,10 +81,7 @@ func (b *Provider) LoginWithHandle(ctx context.Context, handle string, password 
 
 	if !exists {
 		b.loginGuard.RecordFailure(ctx, handle)
-		return nil, fault.Wrap(ErrNoPassword,
-			fctx.With(ctx),
-			ftag.With(ftag.InvalidArgument),
-			fmsg.WithDesc("no password", "The specified account does not use password authentication. Please try a different method."))
+		return nil, rejectUnknownIdentifier(ctx, password)
 	}
 
 	if err := a.Account.RejectSuspended(); err != nil {
@@ -101,10 +95,7 @@ func (b *Provider) LoginWithHandle(ctx context.Context, handle string, password 
 
 	if !match {
 		b.loginGuard.RecordFailure(ctx, handle)
-		return nil, fault.Wrap(ErrPasswordMismatch,
-			fctx.With(ctx),
-			ftag.With(ftag.Unauthenticated),
-			fmsg.WithDesc("mismatch", "The provided password did not match the account."))
+		return nil, passwordMismatchError(ctx)
 	}
 
 	b.loginGuard.Reset(ctx, handle)

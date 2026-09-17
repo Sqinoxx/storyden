@@ -30,8 +30,6 @@ import (
 
 var (
 	errHandleMismatch      = fault.New("phone already linked to different account")
-	errNoPhoneAuth         = fault.New("no phone auth method linked to account")
-	errNotFound            = fault.New("account not found")
 	errOneTimeCodeMismatch = fault.New("one time code mismatch")
 )
 
@@ -73,6 +71,24 @@ func invalidated() string {
 	b := make([]byte, 32)
 	_, _ = rand.Read(b)
 	return hex.EncodeToString(b)
+}
+
+// dummyCodeHash is compared against whenever login fails before a real code
+// comparison happens (unknown handle, or an account with no phone auth), so
+// that timing doesn't reveal which case occurred (B8).
+var dummyCodeHash = hashCode("000000")
+
+// rejectCode is the single error returned for every login failure - unknown
+// handle, no phone auth method, or a genuine code mismatch - so none of them
+// are distinguishable by status, message or timing.
+func rejectCode(ctx context.Context, onetimecode string) error {
+	subtle.ConstantTimeCompare([]byte(dummyCodeHash), []byte(hashCode(onetimecode)))
+
+	return fault.Wrap(errOneTimeCodeMismatch,
+		fctx.With(ctx),
+		ftag.With(ftag.PermissionDenied),
+		fmsg.WithDesc("mismatch", "The code did not match."),
+	)
 }
 
 var (
@@ -239,10 +255,7 @@ func (p *Provider) Login(ctx context.Context, handle string, onetimecode string)
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 	if !exists {
-		return nil, fault.Wrap(errNotFound,
-			fctx.With(ctx),
-			ftag.With(ftag.NotFound),
-			fmsg.WithDesc("not found", "No account was found with the provided handle."))
+		return nil, rejectCode(ctx, onetimecode)
 	}
 
 	if err := acc.RejectSuspended(); err != nil {
@@ -258,7 +271,7 @@ func (p *Provider) Login(ctx context.Context, handle string, onetimecode string)
 		return a.Service == service
 	})
 	if !exists {
-		return nil, fault.Wrap(errNoPhoneAuth)
+		return nil, rejectCode(ctx, onetimecode)
 	}
 
 	attempts := codeAttempts(phoneauth.Metadata)
@@ -271,11 +284,7 @@ func (p *Provider) Login(ctx context.Context, handle string, onetimecode string)
 				authentication.WithMetadata(map[string]any{"attempts": attempts + 1}))
 		}
 
-		return nil, fault.Wrap(errOneTimeCodeMismatch,
-			fctx.With(ctx),
-			ftag.With(ftag.PermissionDenied),
-			fmsg.WithDesc("mismatch", "The code did not match."),
-		)
+		return nil, rejectCode(ctx, onetimecode)
 	}
 
 	// Consume the code so it cannot be replayed; the next login request goes

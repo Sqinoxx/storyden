@@ -49,7 +49,9 @@ func TestPasswordReset(t *testing.T) {
 					},
 				})
 				r.NoError(err)
-				r.Equal(http.StatusNotFound, request.StatusCode())
+				// B8: an unknown address must not be distinguishable from a
+				// known one, so this reports success either way.
+				r.Equal(http.StatusOK, request.StatusCode())
 			})
 
 			t.Run("off_origin_link_url_rejected", func(t *testing.T) {

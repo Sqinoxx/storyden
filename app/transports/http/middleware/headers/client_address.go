@@ -39,6 +39,12 @@ func (m *Middleware) reloadClientIPConfiguration(ctx context.Context) {
 		return
 	}
 
+	if cfg.Mode == settings.ClientIPModeSingleHeader && len(cfg.trustedProxyRanges) == 0 {
+		m.logger.Warn("client IP mode is single_header but no trusted proxy CIDRs are configured; falling back to the raw connection address, since trusting the header from an unvalidated peer would let any direct caller spoof its IP",
+			"header", cfg.Header,
+		)
+	}
+
 	m.clientIPConfig.Store(cfg)
 }
 
@@ -127,6 +133,14 @@ func getClientIPKey(r *http.Request, cfg clientIPConfiguration, trustedSSRSource
 
 	switch cfg.Mode {
 	case settings.ClientIPModeSingleHeader:
+		// Without a trusted proxy range, this header is just whatever the
+		// caller sends: anyone who can reach this server directly could set
+		// it to dodge IP-based rate limiting and login lockout. Only trust it
+		// coming from a peer we've configured as the actual proxy.
+		remoteAddr, ok := parseAddr(remote)
+		if !ok || len(cfg.trustedProxyRanges) == 0 || !isTrustedProxy(remoteAddr, cfg.trustedProxyRanges) {
+			return remote
+		}
 		headerName := strings.TrimSpace(cfg.Header)
 		if headerName == "" {
 			headerName = defaultClientIPHeader

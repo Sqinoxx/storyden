@@ -42,8 +42,9 @@ func TestClientAddressSingleHeaderMode(t *testing.T) {
 
 	key := newTestMiddleware(
 		clientIPConfiguration{
-			Mode:   settings.ClientIPModeSingleHeader,
-			Header: "CF-Connecting-IP",
+			Mode:               settings.ClientIPModeSingleHeader,
+			Header:             "CF-Connecting-IP",
+			trustedProxyRanges: parseTrustedProxyCIDRs([]string{"203.0.113.5/32"}),
 		},
 	).clientAddress(req)
 
@@ -59,12 +60,53 @@ func TestClientAddressSingleHeaderModeTrimsConfiguredHeaderName(t *testing.T) {
 
 	key := newTestMiddleware(
 		clientIPConfiguration{
-			Mode:   settings.ClientIPModeSingleHeader,
-			Header: "  X-Real-IP  ",
+			Mode:               settings.ClientIPModeSingleHeader,
+			Header:             "  X-Real-IP  ",
+			trustedProxyRanges: parseTrustedProxyCIDRs([]string{"203.0.113.5/32"}),
 		},
 	).clientAddress(req)
 
 	assert.Equal(t, "198.51.100.77", key)
+}
+
+// TestClientAddressSingleHeaderModeFallsBackWithoutTrustedProxies covers B14:
+// single_header used to trust the header unconditionally, so anyone who could
+// reach the server directly could spoof it and dodge IP-based rate limiting
+// and login lockout. Without a configured trusted proxy, it must fall back to
+// the real connection address instead.
+func TestClientAddressSingleHeaderModeFallsBackWithoutTrustedProxies(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "203.0.113.5:1234"
+	req.Header.Set("CF-Connecting-IP", "198.51.100.1")
+
+	key := newTestMiddleware(
+		clientIPConfiguration{
+			Mode:   settings.ClientIPModeSingleHeader,
+			Header: "CF-Connecting-IP",
+		},
+	).clientAddress(req)
+
+	assert.Equal(t, "203.0.113.5", key)
+}
+
+func TestClientAddressSingleHeaderModeFallsBackWhenRemoteUntrusted(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "192.0.2.20:1234"
+	req.Header.Set("CF-Connecting-IP", "198.51.100.1")
+
+	key := newTestMiddleware(
+		clientIPConfiguration{
+			Mode:               settings.ClientIPModeSingleHeader,
+			Header:             "CF-Connecting-IP",
+			trustedProxyRanges: parseTrustedProxyCIDRs([]string{"203.0.113.5/32"}),
+		},
+	).clientAddress(req)
+
+	assert.Equal(t, "192.0.2.20", key)
 }
 
 func TestClientAddressTrustedXFFMode(t *testing.T) {
@@ -192,8 +234,9 @@ func TestClientAddressSSRHeaderDoesNotChangeSingleHeaderModeBehaviour(t *testing
 	req.Header.Set("CF-Connecting-IP", "198.51.100.55")
 
 	key := newTestMiddleware(clientIPConfiguration{
-		Mode:   settings.ClientIPModeSingleHeader,
-		Header: "CF-Connecting-IP",
+		Mode:               settings.ClientIPModeSingleHeader,
+		Header:             "CF-Connecting-IP",
+		trustedProxyRanges: parseTrustedProxyCIDRs([]string{"192.0.2.2/32"}),
 	}).clientAddress(req)
 	assert.Equal(t, "198.51.100.55", key)
 }
@@ -234,8 +277,9 @@ func TestWithHeaderContextStoresClientAddress(t *testing.T) {
 	t.Parallel()
 
 	mw := newTestMiddleware(clientIPConfiguration{
-		Mode:   settings.ClientIPModeSingleHeader,
-		Header: "CF-Connecting-IP",
+		Mode:               settings.ClientIPModeSingleHeader,
+		Header:             "CF-Connecting-IP",
+		trustedProxyRanges: parseTrustedProxyCIDRs([]string{"172.16.0.1/32"}),
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/api/version", nil)
@@ -262,8 +306,9 @@ func TestWithHeaderContextStoresSSRClientAddress(t *testing.T) {
 	t.Parallel()
 
 	mw := newTestMiddleware(clientIPConfiguration{
-		Mode:   settings.ClientIPModeSingleHeader,
-		Header: "CF-Connecting-IP",
+		Mode:               settings.ClientIPModeSingleHeader,
+		Header:             "CF-Connecting-IP",
+		trustedProxyRanges: parseTrustedProxyCIDRs([]string{"192.0.2.2/32"}),
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/api/version", nil)
@@ -290,8 +335,9 @@ func TestWithHeaderContextStoresSSRResolvedClientAddressWithoutSSRIPHeader(t *te
 	t.Parallel()
 
 	mw := newTestMiddleware(clientIPConfiguration{
-		Mode:   settings.ClientIPModeSingleHeader,
-		Header: "CF-Connecting-IP",
+		Mode:               settings.ClientIPModeSingleHeader,
+		Header:             "CF-Connecting-IP",
+		trustedProxyRanges: parseTrustedProxyCIDRs([]string{"192.0.2.2/32"}),
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/api/version", nil)

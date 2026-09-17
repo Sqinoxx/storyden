@@ -699,7 +699,10 @@ func (m *Mapping) AssetUpload() (bool, *rbac.Permission) {
 }
 
 func (m *Mapping) AssetGet() (bool, *rbac.Permission) {
-	return false, nil // Public
+	// Was public: any anonymous visitor could download any uploaded asset by
+	// guessing/enumerating its filename, with no ownership check at all.
+	// Login is now required; no specific permission beyond that.
+	return true, nil
 }
 
 func (m *Mapping) LikePostGet() (bool, *rbac.Permission) {

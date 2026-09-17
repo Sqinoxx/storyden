@@ -31,11 +31,12 @@ func NewAssets(uploader *asset_upload.Uploader, downloader *asset_download.Downl
 	return Assets{uploader, downloader}
 }
 
-// assetCacheControl is long because asset bytes are immutable: the filename
-// embeds the ID of the row that created it, so replacing content means a new
-// URL. The validators below exist for clients whose entry has aged out and for
-// intermediary caches that revalidate regardless.
-const assetCacheControl = "public, max-age=31536000, immutable"
+// assetCacheControl is "private" because this endpoint now requires a
+// session (B13): a shared/CDN cache must never be allowed to serve one
+// member's response to another. Content is still immutable per URL (the
+// filename embeds the ID of the row that created it, so replacing content
+// means a new URL), so a browser's own cache may keep it for a while.
+const assetCacheControl = "private, max-age=3600"
 
 func (i *Assets) AssetGet(ctx context.Context, request openapi.AssetGetRequestObject) (openapi.AssetGetResponseObject, error) {
 	filename := asset.NewFilepathFilename(request.AssetFilename)
@@ -139,15 +140,15 @@ func assetDownloadHeaders(a *asset.Asset, etag *cachecontrol.ETag) openapi.Asset
 		ContentDisposition: contentDisposition(a),
 		ETag:               etag.String(),
 		LastModified:       cachecontrol.HTTPDate(etag.Time),
-		// The MIME type is sniffed from user-supplied content and this endpoint
-		// is public, so the browser must not be allowed to reinterpret it.
+		// The MIME type is sniffed from user-supplied content, so the browser
+		// must not be allowed to reinterpret it regardless of who's logged in.
 		XContentTypeOptions: "nosniff",
 	}
 }
 
 // inlineRenderableMIMEs are the types a browser may render in place. Everything
 // else is forced to download rather than execute in the API origin, which
-// matters because uploads are user-supplied and served unauthenticated.
+// matters because uploads are user-supplied content.
 var inlineRenderableMIMEs = map[string]bool{
 	"application/pdf": true,
 	"image/apng":      true,

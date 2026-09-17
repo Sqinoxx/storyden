@@ -42,21 +42,21 @@ func TestAsset_ConditionalRequest(t *testing.T) {
 
 			a := uploadNamedAsset(t, root, cl, session, "image/png", "cached.png", onePixelPNG)
 
-			first, err := cl.AssetGetWithResponse(root, a.Filename)
+			first, err := cl.AssetGetWithResponse(root, a.Filename, session)
 			r.NoError(err)
 			r.Equal(http.StatusOK, first.StatusCode())
 
 			etag := first.HTTPResponse.Header.Get("ETag")
 			r.NotEmpty(etag)
 
-			second, err := cl.AssetGetWithResponse(root, a.Filename, withHeader("If-None-Match", etag))
+			second, err := cl.AssetGetWithResponse(root, a.Filename, session, withHeader("If-None-Match", etag))
 			r.NoError(err)
 			r.Equal(http.StatusNotModified, second.StatusCode())
 			r.Empty(second.Body, "a 304 must not carry a body")
 			r.Equal(etag, second.HTTPResponse.Header.Get("ETag"))
 
 			lastModified := first.HTTPResponse.Header.Get("Last-Modified")
-			third, err := cl.AssetGetWithResponse(root, a.Filename, withHeader("If-Modified-Since", lastModified))
+			third, err := cl.AssetGetWithResponse(root, a.Filename, session, withHeader("If-Modified-Since", lastModified))
 			r.NoError(err)
 			r.Equal(http.StatusNotModified, third.StatusCode())
 		}))
@@ -81,7 +81,7 @@ func TestAsset_StaleValidatorStillSendsBody(t *testing.T) {
 
 			a := uploadNamedAsset(t, root, cl, session, "image/png", "fresh.png", onePixelPNG)
 
-			get, err := cl.AssetGetWithResponse(root, a.Filename,
+			get, err := cl.AssetGetWithResponse(root, a.Filename, session,
 				withHeader("If-Modified-Since", "Mon, 02 Jan 2006 15:04:05 GMT"))
 			r.NoError(err)
 			r.Equal(http.StatusOK, get.StatusCode())
@@ -110,7 +110,7 @@ func TestAsset_RangeRequest(t *testing.T) {
 			t.Run("closed range", func(t *testing.T) {
 				r := require.New(t)
 
-				get, err := cl.AssetGetWithResponse(root, a.Filename, withHeader("Range", "bytes=0-9"))
+				get, err := cl.AssetGetWithResponse(root, a.Filename, session, withHeader("Range", "bytes=0-9"))
 				r.NoError(err)
 				r.Equal(http.StatusPartialContent, get.StatusCode())
 				r.Equal(onePixelPNG[0:10], get.Body)
@@ -120,7 +120,7 @@ func TestAsset_RangeRequest(t *testing.T) {
 			t.Run("open ended range", func(t *testing.T) {
 				r := require.New(t)
 
-				get, err := cl.AssetGetWithResponse(root, a.Filename, withHeader("Range", "bytes=8-"))
+				get, err := cl.AssetGetWithResponse(root, a.Filename, session, withHeader("Range", "bytes=8-"))
 				r.NoError(err)
 				r.Equal(http.StatusPartialContent, get.StatusCode())
 				r.Equal(onePixelPNG[8:], get.Body)
@@ -130,7 +130,7 @@ func TestAsset_RangeRequest(t *testing.T) {
 			t.Run("suffix range", func(t *testing.T) {
 				r := require.New(t)
 
-				get, err := cl.AssetGetWithResponse(root, a.Filename, withHeader("Range", "bytes=-4"))
+				get, err := cl.AssetGetWithResponse(root, a.Filename, session, withHeader("Range", "bytes=-4"))
 				r.NoError(err)
 				r.Equal(http.StatusPartialContent, get.StatusCode())
 				r.Equal(onePixelPNG[total-4:], get.Body)
@@ -139,7 +139,7 @@ func TestAsset_RangeRequest(t *testing.T) {
 			t.Run("beyond the end", func(t *testing.T) {
 				r := require.New(t)
 
-				get, err := cl.AssetGetWithResponse(root, a.Filename,
+				get, err := cl.AssetGetWithResponse(root, a.Filename, session,
 					withHeader("Range", fmt.Sprintf("bytes=%d-", total+100)))
 				r.NoError(err)
 				r.Equal(http.StatusRequestedRangeNotSatisfiable, get.StatusCode())
@@ -152,7 +152,7 @@ func TestAsset_RangeRequest(t *testing.T) {
 			t.Run("unsupported multi range falls back to the full body", func(t *testing.T) {
 				r := require.New(t)
 
-				get, err := cl.AssetGetWithResponse(root, a.Filename, withHeader("Range", "bytes=0-1,4-5"))
+				get, err := cl.AssetGetWithResponse(root, a.Filename, session, withHeader("Range", "bytes=0-1,4-5"))
 				r.NoError(err)
 				r.Equal(http.StatusOK, get.StatusCode())
 				r.Equal(onePixelPNG, get.Body)
@@ -161,7 +161,7 @@ func TestAsset_RangeRequest(t *testing.T) {
 			t.Run("malformed range is ignored", func(t *testing.T) {
 				r := require.New(t)
 
-				get, err := cl.AssetGetWithResponse(root, a.Filename, withHeader("Range", "kilometres=1-2"))
+				get, err := cl.AssetGetWithResponse(root, a.Filename, session, withHeader("Range", "kilometres=1-2"))
 				r.NoError(err)
 				r.Equal(http.StatusOK, get.StatusCode())
 				r.Equal(onePixelPNG, get.Body)

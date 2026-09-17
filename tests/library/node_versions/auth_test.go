@@ -48,7 +48,10 @@ func TestNodeVersionAuthAndVisibility(t *testing.T) {
 				create, err := cl.NodeVersionCreateWithResponse(root, node.Slug, openapi.NodeVersionCreateJSONRequestBody{
 					Name: &updatedName,
 				})
-				tests.Status(t, err, create, http.StatusForbidden)
+				// A missing session is Unauthorized, distinct from an
+				// authenticated-but-disallowed 403 (see the other-member
+				// subtests below).
+				tests.Status(t, err, create, http.StatusUnauthorized)
 			})
 
 			t.Run("public cannot list draft", func(t *testing.T) {

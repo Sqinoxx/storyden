@@ -70,7 +70,7 @@ func TestAsset_UploadDownloadRoundTrip(t *testing.T) {
 			r.Contains(a.Filename, "holiday", "the requested filename should survive into the asset name")
 			r.Equal("/api/assets/"+a.Filename, a.Path)
 
-			get, err := cl.AssetGetWithResponse(root, a.Filename)
+			get, err := cl.AssetGetWithResponse(root, a.Filename, session)
 			r.NoError(err)
 			r.Equal(http.StatusOK, get.StatusCode())
 
@@ -93,6 +93,37 @@ func TestAsset_UploadDownloadRoundTrip(t *testing.T) {
 	}))
 }
 
+// TestAsset_DownloadRequiresLogin covers B13: assets had no access control at
+// all, so any uploaded file could be downloaded by anyone who could guess or
+// enumerate its filename. A session is now required; an anonymous request
+// must be rejected before the filename is even looked up.
+func TestAsset_DownloadRequiresLogin(t *testing.T) {
+	integration.Test(t, noOCR(), e2e.Setup(), fx.Invoke(func(
+		root context.Context,
+		lc fx.Lifecycle,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+
+			ctx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			session := sh.WithSession(ctx)
+
+			a := uploadNamedAsset(t, root, cl, session, "image/png", "secret.png", onePixelPNG)
+
+			anon, err := cl.AssetGetWithResponse(root, a.Filename)
+			r.NoError(err)
+			r.Equal(http.StatusUnauthorized, anon.StatusCode(), "an anonymous request must not be able to download an asset")
+
+			authed, err := cl.AssetGetWithResponse(root, a.Filename, session)
+			r.NoError(err)
+			r.Equal(http.StatusOK, authed.StatusCode(), "a logged-in request must still succeed")
+		}))
+	}))
+}
+
 // TestAsset_DownloadUnknownFilename guards the 404 path, which is what a stale
 // link or a cleaned-up object produces.
 func TestAsset_DownloadUnknownFilename(t *testing.T) {
@@ -100,11 +131,16 @@ func TestAsset_DownloadUnknownFilename(t *testing.T) {
 		root context.Context,
 		lc fx.Lifecycle,
 		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
 	) {
 		lc.Append(fx.StartHook(func() {
 			r := require.New(t)
 
-			get, err := cl.AssetGetWithResponse(root, xid.New().String()+"-nothing-here")
+			ctx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			session := sh.WithSession(ctx)
+
+			get, err := cl.AssetGetWithResponse(root, xid.New().String()+"-nothing-here", session)
 			r.NoError(err)
 			r.Equal(http.StatusNotFound, get.StatusCode())
 		}))
@@ -130,7 +166,7 @@ func TestAsset_UploadWithoutFilename(t *testing.T) {
 			a := uploadTestAsset(t, root, cl, session, "image/png", onePixelPNG)
 			r.Contains(a.Filename, "untitled")
 
-			get, err := cl.AssetGetWithResponse(root, a.Filename)
+			get, err := cl.AssetGetWithResponse(root, a.Filename, session)
 			r.NoError(err)
 			r.Equal(http.StatusOK, get.StatusCode())
 		}))
@@ -175,7 +211,7 @@ func TestAsset_OverstatedContentLength(t *testing.T) {
 			r.NoError(err)
 			r.Equal(len(onePixelPNG), stored.Size, "recorded size must be the bytes actually stored")
 
-			get, err := cl.AssetGetWithResponse(root, resp.JSON200.Filename)
+			get, err := cl.AssetGetWithResponse(root, resp.JSON200.Filename, session)
 			r.NoError(err)
 			r.Equal(http.StatusOK, get.StatusCode())
 			r.Equal(onePixelPNG, get.Body)
@@ -183,9 +219,10 @@ func TestAsset_OverstatedContentLength(t *testing.T) {
 	}))
 }
 
-// TestAsset_NonRenderableIsForcedToDownload covers the stored-XSS surface: asset
-// downloads are public and unauthenticated, so anything a browser might execute
-// must arrive as an attachment rather than an active document.
+// TestAsset_NonRenderableIsForcedToDownload covers the stored-XSS surface: a
+// logged-in download of user-supplied content must still arrive as an
+// attachment rather than an active document, since the content itself is
+// untrusted regardless of who's allowed to fetch it.
 func TestAsset_NonRenderableIsForcedToDownload(t *testing.T) {
 	integration.Test(t, noOCR(), e2e.Setup(), fx.Invoke(func(
 		root context.Context,
@@ -203,7 +240,7 @@ func TestAsset_NonRenderableIsForcedToDownload(t *testing.T) {
 			page := []byte("<html><body><script>alert(document.domain)</script></body></html>")
 			a := uploadNamedAsset(t, root, cl, session, "text/html", "payload.html", page)
 
-			get, err := cl.AssetGetWithResponse(root, a.Filename)
+			get, err := cl.AssetGetWithResponse(root, a.Filename, session)
 			r.NoError(err)
 			r.Equal(http.StatusOK, get.StatusCode())
 

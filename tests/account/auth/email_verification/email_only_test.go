@@ -2,8 +2,10 @@ package email_verification_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/rs/xid"
@@ -159,9 +161,10 @@ func TestEmailOnlyAuth(t *testing.T) {
 
 				verification := tests.WaitForNextEmail(t, inbox, emailCount)
 				code := regexp.MustCompile(`verify your account: ([0-9]{6})`).FindStringSubmatch(verification.Plain)[1]
+				wrongCode := wrongSixDigitCode(code)
 
 				for i := 0; i < 5; i++ {
-					resp, err := cl.AuthEmailVerifyWithResponse(root, openapi.AuthEmailVerifyJSONRequestBody{Email: address, Code: "000000"}, session)
+					resp, err := cl.AuthEmailVerifyWithResponse(root, openapi.AuthEmailVerifyJSONRequestBody{Email: address, Code: wrongCode}, session)
 					r.NoError(err)
 					r.Equal(http.StatusUnauthorized, resp.StatusCode())
 				}
@@ -174,4 +177,12 @@ func TestEmailOnlyAuth(t *testing.T) {
 			})
 		}))
 	}))
+}
+
+// wrongSixDigitCode returns a 6-digit code guaranteed to differ from the
+// given one, avoiding a rare but real chance of collision with a random
+// guess (e.g. a fixed "000000" matching the real code by chance).
+func wrongSixDigitCode(code string) string {
+	n, _ := strconv.Atoi(code)
+	return fmt.Sprintf("%06d", (n+1)%1000000)
 }

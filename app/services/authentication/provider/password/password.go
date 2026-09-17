@@ -148,12 +148,23 @@ func (p *Provider) Enabled(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (b *Provider) AddPassword(ctx context.Context, aid account.AccountID, password string) (*account.Account, error) {
+// validatePassword is the single length/strength check for every path that
+// sets a password (AddPassword, UpdatePassword, ResetPassword), so a policy
+// change only needs to happen once.
+func validatePassword(ctx context.Context, password string) error {
 	if len(password) < 8 {
-		return nil, fault.Wrap(ErrPasswordTooShort,
+		return fault.Wrap(ErrPasswordTooShort,
 			fctx.With(ctx),
 			ftag.With(ftag.InvalidArgument),
 			fmsg.WithDesc("too short", "Password must be at least 8 characters."))
+	}
+
+	return nil
+}
+
+func (b *Provider) AddPassword(ctx context.Context, aid account.AccountID, password string) (*account.Account, error) {
+	if err := validatePassword(ctx, password); err != nil {
+		return nil, err
 	}
 
 	acc, err := b.accountQuery.GetByID(ctx, aid)
@@ -181,11 +192,8 @@ func (b *Provider) AddPassword(ctx context.Context, aid account.AccountID, passw
 }
 
 func (b *Provider) UpdatePassword(ctx context.Context, aid account.AccountID, oldpassword, newpassword string) (*account.Account, error) {
-	if len(newpassword) < 8 {
-		return nil, fault.Wrap(ErrPasswordTooShort,
-			fctx.With(ctx),
-			ftag.With(ftag.InvalidArgument),
-			fmsg.WithDesc("too short", "Password must be at least 8 characters."))
+	if err := validatePassword(ctx, newpassword); err != nil {
+		return nil, err
 	}
 
 	a, err := b.accountQuery.GetByID(ctx, aid)
@@ -239,6 +247,10 @@ func (b *Provider) UpdatePassword(ctx context.Context, aid account.AccountID, ol
 }
 
 func (p *Provider) ResetPassword(ctx context.Context, resetToken string, newpassword string) (*account.Account, error) {
+	if err := validatePassword(ctx, newpassword); err != nil {
+		return nil, err
+	}
+
 	accountID, err := p.resetter.Verify(ctx, resetToken)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))

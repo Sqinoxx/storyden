@@ -136,6 +136,46 @@ func TestPasswordReset(t *testing.T) {
 				r.NoError(err)
 				r.Equal(http.StatusUnauthorized, reuse.StatusCode())
 			})
+
+			t.Run("reset_rejects_a_too_short_password", func(t *testing.T) {
+				r := require.New(t)
+
+				email := xid.New().String() + "@storyden.org"
+				password := "mysupersecretpasswordwhichissosecretiforgotwhatitwas"
+
+				signup, err := cl.AuthEmailPasswordSignupWithResponse(root, nil, openapi.AuthEmailPasswordSignupJSONRequestBody{Email: email, Password: password})
+				tests.Ok(t, err, signup)
+
+				resetEmailCount := inbox.Count()
+
+				req, err := cl.AuthPasswordResetRequestEmailWithResponse(root, openapi.AuthEmailPasswordReset{
+					Email: email,
+					TokenUrl: struct {
+						Query string `json:"query"`
+						Url   string `json:"url"`
+					}{Url: "/reset", Query: "token"},
+				})
+				tests.Ok(t, err, req)
+
+				resetEmail := tests.WaitForNextEmail(t, inbox, resetEmailCount)
+				token := regexp.MustCompile(`\?token=(.+)`).FindStringSubmatch(resetEmail.Plain)[1]
+
+				// B11: ResetPassword had no minimum-length check at all.
+				resp, err := cl.AuthPasswordResetWithResponse(root, openapi.AuthPasswordResetJSONRequestBody{
+					Token: token,
+					New:   "short",
+				})
+				r.NoError(err)
+				r.Equal(http.StatusBadRequest, resp.StatusCode())
+
+				// The token must still be usable afterwards - a rejected
+				// weak password should not burn the one-time reset link.
+				ok, err := cl.AuthPasswordResetWithResponse(root, openapi.AuthPasswordResetJSONRequestBody{
+					Token: token,
+					New:   "adequatelylongpassword",
+				})
+				tests.Ok(t, err, ok)
+			})
 		}))
 	}))
 }

@@ -9393,6 +9393,7 @@ components:
         new:
           example: "password456"
           type: string
+          minLength: 8
 
     AuthSuccess:
       type: object

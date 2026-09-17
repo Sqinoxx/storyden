@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -26,6 +27,39 @@ const (
 	defaultCommandLimit = 256_000
 	defaultCommandWait  = 30 * time.Second
 )
+
+// baseEnvAllowlist are the only ambient environment variables commands
+// launched in a robot's local workspace inherit from this process. Workspace
+// commands are ultimately driven by an LLM agent's tool calls, so the full
+// process environment (os.Environ()) - which includes this backend's own
+// secrets: database credentials, JWT_SECRET, SMTP credentials, OAuth client
+// secrets, the Google Drive service account key, etc. - must never be
+// exposed to them. None of these are secrets: they're generic OS/user paths
+// that external tools (including the Go toolchain, used to build plugins)
+// need in order to function at all.
+var baseEnvAllowlist = func() []string {
+	keys := []string{"PATH", "HOME", "LANG", "TMPDIR"}
+	if runtime.GOOS == "windows" {
+		// LocalAppData is where the Go toolchain resolves its build cache
+		// (GOCACHE) by default on Windows, the way $HOME serves that role on
+		// Linux - without it, "go build" fails outright rather than just
+		// missing an optimisation.
+		keys = append(keys, "SystemRoot", "USERPROFILE", "TEMP", "TMP", "LocalAppData")
+	}
+	return keys
+}()
+
+// baseEnv returns the minimal environment passed to every workspace command,
+// carrying over only the allowlisted variables that are actually set.
+func baseEnv() []string {
+	env := make([]string, 0, len(baseEnvAllowlist))
+	for _, key := range baseEnvAllowlist {
+		if v, ok := os.LookupEnv(key); ok {
+			env = append(env, key+"="+v)
+		}
+	}
+	return env
+}
 
 type Provider struct {
 	root           string
@@ -304,7 +338,7 @@ func (w *Workspace) Run(ctx context.Context, spec workspacecap.CommandSpec) (wor
 
 	cmd := exec.CommandContext(cmdCtx, spec.Command, spec.Args...)
 	cmd.Dir = w.root
-	cmd.Env = append(os.Environ(), spec.Env...)
+	cmd.Env = append(baseEnv(), spec.Env...)
 	if spec.Stdin != "" {
 		cmd.Stdin = strings.NewReader(spec.Stdin)
 	}

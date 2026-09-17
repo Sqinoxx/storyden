@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/rs/xid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	robotresource "github.com/Southclaws/storyden/app/resources/robot"
@@ -69,6 +70,25 @@ func TestWorkspaceRunUsesWorkspaceRoot(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, result.Success, result.Output)
 	require.NotEmpty(t, strings.TrimSpace(result.Output))
+}
+
+// TestBaseEnvOmitsUnlistedVariables covers B20: workspace commands used to
+// inherit the entire backend process environment via os.Environ(), which
+// includes secrets such as DATABASE_URL, JWT_SECRET and SMTP/OAuth
+// credentials. baseEnv must only ever carry over the small, non-secret
+// allowlist.
+func TestBaseEnvOmitsUnlistedVariables(t *testing.T) {
+	t.Setenv("STORYDEN_JWT_SECRET_TEST_PROBE", "super-secret-value")
+	t.Setenv("PATH", "/usr/bin")
+
+	env := baseEnv()
+
+	for _, kv := range env {
+		assert.NotContains(t, kv, "super-secret-value", "an unlisted environment variable must never be forwarded")
+		assert.NotContains(t, kv, "STORYDEN_JWT_SECRET_TEST_PROBE")
+	}
+
+	assert.Contains(t, env, "PATH=/usr/bin", "allowlisted variables that are set must still be forwarded")
 }
 
 func TestWorkspaceRunAppendsEnvironment(t *testing.T) {

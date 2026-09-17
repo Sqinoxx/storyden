@@ -103,6 +103,10 @@ func (d *SettingsRepository) Set(ctx context.Context, s Settings) (*Settings, er
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if err := d.encryptSecrets(current); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	b, err := json.Marshal(current)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))

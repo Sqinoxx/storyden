@@ -15,6 +15,8 @@ func (d *SettingsRepository) hydrateConfigDefaults(in *ent.Setting) (*Settings, 
 		return nil, fault.Wrap(err)
 	}
 
+	d.decryptSecrets(settings)
+
 	d.hydrateClientIPDefaults(settings)
 	d.hydrateRateLimitDefaults(settings)
 	d.hydrateAssetDefaults(settings)

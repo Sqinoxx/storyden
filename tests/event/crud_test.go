@@ -76,6 +76,29 @@ func TestEventsCRUD(t *testing.T) {
 				r.Len(create.JSON200.Participants, 1)
 				a.Equal(adminAcc.ID.String(), create.JSON200.Participants[0].Profile.Id)
 				a.Equal(participation.RoleHost.String(), string(create.JSON200.Participants[0].Role))
+
+				// B21: these four operations aren't implemented yet. They
+				// must answer 501 rather than silently returning an empty
+				// 200 OK, which would look like the write actually happened.
+				t.Run("unimplemented operations report 501, not a silent 200", func(t *testing.T) {
+					a := assert.New(t)
+
+					update, err := cl.EventUpdateWithResponse(root, create.JSON200.Id, openapi.EventMutableProps{}, adminSession)
+					r.NoError(err)
+					a.Equal(501, update.StatusCode())
+
+					del, err := cl.EventDeleteWithResponse(root, create.JSON200.Id, adminSession)
+					r.NoError(err)
+					a.Equal(501, del.StatusCode())
+
+					participantUpdate, err := cl.EventParticipantUpdateWithResponse(root, create.JSON200.Id, adminAcc.ID.String(), openapi.EventParticipantMutableProps{}, adminSession)
+					r.NoError(err)
+					a.Equal(501, participantUpdate.StatusCode())
+
+					participantRemove, err := cl.EventParticipantRemoveWithResponse(root, create.JSON200.Id, adminAcc.ID.String(), adminSession)
+					r.NoError(err)
+					a.Equal(501, participantRemove.StatusCode())
+				})
 			})
 		}))
 	}))

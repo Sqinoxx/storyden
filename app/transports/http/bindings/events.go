@@ -105,7 +105,10 @@ func (h *Events) EventCreate(ctx context.Context, request openapi.EventCreateReq
 
 func (h *Events) EventDelete(ctx context.Context, request openapi.EventDeleteRequestObject) (openapi.EventDeleteResponseObject, error) {
 	// event_manager
-	return nil, nil
+	// Not implemented yet - returning (nil, nil) here would let the strict
+	// server wrapper fall through and answer with an empty 200 OK, silently
+	// claiming success for a delete that never happened.
+	return openapi.EventDelete501Response{}, nil
 }
 
 func (h *Events) EventGet(ctx context.Context, request openapi.EventGetRequestObject) (openapi.EventGetResponseObject, error) {
@@ -123,17 +126,17 @@ func (h *Events) EventGet(ctx context.Context, request openapi.EventGetRequestOb
 
 func (h *Events) EventUpdate(ctx context.Context, request openapi.EventUpdateRequestObject) (openapi.EventUpdateResponseObject, error) {
 	// event_manager
-	return nil, nil
+	return openapi.EventUpdate501Response{}, nil
 }
 
 func (h *Events) EventParticipantRemove(ctx context.Context, request openapi.EventParticipantRemoveRequestObject) (openapi.EventParticipantRemoveResponseObject, error) {
 	// participation_manager
-	return nil, nil
+	return openapi.EventParticipantRemove501Response{}, nil
 }
 
 func (h *Events) EventParticipantUpdate(ctx context.Context, request openapi.EventParticipantUpdateRequestObject) (openapi.EventParticipantUpdateResponseObject, error) {
 	// participation_manager
-	return nil, nil
+	return openapi.EventParticipantUpdate501Response{}, nil
 }
 
 func serialiseEventPtr(in *event.Event) openapi.Event {

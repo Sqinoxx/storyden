@@ -4155,6 +4155,7 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
+        "501": { $ref: "#/components/responses/NotImplemented" }
         "200": { $ref: "#/components/responses/EventUpdateOK" }
     delete:
       operationId: EventDelete
@@ -4165,6 +4166,7 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
+        "501": { $ref: "#/components/responses/NotImplemented" }
         "200": { description: OK }
 
   /events/{event_mark}/participants/{account_id}:
@@ -4204,6 +4206,7 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
+        "501": { $ref: "#/components/responses/NotImplemented" }
         "200": { description: OK }
     delete:
       operationId: EventParticipantRemove
@@ -4218,6 +4221,7 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
+        "501": { $ref: "#/components/responses/NotImplemented" }
         "200": { description: OK }
 
   #

@@ -35,11 +35,21 @@ func TestEncryptDecrypt(t *testing.T) {
 		a.Equal(claims["exp"], gotClaims["exp"])
 	})
 
-	t.Run("invalid_secret", func(t *testing.T) {
+	// B21: an empty secret is a legitimate configuration (no email/OAuth
+	// features enabled), so New must still succeed - but every operation on
+	// the result must fail clearly rather than panicking on a nil interface
+	// or, worse, silently signing/verifying with a well-known empty key.
+	t.Run("empty_secret_fails_clearly_instead_of_a_nil_interface", func(t *testing.T) {
 		ed, err := New(config.Config{
 			JWTSecret: []byte{},
 		})
 		r.NoError(err)
-		r.Nil(ed)
+		r.NotNil(ed)
+
+		_, err = ed.Encrypt(claims, time.Hour)
+		a.ErrorIs(err, errNoJWTSecret)
+
+		_, err = ed.Decrypt("anything")
+		a.ErrorIs(err, errNoJWTSecret)
 	})
 }

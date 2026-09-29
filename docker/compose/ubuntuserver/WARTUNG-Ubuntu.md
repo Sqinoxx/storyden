@@ -37,7 +37,9 @@ kommt alles von selbst wieder hoch.
 ## Code ändern (Frontend oder Backend)
 
 Ein Image enthält beides — es gibt keinen separaten Deploy-Weg für
-Frontend/Backend. Ablauf bei jeder Änderung:
+Frontend/Backend. Ausführliche Schritt-für-Schritt-Version mit Backup,
+Kontrolle und Zurückrollen: [UPDATE-ohne-DB.md](UPDATE-ohne-DB.md).
+Ablauf bei jeder Änderung:
 
 **1. Auf dem PC bauen** (im Projekt-Root, wo der geänderte Code liegt):
 

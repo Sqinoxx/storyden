@@ -100,6 +100,9 @@ type RateLimitServiceSettings struct {
 	RateLimitBucket    opt.Optional[time.Duration]
 	RateLimitGuestCost opt.Optional[int]
 	CostOverrides      opt.Optional[map[string]int]
+
+	LoginMaxAttempts     opt.Optional[int]
+	LoginLockoutDuration opt.Optional[time.Duration]
 }
 
 type ModerationServiceSettings struct {

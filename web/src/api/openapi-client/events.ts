@@ -24,6 +24,7 @@ import type {
   EventUpdateOKResponse,
   InternalServerErrorResponse,
   NotFoundResponse,
+  NotImplementedResponse,
   UnauthorisedResponse,
 } from "../openapi-schema";
 
@@ -220,12 +221,14 @@ export type EventUpdateMutationResult = NonNullable<
 export type EventUpdateMutationError =
   | UnauthorisedResponse
   | NotFoundResponse
+  | NotImplementedResponse
   | InternalServerErrorResponse;
 
 export const useEventUpdate = <
   TError =
     | UnauthorisedResponse
     | NotFoundResponse
+    | NotImplementedResponse
     | InternalServerErrorResponse,
 >(
   eventMark: string,
@@ -272,12 +275,14 @@ export type EventDeleteMutationResult = NonNullable<
 export type EventDeleteMutationError =
   | UnauthorisedResponse
   | NotFoundResponse
+  | NotImplementedResponse
   | InternalServerErrorResponse;
 
 export const useEventDelete = <
   TError =
     | UnauthorisedResponse
     | NotFoundResponse
+    | NotImplementedResponse
     | InternalServerErrorResponse,
 >(
   eventMark: string,
@@ -365,12 +370,14 @@ export type EventParticipantUpdateMutationResult = NonNullable<
 export type EventParticipantUpdateMutationError =
   | UnauthorisedResponse
   | NotFoundResponse
+  | NotImplementedResponse
   | InternalServerErrorResponse;
 
 export const useEventParticipantUpdate = <
   TError =
     | UnauthorisedResponse
     | NotFoundResponse
+    | NotImplementedResponse
     | InternalServerErrorResponse,
 >(
   eventMark: string,
@@ -433,12 +440,14 @@ export type EventParticipantRemoveMutationResult = NonNullable<
 export type EventParticipantRemoveMutationError =
   | UnauthorisedResponse
   | NotFoundResponse
+  | NotImplementedResponse
   | InternalServerErrorResponse;
 
 export const useEventParticipantRemove = <
   TError =
     | UnauthorisedResponse
     | NotFoundResponse
+    | NotImplementedResponse
     | InternalServerErrorResponse,
 >(
   eventMark: string,

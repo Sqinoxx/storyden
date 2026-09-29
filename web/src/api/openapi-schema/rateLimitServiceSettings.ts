@@ -13,6 +13,25 @@ export interface RateLimitServiceSettings {
   /** A map of operation names to their rate limiting cost overrides.
    */
   cost_overrides?: RateLimitServiceSettingsCostOverrides;
+  /**
+   * How long a credential stays locked out after its last failed login
+once `login_max_attempts` is reached, in seconds. Failed attempts
+are also forgotten after this long without a new one.
+
+For example: 900 = 15 minutes, 3600 = 1 hour.
+
+   * @minimum 1
+   */
+  login_lockout_duration?: number;
+  /**
+   * Number of failed password logins against the same email address or
+handle before that credential is locked out. This is independent of
+the per-IP rate limit, so it also slows down attempts spread across
+many IP addresses.
+
+   * @minimum 1
+   */
+  login_max_attempts?: number;
   /** Maximum number of "units" allowed within the sliding window defined by `rate_limit_period`.
 
 Most incoming requests consume 1 unit for authenticated users, and `rate_limit_guest_cost`

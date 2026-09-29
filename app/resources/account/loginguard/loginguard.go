@@ -13,6 +13,8 @@ import (
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/fault/ftag"
 
+	"github.com/Southclaws/storyden/app/resources/settings"
+	"github.com/Southclaws/storyden/internal/config"
 	"github.com/Southclaws/storyden/internal/infrastructure/cache"
 )
 
@@ -23,20 +25,51 @@ const KindLockedOut ftag.Kind = "LOGIN_LOCKED_OUT"
 var ErrLockedOut = fault.New("too many failed login attempts, try again later", ftag.With(KindLockedOut))
 
 const (
-	maxAttempts   = 5
-	countField    = "count"
-	failureWindow = 15 * time.Minute
-	baseBackoff   = time.Minute
-	maxBackoff    = time.Hour
-	maxBackoffExp = 6 // caps baseBackoff*2^6 = 64m, clamped to maxBackoff anyway
+	countField            = "count"
+	defaultMaxAttempts    = 5
+	defaultLockoutTimeout = 15 * time.Minute
 )
 
 type Guard struct {
-	cache cache.Store
+	cache       cache.Store
+	settings    *settings.SettingsRepository
+	maxAttempts int
+	lockout     time.Duration
 }
 
-func New(cache cache.Store) *Guard {
-	return &Guard{cache: cache}
+func New(cfg config.Config, cache cache.Store, settings *settings.SettingsRepository) *Guard {
+	g := &Guard{
+		cache:       cache,
+		settings:    settings,
+		maxAttempts: defaultMaxAttempts,
+		lockout:     defaultLockoutTimeout,
+	}
+	if cfg.LoginMaxAttempts > 0 {
+		g.maxAttempts = cfg.LoginMaxAttempts
+	}
+	if cfg.LoginLockoutDuration > 0 {
+		g.lockout = cfg.LoginLockoutDuration
+	}
+	return g
+}
+
+func (g *Guard) limits(ctx context.Context) (int, time.Duration) {
+	maxAttempts, lockout := g.maxAttempts, g.lockout
+
+	s, err := g.settings.Get(ctx)
+	if err != nil {
+		return maxAttempts, lockout
+	}
+
+	rl := s.Services.OrZero().RateLimit.OrZero()
+	if v, ok := rl.LoginMaxAttempts.Get(); ok && v > 0 {
+		maxAttempts = v
+	}
+	if v, ok := rl.LoginLockoutDuration.Get(); ok && v > 0 {
+		lockout = v
+	}
+
+	return maxAttempts, lockout
 }
 
 func key(identifier string) string {
@@ -53,6 +86,8 @@ func (g *Guard) Check(ctx context.Context, identifier string) error {
 		return nil
 	}
 
+	maxAttempts, _ := g.limits(ctx)
+
 	n, _ := strconv.Atoi(m[countField])
 	if n >= maxAttempts {
 		return fault.Wrap(ErrLockedOut, fctx.With(ctx))
@@ -61,32 +96,19 @@ func (g *Guard) Check(ctx context.Context, identifier string) error {
 	return nil
 }
 
-// RecordFailure increments the failure counter and, once the threshold is
-// exceeded, extends the lockout window exponentially with each further
-// failure.
+// RecordFailure increments the failure counter and restarts the lockout
+// window, so a credential stays locked until it has seen no failed attempt
+// for the configured lockout duration.
 func (g *Guard) RecordFailure(ctx context.Context, identifier string) {
 	k := key(identifier)
 
-	n, err := g.cache.HIncrBy(ctx, k, countField, 1)
-	if err != nil {
+	if _, err := g.cache.HIncrBy(ctx, k, countField, 1); err != nil {
 		return
 	}
 
-	ttl := failureWindow
-	if n > maxAttempts {
-		shift := n - maxAttempts
-		if shift > maxBackoffExp {
-			shift = maxBackoffExp
-		}
+	_, lockout := g.limits(ctx)
 
-		if backoff := baseBackoff * time.Duration(int64(1)<<uint(shift)); backoff < maxBackoff {
-			ttl = backoff
-		} else {
-			ttl = maxBackoff
-		}
-	}
-
-	_ = g.cache.Expire(ctx, k, ttl)
+	_ = g.cache.Expire(ctx, k, lockout)
 }
 
 // Reset clears the failure counter, e.g. after a successful login.

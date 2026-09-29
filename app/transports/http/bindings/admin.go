@@ -379,6 +379,9 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 				RateLimitBucket:    opt.NewPtrMap(rl.RateLimitBucket, func(seconds int) time.Duration { return time.Duration(seconds) * time.Second }),
 				RateLimitGuestCost: opt.NewPtr(rl.RateLimitGuestCost),
 				CostOverrides:      opt.NewPtr(rl.CostOverrides),
+
+				LoginMaxAttempts:     opt.NewPtr(rl.LoginMaxAttempts),
+				LoginLockoutDuration: opt.NewPtrMap(rl.LoginLockoutDuration, func(seconds int) time.Duration { return time.Duration(seconds) * time.Second }),
 			})
 		}
 
@@ -1253,6 +1256,9 @@ func serialiseRateLimitSettings(in settings.RateLimitServiceSettings) openapi.Ra
 		RateLimitBucket:    opt.Map(in.RateLimitBucket, func(d time.Duration) int { return int(d.Seconds()) }).Ptr(),
 		RateLimitGuestCost: in.RateLimitGuestCost.Ptr(),
 		CostOverrides:      in.CostOverrides.Ptr(),
+
+		LoginMaxAttempts:     in.LoginMaxAttempts.Ptr(),
+		LoginLockoutDuration: opt.Map(in.LoginLockoutDuration, func(d time.Duration) int { return int(d.Seconds()) }).Ptr(),
 	}
 }
 

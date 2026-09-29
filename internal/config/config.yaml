@@ -206,6 +206,27 @@
         Example: if set to 5, each guest request consumes 5 units from the same `RATE_LIMIT`
         budget, effectively allowing guests ~1/5th the throughput of authenticated users.
 
+    - env: "LOGIN_MAX_ATTEMPTS"
+      name: LoginMaxAttempts
+      type: int
+      default: "5"
+      description: |-
+        Number of failed password logins against the same email address or handle before
+        that credential is locked out, independent of the per-IP `RATE_LIMIT`.
+
+        Can also be changed at runtime in the System Settings screen.
+
+    - env: "LOGIN_LOCKOUT_DURATION"
+      name: LoginLockoutDuration
+      type: time.Duration
+      default: "15m"
+      description: |-
+        How long a credential stays locked out after its last failed login once
+        `LOGIN_MAX_ATTEMPTS` is reached. Failed attempts are also forgotten after this long
+        without a new one.
+
+        Can also be changed at runtime in the System Settings screen.
+
 - section: Telemetry and monitoring
   description: |-
     Configuration for monitoring via OpenTelemetry-compatible software.

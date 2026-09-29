@@ -252,6 +252,31 @@ Cost multiplier applied to unauthenticated (guest) requests.
 Example: if set to 5, each guest request consumes 5 units from the same `RATE_LIMIT`
 budget, effectively allowing guests ~1/5th the throughput of authenticated users.
 
+### `LOGIN_MAX_ATTEMPTS`
+
+<table>
+<tr><td>type</td><td>`integer` (number without decimal point)</td></tr>
+<tr><td>default</td><td>`5`</td></tr>
+</table>
+
+Number of failed password logins against the same email address or handle before
+that credential is locked out, independent of the per-IP `RATE_LIMIT`.
+
+Can also be changed at runtime in the System Settings screen.
+
+### `LOGIN_LOCKOUT_DURATION`
+
+<table>
+<tr><td>type</td><td>duration (e.g. 1h, 1m, 1s)</td></tr>
+<tr><td>default</td><td>`15m`</td></tr>
+</table>
+
+How long a credential stays locked out after its last failed login once
+`LOGIN_MAX_ATTEMPTS` is reached. Failed attempts are also forgotten after this long
+without a new one.
+
+Can also be changed at runtime in the System Settings screen.
+
 ## Telemetry and monitoring
 
 Configuration for monitoring via OpenTelemetry-compatible software.

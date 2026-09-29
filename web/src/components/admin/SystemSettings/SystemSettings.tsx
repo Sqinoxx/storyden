@@ -23,6 +23,8 @@ import { deriveError } from "@/utils/error";
 
 import { OperationCostOverrides } from "./OperationCostOverrides";
 import {
+  DEFAULT_LOGIN_LOCKOUT_DURATION,
+  DEFAULT_LOGIN_MAX_ATTEMPTS,
   DEFAULT_RATE_LIMIT,
   DEFAULT_RATE_LIMIT_BUCKET,
   DEFAULT_RATE_LIMIT_GUEST_COST,
@@ -58,6 +60,11 @@ export function SystemSettingsForm(props: Props) {
   const rateLimit = useWatch({ control, name: "rate_limit" });
   const rateLimitPeriod = useWatch({ control, name: "rate_limit_period" });
   const rateLimitBucket = useWatch({ control, name: "rate_limit_bucket" });
+  const loginMaxAttempts = useWatch({ control, name: "login_max_attempts" });
+  const loginLockoutDuration = useWatch({
+    control,
+    name: "login_lockout_duration",
+  });
   const rateLimitGuestCost = useWatch({
     control,
     name: "rate_limit_guest_cost",
@@ -261,6 +268,54 @@ export function SystemSettingsForm(props: Props) {
             rateLimit={rateLimit ?? DEFAULT_RATE_LIMIT}
             rateLimitPeriod={rateLimitPeriod ?? DEFAULT_RATE_LIMIT_PERIOD}
           />
+        </FormControl>
+
+        <Heading>Login lockout</Heading>
+
+        <FormControl>
+          <SliderField
+            control={control}
+            name="login_max_attempts"
+            label={`Failed logins before lockout: ${loginMaxAttempts}`}
+            min={1}
+            max={50}
+            step={1}
+            sliderDefaultValue={DEFAULT_LOGIN_MAX_ATTEMPTS}
+            marks={[
+              {
+                value: DEFAULT_LOGIN_MAX_ATTEMPTS,
+                label: "Default",
+              },
+            ]}
+          />
+          <FormHelperText>
+            How many wrong passwords in a row an email address or username may
+            receive before it is locked. This applies per account, no matter
+            which IP address the attempts come from.
+          </FormHelperText>
+        </FormControl>
+
+        <FormControl>
+          <SliderField
+            control={control}
+            name="login_lockout_duration"
+            label={`Lockout duration: ${formatSeconds(loginLockoutDuration ?? DEFAULT_LOGIN_LOCKOUT_DURATION)}`}
+            min={60}
+            max={86400}
+            step={60}
+            sliderDefaultValue={DEFAULT_LOGIN_LOCKOUT_DURATION}
+            marks={[
+              {
+                value: DEFAULT_LOGIN_LOCKOUT_DURATION,
+                label: "Default",
+              },
+            ]}
+          />
+          <FormHelperText>
+            How long an account stays locked after the last failed attempt.
+            Failed attempts are also forgotten after this long without a new
+            one, and a successful login resets the counter.
+          </FormHelperText>
         </FormControl>
 
         <Heading>Client IP strategy</Heading>

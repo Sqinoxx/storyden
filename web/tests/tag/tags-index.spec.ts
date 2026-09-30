@@ -1,26 +1,38 @@
-import { Page, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-import { createThread, registerUser, unique } from "../helpers";
+import { withAdminAccessKey } from "../access_key_admin_assignment";
+import { registerUser, unique } from "../helpers";
 
-const API = "http://localhost:8001/api";
+async function seedTaggedThread(seed: string) {
+  const title = `Tagged thread ${seed}`;
+  const tag = `topic-${seed}`.toLowerCase();
 
-async function tagThread(page: Page, threadUrl: string, tag: string) {
-  const mark = new URL(threadUrl).pathname.split("/").pop();
-  const response = await page.request.patch(`${API}/threads/${mark}`, {
-    data: { tags: [tag] },
+  await withAdminAccessKey(async ({ categoryCreate, threadCreate }) => {
+    const category = await categoryCreate({
+      colour: "#3b82f6",
+      description: `Tags ${seed}`,
+      name: `Tags Category ${seed}`,
+      slug: `tags-category-${seed}`,
+    });
+
+    await threadCreate({
+      title,
+      body: `<p>${title}</p>`,
+      category: category.id,
+      visibility: "published",
+      tags: [tag],
+    });
   });
-  expect(response.ok()).toBeTruthy();
+
+  return { title, tag };
 }
 
 test.describe("Tags index", () => {
   test("members can browse tags and open tagged threads", async ({ page }) => {
+    const { title, tag } = await seedTaggedThread(unique("tg"));
     await registerUser(page, unique("tag-reader"));
 
-    const title = unique("Tagged thread");
-    const tag = unique("topic").toLowerCase();
-    const threadUrl = await createThread(page, title, "Tagged thread body.");
-    await tagThread(page, threadUrl, tag);
-
+    await page.getByRole("button", { name: "Open navigation sidebar" }).click();
     const nav = page.getByRole("navigation");
     await expect(
       nav.getByRole("link", { name: "Tag Management" }),
@@ -37,9 +49,28 @@ test.describe("Tags index", () => {
     await expect(page).toHaveURL(`/tags/${tag}`);
 
     await expect(page.getByRole("heading", { name: "Threads" })).toBeVisible();
-    await page.getByRole("link", { name: title }).first().click();
+    const threadLink = page
+      .getByRole("heading", { name: title })
+      .getByRole("link", { name: title });
+    await threadLink.focus();
+    await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/t\//);
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
+  });
+
+  test("members reach tags from the mobile menu", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await registerUser(page, unique("tag-mobile"));
+
+    await page.getByRole("button", { name: "Main navigation menu" }).click();
+    await page.getByRole("link", { name: "Tags", exact: true }).first().click();
+    await expect(page).toHaveURL("/tags");
+    await expect(page.getByPlaceholder("Search tags...")).toBeVisible();
+
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    );
+    expect(overflow).toBe(false);
   });
 
   test("members cannot open tag management", async ({ page }) => {

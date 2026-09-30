@@ -9,6 +9,7 @@ import { hasPermission, isModeratorOrAdmin } from "@/utils/permissions";
 import styles from "./ContentNavigationList.module.css";
 
 import { CollectionsAnchor } from "../Anchors/Collections";
+import { DailyLibraryAnchor } from "../Anchors/DailyLibrary";
 import { DriveAnchor, useHasDriveFolders } from "../Anchors/Drive";
 import { LinksAnchor } from "../Anchors/Link";
 import { MembersAnchor } from "../Anchors/Members";
@@ -28,6 +29,11 @@ export function ContentNavigationList(props: Props) {
   const session = useSession();
   const isStaff = isModeratorOrAdmin(session);
   const isAdmin = hasPermission(session, Permission.ADMINISTRATOR);
+  const canManageLibrary = hasPermission(
+    session,
+    Permission.ADMINISTRATOR,
+    Permission.MANAGE_LIBRARY,
+  );
   const hasDriveFolders = useHasDriveFolders();
 
   return (
@@ -78,6 +84,7 @@ export function ContentNavigationList(props: Props) {
         <CollectionsAnchor />
         {hasDriveFolders && <DriveAnchor />}
         {isAdmin && <LinksAnchor />}
+        {canManageLibrary && <DailyLibraryAnchor />}
         {isStaff && (
           <>
             <MembersAnchor />

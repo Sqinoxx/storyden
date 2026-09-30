@@ -183,6 +183,15 @@ type Config struct {
 	LoginLockoutDuration time.Duration `default:"15m" envconfig:"LOGIN_LOCKOUT_DURATION"`
 
 	// -
+	// Daily library
+	// -
+
+	// Enables the background job that generates one library page per day. On first run it backfills every past day that has threads, after that it refreshes the most recent week every 15 minutes. Pages that have been published are never overwritten.
+	DailyLibraryEnabled bool `default:"false" envconfig:"DAILY_LIBRARY_ENABLED"`
+	// IANA time zone used to decide which day a thread belongs to.
+	DailyLibraryTimezone string `default:"Europe/Berlin" envconfig:"DAILY_LIBRARY_TIMEZONE"`
+
+	// -
 	// Telemetry and monitoring
 	// -
 

@@ -227,6 +227,24 @@
 
         Can also be changed at runtime in the System Settings screen.
 
+- section: Daily library
+  description: |-
+    Storyden can collect every thread published on a given day into a library page for that day. The pages are grouped under a "Tagesarchiv" parent page and are created in review, so they stay hidden from members until someone with library permissions publishes them from the admin panel.
+  fields:
+    - env: "DAILY_LIBRARY_ENABLED"
+      name: DailyLibraryEnabled
+      type: bool
+      default: "false"
+      description: |-
+        Enables the background job that generates one library page per day. On first run it backfills every past day that has threads, after that it refreshes the most recent week every 15 minutes. Pages that have been published are never overwritten.
+
+    - env: "DAILY_LIBRARY_TIMEZONE"
+      name: DailyLibraryTimezone
+      type: string
+      default: "Europe/Berlin"
+      description: |-
+        IANA time zone used to decide which day a thread belongs to.
+
 - section: Telemetry and monitoring
   description: |-
     Configuration for monitoring via OpenTelemetry-compatible software.

@@ -28,6 +28,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/event"
 	"github.com/Southclaws/storyden/app/services/generative"
 	"github.com/Southclaws/storyden/app/services/library"
+	"github.com/Southclaws/storyden/app/services/library/daily_library"
 	"github.com/Southclaws/storyden/app/services/like/post_liker"
 	"github.com/Southclaws/storyden/app/services/link"
 	"github.com/Southclaws/storyden/app/services/mention/mention_job"
@@ -79,6 +80,7 @@ func Build() fx.Option {
 		thread_mark.Build(),
 		collection.Build(),
 		library.Build(),
+		daily_library.Build(),
 		comms.Build(),
 		link.Build(),
 		notification.Build(),

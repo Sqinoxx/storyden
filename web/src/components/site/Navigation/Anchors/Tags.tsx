@@ -7,7 +7,10 @@ import { useTranslation } from "@/lib/i18n";
 import { Anchor, AnchorProps, MenuItem } from "./Anchor";
 
 export const TagsID = "tags";
-export const TagsRoute = "/admin/tags";
+export const TagsRoute = "/tags";
+
+export const TagManagementID = "tag-management";
+export const TagManagementRoute = "/admin/tags";
 
 export function TagsAnchor(props: AnchorProps & LinkButtonStyleProps) {
   const t = useTranslation();
@@ -29,6 +32,33 @@ export function TagsMenuItem() {
       id={TagsID}
       route={TagsRoute}
       label={t.nav.tags}
+      icon={<TagIcon />}
+    />
+  );
+}
+
+export function TagManagementAnchor(
+  props: AnchorProps & LinkButtonStyleProps,
+) {
+  const t = useTranslation();
+  return (
+    <Anchor
+      id={TagManagementID}
+      route={TagManagementRoute}
+      label={t.nav.tagManagement}
+      icon={<TagIcon />}
+      {...props}
+    />
+  );
+}
+
+export function TagManagementMenuItem() {
+  const t = useTranslation();
+  return (
+    <MenuItem
+      id={TagManagementID}
+      route={TagManagementRoute}
+      label={t.nav.tagManagement}
       icon={<TagIcon />}
     />
   );

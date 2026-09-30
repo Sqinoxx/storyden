@@ -118,7 +118,7 @@ export function TagBadge({
       className={tagBadgeStyles}
       style={styles}
       title={titleLabel}
-      href={`/tags/${tag.name}`}
+      href={`/tags/${encodeURIComponent(tag.name)}`}
     >
       {render}
     </Link>

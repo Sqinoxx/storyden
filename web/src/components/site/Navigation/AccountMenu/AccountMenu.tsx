@@ -17,7 +17,7 @@ import { ProfileMenuItem } from "../Anchors/Profile";
 import { QueueMenuItem } from "../Anchors/Queue";
 import { ReportsMenuItem } from "../Anchors/Reports";
 import { SettingsMenuItem } from "../Anchors/Settings";
-import { TagsMenuItem } from "../Anchors/Tags";
+import { TagManagementMenuItem, TagsMenuItem } from "../Anchors/Tags";
 import { ThemeMenuItem } from "../Anchors/Theme";
 
 import {
@@ -102,7 +102,8 @@ export function AccountMenu({
                 <DraftsMenuItem />
                 {isStaff && <QueueMenuItem />}
                 <ReportsMenuItem />
-                {isStaff && <TagsMenuItem />}
+                <TagsMenuItem />
+                {isStaff && <TagManagementMenuItem />}
               </Menu.ItemGroup>
 
               <Menu.Separator />

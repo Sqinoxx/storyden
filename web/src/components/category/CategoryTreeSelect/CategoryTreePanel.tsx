@@ -87,7 +87,13 @@ export function CategoryTreePanel({
   }
 
   return (
-    <styled.div w="full" display="flex" flexDirection="column" gap="1">
+    <styled.div
+      w="full"
+      display="flex"
+      flexDirection="column"
+      gap="1"
+      data-testid="category-tree-panel"
+    >
       {emptyOption && (
         <styled.button
           type="button"

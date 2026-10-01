@@ -1,7 +1,12 @@
 import { Locator, Page, expect, test } from "@playwright/test";
 
 import { withAdminAccessKey } from "../access_key_admin_assignment";
-import { dismissOnboarding, registerUser, unique } from "../helpers";
+import {
+  dismissOnboarding,
+  quickShareForm,
+  registerUser,
+  unique,
+} from "../helpers";
 
 type Seeded = {
   names: {
@@ -51,7 +56,12 @@ function categoryPicker(page: Page) {
 }
 
 function categoryNode(page: Page, name: string): Locator {
+  // Scoped to the popover's own tree panel: the persistent sidebar navigation
+  // renders a tree of the same categories with the same [data-part] markup,
+  // so an unscoped lookup is ambiguous whenever a category name appears in
+  // both places.
   return page
+    .getByTestId("category-tree-panel")
     .locator('[data-part="branch-text"]')
     .filter({ hasText: new RegExp(`^${name}$`) });
 }
@@ -97,7 +107,11 @@ test("drills through the category tree to reach a leaf", async ({ page }) => {
   await page.getByRole("button", { name: "Post", exact: true }).click();
 
   await expect(page).toHaveURL(/\/t\//, { timeout: 10000 });
-  await expect(page.getByText(title)).toBeVisible({ timeout: 10000 });
+  // getByText(title) is ambiguous here: Next.js's route announcer mirrors the
+  // page title into a live region with the same text.
+  await expect(page.getByRole("heading", { name: title })).toBeVisible({
+    timeout: 10000,
+  });
 });
 
 test("members cannot select a category that has sub-categories", async ({
@@ -160,4 +174,49 @@ test("the category tree is usable at mobile widths", async ({ page }) => {
       name: `${names.root} / ${names.branch} / ${names.leaf}`,
     }),
   ).toBeVisible();
+});
+
+test("a user allowed to post in any category can QuickShare into the category being viewed, not just its subcategory", async ({
+  page,
+}) => {
+  const seed = unique("qsanycat");
+  const { names } = await seedCategoryTree(seed);
+
+  // Sign up through the browser (known-good flow) and grant admin afterwards,
+  // rather than the access-key-assignment package's own login() - its account
+  // page markup has since drifted and no longer exposes a "username" textbox.
+  const username = unique("qsadmin").replace(/-/g, "");
+  await registerUser(page, username);
+  await withAdminAccessKey(async ({ accountAddRole }) => {
+    await accountAddRole(username, "00000000000000000a00");
+  });
+
+  // The branch category has a subcategory (the leaf), so this is exactly the
+  // shape that used to force even a privileged poster down into the leaf.
+  await page.goto(`/d/tree-branch-${seed}`);
+  await dismissOnboarding(page);
+
+  const form = quickShareForm(page);
+  await expect(form).toBeVisible();
+
+  await form.getByPlaceholder("Thread title...").fill(`QuickShare into branch ${seed}`);
+  await form.locator(".ProseMirror").first().fill("posted straight into the viewed category");
+
+  await categoryPicker(page).click();
+
+  // The category being viewed is itself selectable directly - no need to
+  // drill into its subcategory to find something postable. Selecting it
+  // closes the popover, so its own trigger is the reliable place to confirm
+  // what got picked (the tree panel behind it may still be mid-unmount).
+  await categoryNode(page, names.branch).click();
+  await expect(page.getByTestId("category-tree-panel")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: names.branch, exact: true }),
+  ).toBeVisible();
+
+  await form.getByRole("button", { name: "Share" }).click();
+
+  await expect(
+    page.getByText(`QuickShare into branch ${seed}`),
+  ).toBeVisible({ timeout: 10000 });
 });

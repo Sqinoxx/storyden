@@ -879,6 +879,18 @@ func TestThreads(t *testing.T) {
 					}, session2),
 				)(t, http.StatusBadRequest)
 
+				// An Admin-flagged account (session1, no explicit role grant)
+				// bypasses the leaf-category rule via its implicit ADMINISTRATOR
+				// permission, same as a role carrying PostInAnyCategory does below.
+				tests.AssertRequest(
+					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>admin into a parent</p>").Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      "Admin parent category thread " + uuid.NewString(),
+						Category:   opt.New(parentCat.JSON200.Id).Ptr(),
+					}, session1),
+				)(t, http.StatusOK)
+
 				leafThread := tests.AssertRequest(
 					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
 						Body:       opt.New("<p>into a leaf</p>").Ptr(),

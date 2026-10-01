@@ -43,8 +43,21 @@ export function useCategoryTreeSelect({
       return full;
     }
 
-    return findCategoryNode(full, rootId)?.children ?? full;
-  }, [data, rootId]);
+    const rootNode = findCategoryNode(full, rootId);
+    if (!rootNode) {
+      return full;
+    }
+
+    // A user allowed to post in non-leaf categories must have the root
+    // category itself available to pick, not just its children - otherwise
+    // they're forced into a subcategory despite having permission to post
+    // directly into the category they're viewing.
+    if (selectable === "all" || canPostAnywhere) {
+      return [rootNode];
+    }
+
+    return rootNode.children;
+  }, [data, rootId, selectable, canPostAnywhere]);
 
   const isSelectable = useMemo(() => {
     if (selectable === "all" || canPostAnywhere) {

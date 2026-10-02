@@ -7,9 +7,9 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { Identifier } from "./identifier";
-import type { ModerationActionCreatePurgeAccountAction } from "./moderationActionCreatePurgeAccountAction";
-import type { ModerationActionPurgeAccountContentTypeList } from "./moderationActionPurgeAccountContentTypeList";
+import type { Identifier } from './identifier';
+import type { ModerationActionCreatePurgeAccountAction } from './moderationActionCreatePurgeAccountAction';
+import type { ModerationActionPurgeAccountContentTypeList } from './moderationActionPurgeAccountContentTypeList';
 
 /**
  * A moderation action to purge content created by a specific account.

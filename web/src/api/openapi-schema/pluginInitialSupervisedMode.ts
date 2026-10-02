@@ -8,10 +8,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type PluginInitialSupervisedMode =
-  (typeof PluginInitialSupervisedMode)[keyof typeof PluginInitialSupervisedMode];
+export type PluginInitialSupervisedMode = typeof PluginInitialSupervisedMode[keyof typeof PluginInitialSupervisedMode];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PluginInitialSupervisedMode = {
-  supervised: "supervised",
+  supervised: 'supervised',
 } as const;

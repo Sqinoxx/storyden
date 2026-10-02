@@ -60,3 +60,11 @@ func TestExtractTextPropagatesParentCancellation(t *testing.T) {
 	_, err := p.extractText(ctx, nil, "image/png")
 	require.Error(t, err)
 }
+
+func TestSanitiseTextStripsNULAndInvalidUTF8(t *testing.T) {
+	t.Parallel()
+
+	assert.Equal(t, "Brückenglied", sanitiseText("Brü\x00cken\x00glied", 0))
+	assert.Equal(t, "ab", sanitiseText("ab\xff", 0))
+	assert.Equal(t, "Br", sanitiseText("Brü", 3))
+}

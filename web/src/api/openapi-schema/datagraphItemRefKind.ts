@@ -11,14 +11,14 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 /**
  * The type of datagraph item
  */
-export type DatagraphItemRefKind =
-  (typeof DatagraphItemRefKind)[keyof typeof DatagraphItemRefKind];
+export type DatagraphItemRefKind = typeof DatagraphItemRefKind[keyof typeof DatagraphItemRefKind];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DatagraphItemRefKind = {
-  thread: "thread",
-  node: "node",
-  profile: "profile",
-  link: "link",
-  collection: "collection",
+  thread: 'thread',
+  node: 'node',
+  profile: 'profile',
+  link: 'link',
+  collection: 'collection',
 } as const;

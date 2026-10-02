@@ -7,9 +7,9 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { AssetList } from "./assetList";
-import type { NodeList } from "./nodeList";
-import type { PostReferenceList } from "./postReferenceList";
+import type { AssetList } from './assetList';
+import type { NodeList } from './nodeList';
+import type { PostReferenceList } from './postReferenceList';
 
 /**
  * All the resources that a link has been referenced in. May be large.

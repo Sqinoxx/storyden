@@ -7,13 +7,13 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { AttestationConveyancePreference } from "./attestationConveyancePreference";
-import type { AuthenticationExtensionsClientInputs } from "./authenticationExtensionsClientInputs";
-import type { AuthenticatorSelectionCriteria } from "./authenticatorSelectionCriteria";
-import type { PublicKeyCredentialDescriptor } from "./publicKeyCredentialDescriptor";
-import type { PublicKeyCredentialParameters } from "./publicKeyCredentialParameters";
-import type { PublicKeyCredentialRpEntity } from "./publicKeyCredentialRpEntity";
-import type { PublicKeyCredentialUserEntity } from "./publicKeyCredentialUserEntity";
+import type { AttestationConveyancePreference } from './attestationConveyancePreference';
+import type { AuthenticatorSelectionCriteria } from './authenticatorSelectionCriteria';
+import type { PublicKeyCredentialDescriptor } from './publicKeyCredentialDescriptor';
+import type { AuthenticationExtensionsClientInputs } from './authenticationExtensionsClientInputs';
+import type { PublicKeyCredentialParameters } from './publicKeyCredentialParameters';
+import type { PublicKeyCredentialRpEntity } from './publicKeyCredentialRpEntity';
+import type { PublicKeyCredentialUserEntity } from './publicKeyCredentialUserEntity';
 
 /**
  * https://www.w3.org/TR/webautehn-2/#dictdef-publickeycredentialcreationoptions

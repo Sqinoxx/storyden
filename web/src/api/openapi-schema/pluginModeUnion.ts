@@ -7,7 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { PluginExternalProps } from "./pluginExternalProps";
-import type { PluginSupervisedProps } from "./pluginSupervisedProps";
+import type { PluginSupervisedProps } from './pluginSupervisedProps';
+import type { PluginExternalProps } from './pluginExternalProps';
 
 export type PluginModeUnion = PluginSupervisedProps | PluginExternalProps;

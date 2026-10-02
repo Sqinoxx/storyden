@@ -8,12 +8,13 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type Visibility = (typeof Visibility)[keyof typeof Visibility];
+export type Visibility = typeof Visibility[keyof typeof Visibility];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const Visibility = {
-  draft: "draft",
-  unlisted: "unlisted",
-  review: "review",
-  published: "published",
+  draft: 'draft',
+  unlisted: 'unlisted',
+  review: 'review',
+  published: 'published',
 } as const;

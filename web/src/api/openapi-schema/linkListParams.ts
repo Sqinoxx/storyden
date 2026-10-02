@@ -7,16 +7,16 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { PaginationQueryParameter } from "./paginationQueryParameter";
-import type { SearchQueryParameter } from "./searchQueryParameter";
+import type { SearchQueryParameter } from './searchQueryParameter';
+import type { PaginationQueryParameter } from './paginationQueryParameter';
 
 export type LinkListParams = {
-  /**
-   * Search query string.
-   */
-  q?: SearchQueryParameter;
-  /**
-   * Pagination query parameters.
-   */
-  page?: PaginationQueryParameter;
+/**
+ * Search query string.
+ */
+q?: SearchQueryParameter;
+/**
+ * Pagination query parameters.
+ */
+page?: PaginationQueryParameter;
 };

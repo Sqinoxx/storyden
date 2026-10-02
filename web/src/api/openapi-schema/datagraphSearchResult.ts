@@ -7,8 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { DatagraphSearchResultAllOf } from "./datagraphSearchResultAllOf";
-import type { PaginatedResult } from "./paginatedResult";
+import type { PaginatedResult } from './paginatedResult';
+import type { DatagraphSearchResultAllOf } from './datagraphSearchResultAllOf';
 
-export type DatagraphSearchResult = PaginatedResult &
-  DatagraphSearchResultAllOf;
+export type DatagraphSearchResult = PaginatedResult & DatagraphSearchResultAllOf;

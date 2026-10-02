@@ -12,4 +12,4 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * A map of operation names to their rate limiting cost overrides.
 
  */
-export type RateLimitServiceSettingsCostOverrides = { [key: string]: number };
+export type RateLimitServiceSettingsCostOverrides = {[key: string]: number};

@@ -50,6 +50,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/moderation/warning_manager"
 	"github.com/Southclaws/storyden/app/services/system/instance_info"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
+	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/infrastructure/pubsub"
 )
 
@@ -156,6 +157,54 @@ func (a *Admin) AdminOCRStats(ctx context.Context, request openapi.AdminOCRStats
 		Failed:     stats.Failed,
 		Skipped:    stats.Skipped,
 	}, nil
+}
+
+const adminOCRAssetListLimit = 1000
+
+func (a *Admin) AdminOCRAssetList(ctx context.Context, request openapi.AdminOCRAssetListRequestObject) (openapi.AdminOCRAssetListResponseObject, error) {
+	if err := session.Authorise(ctx, nil, rbac.PermissionAdministrator); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	statuses := []ent_asset.OcrStatus{
+		ent_asset.OcrStatusPending,
+		ent_asset.OcrStatusProcessing,
+		ent_asset.OcrStatusFailed,
+		ent_asset.OcrStatusSkipped,
+	}
+	if request.Params.Status != nil {
+		statuses = []ent_asset.OcrStatus{ent_asset.OcrStatus(*request.Params.Status)}
+	}
+
+	assets, err := a.assetQuerier.ListByOCRStatus(ctx, statuses, adminOCRAssetListLimit)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	resp := openapi.AdminOCRAssetList200JSONResponse{}
+	resp.Assets = make([]struct {
+		Error       *string    `json:"error,omitempty"`
+		Filename    string     `json:"filename"`
+		Id          string     `json:"id"`
+		MimeType    string     `json:"mime_type"`
+		Path        string     `json:"path"`
+		ProcessedAt *time.Time `json:"processed_at,omitempty"`
+		Size        int        `json:"size"`
+		Status      string     `json:"status"`
+	}, len(assets))
+	for i, as := range assets {
+		r := &resp.Assets[i]
+		r.Id = as.ID.String()
+		r.Filename = as.Name.String()
+		r.Path = fmt.Sprintf(`/api/assets/%s`, as.Name.String())
+		r.MimeType = as.MIME.String()
+		r.Size = as.Size
+		r.Status = as.OCRStatus
+		r.Error = as.OCRError.Ptr()
+		r.ProcessedAt = as.OCRProcessedAt.Ptr()
+	}
+
+	return resp, nil
 }
 
 func (a *Admin) AdminStatistics(ctx context.Context, request openapi.AdminStatisticsRequestObject) (openapi.AdminStatisticsResponseObject, error) {
@@ -540,7 +589,8 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 		if request.Body.Services.Assets != nil {
 			assetsBody := request.Body.Services.Assets
 			assets = opt.New(settings.AssetServiceSettings{
-				MaxUploadSizeMB: opt.NewPtr(assetsBody.MaxUploadSizeMb),
+				MaxUploadSizeMB:  opt.NewPtr(assetsBody.MaxUploadSizeMb),
+				OCRMaxFileSizeMB: opt.NewPtr(assetsBody.OcrMaxFileSizeMb),
 			})
 		}
 
@@ -1282,7 +1332,8 @@ func serialiseContentSettings(in settings.ContentServiceSettings) openapi.Conten
 
 func serialiseAssetSettings(in settings.AssetServiceSettings) openapi.AssetServiceSettings {
 	return openapi.AssetServiceSettings{
-		MaxUploadSizeMb: in.MaxUploadSizeMB.Ptr(),
+		MaxUploadSizeMb:  in.MaxUploadSizeMB.Ptr(),
+		OcrMaxFileSizeMb: in.OCRMaxFileSizeMB.Ptr(),
 	}
 }
 

@@ -7,8 +7,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { PublicKeyCredentialDescriptor } from "./publicKeyCredentialDescriptor";
-import type { PublicKeyCredentialRequestOptionsUserVerification } from "./publicKeyCredentialRequestOptionsUserVerification";
+import type { PublicKeyCredentialDescriptor } from './publicKeyCredentialDescriptor';
+import type { PublicKeyCredentialRequestOptionsUserVerification } from './publicKeyCredentialRequestOptionsUserVerification';
 
 /**
  * https://www.w3.org/TR/webauthn-2/#dictdef-publickeycredentialrequestoptions

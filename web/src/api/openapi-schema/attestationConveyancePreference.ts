@@ -12,13 +12,13 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * https://www.w3.org/TR/webauthn-2/#enum-attestation-convey
 
  */
-export type AttestationConveyancePreference =
-  (typeof AttestationConveyancePreference)[keyof typeof AttestationConveyancePreference];
+export type AttestationConveyancePreference = typeof AttestationConveyancePreference[keyof typeof AttestationConveyancePreference];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AttestationConveyancePreference = {
-  direct: "direct",
-  enterprise: "enterprise",
-  indirect: "indirect",
-  none: "none",
+  direct: 'direct',
+  enterprise: 'enterprise',
+  indirect: 'indirect',
+  none: 'none',
 } as const;

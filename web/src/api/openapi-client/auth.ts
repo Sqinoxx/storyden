@@ -7,12 +7,16 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import useSwr from "swr";
-import type { Arguments, Key, SWRConfiguration } from "swr";
-import useSWRMutation from "swr/mutation";
-import type { SWRMutationConfiguration } from "swr/mutation";
-
-import { fetcher } from "../client";
+import useSwr from 'swr'
+import type {
+  Arguments,
+  Key,
+  SWRConfiguration
+} from 'swr'
+import useSWRMutation from 'swr/mutation'
+import type {
+  SWRMutationConfiguration
+} from 'swr/mutation'
 import type {
   AccessKeyCreateBody,
   AccessKeyCreateOKResponse,
@@ -78,549 +82,398 @@ import type {
   WebAuthnMakeAssertionBody,
   WebAuthnMakeCredentialBody,
   WebAuthnMakeCredentialParams,
-  WebAuthnRequestCredentialOKResponse,
-} from "../openapi-schema";
+  WebAuthnRequestCredentialOKResponse
+} from '../openapi-schema'
+import { fetcher } from '../client';
 
-/**
+
+
+  
+  /**
  * Retrieve a list of authentication providers. Storyden supports a few
 ways to authenticate, from simple passwords to OAuth and WebAuthn. This
 endpoint tells a client which auth capabilities are enabled.
 
  */
-export const authProviderList = () => {
-  return fetcher<AuthProviderListOKResponse>({ url: `/auth`, method: "GET" });
-};
+export const authProviderList = (
+    
+ ) => {
+    return fetcher<AuthProviderListOKResponse>(
+    {url: `/auth`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getAuthProviderListKey = () => [`/auth`] as const;
 
-export type AuthProviderListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof authProviderList>>
->;
-export type AuthProviderListQueryError =
-  | BadRequestResponse
-  | InternalServerErrorResponse;
+export type AuthProviderListQueryResult = NonNullable<Awaited<ReturnType<typeof authProviderList>>>
+export type AuthProviderListQueryError = BadRequestResponse | InternalServerErrorResponse
 
-export const useAuthProviderList = <
-  TError = BadRequestResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof authProviderList>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAuthProviderList = <TError = BadRequestResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof authProviderList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getAuthProviderListKey() : null));
-  const swrFn = () => authProviderList();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAuthProviderListKey() : null);
+  const swrFn = () => authProviderList()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Register a new account with a username and password.
  */
 export const authPasswordSignup = (
-  authPasswordBody: AuthPasswordBody,
-  params?: AuthPasswordSignupParams,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/password/signup`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authPasswordBody,
-    params,
-  });
-};
+    authPasswordBody: AuthPasswordBody,
+    params?: AuthPasswordSignupParams,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/password/signup`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: authPasswordBody,
+        params
+    },
+    );
+  }
 
-export const getAuthPasswordSignupMutationFetcher = (
-  params?: AuthPasswordSignupParams,
-) => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthPasswordBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getAuthPasswordSignupMutationFetcher = (params?: AuthPasswordSignupParams, ) => {
+  return (_: Key, { arg }: { arg: AuthPasswordBody }): Promise<AuthSuccessOKResponse> => {
     return authPasswordSignup(arg, params);
-  };
-};
-export const getAuthPasswordSignupMutationKey = (
-  params?: AuthPasswordSignupParams,
-) => [`/auth/password/signup`, ...(params ? [params] : [])] as const;
+  }
+}
+export const getAuthPasswordSignupMutationKey = (params?: AuthPasswordSignupParams,) => [`/auth/password/signup`, ...(params ? [params]: [])] as const;
 
-export type AuthPasswordSignupMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authPasswordSignup>>
->;
-export type AuthPasswordSignupMutationError =
-  | BadRequestResponse
-  | ConflictResponse
-  | InternalServerErrorResponse;
+export type AuthPasswordSignupMutationResult = NonNullable<Awaited<ReturnType<typeof authPasswordSignup>>>
+export type AuthPasswordSignupMutationError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse
 
-export const useAuthPasswordSignup = <
-  TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse,
->(
-  params?: AuthPasswordSignupParams,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof authPasswordSignup>>,
-      TError,
-      Key,
-      AuthPasswordBody,
-      Awaited<ReturnType<typeof authPasswordSignup>>
-    > & { swrKey?: string };
-  },
+export const useAuthPasswordSignup = <TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse>(
+  params?: AuthPasswordSignupParams, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authPasswordSignup>>, TError, Key, AuthPasswordBody, Awaited<ReturnType<typeof authPasswordSignup>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAuthPasswordSignupMutationKey(params);
   const swrFn = getAuthPasswordSignupMutationFetcher(params);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Sign in to an existing account with a username and password.
  */
-export const authPasswordSignin = (authPasswordBody: AuthPasswordBody) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/password/signin`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authPasswordBody,
-  });
-};
+export const authPasswordSignin = (
+    authPasswordBody: AuthPasswordBody,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/password/signin`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: authPasswordBody
+    },
+    );
+  }
 
-export const getAuthPasswordSigninMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthPasswordBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getAuthPasswordSigninMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AuthPasswordBody }): Promise<AuthSuccessOKResponse> => {
     return authPasswordSignin(arg);
-  };
-};
-export const getAuthPasswordSigninMutationKey = () =>
-  [`/auth/password/signin`] as const;
+  }
+}
+export const getAuthPasswordSigninMutationKey = () => [`/auth/password/signin`] as const;
 
-export type AuthPasswordSigninMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authPasswordSignin>>
->;
-export type AuthPasswordSigninMutationError =
-  | UnauthorisedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AuthPasswordSigninMutationResult = NonNullable<Awaited<ReturnType<typeof authPasswordSignin>>>
+export type AuthPasswordSigninMutationError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAuthPasswordSignin = <
-  TError =
-    | UnauthorisedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof authPasswordSignin>>,
-    TError,
-    Key,
-    AuthPasswordBody,
-    Awaited<ReturnType<typeof authPasswordSignin>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAuthPasswordSignin = <TError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authPasswordSignin>>, TError, Key, AuthPasswordBody, Awaited<ReturnType<typeof authPasswordSignin>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAuthPasswordSigninMutationKey();
   const swrFn = getAuthPasswordSigninMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Given the requesting account does not have a password authentication,
 add a password authentication method to it with the given password.
 
  */
 export const authPasswordCreate = (
-  authPasswordCreateBody: AuthPasswordCreateBody,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/password`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authPasswordCreateBody,
-  });
-};
+    authPasswordCreateBody: AuthPasswordCreateBody,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: authPasswordCreateBody
+    },
+    );
+  }
 
-export const getAuthPasswordCreateMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthPasswordCreateBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getAuthPasswordCreateMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AuthPasswordCreateBody }): Promise<AuthSuccessOKResponse> => {
     return authPasswordCreate(arg);
-  };
-};
-export const getAuthPasswordCreateMutationKey = () =>
-  [`/auth/password`] as const;
+  }
+}
+export const getAuthPasswordCreateMutationKey = () => [`/auth/password`] as const;
 
-export type AuthPasswordCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authPasswordCreate>>
->;
-export type AuthPasswordCreateMutationError =
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AuthPasswordCreateMutationResult = NonNullable<Awaited<ReturnType<typeof authPasswordCreate>>>
+export type AuthPasswordCreateMutationError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAuthPasswordCreate = <
-  TError =
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof authPasswordCreate>>,
-    TError,
-    Key,
-    AuthPasswordCreateBody,
-    Awaited<ReturnType<typeof authPasswordCreate>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAuthPasswordCreate = <TError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authPasswordCreate>>, TError, Key, AuthPasswordCreateBody, Awaited<ReturnType<typeof authPasswordCreate>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAuthPasswordCreateMutationKey();
   const swrFn = getAuthPasswordCreateMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Given the requesting account has a password authentication, update the
 password on file.
 
  */
 export const authPasswordUpdate = (
-  authPasswordUpdateBody: AuthPasswordUpdateBody,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/password`,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    data: authPasswordUpdateBody,
-  });
-};
+    authPasswordUpdateBody: AuthPasswordUpdateBody,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/password`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: authPasswordUpdateBody
+    },
+    );
+  }
 
-export const getAuthPasswordUpdateMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthPasswordUpdateBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getAuthPasswordUpdateMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AuthPasswordUpdateBody }): Promise<AuthSuccessOKResponse> => {
     return authPasswordUpdate(arg);
-  };
-};
-export const getAuthPasswordUpdateMutationKey = () =>
-  [`/auth/password`] as const;
+  }
+}
+export const getAuthPasswordUpdateMutationKey = () => [`/auth/password`] as const;
 
-export type AuthPasswordUpdateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authPasswordUpdate>>
->;
-export type AuthPasswordUpdateMutationError =
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AuthPasswordUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof authPasswordUpdate>>>
+export type AuthPasswordUpdateMutationError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAuthPasswordUpdate = <
-  TError =
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof authPasswordUpdate>>,
-    TError,
-    Key,
-    AuthPasswordUpdateBody,
-    Awaited<ReturnType<typeof authPasswordUpdate>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAuthPasswordUpdate = <TError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authPasswordUpdate>>, TError, Key, AuthPasswordUpdateBody, Awaited<ReturnType<typeof authPasswordUpdate>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAuthPasswordUpdateMutationKey();
   const swrFn = getAuthPasswordUpdateMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Complete a password-reset flow using a token that was provided to the
 member via a reset request operation such as `AuthEmailPasswordReset`.
 
  */
 export const authPasswordReset = (
-  authPasswordResetBody: AuthPasswordResetBody,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/password/reset`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authPasswordResetBody,
-  });
-};
+    authPasswordResetBody: AuthPasswordResetBody,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/password/reset`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: authPasswordResetBody
+    },
+    );
+  }
 
-export const getAuthPasswordResetMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthPasswordResetBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getAuthPasswordResetMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AuthPasswordResetBody }): Promise<AuthSuccessOKResponse> => {
     return authPasswordReset(arg);
-  };
-};
-export const getAuthPasswordResetMutationKey = () =>
-  [`/auth/password/reset`] as const;
+  }
+}
+export const getAuthPasswordResetMutationKey = () => [`/auth/password/reset`] as const;
 
-export type AuthPasswordResetMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authPasswordReset>>
->;
-export type AuthPasswordResetMutationError =
-  | UnauthorisedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AuthPasswordResetMutationResult = NonNullable<Awaited<ReturnType<typeof authPasswordReset>>>
+export type AuthPasswordResetMutationError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAuthPasswordReset = <
-  TError =
-    | UnauthorisedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof authPasswordReset>>,
-    TError,
-    Key,
-    AuthPasswordResetBody,
-    Awaited<ReturnType<typeof authPasswordReset>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAuthPasswordReset = <TError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authPasswordReset>>, TError, Key, AuthPasswordResetBody, Awaited<ReturnType<typeof authPasswordReset>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAuthPasswordResetMutationKey();
   const swrFn = getAuthPasswordResetMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Register a new account with a email and password.
  */
 export const authEmailPasswordSignup = (
-  authEmailPasswordBody: AuthEmailPasswordBody,
-  params?: AuthEmailPasswordSignupParams,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/email-password/signup`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authEmailPasswordBody,
-    params,
-  });
-};
+    authEmailPasswordBody: AuthEmailPasswordBody,
+    params?: AuthEmailPasswordSignupParams,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/email-password/signup`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: authEmailPasswordBody,
+        params
+    },
+    );
+  }
 
-export const getAuthEmailPasswordSignupMutationFetcher = (
-  params?: AuthEmailPasswordSignupParams,
-) => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthEmailPasswordBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getAuthEmailPasswordSignupMutationFetcher = (params?: AuthEmailPasswordSignupParams, ) => {
+  return (_: Key, { arg }: { arg: AuthEmailPasswordBody }): Promise<AuthSuccessOKResponse> => {
     return authEmailPasswordSignup(arg, params);
-  };
-};
-export const getAuthEmailPasswordSignupMutationKey = (
-  params?: AuthEmailPasswordSignupParams,
-) => [`/auth/email-password/signup`, ...(params ? [params] : [])] as const;
+  }
+}
+export const getAuthEmailPasswordSignupMutationKey = (params?: AuthEmailPasswordSignupParams,) => [`/auth/email-password/signup`, ...(params ? [params]: [])] as const;
 
-export type AuthEmailPasswordSignupMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authEmailPasswordSignup>>
->;
-export type AuthEmailPasswordSignupMutationError =
-  | BadRequestResponse
-  | ConflictResponse
-  | InternalServerErrorResponse;
+export type AuthEmailPasswordSignupMutationResult = NonNullable<Awaited<ReturnType<typeof authEmailPasswordSignup>>>
+export type AuthEmailPasswordSignupMutationError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse
 
-export const useAuthEmailPasswordSignup = <
-  TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse,
->(
-  params?: AuthEmailPasswordSignupParams,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof authEmailPasswordSignup>>,
-      TError,
-      Key,
-      AuthEmailPasswordBody,
-      Awaited<ReturnType<typeof authEmailPasswordSignup>>
-    > & { swrKey?: string };
-  },
+export const useAuthEmailPasswordSignup = <TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse>(
+  params?: AuthEmailPasswordSignupParams, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authEmailPasswordSignup>>, TError, Key, AuthEmailPasswordBody, Awaited<ReturnType<typeof authEmailPasswordSignup>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAuthEmailPasswordSignupMutationKey(params);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAuthEmailPasswordSignupMutationKey(params);
   const swrFn = getAuthEmailPasswordSignupMutationFetcher(params);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Sign in to an existing account with a email and password.
  */
 export const authEmailPasswordSignin = (
-  authEmailPasswordBody: AuthEmailPasswordBody,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/email-password/signin`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authEmailPasswordBody,
-  });
-};
+    authEmailPasswordBody: AuthEmailPasswordBody,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/email-password/signin`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: authEmailPasswordBody
+    },
+    );
+  }
 
-export const getAuthEmailPasswordSigninMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthEmailPasswordBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getAuthEmailPasswordSigninMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AuthEmailPasswordBody }): Promise<AuthSuccessOKResponse> => {
     return authEmailPasswordSignin(arg);
-  };
-};
-export const getAuthEmailPasswordSigninMutationKey = () =>
-  [`/auth/email-password/signin`] as const;
+  }
+}
+export const getAuthEmailPasswordSigninMutationKey = () => [`/auth/email-password/signin`] as const;
 
-export type AuthEmailPasswordSigninMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authEmailPasswordSignin>>
->;
-export type AuthEmailPasswordSigninMutationError =
-  | UnauthorisedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AuthEmailPasswordSigninMutationResult = NonNullable<Awaited<ReturnType<typeof authEmailPasswordSignin>>>
+export type AuthEmailPasswordSigninMutationError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAuthEmailPasswordSignin = <
-  TError =
-    | UnauthorisedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof authEmailPasswordSignin>>,
-    TError,
-    Key,
-    AuthEmailPasswordBody,
-    Awaited<ReturnType<typeof authEmailPasswordSignin>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAuthEmailPasswordSignin = <TError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authEmailPasswordSignin>>, TError, Key, AuthEmailPasswordBody, Awaited<ReturnType<typeof authEmailPasswordSignin>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAuthEmailPasswordSigninMutationKey();
   const swrFn = getAuthEmailPasswordSigninMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Request password reset email to be sent to the specified email address.
 
  */
 export const authPasswordResetRequestEmail = (
-  authEmailPasswordResetBody: AuthEmailPasswordResetBody,
-) => {
-  return fetcher<void>({
-    url: `/auth/email-password/reset`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authEmailPasswordResetBody,
-  });
-};
+    authEmailPasswordResetBody: AuthEmailPasswordResetBody,
+ ) => {
+    return fetcher<void>(
+    {url: `/auth/email-password/reset`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: authEmailPasswordResetBody
+    },
+    );
+  }
 
-export const getAuthPasswordResetRequestEmailMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthEmailPasswordResetBody },
-  ): Promise<void> => {
+
+
+export const getAuthPasswordResetRequestEmailMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AuthEmailPasswordResetBody }): Promise<void> => {
     return authPasswordResetRequestEmail(arg);
-  };
-};
-export const getAuthPasswordResetRequestEmailMutationKey = () =>
-  [`/auth/email-password/reset`] as const;
+  }
+}
+export const getAuthPasswordResetRequestEmailMutationKey = () => [`/auth/email-password/reset`] as const;
 
-export type AuthPasswordResetRequestEmailMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authPasswordResetRequestEmail>>
->;
-export type AuthPasswordResetRequestEmailMutationError =
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AuthPasswordResetRequestEmailMutationResult = NonNullable<Awaited<ReturnType<typeof authPasswordResetRequestEmail>>>
+export type AuthPasswordResetRequestEmailMutationError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAuthPasswordResetRequestEmail = <
-  TError =
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof authPasswordResetRequestEmail>>,
-    TError,
-    Key,
-    AuthEmailPasswordResetBody,
-    Awaited<ReturnType<typeof authPasswordResetRequestEmail>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAuthPasswordResetRequestEmail = <TError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authPasswordResetRequestEmail>>, TError, Key, AuthEmailPasswordResetBody, Awaited<ReturnType<typeof authPasswordResetRequestEmail>>> & { swrKey?: string }, }
+) => {
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAuthPasswordResetRequestEmailMutationKey();
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAuthPasswordResetRequestEmailMutationKey();
   const swrFn = getAuthPasswordResetRequestEmailMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Register a new account with an email and optional password. The password
 requirement is dependent on how the instance is configured for account
@@ -644,65 +497,46 @@ be sent to any public address, it MUST be heavily rate limited.
 
  */
 export const authEmailSignup = (
-  authEmailBody: AuthEmailBody,
-  params?: AuthEmailSignupParams,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/email/signup`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authEmailBody,
-    params,
-  });
-};
+    authEmailBody: AuthEmailBody,
+    params?: AuthEmailSignupParams,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/email/signup`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: authEmailBody,
+        params
+    },
+    );
+  }
 
-export const getAuthEmailSignupMutationFetcher = (
-  params?: AuthEmailSignupParams,
-) => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthEmailBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getAuthEmailSignupMutationFetcher = (params?: AuthEmailSignupParams, ) => {
+  return (_: Key, { arg }: { arg: AuthEmailBody }): Promise<AuthSuccessOKResponse> => {
     return authEmailSignup(arg, params);
-  };
-};
-export const getAuthEmailSignupMutationKey = (params?: AuthEmailSignupParams) =>
-  [`/auth/email/signup`, ...(params ? [params] : [])] as const;
+  }
+}
+export const getAuthEmailSignupMutationKey = (params?: AuthEmailSignupParams,) => [`/auth/email/signup`, ...(params ? [params]: [])] as const;
 
-export type AuthEmailSignupMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authEmailSignup>>
->;
-export type AuthEmailSignupMutationError =
-  | BadRequestResponse
-  | void
-  | InternalServerErrorResponse;
+export type AuthEmailSignupMutationResult = NonNullable<Awaited<ReturnType<typeof authEmailSignup>>>
+export type AuthEmailSignupMutationError = BadRequestResponse | void | InternalServerErrorResponse
 
-export const useAuthEmailSignup = <
-  TError = BadRequestResponse | void | InternalServerErrorResponse,
->(
-  params?: AuthEmailSignupParams,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof authEmailSignup>>,
-      TError,
-      Key,
-      AuthEmailBody,
-      Awaited<ReturnType<typeof authEmailSignup>>
-    > & { swrKey?: string };
-  },
+export const useAuthEmailSignup = <TError = BadRequestResponse | void | InternalServerErrorResponse>(
+  params?: AuthEmailSignupParams, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authEmailSignup>>, TError, Key, AuthEmailBody, Awaited<ReturnType<typeof authEmailSignup>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAuthEmailSignupMutationKey(params);
   const swrFn = getAuthEmailSignupMutationFetcher(params);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Sign in to an existing account with an email and optional password. The
 behaviour of this endpoint depends on how the instance is configured. If
@@ -710,123 +544,89 @@ email+password is the preferred method, a cookie is returned on success
 but if magic links are preferred, the endpoint will start the code flow.
 
  */
-export const authEmailSignin = (authEmailBody: AuthEmailBody) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/email/signin`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authEmailBody,
-  });
-};
+export const authEmailSignin = (
+    authEmailBody: AuthEmailBody,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/email/signin`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: authEmailBody
+    },
+    );
+  }
 
-export const getAuthEmailSigninMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthEmailBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getAuthEmailSigninMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AuthEmailBody }): Promise<AuthSuccessOKResponse> => {
     return authEmailSignin(arg);
-  };
-};
-export const getAuthEmailSigninMutationKey = () =>
-  [`/auth/email/signin`] as const;
+  }
+}
+export const getAuthEmailSigninMutationKey = () => [`/auth/email/signin`] as const;
 
-export type AuthEmailSigninMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authEmailSignin>>
->;
-export type AuthEmailSigninMutationError =
-  | UnauthorisedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AuthEmailSigninMutationResult = NonNullable<Awaited<ReturnType<typeof authEmailSignin>>>
+export type AuthEmailSigninMutationError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAuthEmailSignin = <
-  TError =
-    | UnauthorisedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof authEmailSignin>>,
-    TError,
-    Key,
-    AuthEmailBody,
-    Awaited<ReturnType<typeof authEmailSignin>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAuthEmailSignin = <TError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authEmailSignin>>, TError, Key, AuthEmailBody, Awaited<ReturnType<typeof authEmailSignin>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAuthEmailSigninMutationKey();
   const swrFn = getAuthEmailSigninMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Verify an email address using a token that was emailed to one of the
 account's email addresses either set via sign up or added later.
 
  */
-export const authEmailVerify = (authEmailVerifyBody: AuthEmailVerifyBody) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/email/verify`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authEmailVerifyBody,
-  });
-};
+export const authEmailVerify = (
+    authEmailVerifyBody: AuthEmailVerifyBody,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/email/verify`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: authEmailVerifyBody
+    },
+    );
+  }
 
-export const getAuthEmailVerifyMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthEmailVerifyBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getAuthEmailVerifyMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AuthEmailVerifyBody }): Promise<AuthSuccessOKResponse> => {
     return authEmailVerify(arg);
-  };
-};
-export const getAuthEmailVerifyMutationKey = () =>
-  [`/auth/email/verify`] as const;
+  }
+}
+export const getAuthEmailVerifyMutationKey = () => [`/auth/email/verify`] as const;
 
-export type AuthEmailVerifyMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authEmailVerify>>
->;
-export type AuthEmailVerifyMutationError =
-  | UnauthorisedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AuthEmailVerifyMutationResult = NonNullable<Awaited<ReturnType<typeof authEmailVerify>>>
+export type AuthEmailVerifyMutationError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAuthEmailVerify = <
-  TError =
-    | UnauthorisedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof authEmailVerify>>,
-    TError,
-    Key,
-    AuthEmailVerifyBody,
-    Awaited<ReturnType<typeof authEmailVerify>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAuthEmailVerify = <TError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authEmailVerify>>, TError, Key, AuthEmailVerifyBody, Awaited<ReturnType<typeof authEmailVerify>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAuthEmailVerifyMutationKey();
   const swrFn = getAuthEmailVerifyMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Send a new verification code to an unverified email address.
 
@@ -841,125 +641,87 @@ rate limited.
 
  */
 export const authEmailVerifyResend = (
-  authEmailVerifyResendBody: AuthEmailVerifyResendBody,
-) => {
-  return fetcher<void>({
-    url: `/auth/email/resend`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: authEmailVerifyResendBody,
-  });
-};
+    authEmailVerifyResendBody: AuthEmailVerifyResendBody,
+ ) => {
+    return fetcher<void>(
+    {url: `/auth/email/resend`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: authEmailVerifyResendBody
+    },
+    );
+  }
 
-export const getAuthEmailVerifyResendMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AuthEmailVerifyResendBody },
-  ): Promise<void> => {
+
+
+export const getAuthEmailVerifyResendMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AuthEmailVerifyResendBody }): Promise<void> => {
     return authEmailVerifyResend(arg);
-  };
-};
-export const getAuthEmailVerifyResendMutationKey = () =>
-  [`/auth/email/resend`] as const;
+  }
+}
+export const getAuthEmailVerifyResendMutationKey = () => [`/auth/email/resend`] as const;
 
-export type AuthEmailVerifyResendMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authEmailVerifyResend>>
->;
-export type AuthEmailVerifyResendMutationError =
-  | BadRequestResponse
-  | InternalServerErrorResponse;
+export type AuthEmailVerifyResendMutationResult = NonNullable<Awaited<ReturnType<typeof authEmailVerifyResend>>>
+export type AuthEmailVerifyResendMutationError = BadRequestResponse | InternalServerErrorResponse
 
-export const useAuthEmailVerifyResend = <
-  TError = BadRequestResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof authEmailVerifyResend>>,
-    TError,
-    Key,
-    AuthEmailVerifyResendBody,
-    Awaited<ReturnType<typeof authEmailVerifyResend>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAuthEmailVerifyResend = <TError = BadRequestResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authEmailVerifyResend>>, TError, Key, AuthEmailVerifyResendBody, Awaited<ReturnType<typeof authEmailVerifyResend>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAuthEmailVerifyResendMutationKey();
   const swrFn = getAuthEmailVerifyResendMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * OAuth2 callback.
  */
 export const oAuthProviderCallback = (
-  oauthProvider: string,
-  oAuthProviderCallbackBody: OAuthProviderCallbackBody,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/oauth/${oauthProvider}/callback`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: oAuthProviderCallbackBody,
-  });
-};
+    oauthProvider: string,
+    oAuthProviderCallbackBody: OAuthProviderCallbackBody,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/oauth/${oauthProvider}/callback`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthProviderCallbackBody
+    },
+    );
+  }
 
-export const getOAuthProviderCallbackMutationFetcher = (
-  oauthProvider: string,
-) => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthProviderCallbackBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getOAuthProviderCallbackMutationFetcher = (oauthProvider: string, ) => {
+  return (_: Key, { arg }: { arg: OAuthProviderCallbackBody }): Promise<AuthSuccessOKResponse> => {
     return oAuthProviderCallback(oauthProvider, arg);
-  };
-};
-export const getOAuthProviderCallbackMutationKey = (oauthProvider: string) =>
-  [`/auth/oauth/${oauthProvider}/callback`] as const;
+  }
+}
+export const getOAuthProviderCallbackMutationKey = (oauthProvider: string,) => [`/auth/oauth/${oauthProvider}/callback`] as const;
 
-export type OAuthProviderCallbackMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthProviderCallback>>
->;
-export type OAuthProviderCallbackMutationError =
-  | UnauthorisedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type OAuthProviderCallbackMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthProviderCallback>>>
+export type OAuthProviderCallbackMutationError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useOAuthProviderCallback = <
-  TError =
-    | UnauthorisedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  oauthProvider: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof oAuthProviderCallback>>,
-      TError,
-      Key,
-      OAuthProviderCallbackBody,
-      Awaited<ReturnType<typeof oAuthProviderCallback>>
-    > & { swrKey?: string };
-  },
+export const useOAuthProviderCallback = <TError = UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+  oauthProvider: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthProviderCallback>>, TError, Key, OAuthProviderCallbackBody, Awaited<ReturnType<typeof oAuthProviderCallback>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getOAuthProviderCallbackMutationKey(oauthProvider);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getOAuthProviderCallbackMutationKey(oauthProvider);
   const swrFn = getOAuthProviderCallbackMutationFetcher(oauthProvider);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List public JSON Web Keys that clients can use to validate Storyden
 OAuth access tokens and OpenID Connect ID tokens.
@@ -970,41 +732,38 @@ resource; the well-known discovery document itself is mounted at the
 instance root and is intentionally not part of this OpenAPI document.
 
  */
-export const oAuthJWKS = () => {
-  return fetcher<OAuthJWKSOKResponse>({ url: `/oauth/jwks`, method: "GET" });
-};
+export const oAuthJWKS = (
+    
+ ) => {
+    return fetcher<OAuthJWKSOKResponse>(
+    {url: `/oauth/jwks`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getOAuthJWKSKey = () => [`/oauth/jwks`] as const;
 
-export type OAuthJWKSQueryResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthJWKS>>
->;
-export type OAuthJWKSQueryError = InternalServerErrorResponse;
+export type OAuthJWKSQueryResult = NonNullable<Awaited<ReturnType<typeof oAuthJWKS>>>
+export type OAuthJWKSQueryError = InternalServerErrorResponse
 
-export const useOAuthJWKS = <TError = InternalServerErrorResponse>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof oAuthJWKS>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useOAuthJWKS = <TError = InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof oAuthJWKS>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getOAuthJWKSKey() : null));
-  const swrFn = () => oAuthJWKS();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getOAuthJWKSKey() : null);
+  const swrFn = () => oAuthJWKS()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Start the OAuth 2.0 Device Authorization Grant for clients that cannot
 receive a browser redirect directly, such as CLIs, terminals, and
@@ -1027,63 +786,49 @@ Custom frontends can change this URL with
 
  */
 export const oAuthDeviceAuthorisation = (
-  oAuthDeviceAuthorisationBody: OAuthDeviceAuthorisationBody,
-) => {
-  const formUrlEncoded = new URLSearchParams();
-  formUrlEncoded.append("client_id", oAuthDeviceAuthorisationBody.client_id);
-  if (oAuthDeviceAuthorisationBody.scope !== undefined) {
-    formUrlEncoded.append("scope", oAuthDeviceAuthorisationBody.scope);
+    oAuthDeviceAuthorisationBody: OAuthDeviceAuthorisationBody,
+ ) => {const formUrlEncoded = new URLSearchParams();
+formUrlEncoded.append('client_id', oAuthDeviceAuthorisationBody.client_id)
+if(oAuthDeviceAuthorisationBody.scope !== undefined) {
+ formUrlEncoded.append('scope', oAuthDeviceAuthorisationBody.scope)
+ }
+
+    return fetcher<OAuthDeviceAuthorisationOKResponse>(
+    {url: `/oauth/device_authorization`, method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded', },
+       data: formUrlEncoded
+    },
+    );
   }
 
-  return fetcher<OAuthDeviceAuthorisationOKResponse>({
-    url: `/oauth/device_authorization`,
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    data: formUrlEncoded,
-  });
-};
 
-export const getOAuthDeviceAuthorisationMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthDeviceAuthorisationBody },
-  ): Promise<OAuthDeviceAuthorisationOKResponse> => {
+
+export const getOAuthDeviceAuthorisationMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: OAuthDeviceAuthorisationBody }): Promise<OAuthDeviceAuthorisationOKResponse> => {
     return oAuthDeviceAuthorisation(arg);
-  };
-};
-export const getOAuthDeviceAuthorisationMutationKey = () =>
-  [`/oauth/device_authorization`] as const;
+  }
+}
+export const getOAuthDeviceAuthorisationMutationKey = () => [`/oauth/device_authorization`] as const;
 
-export type OAuthDeviceAuthorisationMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthDeviceAuthorisation>>
->;
-export type OAuthDeviceAuthorisationMutationError =
-  | OAuthErrorResponse
-  | InternalServerErrorResponse;
+export type OAuthDeviceAuthorisationMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthDeviceAuthorisation>>>
+export type OAuthDeviceAuthorisationMutationError = OAuthErrorResponse | InternalServerErrorResponse
 
-export const useOAuthDeviceAuthorisation = <
-  TError = OAuthErrorResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof oAuthDeviceAuthorisation>>,
-    TError,
-    Key,
-    OAuthDeviceAuthorisationBody,
-    Awaited<ReturnType<typeof oAuthDeviceAuthorisation>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useOAuthDeviceAuthorisation = <TError = OAuthErrorResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthDeviceAuthorisation>>, TError, Key, OAuthDeviceAuthorisationBody, Awaited<ReturnType<typeof oAuthDeviceAuthorisation>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getOAuthDeviceAuthorisationMutationKey();
   const swrFn = getOAuthDeviceAuthorisationMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Read a pending OAuth device authorisation request for a signed-in user
 before they approve or deny consent in the frontend.
@@ -1098,58 +843,39 @@ prevents another account from approving the same code after it has been
 displayed.
 
  */
-export const oAuthDeviceConsent = (params?: OAuthDeviceConsentParams) => {
-  return fetcher<OAuthDeviceConsentOKResponse>({
-    url: `/oauth/device/consent`,
-    method: "GET",
-    params,
-  });
-};
+export const oAuthDeviceConsent = (
+    params?: OAuthDeviceConsentParams,
+ ) => {
+    return fetcher<OAuthDeviceConsentOKResponse>(
+    {url: `/oauth/device/consent`, method: 'GET',
+        params
+    },
+    );
+  }
 
-export const getOAuthDeviceConsentKey = (params?: OAuthDeviceConsentParams) =>
-  [`/oauth/device/consent`, ...(params ? [params] : [])] as const;
 
-export type OAuthDeviceConsentQueryResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthDeviceConsent>>
->;
-export type OAuthDeviceConsentQueryError =
-  | OAuthErrorResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
 
-export const useOAuthDeviceConsent = <
-  TError =
-    | OAuthErrorResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(
-  params?: OAuthDeviceConsentParams,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof oAuthDeviceConsent>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getOAuthDeviceConsentKey = (params?: OAuthDeviceConsentParams,) => [`/oauth/device/consent`, ...(params ? [params]: [])] as const;
+
+export type OAuthDeviceConsentQueryResult = NonNullable<Awaited<ReturnType<typeof oAuthDeviceConsent>>>
+export type OAuthDeviceConsentQueryError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse
+
+export const useOAuthDeviceConsent = <TError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+  params?: OAuthDeviceConsentParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof oAuthDeviceConsent>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getOAuthDeviceConsentKey(params) : null));
-  const swrFn = () => oAuthDeviceConsent(params);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getOAuthDeviceConsentKey(params) : null);
+  const swrFn = () => oAuthDeviceConsent(params)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Approve or deny a pending OAuth device authorisation request for the
 currently signed-in account.
@@ -1161,61 +887,44 @@ that were not present in the original device authorisation request.
 
  */
 export const oAuthDeviceConsentSubmit = (
-  oAuthDeviceConsentSubmitBody: OAuthDeviceConsentSubmitBody,
-) => {
-  return fetcher<OAuthDeviceConsentSubmitOKResponse>({
-    url: `/oauth/device/consent`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: oAuthDeviceConsentSubmitBody,
-  });
-};
+    oAuthDeviceConsentSubmitBody: OAuthDeviceConsentSubmitBody,
+ ) => {
+    return fetcher<OAuthDeviceConsentSubmitOKResponse>(
+    {url: `/oauth/device/consent`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthDeviceConsentSubmitBody
+    },
+    );
+  }
 
-export const getOAuthDeviceConsentSubmitMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthDeviceConsentSubmitBody },
-  ): Promise<OAuthDeviceConsentSubmitOKResponse> => {
+
+
+export const getOAuthDeviceConsentSubmitMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: OAuthDeviceConsentSubmitBody }): Promise<OAuthDeviceConsentSubmitOKResponse> => {
     return oAuthDeviceConsentSubmit(arg);
-  };
-};
-export const getOAuthDeviceConsentSubmitMutationKey = () =>
-  [`/oauth/device/consent`] as const;
+  }
+}
+export const getOAuthDeviceConsentSubmitMutationKey = () => [`/oauth/device/consent`] as const;
 
-export type OAuthDeviceConsentSubmitMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthDeviceConsentSubmit>>
->;
-export type OAuthDeviceConsentSubmitMutationError =
-  | OAuthErrorResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type OAuthDeviceConsentSubmitMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthDeviceConsentSubmit>>>
+export type OAuthDeviceConsentSubmitMutationError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse
 
-export const useOAuthDeviceConsentSubmit = <
-  TError =
-    | OAuthErrorResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof oAuthDeviceConsentSubmit>>,
-    TError,
-    Key,
-    OAuthDeviceConsentSubmitBody,
-    Awaited<ReturnType<typeof oAuthDeviceConsentSubmit>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useOAuthDeviceConsentSubmit = <TError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthDeviceConsentSubmit>>, TError, Key, OAuthDeviceConsentSubmitBody, Awaited<ReturnType<typeof oAuthDeviceConsentSubmit>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getOAuthDeviceConsentSubmitMutationKey();
   const swrFn = getOAuthDeviceConsentSubmitMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Start the browser-based OAuth 2.0 Authorization Code flow with PKCE.
 
@@ -1235,58 +944,39 @@ granted only when allowed by the client and by the signed-in account's
 current permissions.
 
  */
-export const oAuthAuthorise = (params: OAuthAuthoriseParams) => {
-  return fetcher<OAuthAuthoriseOKResponse>({
-    url: `/oauth/authorize`,
-    method: "GET",
-    params,
-  });
-};
+export const oAuthAuthorise = (
+    params: OAuthAuthoriseParams,
+ ) => {
+    return fetcher<OAuthAuthoriseOKResponse>(
+    {url: `/oauth/authorize`, method: 'GET',
+        params
+    },
+    );
+  }
 
-export const getOAuthAuthoriseKey = (params: OAuthAuthoriseParams) =>
-  [`/oauth/authorize`, ...(params ? [params] : [])] as const;
 
-export type OAuthAuthoriseQueryResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthAuthorise>>
->;
-export type OAuthAuthoriseQueryError =
-  | OAuthAuthoriseFoundResponse
-  | OAuthErrorResponse
-  | InternalServerErrorResponse;
 
-export const useOAuthAuthorise = <
-  TError =
-    | OAuthAuthoriseFoundResponse
-    | OAuthErrorResponse
-    | InternalServerErrorResponse,
->(
-  params: OAuthAuthoriseParams,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof oAuthAuthorise>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getOAuthAuthoriseKey = (params: OAuthAuthoriseParams,) => [`/oauth/authorize`, ...(params ? [params]: [])] as const;
+
+export type OAuthAuthoriseQueryResult = NonNullable<Awaited<ReturnType<typeof oAuthAuthorise>>>
+export type OAuthAuthoriseQueryError = OAuthAuthoriseFoundResponse | OAuthErrorResponse | InternalServerErrorResponse
+
+export const useOAuthAuthorise = <TError = OAuthAuthoriseFoundResponse | OAuthErrorResponse | InternalServerErrorResponse>(
+  params: OAuthAuthoriseParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof oAuthAuthorise>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getOAuthAuthoriseKey(params) : null));
-  const swrFn = () => oAuthAuthorise(params);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getOAuthAuthoriseKey(params) : null);
+  const swrFn = () => oAuthAuthorise(params)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Read a pending OAuth authorisation code request for a signed-in user
 before they approve or deny consent in the frontend.
@@ -1297,59 +987,39 @@ scopes, and currently grantable scopes so the frontend can render a
 consent screen.
 
  */
-export const oAuthAuthoriseConsent = (params?: OAuthAuthoriseConsentParams) => {
-  return fetcher<OAuthAuthoriseConsentOKResponse>({
-    url: `/oauth/authorize/consent`,
-    method: "GET",
-    params,
-  });
-};
+export const oAuthAuthoriseConsent = (
+    params?: OAuthAuthoriseConsentParams,
+ ) => {
+    return fetcher<OAuthAuthoriseConsentOKResponse>(
+    {url: `/oauth/authorize/consent`, method: 'GET',
+        params
+    },
+    );
+  }
 
-export const getOAuthAuthoriseConsentKey = (
-  params?: OAuthAuthoriseConsentParams,
-) => [`/oauth/authorize/consent`, ...(params ? [params] : [])] as const;
 
-export type OAuthAuthoriseConsentQueryResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthAuthoriseConsent>>
->;
-export type OAuthAuthoriseConsentQueryError =
-  | OAuthErrorResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
 
-export const useOAuthAuthoriseConsent = <
-  TError =
-    | OAuthErrorResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(
-  params?: OAuthAuthoriseConsentParams,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof oAuthAuthoriseConsent>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getOAuthAuthoriseConsentKey = (params?: OAuthAuthoriseConsentParams,) => [`/oauth/authorize/consent`, ...(params ? [params]: [])] as const;
+
+export type OAuthAuthoriseConsentQueryResult = NonNullable<Awaited<ReturnType<typeof oAuthAuthoriseConsent>>>
+export type OAuthAuthoriseConsentQueryError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse
+
+export const useOAuthAuthoriseConsent = <TError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+  params?: OAuthAuthoriseConsentParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof oAuthAuthoriseConsent>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getOAuthAuthoriseConsentKey(params) : null));
-  const swrFn = () => oAuthAuthoriseConsent(params);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getOAuthAuthoriseConsentKey(params) : null);
+  const swrFn = () => oAuthAuthoriseConsent(params)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Approve or deny a pending OAuth authorisation code request for the
 currently signed-in account.
@@ -1363,62 +1033,44 @@ account permissions and client policy.
 
  */
 export const oAuthAuthoriseConsentSubmit = (
-  oAuthAuthoriseConsentSubmitBody: OAuthAuthoriseConsentSubmitBody,
-) => {
-  return fetcher<OAuthAuthoriseConsentSubmitOKResponse>({
-    url: `/oauth/authorize/consent`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: oAuthAuthoriseConsentSubmitBody,
-  });
-};
+    oAuthAuthoriseConsentSubmitBody: OAuthAuthoriseConsentSubmitBody,
+ ) => {
+    return fetcher<OAuthAuthoriseConsentSubmitOKResponse>(
+    {url: `/oauth/authorize/consent`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthAuthoriseConsentSubmitBody
+    },
+    );
+  }
 
-export const getOAuthAuthoriseConsentSubmitMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthAuthoriseConsentSubmitBody },
-  ): Promise<OAuthAuthoriseConsentSubmitOKResponse> => {
+
+
+export const getOAuthAuthoriseConsentSubmitMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: OAuthAuthoriseConsentSubmitBody }): Promise<OAuthAuthoriseConsentSubmitOKResponse> => {
     return oAuthAuthoriseConsentSubmit(arg);
-  };
-};
-export const getOAuthAuthoriseConsentSubmitMutationKey = () =>
-  [`/oauth/authorize/consent`] as const;
+  }
+}
+export const getOAuthAuthoriseConsentSubmitMutationKey = () => [`/oauth/authorize/consent`] as const;
 
-export type OAuthAuthoriseConsentSubmitMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthAuthoriseConsentSubmit>>
->;
-export type OAuthAuthoriseConsentSubmitMutationError =
-  | OAuthErrorResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type OAuthAuthoriseConsentSubmitMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthAuthoriseConsentSubmit>>>
+export type OAuthAuthoriseConsentSubmitMutationError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse
 
-export const useOAuthAuthoriseConsentSubmit = <
-  TError =
-    | OAuthErrorResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof oAuthAuthoriseConsentSubmit>>,
-    TError,
-    Key,
-    OAuthAuthoriseConsentSubmitBody,
-    Awaited<ReturnType<typeof oAuthAuthoriseConsentSubmit>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useOAuthAuthoriseConsentSubmit = <TError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthAuthoriseConsentSubmit>>, TError, Key, OAuthAuthoriseConsentSubmitBody, Awaited<ReturnType<typeof oAuthAuthoriseConsentSubmit>>> & { swrKey?: string }, }
+) => {
 
-  const swrKey =
-    swrOptions?.swrKey ?? getOAuthAuthoriseConsentSubmitMutationKey();
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getOAuthAuthoriseConsentSubmitMutationKey();
   const swrFn = getOAuthAuthoriseConsentSubmitMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Exchange an OAuth authorisation code, device code, refresh token, or
 client credentials grant for tokens.
@@ -1439,84 +1091,69 @@ Device-code polling returns OAuth-compatible errors such as
 `access_denied`, and `invalid_grant`.
 
  */
-export const oAuthToken = (oAuthTokenBody: OAuthTokenBody) => {
-  const formUrlEncoded = new URLSearchParams();
-  formUrlEncoded.append("grant_type", oAuthTokenBody.grant_type);
-  formUrlEncoded.append("client_id", oAuthTokenBody.client_id);
-  if (oAuthTokenBody.client_secret !== undefined) {
-    formUrlEncoded.append("client_secret", oAuthTokenBody.client_secret);
-  }
-  if (oAuthTokenBody.scope !== undefined) {
-    formUrlEncoded.append("scope", oAuthTokenBody.scope);
-  }
-  if (oAuthTokenBody.device_code !== undefined) {
-    formUrlEncoded.append("device_code", oAuthTokenBody.device_code);
-  }
-  if (oAuthTokenBody.code !== undefined) {
-    formUrlEncoded.append("code", oAuthTokenBody.code);
-  }
-  if (oAuthTokenBody.redirect_uri !== undefined) {
-    formUrlEncoded.append("redirect_uri", oAuthTokenBody.redirect_uri);
-  }
-  if (oAuthTokenBody.code_verifier !== undefined) {
-    formUrlEncoded.append("code_verifier", oAuthTokenBody.code_verifier);
-  }
-  if (oAuthTokenBody.refresh_token !== undefined) {
-    formUrlEncoded.append("refresh_token", oAuthTokenBody.refresh_token);
+export const oAuthToken = (
+    oAuthTokenBody: OAuthTokenBody,
+ ) => {const formUrlEncoded = new URLSearchParams();
+formUrlEncoded.append('grant_type', oAuthTokenBody.grant_type)
+formUrlEncoded.append('client_id', oAuthTokenBody.client_id)
+if(oAuthTokenBody.client_secret !== undefined) {
+ formUrlEncoded.append('client_secret', oAuthTokenBody.client_secret)
+ }
+if(oAuthTokenBody.scope !== undefined) {
+ formUrlEncoded.append('scope', oAuthTokenBody.scope)
+ }
+if(oAuthTokenBody.device_code !== undefined) {
+ formUrlEncoded.append('device_code', oAuthTokenBody.device_code)
+ }
+if(oAuthTokenBody.code !== undefined) {
+ formUrlEncoded.append('code', oAuthTokenBody.code)
+ }
+if(oAuthTokenBody.redirect_uri !== undefined) {
+ formUrlEncoded.append('redirect_uri', oAuthTokenBody.redirect_uri)
+ }
+if(oAuthTokenBody.code_verifier !== undefined) {
+ formUrlEncoded.append('code_verifier', oAuthTokenBody.code_verifier)
+ }
+if(oAuthTokenBody.refresh_token !== undefined) {
+ formUrlEncoded.append('refresh_token', oAuthTokenBody.refresh_token)
+ }
+
+    return fetcher<OAuthTokenOKResponse>(
+    {url: `/oauth/token`, method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded', },
+       data: formUrlEncoded
+    },
+    );
   }
 
-  return fetcher<OAuthTokenOKResponse>({
-    url: `/oauth/token`,
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    data: formUrlEncoded,
-  });
-};
 
-export const getOAuthTokenMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthTokenBody },
-  ): Promise<OAuthTokenOKResponse> => {
+
+export const getOAuthTokenMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: OAuthTokenBody }): Promise<OAuthTokenOKResponse> => {
     return oAuthToken(arg);
-  };
-};
+  }
+}
 export const getOAuthTokenMutationKey = () => [`/oauth/token`] as const;
 
-export type OAuthTokenMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthToken>>
->;
-export type OAuthTokenMutationError =
-  | OAuthTokenErrorResponse
-  | OAuthTokenUnauthorisedResponse
-  | InternalServerErrorResponse;
+export type OAuthTokenMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthToken>>>
+export type OAuthTokenMutationError = OAuthTokenErrorResponse | OAuthTokenUnauthorisedResponse | InternalServerErrorResponse
 
-export const useOAuthToken = <
-  TError =
-    | OAuthTokenErrorResponse
-    | OAuthTokenUnauthorisedResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof oAuthToken>>,
-    TError,
-    Key,
-    OAuthTokenBody,
-    Awaited<ReturnType<typeof oAuthToken>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useOAuthToken = <TError = OAuthTokenErrorResponse | OAuthTokenUnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthToken>>, TError, Key, OAuthTokenBody, Awaited<ReturnType<typeof oAuthToken>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getOAuthTokenMutationKey();
   const swrFn = getOAuthTokenMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Return OpenID Connect UserInfo claims for the account represented by a
 valid bearer access token.
@@ -1531,108 +1168,77 @@ Storyden accounts do not always have email addresses, so email claims
 may be absent even when the `email` scope is present.
 
  */
-export const oAuthUserInfo = () => {
-  return fetcher<OAuthUserInfoOKResponse>({
-    url: `/oauth/userinfo`,
-    method: "GET",
-  });
-};
+export const oAuthUserInfo = (
+    
+ ) => {
+    return fetcher<OAuthUserInfoOKResponse>(
+    {url: `/oauth/userinfo`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getOAuthUserInfoKey = () => [`/oauth/userinfo`] as const;
 
-export type OAuthUserInfoQueryResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthUserInfo>>
->;
-export type OAuthUserInfoQueryError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type OAuthUserInfoQueryResult = NonNullable<Awaited<ReturnType<typeof oAuthUserInfo>>>
+export type OAuthUserInfoQueryError = UnauthorisedResponse | InternalServerErrorResponse
 
-export const useOAuthUserInfo = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof oAuthUserInfo>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useOAuthUserInfo = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof oAuthUserInfo>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getOAuthUserInfoKey() : null));
-  const swrFn = () => oAuthUserInfo();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getOAuthUserInfoKey() : null);
+  const swrFn = () => oAuthUserInfo()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Complete a remote OAuth authorization code callback. This validates the
 saved state, exchanges the code with PKCE, and stores returned tokens
 on the remote connection.
 
  */
-export const oAuthRemoteCallback = (params: OAuthRemoteCallbackParams) => {
-  return fetcher<OAuthRemoteCallbackOKResponse>({
-    url: `/oauth/remote/callback`,
-    method: "GET",
-    params,
-  });
-};
+export const oAuthRemoteCallback = (
+    params: OAuthRemoteCallbackParams,
+ ) => {
+    return fetcher<OAuthRemoteCallbackOKResponse>(
+    {url: `/oauth/remote/callback`, method: 'GET',
+        params
+    },
+    );
+  }
 
-export const getOAuthRemoteCallbackKey = (params: OAuthRemoteCallbackParams) =>
-  [`/oauth/remote/callback`, ...(params ? [params] : [])] as const;
 
-export type OAuthRemoteCallbackQueryResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthRemoteCallback>>
->;
-export type OAuthRemoteCallbackQueryError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
 
-export const useOAuthRemoteCallback = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | ForbiddenResponse
-    | InternalServerErrorResponse,
->(
-  params: OAuthRemoteCallbackParams,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof oAuthRemoteCallback>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getOAuthRemoteCallbackKey = (params: OAuthRemoteCallbackParams,) => [`/oauth/remote/callback`, ...(params ? [params]: [])] as const;
+
+export type OAuthRemoteCallbackQueryResult = NonNullable<Awaited<ReturnType<typeof oAuthRemoteCallback>>>
+export type OAuthRemoteCallbackQueryError = BadRequestResponse | UnauthorisedResponse | ForbiddenResponse | InternalServerErrorResponse
+
+export const useOAuthRemoteCallback = <TError = BadRequestResponse | UnauthorisedResponse | ForbiddenResponse | InternalServerErrorResponse>(
+  params: OAuthRemoteCallbackParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof oAuthRemoteCallback>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getOAuthRemoteCallbackKey(params) : null));
-  const swrFn = () => oAuthRemoteCallback(params);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getOAuthRemoteCallbackKey(params) : null);
+  const swrFn = () => oAuthRemoteCallback(params)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * RFC 7591 OAuth 2.0 Dynamic Client Registration.
 
@@ -1656,286 +1262,201 @@ is heavily rate limited to prevent abuse.
 
  */
 export const oAuthClientRegister = (
-  oAuthClientRegisterBody: OAuthClientRegisterBody,
-) => {
-  return fetcher<OAuthClientRegisterOKResponse>({
-    url: `/oauth/register`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: oAuthClientRegisterBody,
-  });
-};
+    oAuthClientRegisterBody: OAuthClientRegisterBody,
+ ) => {
+    return fetcher<OAuthClientRegisterOKResponse>(
+    {url: `/oauth/register`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthClientRegisterBody
+    },
+    );
+  }
 
-export const getOAuthClientRegisterMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthClientRegisterBody },
-  ): Promise<OAuthClientRegisterOKResponse> => {
+
+
+export const getOAuthClientRegisterMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: OAuthClientRegisterBody }): Promise<OAuthClientRegisterOKResponse> => {
     return oAuthClientRegister(arg);
-  };
-};
-export const getOAuthClientRegisterMutationKey = () =>
-  [`/oauth/register`] as const;
+  }
+}
+export const getOAuthClientRegisterMutationKey = () => [`/oauth/register`] as const;
 
-export type OAuthClientRegisterMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthClientRegister>>
->;
-export type OAuthClientRegisterMutationError =
-  | OAuthClientRegisterErrorResponse
-  | InternalServerErrorResponse;
+export type OAuthClientRegisterMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthClientRegister>>>
+export type OAuthClientRegisterMutationError = OAuthClientRegisterErrorResponse | InternalServerErrorResponse
 
-export const useOAuthClientRegister = <
-  TError = OAuthClientRegisterErrorResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof oAuthClientRegister>>,
-    TError,
-    Key,
-    OAuthClientRegisterBody,
-    Awaited<ReturnType<typeof oAuthClientRegister>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useOAuthClientRegister = <TError = OAuthClientRegisterErrorResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthClientRegister>>, TError, Key, OAuthClientRegisterBody, Awaited<ReturnType<typeof oAuthClientRegister>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getOAuthClientRegisterMutationKey();
   const swrFn = getOAuthClientRegisterMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Start the WebAuthn registration process by requesting a credential.
 
  */
-export const webAuthnRequestCredential = (accountHandle: string) => {
-  return fetcher<WebAuthnRequestCredentialOKResponse>({
-    url: `/auth/webauthn/make/${accountHandle}`,
-    method: "GET",
-  });
-};
+export const webAuthnRequestCredential = (
+    accountHandle: string,
+ ) => {
+    return fetcher<WebAuthnRequestCredentialOKResponse>(
+    {url: `/auth/webauthn/make/${accountHandle}`, method: 'GET'
+    },
+    );
+  }
 
-export const getWebAuthnRequestCredentialKey = (accountHandle: string) =>
-  [`/auth/webauthn/make/${accountHandle}`] as const;
 
-export type WebAuthnRequestCredentialQueryResult = NonNullable<
-  Awaited<ReturnType<typeof webAuthnRequestCredential>>
->;
-export type WebAuthnRequestCredentialQueryError =
-  | BadRequestResponse
-  | InternalServerErrorResponse;
 
-export const useWebAuthnRequestCredential = <
-  TError = BadRequestResponse | InternalServerErrorResponse,
->(
-  accountHandle: string,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof webAuthnRequestCredential>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getWebAuthnRequestCredentialKey = (accountHandle: string,) => [`/auth/webauthn/make/${accountHandle}`] as const;
+
+export type WebAuthnRequestCredentialQueryResult = NonNullable<Awaited<ReturnType<typeof webAuthnRequestCredential>>>
+export type WebAuthnRequestCredentialQueryError = BadRequestResponse | InternalServerErrorResponse
+
+export const useWebAuthnRequestCredential = <TError = BadRequestResponse | InternalServerErrorResponse>(
+  accountHandle: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof webAuthnRequestCredential>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false && !!accountHandle;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getWebAuthnRequestCredentialKey(accountHandle) : null));
-  const swrFn = () => webAuthnRequestCredential(accountHandle);
+  const isEnabled = swrOptions?.enabled !== false && !!(accountHandle)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getWebAuthnRequestCredentialKey(accountHandle) : null);
+  const swrFn = () => webAuthnRequestCredential(accountHandle)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Complete WebAuthn registration by creating a new credential.
  */
 export const webAuthnMakeCredential = (
-  webAuthnMakeCredentialBody: WebAuthnMakeCredentialBody,
-  params?: WebAuthnMakeCredentialParams,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/webauthn/make`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: webAuthnMakeCredentialBody,
-    params,
-  });
-};
+    webAuthnMakeCredentialBody: WebAuthnMakeCredentialBody,
+    params?: WebAuthnMakeCredentialParams,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/webauthn/make`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: webAuthnMakeCredentialBody,
+        params
+    },
+    );
+  }
 
-export const getWebAuthnMakeCredentialMutationFetcher = (
-  params?: WebAuthnMakeCredentialParams,
-) => {
-  return (
-    _: Key,
-    { arg }: { arg: WebAuthnMakeCredentialBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getWebAuthnMakeCredentialMutationFetcher = (params?: WebAuthnMakeCredentialParams, ) => {
+  return (_: Key, { arg }: { arg: WebAuthnMakeCredentialBody }): Promise<AuthSuccessOKResponse> => {
     return webAuthnMakeCredential(arg, params);
-  };
-};
-export const getWebAuthnMakeCredentialMutationKey = (
-  params?: WebAuthnMakeCredentialParams,
-) => [`/auth/webauthn/make`, ...(params ? [params] : [])] as const;
+  }
+}
+export const getWebAuthnMakeCredentialMutationKey = (params?: WebAuthnMakeCredentialParams,) => [`/auth/webauthn/make`, ...(params ? [params]: [])] as const;
 
-export type WebAuthnMakeCredentialMutationResult = NonNullable<
-  Awaited<ReturnType<typeof webAuthnMakeCredential>>
->;
-export type WebAuthnMakeCredentialMutationError =
-  | BadRequestResponse
-  | ConflictResponse
-  | InternalServerErrorResponse;
+export type WebAuthnMakeCredentialMutationResult = NonNullable<Awaited<ReturnType<typeof webAuthnMakeCredential>>>
+export type WebAuthnMakeCredentialMutationError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse
 
-export const useWebAuthnMakeCredential = <
-  TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse,
->(
-  params?: WebAuthnMakeCredentialParams,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof webAuthnMakeCredential>>,
-      TError,
-      Key,
-      WebAuthnMakeCredentialBody,
-      Awaited<ReturnType<typeof webAuthnMakeCredential>>
-    > & { swrKey?: string };
-  },
+export const useWebAuthnMakeCredential = <TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse>(
+  params?: WebAuthnMakeCredentialParams, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof webAuthnMakeCredential>>, TError, Key, WebAuthnMakeCredentialBody, Awaited<ReturnType<typeof webAuthnMakeCredential>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getWebAuthnMakeCredentialMutationKey(params);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getWebAuthnMakeCredentialMutationKey(params);
   const swrFn = getWebAuthnMakeCredentialMutationFetcher(params);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Start the WebAuthn assertion for an existing account.
  */
-export const webAuthnGetAssertion = (accountHandle: string) => {
-  return fetcher<WebAuthnGetAssertionOKResponse>({
-    url: `/auth/webauthn/assert/${accountHandle}`,
-    method: "GET",
-  });
-};
+export const webAuthnGetAssertion = (
+    accountHandle: string,
+ ) => {
+    return fetcher<WebAuthnGetAssertionOKResponse>(
+    {url: `/auth/webauthn/assert/${accountHandle}`, method: 'GET'
+    },
+    );
+  }
 
-export const getWebAuthnGetAssertionKey = (accountHandle: string) =>
-  [`/auth/webauthn/assert/${accountHandle}`] as const;
 
-export type WebAuthnGetAssertionQueryResult = NonNullable<
-  Awaited<ReturnType<typeof webAuthnGetAssertion>>
->;
-export type WebAuthnGetAssertionQueryError =
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
 
-export const useWebAuthnGetAssertion = <
-  TError =
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  accountHandle: string,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof webAuthnGetAssertion>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getWebAuthnGetAssertionKey = (accountHandle: string,) => [`/auth/webauthn/assert/${accountHandle}`] as const;
+
+export type WebAuthnGetAssertionQueryResult = NonNullable<Awaited<ReturnType<typeof webAuthnGetAssertion>>>
+export type WebAuthnGetAssertionQueryError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
+
+export const useWebAuthnGetAssertion = <TError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+  accountHandle: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof webAuthnGetAssertion>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false && !!accountHandle;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getWebAuthnGetAssertionKey(accountHandle) : null));
-  const swrFn = () => webAuthnGetAssertion(accountHandle);
+  const isEnabled = swrOptions?.enabled !== false && !!(accountHandle)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getWebAuthnGetAssertionKey(accountHandle) : null);
+  const swrFn = () => webAuthnGetAssertion(accountHandle)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Complete the credential assertion and sign in to an account.
  */
 export const webAuthnMakeAssertion = (
-  webAuthnMakeAssertionBody: WebAuthnMakeAssertionBody,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/webauthn/assert`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: webAuthnMakeAssertionBody,
-  });
-};
+    webAuthnMakeAssertionBody: WebAuthnMakeAssertionBody,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/webauthn/assert`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: webAuthnMakeAssertionBody
+    },
+    );
+  }
 
-export const getWebAuthnMakeAssertionMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: WebAuthnMakeAssertionBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getWebAuthnMakeAssertionMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: WebAuthnMakeAssertionBody }): Promise<AuthSuccessOKResponse> => {
     return webAuthnMakeAssertion(arg);
-  };
-};
-export const getWebAuthnMakeAssertionMutationKey = () =>
-  [`/auth/webauthn/assert`] as const;
+  }
+}
+export const getWebAuthnMakeAssertionMutationKey = () => [`/auth/webauthn/assert`] as const;
 
-export type WebAuthnMakeAssertionMutationResult = NonNullable<
-  Awaited<ReturnType<typeof webAuthnMakeAssertion>>
->;
-export type WebAuthnMakeAssertionMutationError =
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type WebAuthnMakeAssertionMutationResult = NonNullable<Awaited<ReturnType<typeof webAuthnMakeAssertion>>>
+export type WebAuthnMakeAssertionMutationError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useWebAuthnMakeAssertion = <
-  TError =
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof webAuthnMakeAssertion>>,
-    TError,
-    Key,
-    WebAuthnMakeAssertionBody,
-    Awaited<ReturnType<typeof webAuthnMakeAssertion>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useWebAuthnMakeAssertion = <TError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof webAuthnMakeAssertion>>, TError, Key, WebAuthnMakeAssertionBody, Awaited<ReturnType<typeof webAuthnMakeAssertion>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getWebAuthnMakeAssertionMutationKey();
   const swrFn = getWebAuthnMakeAssertionMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Start the authentication flow with a phone number. The handler will send
 a one-time code to the provided phone number which must then be sent to
@@ -1943,177 +1464,129 @@ the other phone endpoint to verify the number and validate the account.
 
  */
 export const phoneRequestCode = (
-  phoneRequestCodeBody: PhoneRequestCodeBody,
-  params?: PhoneRequestCodeParams,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/phone`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: phoneRequestCodeBody,
-    params,
-  });
-};
+    phoneRequestCodeBody: PhoneRequestCodeBody,
+    params?: PhoneRequestCodeParams,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/phone`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: phoneRequestCodeBody,
+        params
+    },
+    );
+  }
 
-export const getPhoneRequestCodeMutationFetcher = (
-  params?: PhoneRequestCodeParams,
-) => {
-  return (
-    _: Key,
-    { arg }: { arg: PhoneRequestCodeBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getPhoneRequestCodeMutationFetcher = (params?: PhoneRequestCodeParams, ) => {
+  return (_: Key, { arg }: { arg: PhoneRequestCodeBody }): Promise<AuthSuccessOKResponse> => {
     return phoneRequestCode(arg, params);
-  };
-};
-export const getPhoneRequestCodeMutationKey = (
-  params?: PhoneRequestCodeParams,
-) => [`/auth/phone`, ...(params ? [params] : [])] as const;
+  }
+}
+export const getPhoneRequestCodeMutationKey = (params?: PhoneRequestCodeParams,) => [`/auth/phone`, ...(params ? [params]: [])] as const;
 
-export type PhoneRequestCodeMutationResult = NonNullable<
-  Awaited<ReturnType<typeof phoneRequestCode>>
->;
-export type PhoneRequestCodeMutationError =
-  | BadRequestResponse
-  | ConflictResponse
-  | InternalServerErrorResponse;
+export type PhoneRequestCodeMutationResult = NonNullable<Awaited<ReturnType<typeof phoneRequestCode>>>
+export type PhoneRequestCodeMutationError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse
 
-export const usePhoneRequestCode = <
-  TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse,
->(
-  params?: PhoneRequestCodeParams,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof phoneRequestCode>>,
-      TError,
-      Key,
-      PhoneRequestCodeBody,
-      Awaited<ReturnType<typeof phoneRequestCode>>
-    > & { swrKey?: string };
-  },
+export const usePhoneRequestCode = <TError = BadRequestResponse | ConflictResponse | InternalServerErrorResponse>(
+  params?: PhoneRequestCodeParams, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof phoneRequestCode>>, TError, Key, PhoneRequestCodeBody, Awaited<ReturnType<typeof phoneRequestCode>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPhoneRequestCodeMutationKey(params);
   const swrFn = getPhoneRequestCodeMutationFetcher(params);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Complete the phone number authentication flow by submitting the one-time
 code that was sent to the user's phone.
 
  */
 export const phoneSubmitCode = (
-  accountHandle: string,
-  phoneSubmitCodeBody: PhoneSubmitCodeBody,
-) => {
-  return fetcher<AuthSuccessOKResponse>({
-    url: `/auth/phone/${accountHandle}`,
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    data: phoneSubmitCodeBody,
-  });
-};
+    accountHandle: string,
+    phoneSubmitCodeBody: PhoneSubmitCodeBody,
+ ) => {
+    return fetcher<AuthSuccessOKResponse>(
+    {url: `/auth/phone/${accountHandle}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: phoneSubmitCodeBody
+    },
+    );
+  }
 
-export const getPhoneSubmitCodeMutationFetcher = (accountHandle: string) => {
-  return (
-    _: Key,
-    { arg }: { arg: PhoneSubmitCodeBody },
-  ): Promise<AuthSuccessOKResponse> => {
+
+
+export const getPhoneSubmitCodeMutationFetcher = (accountHandle: string, ) => {
+  return (_: Key, { arg }: { arg: PhoneSubmitCodeBody }): Promise<AuthSuccessOKResponse> => {
     return phoneSubmitCode(accountHandle, arg);
-  };
-};
-export const getPhoneSubmitCodeMutationKey = (accountHandle: string) =>
-  [`/auth/phone/${accountHandle}`] as const;
+  }
+}
+export const getPhoneSubmitCodeMutationKey = (accountHandle: string,) => [`/auth/phone/${accountHandle}`] as const;
 
-export type PhoneSubmitCodeMutationResult = NonNullable<
-  Awaited<ReturnType<typeof phoneSubmitCode>>
->;
-export type PhoneSubmitCodeMutationError =
-  | BadRequestResponse
-  | InternalServerErrorResponse;
+export type PhoneSubmitCodeMutationResult = NonNullable<Awaited<ReturnType<typeof phoneSubmitCode>>>
+export type PhoneSubmitCodeMutationError = BadRequestResponse | InternalServerErrorResponse
 
-export const usePhoneSubmitCode = <
-  TError = BadRequestResponse | InternalServerErrorResponse,
->(
-  accountHandle: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof phoneSubmitCode>>,
-      TError,
-      Key,
-      PhoneSubmitCodeBody,
-      Awaited<ReturnType<typeof phoneSubmitCode>>
-    > & { swrKey?: string };
-  },
+export const usePhoneSubmitCode = <TError = BadRequestResponse | InternalServerErrorResponse>(
+  accountHandle: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof phoneSubmitCode>>, TError, Key, PhoneSubmitCodeBody, Awaited<ReturnType<typeof phoneSubmitCode>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getPhoneSubmitCodeMutationKey(accountHandle);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getPhoneSubmitCodeMutationKey(accountHandle);
   const swrFn = getPhoneSubmitCodeMutationFetcher(accountHandle);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List all access keys for the authenticated account or all access keys
 that have been issued for the entire instance if and only if the request
 parameters specify all keys and the requesting account is an admin.
 
  */
-export const accessKeyList = () => {
-  return fetcher<AccessKeyListOKResponse>({
-    url: `/auth/access-keys`,
-    method: "GET",
-  });
-};
+export const accessKeyList = (
+    
+ ) => {
+    return fetcher<AccessKeyListOKResponse>(
+    {url: `/auth/access-keys`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getAccessKeyListKey = () => [`/auth/access-keys`] as const;
 
-export type AccessKeyListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof accessKeyList>>
->;
-export type AccessKeyListQueryError =
-  | BadRequestResponse
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
+export type AccessKeyListQueryResult = NonNullable<Awaited<ReturnType<typeof accessKeyList>>>
+export type AccessKeyListQueryError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse
 
-export const useAccessKeyList = <
-  TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof accessKeyList>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAccessKeyList = <TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof accessKeyList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getAccessKeyListKey() : null));
-  const swrFn = () => accessKeyList();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAccessKeyListKey() : null);
+  const swrFn = () => accessKeyList()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Create a new access key for the authenticated account. Access keys are
 used to authenticate API requests on behalf of the account in a more
@@ -2127,112 +1600,87 @@ Access keys also allow an expiry date to be set to limit how long a key
 can be used to authenticate against the API.
 
  */
-export const accessKeyCreate = (accessKeyCreateBody: AccessKeyCreateBody) => {
-  return fetcher<AccessKeyCreateOKResponse>({
-    url: `/auth/access-keys`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: accessKeyCreateBody,
-  });
-};
+export const accessKeyCreate = (
+    accessKeyCreateBody: AccessKeyCreateBody,
+ ) => {
+    return fetcher<AccessKeyCreateOKResponse>(
+    {url: `/auth/access-keys`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: accessKeyCreateBody
+    },
+    );
+  }
 
-export const getAccessKeyCreateMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AccessKeyCreateBody },
-  ): Promise<AccessKeyCreateOKResponse> => {
+
+
+export const getAccessKeyCreateMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AccessKeyCreateBody }): Promise<AccessKeyCreateOKResponse> => {
     return accessKeyCreate(arg);
-  };
-};
-export const getAccessKeyCreateMutationKey = () =>
-  [`/auth/access-keys`] as const;
+  }
+}
+export const getAccessKeyCreateMutationKey = () => [`/auth/access-keys`] as const;
 
-export type AccessKeyCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof accessKeyCreate>>
->;
-export type AccessKeyCreateMutationError =
-  | BadRequestResponse
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
+export type AccessKeyCreateMutationResult = NonNullable<Awaited<ReturnType<typeof accessKeyCreate>>>
+export type AccessKeyCreateMutationError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse
 
-export const useAccessKeyCreate = <
-  TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof accessKeyCreate>>,
-    TError,
-    Key,
-    AccessKeyCreateBody,
-    Awaited<ReturnType<typeof accessKeyCreate>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAccessKeyCreate = <TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof accessKeyCreate>>, TError, Key, AccessKeyCreateBody, Awaited<ReturnType<typeof accessKeyCreate>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAccessKeyCreateMutationKey();
   const swrFn = getAccessKeyCreateMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Revoke an access key. This will immediately invalidate the key and it
 will no longer be usable for authentication.
 
  */
-export const accessKeyDelete = (accessKeyId: string) => {
-  return fetcher<NoContentResponse>({
-    url: `/auth/access-keys/${accessKeyId}`,
-    method: "DELETE",
-  });
-};
+export const accessKeyDelete = (
+    accessKeyId: string,
+ ) => {
+    return fetcher<NoContentResponse>(
+    {url: `/auth/access-keys/${accessKeyId}`, method: 'DELETE'
+    },
+    );
+  }
 
-export const getAccessKeyDeleteMutationFetcher = (accessKeyId: string) => {
+
+
+export const getAccessKeyDeleteMutationFetcher = (accessKeyId: string, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<NoContentResponse> => {
     return accessKeyDelete(accessKeyId);
-  };
-};
-export const getAccessKeyDeleteMutationKey = (accessKeyId: string) =>
-  [`/auth/access-keys/${accessKeyId}`] as const;
+  }
+}
+export const getAccessKeyDeleteMutationKey = (accessKeyId: string,) => [`/auth/access-keys/${accessKeyId}`] as const;
 
-export type AccessKeyDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof accessKeyDelete>>
->;
-export type AccessKeyDeleteMutationError =
-  | BadRequestResponse
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
+export type AccessKeyDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof accessKeyDelete>>>
+export type AccessKeyDeleteMutationError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse
 
-export const useAccessKeyDelete = <
-  TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse,
->(
-  accessKeyId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof accessKeyDelete>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof accessKeyDelete>>
-    > & { swrKey?: string };
-  },
+export const useAccessKeyDelete = <TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse>(
+  accessKeyId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof accessKeyDelete>>, TError, Key, Arguments, Awaited<ReturnType<typeof accessKeyDelete>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAccessKeyDeleteMutationKey(accessKeyId);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAccessKeyDeleteMutationKey(accessKeyId);
   const swrFn = getAccessKeyDeleteMutationFetcher(accessKeyId);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List OAuth refresh tokens issued to the authenticated account.
 
@@ -2245,50 +1693,38 @@ default Storyden CLI. Those clients are not created by the member and
 therefore do not appear in the member OAuth client list.
 
  */
-export const oAuthRefreshTokenList = () => {
-  return fetcher<OAuthRefreshTokenListOKResponse>({
-    url: `/auth/oauth/tokens`,
-    method: "GET",
-  });
-};
+export const oAuthRefreshTokenList = (
+    
+ ) => {
+    return fetcher<OAuthRefreshTokenListOKResponse>(
+    {url: `/auth/oauth/tokens`, method: 'GET'
+    },
+    );
+  }
 
-export const getOAuthRefreshTokenListKey = () =>
-  [`/auth/oauth/tokens`] as const;
 
-export type OAuthRefreshTokenListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthRefreshTokenList>>
->;
-export type OAuthRefreshTokenListQueryError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
 
-export const useOAuthRefreshTokenList = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof oAuthRefreshTokenList>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const getOAuthRefreshTokenListKey = () => [`/auth/oauth/tokens`] as const;
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getOAuthRefreshTokenListKey() : null));
-  const swrFn = () => oAuthRefreshTokenList();
+export type OAuthRefreshTokenListQueryResult = NonNullable<Awaited<ReturnType<typeof oAuthRefreshTokenList>>>
+export type OAuthRefreshTokenListQueryError = UnauthorisedResponse | InternalServerErrorResponse
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+export const useOAuthRefreshTokenList = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof oAuthRefreshTokenList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getOAuthRefreshTokenListKey() : null);
+  const swrFn = () => oAuthRefreshTokenList()
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Revoke one OAuth refresh token issued to the authenticated account.
 
@@ -2296,63 +1732,43 @@ This prevents future refresh-token use for the selected grant. Existing
 JWT access tokens remain valid until their expiry.
 
  */
-export const oAuthRefreshTokenDelete = (oauthRefreshTokenId: string) => {
-  return fetcher<NoContentResponse>({
-    url: `/auth/oauth/tokens/${oauthRefreshTokenId}`,
-    method: "DELETE",
-  });
-};
+export const oAuthRefreshTokenDelete = (
+    oauthRefreshTokenId: string,
+ ) => {
+    return fetcher<NoContentResponse>(
+    {url: `/auth/oauth/tokens/${oauthRefreshTokenId}`, method: 'DELETE'
+    },
+    );
+  }
 
-export const getOAuthRefreshTokenDeleteMutationFetcher = (
-  oauthRefreshTokenId: string,
-) => {
+
+
+export const getOAuthRefreshTokenDeleteMutationFetcher = (oauthRefreshTokenId: string, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<NoContentResponse> => {
     return oAuthRefreshTokenDelete(oauthRefreshTokenId);
-  };
-};
-export const getOAuthRefreshTokenDeleteMutationKey = (
-  oauthRefreshTokenId: string,
-) => [`/auth/oauth/tokens/${oauthRefreshTokenId}`] as const;
+  }
+}
+export const getOAuthRefreshTokenDeleteMutationKey = (oauthRefreshTokenId: string,) => [`/auth/oauth/tokens/${oauthRefreshTokenId}`] as const;
 
-export type OAuthRefreshTokenDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthRefreshTokenDelete>>
->;
-export type OAuthRefreshTokenDeleteMutationError =
-  | OAuthErrorResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type OAuthRefreshTokenDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthRefreshTokenDelete>>>
+export type OAuthRefreshTokenDeleteMutationError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse
 
-export const useOAuthRefreshTokenDelete = <
-  TError =
-    | OAuthErrorResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(
-  oauthRefreshTokenId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof oAuthRefreshTokenDelete>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof oAuthRefreshTokenDelete>>
-    > & { swrKey?: string };
-  },
+export const useOAuthRefreshTokenDelete = <TError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+  oauthRefreshTokenId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthRefreshTokenDelete>>, TError, Key, Arguments, Awaited<ReturnType<typeof oAuthRefreshTokenDelete>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ??
-    getOAuthRefreshTokenDeleteMutationKey(oauthRefreshTokenId);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getOAuthRefreshTokenDeleteMutationKey(oauthRefreshTokenId);
   const swrFn = getOAuthRefreshTokenDeleteMutationFetcher(oauthRefreshTokenId);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List OAuth clients created by the authenticated account.
 
@@ -2365,48 +1781,38 @@ member has merely authorised. Use `/auth/oauth/tokens` for the
 "apps I have authorised" view.
 
  */
-export const oAuthClientList = () => {
-  return fetcher<OAuthClientListOKResponse>({
-    url: `/auth/oauth/clients`,
-    method: "GET",
-  });
-};
+export const oAuthClientList = (
+    
+ ) => {
+    return fetcher<OAuthClientListOKResponse>(
+    {url: `/auth/oauth/clients`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getOAuthClientListKey = () => [`/auth/oauth/clients`] as const;
 
-export type OAuthClientListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthClientList>>
->;
-export type OAuthClientListQueryError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type OAuthClientListQueryResult = NonNullable<Awaited<ReturnType<typeof oAuthClientList>>>
+export type OAuthClientListQueryError = UnauthorisedResponse | InternalServerErrorResponse
 
-export const useOAuthClientList = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof oAuthClientList>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useOAuthClientList = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof oAuthClientList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getOAuthClientListKey() : null));
-  const swrFn = () => oAuthClientList();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getOAuthClientListKey() : null);
+  const swrFn = () => oAuthClientList()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Create an OAuth client owned by the authenticated account.
 
@@ -2416,63 +1822,44 @@ current permissions.
 
  */
 export const oAuthClientCreate = (
-  oAuthClientSelfCreateBody: OAuthClientSelfCreateBody,
-) => {
-  return fetcher<OAuthClientIssuedOKResponse>({
-    url: `/auth/oauth/clients`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: oAuthClientSelfCreateBody,
-  });
-};
+    oAuthClientSelfCreateBody: OAuthClientSelfCreateBody,
+ ) => {
+    return fetcher<OAuthClientIssuedOKResponse>(
+    {url: `/auth/oauth/clients`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthClientSelfCreateBody
+    },
+    );
+  }
 
-export const getOAuthClientCreateMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthClientSelfCreateBody },
-  ): Promise<OAuthClientIssuedOKResponse> => {
+
+
+export const getOAuthClientCreateMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: OAuthClientSelfCreateBody }): Promise<OAuthClientIssuedOKResponse> => {
     return oAuthClientCreate(arg);
-  };
-};
-export const getOAuthClientCreateMutationKey = () =>
-  [`/auth/oauth/clients`] as const;
+  }
+}
+export const getOAuthClientCreateMutationKey = () => [`/auth/oauth/clients`] as const;
 
-export type OAuthClientCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthClientCreate>>
->;
-export type OAuthClientCreateMutationError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
+export type OAuthClientCreateMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthClientCreate>>>
+export type OAuthClientCreateMutationError = BadRequestResponse | UnauthorisedResponse | ForbiddenResponse | InternalServerErrorResponse
 
-export const useOAuthClientCreate = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | ForbiddenResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof oAuthClientCreate>>,
-    TError,
-    Key,
-    OAuthClientSelfCreateBody,
-    Awaited<ReturnType<typeof oAuthClientCreate>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useOAuthClientCreate = <TError = BadRequestResponse | UnauthorisedResponse | ForbiddenResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthClientCreate>>, TError, Key, OAuthClientSelfCreateBody, Awaited<ReturnType<typeof oAuthClientCreate>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getOAuthClientCreateMutationKey();
   const swrFn = getOAuthClientCreateMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Read an OAuth client created by the authenticated account.
 
@@ -2481,57 +1868,38 @@ be public or confidential but are never first-party inherited-permission
 clients.
 
  */
-export const oAuthClientGet = (oauthClientId: string) => {
-  return fetcher<OAuthClientOKResponse>({
-    url: `/auth/oauth/clients/${oauthClientId}`,
-    method: "GET",
-  });
-};
+export const oAuthClientGet = (
+    oauthClientId: string,
+ ) => {
+    return fetcher<OAuthClientOKResponse>(
+    {url: `/auth/oauth/clients/${oauthClientId}`, method: 'GET'
+    },
+    );
+  }
 
-export const getOAuthClientGetKey = (oauthClientId: string) =>
-  [`/auth/oauth/clients/${oauthClientId}`] as const;
 
-export type OAuthClientGetQueryResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthClientGet>>
->;
-export type OAuthClientGetQueryError =
-  | OAuthErrorResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
 
-export const useOAuthClientGet = <
-  TError =
-    | OAuthErrorResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(
-  oauthClientId: string,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof oAuthClientGet>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getOAuthClientGetKey = (oauthClientId: string,) => [`/auth/oauth/clients/${oauthClientId}`] as const;
+
+export type OAuthClientGetQueryResult = NonNullable<Awaited<ReturnType<typeof oAuthClientGet>>>
+export type OAuthClientGetQueryError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse
+
+export const useOAuthClientGet = <TError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+  oauthClientId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof oAuthClientGet>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false && !!oauthClientId;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getOAuthClientGetKey(oauthClientId) : null));
-  const swrFn = () => oAuthClientGet(oauthClientId);
+  const isEnabled = swrOptions?.enabled !== false && !!(oauthClientId)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getOAuthClientGetKey(oauthClientId) : null);
+  const swrFn = () => oAuthClientGet(oauthClientId)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Update an OAuth client created by the authenticated account.
 
@@ -2545,68 +1913,45 @@ not immediately invalidate already-issued JWT access tokens.
 
  */
 export const oAuthClientUpdate = (
-  oauthClientId: string,
-  oAuthClientSelfUpdateBody: OAuthClientSelfUpdateBody,
-) => {
-  return fetcher<OAuthClientOKResponse>({
-    url: `/auth/oauth/clients/${oauthClientId}`,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    data: oAuthClientSelfUpdateBody,
-  });
-};
+    oauthClientId: string,
+    oAuthClientSelfUpdateBody: OAuthClientSelfUpdateBody,
+ ) => {
+    return fetcher<OAuthClientOKResponse>(
+    {url: `/auth/oauth/clients/${oauthClientId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthClientSelfUpdateBody
+    },
+    );
+  }
 
-export const getOAuthClientUpdateMutationFetcher = (oauthClientId: string) => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthClientSelfUpdateBody },
-  ): Promise<OAuthClientOKResponse> => {
+
+
+export const getOAuthClientUpdateMutationFetcher = (oauthClientId: string, ) => {
+  return (_: Key, { arg }: { arg: OAuthClientSelfUpdateBody }): Promise<OAuthClientOKResponse> => {
     return oAuthClientUpdate(oauthClientId, arg);
-  };
-};
-export const getOAuthClientUpdateMutationKey = (oauthClientId: string) =>
-  [`/auth/oauth/clients/${oauthClientId}`] as const;
+  }
+}
+export const getOAuthClientUpdateMutationKey = (oauthClientId: string,) => [`/auth/oauth/clients/${oauthClientId}`] as const;
 
-export type OAuthClientUpdateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthClientUpdate>>
->;
-export type OAuthClientUpdateMutationError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
+export type OAuthClientUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthClientUpdate>>>
+export type OAuthClientUpdateMutationError = BadRequestResponse | UnauthorisedResponse | ForbiddenResponse | InternalServerErrorResponse
 
-export const useOAuthClientUpdate = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | ForbiddenResponse
-    | InternalServerErrorResponse,
->(
-  oauthClientId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof oAuthClientUpdate>>,
-      TError,
-      Key,
-      OAuthClientSelfUpdateBody,
-      Awaited<ReturnType<typeof oAuthClientUpdate>>
-    > & { swrKey?: string };
-  },
+export const useOAuthClientUpdate = <TError = BadRequestResponse | UnauthorisedResponse | ForbiddenResponse | InternalServerErrorResponse>(
+  oauthClientId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthClientUpdate>>, TError, Key, OAuthClientSelfUpdateBody, Awaited<ReturnType<typeof oAuthClientUpdate>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getOAuthClientUpdateMutationKey(oauthClientId);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getOAuthClientUpdateMutationKey(oauthClientId);
   const swrFn = getOAuthClientUpdateMutationFetcher(oauthClientId);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Delete an OAuth client created by the authenticated account.
 
@@ -2616,59 +1961,43 @@ from being renewed. Existing JWT access tokens remain valid until
 expiry.
 
  */
-export const oAuthClientDelete = (oauthClientId: string) => {
-  return fetcher<NoContentResponse>({
-    url: `/auth/oauth/clients/${oauthClientId}`,
-    method: "DELETE",
-  });
-};
+export const oAuthClientDelete = (
+    oauthClientId: string,
+ ) => {
+    return fetcher<NoContentResponse>(
+    {url: `/auth/oauth/clients/${oauthClientId}`, method: 'DELETE'
+    },
+    );
+  }
 
-export const getOAuthClientDeleteMutationFetcher = (oauthClientId: string) => {
+
+
+export const getOAuthClientDeleteMutationFetcher = (oauthClientId: string, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<NoContentResponse> => {
     return oAuthClientDelete(oauthClientId);
-  };
-};
-export const getOAuthClientDeleteMutationKey = (oauthClientId: string) =>
-  [`/auth/oauth/clients/${oauthClientId}`] as const;
+  }
+}
+export const getOAuthClientDeleteMutationKey = (oauthClientId: string,) => [`/auth/oauth/clients/${oauthClientId}`] as const;
 
-export type OAuthClientDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthClientDelete>>
->;
-export type OAuthClientDeleteMutationError =
-  | OAuthErrorResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type OAuthClientDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthClientDelete>>>
+export type OAuthClientDeleteMutationError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse
 
-export const useOAuthClientDelete = <
-  TError =
-    | OAuthErrorResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(
-  oauthClientId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof oAuthClientDelete>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof oAuthClientDelete>>
-    > & { swrKey?: string };
-  },
+export const useOAuthClientDelete = <TError = OAuthErrorResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+  oauthClientId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthClientDelete>>, TError, Key, Arguments, Awaited<ReturnType<typeof oAuthClientDelete>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getOAuthClientDeleteMutationKey(oauthClientId);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getOAuthClientDeleteMutationKey(oauthClientId);
   const swrFn = getOAuthClientDeleteMutationFetcher(oauthClientId);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Performs a HTTP logout by clearing the session cookie and redirecting to
 to the requested path at the frontend's `WEB_ADDRESS`. Typically this
@@ -2679,47 +2008,41 @@ such as api.site.com vs site.com because Clear-Site-Data and other
 headers are same-origin compliant and won't work cross-origin.
 
  */
-export const authProviderLogout = (params?: AuthProviderLogoutParams) => {
-  return fetcher<unknown>({ url: `/auth/logout`, method: "POST", params });
-};
+export const authProviderLogout = (
+    params?: AuthProviderLogoutParams,
+ ) => {
+    return fetcher<unknown>(
+    {url: `/auth/logout`, method: 'POST',
+        params
+    },
+    );
+  }
 
-export const getAuthProviderLogoutMutationFetcher = (
-  params?: AuthProviderLogoutParams,
-) => {
+
+
+export const getAuthProviderLogoutMutationFetcher = (params?: AuthProviderLogoutParams, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<unknown> => {
     return authProviderLogout(params);
-  };
-};
-export const getAuthProviderLogoutMutationKey = (
-  params?: AuthProviderLogoutParams,
-) => [`/auth/logout`, ...(params ? [params] : [])] as const;
+  }
+}
+export const getAuthProviderLogoutMutationKey = (params?: AuthProviderLogoutParams,) => [`/auth/logout`, ...(params ? [params]: [])] as const;
 
-export type AuthProviderLogoutMutationResult = NonNullable<
-  Awaited<ReturnType<typeof authProviderLogout>>
->;
-export type AuthProviderLogoutMutationError = void;
+export type AuthProviderLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof authProviderLogout>>>
+export type AuthProviderLogoutMutationError = void
 
 export const useAuthProviderLogout = <TError = void>(
-  params?: AuthProviderLogoutParams,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof authProviderLogout>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof authProviderLogout>>
-    > & { swrKey?: string };
-  },
+  params?: AuthProviderLogoutParams, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authProviderLogout>>, TError, Key, Arguments, Awaited<ReturnType<typeof authProviderLogout>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAuthProviderLogoutMutationKey(params);
   const swrFn = getAuthProviderLogoutMutationFetcher(params);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}

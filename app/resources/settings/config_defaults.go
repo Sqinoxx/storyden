@@ -88,7 +88,8 @@ func (d *SettingsRepository) hydrateAssetDefaults(settings *Settings) {
 	if !ok {
 		settings.Services = opt.New(ServiceSettings{
 			Assets: opt.New(AssetServiceSettings{
-				MaxUploadSizeMB: opt.New(d.config.MaxUploadSizeMB),
+				MaxUploadSizeMB:  opt.New(d.config.MaxUploadSizeMB),
+				OCRMaxFileSizeMB: opt.New(d.config.OCRMaxFileSizeMB),
 			}),
 		})
 		return
@@ -97,7 +98,8 @@ func (d *SettingsRepository) hydrateAssetDefaults(settings *Settings) {
 	assets, ok := services.Assets.Get()
 	if !ok {
 		services.Assets = opt.New(AssetServiceSettings{
-			MaxUploadSizeMB: opt.New(d.config.MaxUploadSizeMB),
+			MaxUploadSizeMB:  opt.New(d.config.MaxUploadSizeMB),
+			OCRMaxFileSizeMB: opt.New(d.config.OCRMaxFileSizeMB),
 		})
 		settings.Services = opt.New(services)
 		return
@@ -105,6 +107,9 @@ func (d *SettingsRepository) hydrateAssetDefaults(settings *Settings) {
 
 	if !assets.MaxUploadSizeMB.Ok() {
 		assets.MaxUploadSizeMB = opt.New(d.config.MaxUploadSizeMB)
+	}
+	if !assets.OCRMaxFileSizeMB.Ok() {
+		assets.OCRMaxFileSizeMB = opt.New(d.config.OCRMaxFileSizeMB)
 	}
 
 	services.Assets = opt.New(assets)

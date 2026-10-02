@@ -7,16 +7,13 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { CommonProperties } from "./commonProperties";
-import type { DatagraphRecommendations } from "./datagraphRecommendations";
-import type { LinkProps } from "./linkProps";
-import type { LinkReferenceProps } from "./linkReferenceProps";
+import type { CommonProperties } from './commonProperties';
+import type { LinkReferenceProps } from './linkReferenceProps';
+import type { LinkProps } from './linkProps';
+import type { DatagraphRecommendations } from './datagraphRecommendations';
 
 /**
  * A web address with content information such as title, description, etc.
 
  */
-export type Link = CommonProperties &
-  LinkReferenceProps &
-  LinkProps &
-  DatagraphRecommendations;
+export type Link = CommonProperties & LinkReferenceProps & LinkProps & DatagraphRecommendations;

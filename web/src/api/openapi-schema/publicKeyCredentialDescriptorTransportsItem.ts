@@ -8,15 +8,15 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type PublicKeyCredentialDescriptorTransportsItem =
-  (typeof PublicKeyCredentialDescriptorTransportsItem)[keyof typeof PublicKeyCredentialDescriptorTransportsItem];
+export type PublicKeyCredentialDescriptorTransportsItem = typeof PublicKeyCredentialDescriptorTransportsItem[keyof typeof PublicKeyCredentialDescriptorTransportsItem];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PublicKeyCredentialDescriptorTransportsItem = {
-  ble: "ble",
-  internal: "internal",
-  nfc: "nfc",
-  usb: "usb",
-  cable: "cable",
-  hybrid: "hybrid",
+  ble: 'ble',
+  internal: 'internal',
+  nfc: 'nfc',
+  usb: 'usb',
+  cable: 'cable',
+  hybrid: 'hybrid',
 } as const;

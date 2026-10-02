@@ -7,12 +7,15 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import useSwr from "swr";
-import type { Key, SWRConfiguration } from "swr";
-import useSWRMutation from "swr/mutation";
-import type { SWRMutationConfiguration } from "swr/mutation";
-
-import { fetcher } from "../client";
+import useSwr from 'swr'
+import type {
+  Key,
+  SWRConfiguration
+} from 'swr'
+import useSWRMutation from 'swr/mutation'
+import type {
+  SWRMutationConfiguration
+} from 'swr/mutation'
 import type {
   BadRequestResponse,
   InternalServerErrorResponse,
@@ -23,64 +26,49 @@ import type {
   NotificationUpdateManyBody,
   NotificationUpdateManyOKResponse,
   NotificationUpdateOKResponse,
-  UnauthorisedResponse,
-} from "../openapi-schema";
+  UnauthorisedResponse
+} from '../openapi-schema'
+import { fetcher } from '../client';
 
-/**
+
+
+  
+  /**
  * Retreive all notifications.
  */
-export const notificationList = (params?: NotificationListParams) => {
-  return fetcher<NotificationListOKResponse>({
-    url: `/notifications`,
-    method: "GET",
-    params,
-  });
-};
+export const notificationList = (
+    params?: NotificationListParams,
+ ) => {
+    return fetcher<NotificationListOKResponse>(
+    {url: `/notifications`, method: 'GET',
+        params
+    },
+    );
+  }
 
-export const getNotificationListKey = (params?: NotificationListParams) =>
-  [`/notifications`, ...(params ? [params] : [])] as const;
 
-export type NotificationListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof notificationList>>
->;
-export type NotificationListQueryError =
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
 
-export const useNotificationList = <
-  TError =
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  params?: NotificationListParams,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof notificationList>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getNotificationListKey = (params?: NotificationListParams,) => [`/notifications`, ...(params ? [params]: [])] as const;
+
+export type NotificationListQueryResult = NonNullable<Awaited<ReturnType<typeof notificationList>>>
+export type NotificationListQueryError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
+
+export const useNotificationList = <TError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+  params?: NotificationListParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof notificationList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getNotificationListKey(params) : null));
-  const swrFn = () => notificationList(params);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getNotificationListKey(params) : null);
+  const swrFn = () => notificationList(params)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Update the status of multiple notifications in a single request.
 
@@ -89,124 +77,84 @@ values. Used for "Mark all as read".
 
  */
 export const notificationUpdateMany = (
-  notificationUpdateManyBody: NotificationUpdateManyBody,
-) => {
-  return fetcher<NotificationUpdateManyOKResponse>({
-    url: `/notifications`,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    data: notificationUpdateManyBody,
-  });
-};
+    notificationUpdateManyBody: NotificationUpdateManyBody,
+ ) => {
+    return fetcher<NotificationUpdateManyOKResponse>(
+    {url: `/notifications`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: notificationUpdateManyBody
+    },
+    );
+  }
 
-export const getNotificationUpdateManyMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: NotificationUpdateManyBody },
-  ): Promise<NotificationUpdateManyOKResponse> => {
+
+
+export const getNotificationUpdateManyMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: NotificationUpdateManyBody }): Promise<NotificationUpdateManyOKResponse> => {
     return notificationUpdateMany(arg);
-  };
-};
-export const getNotificationUpdateManyMutationKey = () =>
-  [`/notifications`] as const;
+  }
+}
+export const getNotificationUpdateManyMutationKey = () => [`/notifications`] as const;
 
-export type NotificationUpdateManyMutationResult = NonNullable<
-  Awaited<ReturnType<typeof notificationUpdateMany>>
->;
-export type NotificationUpdateManyMutationError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type NotificationUpdateManyMutationResult = NonNullable<Awaited<ReturnType<typeof notificationUpdateMany>>>
+export type NotificationUpdateManyMutationError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse
 
-export const useNotificationUpdateMany = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof notificationUpdateMany>>,
-    TError,
-    Key,
-    NotificationUpdateManyBody,
-    Awaited<ReturnType<typeof notificationUpdateMany>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useNotificationUpdateMany = <TError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof notificationUpdateMany>>, TError, Key, NotificationUpdateManyBody, Awaited<ReturnType<typeof notificationUpdateMany>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getNotificationUpdateManyMutationKey();
   const swrFn = getNotificationUpdateManyMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Change the read status for a notification.
  */
 export const notificationUpdate = (
-  notificationId: string,
-  notificationUpdateBody: NotificationUpdateBody,
-) => {
-  return fetcher<NotificationUpdateOKResponse>({
-    url: `/notifications/${notificationId}`,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    data: notificationUpdateBody,
-  });
-};
+    notificationId: string,
+    notificationUpdateBody: NotificationUpdateBody,
+ ) => {
+    return fetcher<NotificationUpdateOKResponse>(
+    {url: `/notifications/${notificationId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: notificationUpdateBody
+    },
+    );
+  }
 
-export const getNotificationUpdateMutationFetcher = (
-  notificationId: string,
-) => {
-  return (
-    _: Key,
-    { arg }: { arg: NotificationUpdateBody },
-  ): Promise<NotificationUpdateOKResponse> => {
+
+
+export const getNotificationUpdateMutationFetcher = (notificationId: string, ) => {
+  return (_: Key, { arg }: { arg: NotificationUpdateBody }): Promise<NotificationUpdateOKResponse> => {
     return notificationUpdate(notificationId, arg);
-  };
-};
-export const getNotificationUpdateMutationKey = (notificationId: string) =>
-  [`/notifications/${notificationId}`] as const;
+  }
+}
+export const getNotificationUpdateMutationKey = (notificationId: string,) => [`/notifications/${notificationId}`] as const;
 
-export type NotificationUpdateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof notificationUpdate>>
->;
-export type NotificationUpdateMutationError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type NotificationUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof notificationUpdate>>>
+export type NotificationUpdateMutationError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse
 
-export const useNotificationUpdate = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(
-  notificationId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof notificationUpdate>>,
-      TError,
-      Key,
-      NotificationUpdateBody,
-      Awaited<ReturnType<typeof notificationUpdate>>
-    > & { swrKey?: string };
-  },
+export const useNotificationUpdate = <TError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+  notificationId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof notificationUpdate>>, TError, Key, NotificationUpdateBody, Awaited<ReturnType<typeof notificationUpdate>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getNotificationUpdateMutationKey(notificationId);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getNotificationUpdateMutationKey(notificationId);
   const swrFn = getNotificationUpdateMutationFetcher(notificationId);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}

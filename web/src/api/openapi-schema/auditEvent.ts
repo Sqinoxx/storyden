@@ -7,7 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { AuditEventProps } from "./auditEventProps";
-import type { AuditEventTypeProps } from "./auditEventTypeProps";
+import type { AuditEventProps } from './auditEventProps';
+import type { AuditEventTypeProps } from './auditEventTypeProps';
 
 export type AuditEvent = AuditEventProps & AuditEventTypeProps;

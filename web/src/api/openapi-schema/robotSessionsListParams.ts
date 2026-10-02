@@ -7,16 +7,16 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { AccountIDQueryParamParameter } from "./accountIDQueryParamParameter";
-import type { PaginationQueryParameter } from "./paginationQueryParameter";
+import type { PaginationQueryParameter } from './paginationQueryParameter';
+import type { AccountIDQueryParamParameter } from './accountIDQueryParamParameter';
 
 export type RobotSessionsListParams = {
-  /**
-   * Pagination query parameters.
-   */
-  page?: PaginationQueryParameter;
-  /**
-   * Account ID.
-   */
-  account_id?: AccountIDQueryParamParameter;
+/**
+ * Pagination query parameters.
+ */
+page?: PaginationQueryParameter;
+/**
+ * Account ID.
+ */
+account_id?: AccountIDQueryParamParameter;
 };

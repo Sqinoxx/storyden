@@ -72,7 +72,8 @@ type ServiceSettings struct {
 
 // AssetServiceSettings controls limits applied to file/asset uploads.
 type AssetServiceSettings struct {
-	MaxUploadSizeMB opt.Optional[int]
+	MaxUploadSizeMB  opt.Optional[int]
+	OCRMaxFileSizeMB opt.Optional[int]
 }
 
 // ContentServiceSettings controls how much content is returned per page.

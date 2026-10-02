@@ -7,8 +7,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { AuditEventAccountSuspendedType } from "./auditEventAccountSuspendedType";
-import type { Identifier } from "./identifier";
+import type { Identifier } from './identifier';
+import type { AuditEventAccountSuspendedType } from './auditEventAccountSuspendedType';
 
 export interface AuditEventAccountSuspended {
   account_id: Identifier;

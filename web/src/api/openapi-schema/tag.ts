@@ -7,8 +7,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { TagProps } from "./tagProps";
-import type { TagReferenceProps } from "./tagReferenceProps";
+import type { TagReferenceProps } from './tagReferenceProps';
+import type { TagProps } from './tagProps';
 
 /**
  * A tag is a label that can be applied to posts or pages to organise 

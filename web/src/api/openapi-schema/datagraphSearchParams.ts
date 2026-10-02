@@ -7,41 +7,41 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { DatagraphAuthorQueryParameter } from "./datagraphAuthorQueryParameter";
-import type { DatagraphCategoryQueryParameter } from "./datagraphCategoryQueryParameter";
-import type { DatagraphKindQueryParameter } from "./datagraphKindQueryParameter";
-import type { PaginationQueryParameter } from "./paginationQueryParameter";
-import type { SearchQueryParameter } from "./searchQueryParameter";
-import type { TagNameListQueryParamParameter } from "./tagNameListQueryParamParameter";
+import type { SearchQueryParameter } from './searchQueryParameter';
+import type { DatagraphKindQueryParameter } from './datagraphKindQueryParameter';
+import type { DatagraphAuthorQueryParameter } from './datagraphAuthorQueryParameter';
+import type { DatagraphCategoryQueryParameter } from './datagraphCategoryQueryParameter';
+import type { TagNameListQueryParamParameter } from './tagNameListQueryParamParameter';
+import type { PaginationQueryParameter } from './paginationQueryParameter';
 
 export type DatagraphSearchParams = {
-  /**
-   * Search query string.
-   */
-  q?: SearchQueryParameter;
-  /**
-   * Datagraph item kind query.
-   */
-  kind?: DatagraphKindQueryParameter;
-  /**
+/**
+ * Search query string.
+ */
+q?: SearchQueryParameter;
+/**
+ * Datagraph item kind query.
+ */
+kind?: DatagraphKindQueryParameter;
+/**
  * Datagraph item author query. When set, only items authored by the
 specified members will be returned. This query supports either account
 IDs or handles for filtering.
 
  */
-  authors?: DatagraphAuthorQueryParameter;
-  /**
+authors?: DatagraphAuthorQueryParameter;
+/**
  * Datagraph item category query. When set, only items assigned to the
 specified category slugs will be returned.
 
  */
-  categories?: DatagraphCategoryQueryParameter;
-  /**
-   * Tags to filter by.
-   */
-  tags?: TagNameListQueryParamParameter;
-  /**
-   * Pagination query parameters.
-   */
-  page?: PaginationQueryParameter;
+categories?: DatagraphCategoryQueryParameter;
+/**
+ * Tags to filter by.
+ */
+tags?: TagNameListQueryParamParameter;
+/**
+ * Pagination query parameters.
+ */
+page?: PaginationQueryParameter;
 };

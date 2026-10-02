@@ -7,12 +7,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { Asset } from "./asset";
-import type { LinkDescription } from "./linkDescription";
-import type { LinkDomain } from "./linkDomain";
-import type { LinkSlug } from "./linkSlug";
-import type { LinkTitle } from "./linkTitle";
-import type { Url } from "./url";
+import type { LinkDescription } from './linkDescription';
+import type { LinkDomain } from './linkDomain';
+import type { Asset } from './asset';
+import type { LinkSlug } from './linkSlug';
+import type { LinkTitle } from './linkTitle';
+import type { Url } from './url';
 
 export interface LinkReferenceProps {
   description?: LinkDescription;

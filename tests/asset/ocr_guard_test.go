@@ -13,6 +13,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/app/resources/asset/asset_querier"
+	"github.com/Southclaws/storyden/app/resources/asset/asset_writer"
 	"github.com/Southclaws/storyden/app/resources/seed"
 	"github.com/Southclaws/storyden/app/services/ocr"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
@@ -124,6 +125,106 @@ func TestOCR_SkipsMissingFile(t *testing.T) {
 			r.Eventually(func() bool {
 				return objects.Delete(root, path) == nil
 			}, 2*time.Second, 20*time.Millisecond, "expected asset file to become deletable")
+
+			r.NoError(proc.ProcessAsset(root, assetID))
+
+			result, err := aq.GetByID(root, assetID)
+			r.NoError(err)
+			r.Equal("skipped", result.OCRStatus)
+		}))
+	}))
+}
+
+// TestOCR_FailedAssetsBackOff covers the backfill hot loop: failed assets were
+// returned by every GetPendingOCR batch, so a permanently broken file was
+// retried back-to-back forever and the backfill pass never terminated.
+func TestOCR_FailedAssetsBackOff(t *testing.T) {
+	cfg := &config.Config{
+		OCREnabled:         false,
+		OCRBackfillEnabled: false,
+	}
+
+	integration.Test(t, cfg, e2e.Setup(), fx.Invoke(func(
+		root context.Context,
+		lc fx.Lifecycle,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
+		aq *asset_querier.Querier,
+		writer *asset_writer.Writer,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+
+			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			adminSession := sh.WithSession(adminCtx)
+
+			png := []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}
+			failed := uploadTestAsset(t, root, cl, adminSession, "image/png", png)
+			processing := uploadTestAsset(t, root, cl, adminSession, "image/png", png)
+
+			failedID, err := xid.FromString(failed.Id)
+			r.NoError(err)
+			processingID, err := xid.FromString(processing.Id)
+			r.NoError(err)
+
+			_, err = writer.UpdateOCRFailed(root, failedID, "broken")
+			r.NoError(err)
+			_, err = writer.UpdateOCRProcessing(root, processingID)
+			r.NoError(err)
+
+			recent, err := aq.GetPendingOCR(root, 1000, time.Hour)
+			r.NoError(err)
+			r.NotContains(recent, failedID)
+			r.NotContains(recent, processingID)
+
+			elapsed, err := aq.GetPendingOCR(root, 1000, -time.Second)
+			r.NoError(err)
+			r.Contains(elapsed, failedID)
+			r.Contains(elapsed, processingID)
+		}))
+	}))
+}
+
+// TestOCR_SkipsEmptyFile covers zero-byte assets (e.g. failed OpenGraph image
+// fetches): Tesseract rejects them as truncated, which used to mark them
+// failed and retry them forever.
+func TestOCR_SkipsEmptyFile(t *testing.T) {
+	cfg := &config.Config{
+		OCREnabled:         true,
+		OCRProvider:        "textlayer",
+		OCRBackfillEnabled: false,
+	}
+
+	integration.Test(t, cfg, e2e.Setup(), fx.Invoke(func(
+		root context.Context,
+		lc fx.Lifecycle,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
+		aq *asset_querier.Querier,
+		objects object.Storer,
+		proc *ocr.Processor,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+
+			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			adminSession := sh.WithSession(adminCtx)
+
+			png := []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}
+			a := uploadTestAsset(t, root, cl, adminSession, "image/png", png)
+
+			assetID, err := xid.FromString(a.Id)
+			r.NoError(err)
+
+			stored, err := aq.GetByID(root, assetID)
+			r.NoError(err)
+
+			path := asset.BuildAssetPath(stored.Name)
+			r.Eventually(func() bool {
+				return objects.Write(root, path, bytes.NewReader(nil), 0) == nil
+			}, 2*time.Second, 20*time.Millisecond, "expected asset file to become writable")
 
 			r.NoError(proc.ProcessAsset(root, assetID))
 

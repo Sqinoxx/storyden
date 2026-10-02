@@ -8,11 +8,11 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type OAuthAuthoriseDecision =
-  (typeof OAuthAuthoriseDecision)[keyof typeof OAuthAuthoriseDecision];
+export type OAuthAuthoriseDecision = typeof OAuthAuthoriseDecision[keyof typeof OAuthAuthoriseDecision];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const OAuthAuthoriseDecision = {
-  approve: "approve",
-  deny: "deny",
+  approve: 'approve',
+  deny: 'deny',
 } as const;

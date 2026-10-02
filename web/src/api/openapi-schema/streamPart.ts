@@ -7,90 +7,69 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { AbortPart } from "./abortPart";
-import type { DataPart } from "./dataPart";
-import type { ErrorPart } from "./errorPart";
-import type { FilePart } from "./filePart";
-import type { FinishMessagePart } from "./finishMessagePart";
-import type { FinishStepPart } from "./finishStepPart";
-import type { NonEmptyString } from "./nonEmptyString";
-import type { ReasoningDeltaPart } from "./reasoningDeltaPart";
-import type { ReasoningEndPart } from "./reasoningEndPart";
-import type { ReasoningStartPart } from "./reasoningStartPart";
-import type { SourceDocumentPart } from "./sourceDocumentPart";
-import type { SourceUrlPart } from "./sourceUrlPart";
-import type { StartPart } from "./startPart";
-import type { StartStepPart } from "./startStepPart";
-import type { TextDeltaPart } from "./textDeltaPart";
-import type { TextEndPart } from "./textEndPart";
-import type { TextStartPart } from "./textStartPart";
-import type { ToolApprovalRequestPart } from "./toolApprovalRequestPart";
-import type { ToolInputAvailablePart } from "./toolInputAvailablePart";
-import type { ToolInputDeltaPart } from "./toolInputDeltaPart";
-import type { ToolInputStartPart } from "./toolInputStartPart";
-import type { ToolOutputAvailablePart } from "./toolOutputAvailablePart";
+import type { StartPart } from './startPart';
+import type { TextStartPart } from './textStartPart';
+import type { TextDeltaPart } from './textDeltaPart';
+import type { TextEndPart } from './textEndPart';
+import type { ReasoningStartPart } from './reasoningStartPart';
+import type { ReasoningDeltaPart } from './reasoningDeltaPart';
+import type { ReasoningEndPart } from './reasoningEndPart';
+import type { SourceUrlPart } from './sourceUrlPart';
+import type { SourceDocumentPart } from './sourceDocumentPart';
+import type { FilePart } from './filePart';
+import type { DataPart } from './dataPart';
+import type { ErrorPart } from './errorPart';
+import type { ToolInputStartPart } from './toolInputStartPart';
+import type { ToolInputDeltaPart } from './toolInputDeltaPart';
+import type { ToolInputAvailablePart } from './toolInputAvailablePart';
+import type { ToolApprovalRequestPart } from './toolApprovalRequestPart';
+import type { ToolOutputAvailablePart } from './toolOutputAvailablePart';
+import type { StartStepPart } from './startStepPart';
+import type { FinishStepPart } from './finishStepPart';
+import type { FinishMessagePart } from './finishMessagePart';
+import type { AbortPart } from './abortPart';
+import type { NonEmptyString } from './nonEmptyString';
 
-export type StreamPart =
-  | (StartPart & {
-      type: NonEmptyString;
-    })
-  | (TextStartPart & {
-      type: NonEmptyString;
-    })
-  | (TextDeltaPart & {
-      type: NonEmptyString;
-    })
-  | (TextEndPart & {
-      type: NonEmptyString;
-    })
-  | (ReasoningStartPart & {
-      type: NonEmptyString;
-    })
-  | (ReasoningDeltaPart & {
-      type: NonEmptyString;
-    })
-  | (ReasoningEndPart & {
-      type: NonEmptyString;
-    })
-  | (SourceUrlPart & {
-      type: NonEmptyString;
-    })
-  | (SourceDocumentPart & {
-      type: NonEmptyString;
-    })
-  | (FilePart & {
-      type: NonEmptyString;
-    })
-  | (DataPart & {
-      type: NonEmptyString;
-    })
-  | (ErrorPart & {
-      type: NonEmptyString;
-    })
-  | (ToolInputStartPart & {
-      type: NonEmptyString;
-    })
-  | (ToolInputDeltaPart & {
-      type: NonEmptyString;
-    })
-  | (ToolInputAvailablePart & {
-      type: NonEmptyString;
-    })
-  | (ToolApprovalRequestPart & {
-      type: NonEmptyString;
-    })
-  | (ToolOutputAvailablePart & {
-      type: NonEmptyString;
-    })
-  | (StartStepPart & {
-      type: NonEmptyString;
-    })
-  | (FinishStepPart & {
-      type: NonEmptyString;
-    })
-  | (FinishMessagePart & {
-      type: NonEmptyString;
-    })
-  | (AbortPart & {
-      type: NonEmptyString;
-    });
+export type StreamPart = (StartPart & {
+  type: NonEmptyString;
+}) | (TextStartPart & {
+  type: NonEmptyString;
+}) | (TextDeltaPart & {
+  type: NonEmptyString;
+}) | (TextEndPart & {
+  type: NonEmptyString;
+}) | (ReasoningStartPart & {
+  type: NonEmptyString;
+}) | (ReasoningDeltaPart & {
+  type: NonEmptyString;
+}) | (ReasoningEndPart & {
+  type: NonEmptyString;
+}) | (SourceUrlPart & {
+  type: NonEmptyString;
+}) | (SourceDocumentPart & {
+  type: NonEmptyString;
+}) | (FilePart & {
+  type: NonEmptyString;
+}) | (DataPart & {
+  type: NonEmptyString;
+}) | (ErrorPart & {
+  type: NonEmptyString;
+}) | (ToolInputStartPart & {
+  type: NonEmptyString;
+}) | (ToolInputDeltaPart & {
+  type: NonEmptyString;
+}) | (ToolInputAvailablePart & {
+  type: NonEmptyString;
+}) | (ToolApprovalRequestPart & {
+  type: NonEmptyString;
+}) | (ToolOutputAvailablePart & {
+  type: NonEmptyString;
+}) | (StartStepPart & {
+  type: NonEmptyString;
+}) | (FinishStepPart & {
+  type: NonEmptyString;
+}) | (FinishMessagePart & {
+  type: NonEmptyString;
+}) | (AbortPart & {
+  type: NonEmptyString;
+});

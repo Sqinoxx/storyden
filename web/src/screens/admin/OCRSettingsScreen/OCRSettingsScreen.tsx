@@ -1,22 +1,27 @@
 "use client";
 
-import { useState } from "react";
 import {
-  RefreshCw,
-  Play,
-  FileText,
+  AlertTriangle,
   CheckCircle2,
   Clock,
-  AlertTriangle,
+  FileText,
   Loader2,
+  Play,
+  RefreshCw,
+  SkipForward,
 } from "lucide-react";
-import { Box, Flex, Grid, HStack, Stack, styled } from "@/styled-system/jsx";
+import { useState } from "react";
+
+import {
+  useAdminOCRReindex,
+  useAdminOCRStats,
+} from "@/api/openapi-client/admin";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
-import {
-  useAdminOCRStats,
-  useAdminOCRReindex,
-} from "@/api/openapi-client/admin";
+import { Box, Flex, Grid, HStack, Stack, styled } from "@/styled-system/jsx";
+
+import { OCRAssetList } from "./OCRAssetList";
+import { OCRFileSizeSettings } from "./OCRFileSizeSettings";
 
 export function OCRSettingsScreen() {
   const t = useTranslation();
@@ -30,8 +35,10 @@ export function OCRSettingsScreen() {
     try {
       const data = await reindex();
       if (data) {
-        setMessage(`${data.reindexed} Assets wurden in die OCR-Warteschlange eingereiht.`);
-        mutate();
+        setMessage(
+          `${data.reindexed} Assets wurden in die OCR-Warteschlange eingereiht.`,
+        );
+        await mutate();
       } else {
         setMessage("Fehler beim Starten der OCR-Stapelverarbeitung.");
       }
@@ -49,8 +56,8 @@ export function OCRSettingsScreen() {
         </styled.h2>
         <styled.p fontSize="sm" color="fg.muted" mt="1">
           Verwalte die automatische Texterkennung für hochgeladene Bilder und
-          PDFs. Extrahiert Texte, um Anhänge über die globale Suche
-          auffindbar zu machen.
+          PDFs. Extrahiert Texte, um Anhänge über die globale Suche auffindbar
+          zu machen.
         </styled.p>
       </Box>
 
@@ -70,7 +77,7 @@ export function OCRSettingsScreen() {
       )}
 
       {/* Stats Dashboard Grid */}
-      <Grid columns={{ base: 1, sm: 2, md: 5 }} gap="4">
+      <Grid columns={{ base: 1, sm: 2, md: 3, lg: 6 }} gap="4">
         <StatCard
           label={t.ocr.completed}
           value={stats?.completed}
@@ -96,6 +103,12 @@ export function OCRSettingsScreen() {
           icon={<AlertTriangle size={18} color="var(--colors-red-9)" />}
         />
         <StatCard
+          label={t.ocr.skipped}
+          value={stats?.skipped}
+          loading={loading}
+          icon={<SkipForward size={18} color="var(--colors-gray-9)" />}
+        />
+        <StatCard
           label="Gesamt"
           value={stats?.total}
           loading={loading}
@@ -115,8 +128,8 @@ export function OCRSettingsScreen() {
           Verwaltungs-Aktionen
         </styled.h3>
         <styled.p fontSize="sm" color="fg.muted" mb="4">
-          Setzt fehlgeschlagene und bereits verarbeitete Assets zurück und
-          reiht sie erneut in die Texterkennung ein.
+          Setzt fehlgeschlagene und bereits verarbeitete Assets zurück und reiht
+          sie erneut in die Texterkennung ein.
         </styled.p>
 
         <HStack gap="3" flexWrap="wrap">
@@ -139,6 +152,10 @@ export function OCRSettingsScreen() {
         </HStack>
       </Box>
 
+      <OCRFileSizeSettings />
+
+      <OCRAssetList onRefresh={mutate} />
+
       {/* Engine Info Box */}
       <Box
         p="5"
@@ -152,11 +169,10 @@ export function OCRSettingsScreen() {
         </styled.h3>
         <styled.p fontSize="xs" color="fg.muted" lineHeight="relaxed">
           Digitale PDFs werden ohne externe Abhängigkeiten direkt aus der
-          eingebetteten Textebene gelesen. Gescannte PDFs und Bilder werden
-          über <strong>Tesseract OCR</strong> lokal auf dem Server erkannt.
-          Über die Server-Umgebungsvariable{" "}
-          <code>OCR_PROVIDER=openai_vision</code> kann optional die OpenAI
-          Vision API für KI-Erkennung aktiviert werden.
+          eingebetteten Textebene gelesen. Gescannte PDFs und Bilder werden über{" "}
+          <strong>Tesseract OCR</strong> lokal auf dem Server erkannt. Über die
+          Server-Umgebungsvariable <code>OCR_PROVIDER=openai_vision</code> kann
+          optional die OpenAI Vision API für KI-Erkennung aktiviert werden.
         </styled.p>
       </Box>
     </Stack>

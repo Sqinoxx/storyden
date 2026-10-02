@@ -7,8 +7,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { DatagraphItemProfileKind } from "./datagraphItemProfileKind";
-import type { PublicProfile } from "./publicProfile";
+import type { DatagraphItemProfileKind } from './datagraphItemProfileKind';
+import type { PublicProfile } from './publicProfile';
 
 export interface DatagraphItemProfile {
   kind: DatagraphItemProfileKind;

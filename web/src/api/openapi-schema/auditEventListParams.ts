@@ -7,21 +7,21 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { AuditEventTimeRangeQueryParameter } from "./auditEventTimeRangeQueryParameter";
-import type { AuditEventTypeFilterQueryParameter } from "./auditEventTypeFilterQueryParameter";
-import type { PaginationQueryParameter } from "./paginationQueryParameter";
+import type { PaginationQueryParameter } from './paginationQueryParameter';
+import type { AuditEventTypeFilterQueryParameter } from './auditEventTypeFilterQueryParameter';
+import type { AuditEventTimeRangeQueryParameter } from './auditEventTimeRangeQueryParameter';
 
 export type AuditEventListParams = {
-  /**
-   * Pagination query parameters.
-   */
-  page?: PaginationQueryParameter;
-  /**
-   * Audit event type filter query
-   */
-  types?: AuditEventTypeFilterQueryParameter;
-  /**
-   * Audit event time range query
-   */
-  range?: AuditEventTimeRangeQueryParameter;
+/**
+ * Pagination query parameters.
+ */
+page?: PaginationQueryParameter;
+/**
+ * Audit event type filter query
+ */
+types?: AuditEventTypeFilterQueryParameter;
+/**
+ * Audit event time range query
+ */
+range?: AuditEventTimeRangeQueryParameter;
 };

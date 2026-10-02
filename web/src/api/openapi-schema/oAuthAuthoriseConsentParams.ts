@@ -7,11 +7,11 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { OAuthAuthorizationRequestIDQueryParameter } from "./oAuthAuthorizationRequestIDQueryParameter";
+import type { OAuthAuthorizationRequestIDQueryParameter } from './oAuthAuthorizationRequestIDQueryParameter';
 
 export type OAuthAuthoriseConsentParams = {
-  /**
-   * OAuth authorisation request identifier.
-   */
-  request_id?: OAuthAuthorizationRequestIDQueryParameter;
+/**
+ * OAuth authorisation request identifier.
+ */
+request_id?: OAuthAuthorizationRequestIDQueryParameter;
 };

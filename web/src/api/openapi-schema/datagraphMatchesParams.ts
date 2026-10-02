@@ -7,16 +7,16 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { DatagraphKindQueryParameter } from "./datagraphKindQueryParameter";
-import type { RequiredSearchQueryParameter } from "./requiredSearchQueryParameter";
+import type { RequiredSearchQueryParameter } from './requiredSearchQueryParameter';
+import type { DatagraphKindQueryParameter } from './datagraphKindQueryParameter';
 
 export type DatagraphMatchesParams = {
-  /**
-   * Search query string.
-   */
-  q: RequiredSearchQueryParameter;
-  /**
-   * Datagraph item kind query.
-   */
-  kind?: DatagraphKindQueryParameter;
+/**
+ * Search query string.
+ */
+q: RequiredSearchQueryParameter;
+/**
+ * Datagraph item kind query.
+ */
+kind?: DatagraphKindQueryParameter;
 };

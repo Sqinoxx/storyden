@@ -7,15 +7,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { DatagraphItemNode } from "./datagraphItemNode";
-import type { DatagraphItemPost } from "./datagraphItemPost";
-import type { DatagraphItemProfile } from "./datagraphItemProfile";
-import type { DatagraphItemReply } from "./datagraphItemReply";
-import type { DatagraphItemThread } from "./datagraphItemThread";
+import type { DatagraphItemPost } from './datagraphItemPost';
+import type { DatagraphItemThread } from './datagraphItemThread';
+import type { DatagraphItemReply } from './datagraphItemReply';
+import type { DatagraphItemNode } from './datagraphItemNode';
+import type { DatagraphItemProfile } from './datagraphItemProfile';
 
-export type DatagraphItem =
-  | DatagraphItemPost
-  | DatagraphItemThread
-  | DatagraphItemReply
-  | DatagraphItemNode
-  | DatagraphItemProfile;
+export type DatagraphItem = DatagraphItemPost | DatagraphItemThread | DatagraphItemReply | DatagraphItemNode | DatagraphItemProfile;

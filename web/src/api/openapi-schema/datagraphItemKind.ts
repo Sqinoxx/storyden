@@ -8,16 +8,16 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type DatagraphItemKind =
-  (typeof DatagraphItemKind)[keyof typeof DatagraphItemKind];
+export type DatagraphItemKind = typeof DatagraphItemKind[keyof typeof DatagraphItemKind];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DatagraphItemKind = {
-  post: "post",
-  thread: "thread",
-  reply: "reply",
-  node: "node",
-  collection: "collection",
-  profile: "profile",
-  event: "event",
+  post: 'post',
+  thread: 'thread',
+  reply: 'reply',
+  node: 'node',
+  collection: 'collection',
+  profile: 'profile',
+  event: 'event',
 } as const;

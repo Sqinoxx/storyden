@@ -8,10 +8,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type PluginInitialExternalMode =
-  (typeof PluginInitialExternalMode)[keyof typeof PluginInitialExternalMode];
+export type PluginInitialExternalMode = typeof PluginInitialExternalMode[keyof typeof PluginInitialExternalMode];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PluginInitialExternalMode = {
-  external: "external",
+  external: 'external',
 } as const;

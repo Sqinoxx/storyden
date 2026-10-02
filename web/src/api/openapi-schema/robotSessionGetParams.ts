@@ -7,16 +7,16 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { RobotSessionMessageBeforeQueryParameter } from "./robotSessionMessageBeforeQueryParameter";
-import type { RobotSessionMessageLimitQueryParameter } from "./robotSessionMessageLimitQueryParameter";
+import type { RobotSessionMessageBeforeQueryParameter } from './robotSessionMessageBeforeQueryParameter';
+import type { RobotSessionMessageLimitQueryParameter } from './robotSessionMessageLimitQueryParameter';
 
 export type RobotSessionGetParams = {
-  /**
-   * Load messages older than this message ID.
-   */
-  before?: RobotSessionMessageBeforeQueryParameter;
-  /**
-   * Maximum number of messages to return.
-   */
-  limit?: RobotSessionMessageLimitQueryParameter;
+/**
+ * Load messages older than this message ID.
+ */
+before?: RobotSessionMessageBeforeQueryParameter;
+/**
+ * Maximum number of messages to return.
+ */
+limit?: RobotSessionMessageLimitQueryParameter;
 };

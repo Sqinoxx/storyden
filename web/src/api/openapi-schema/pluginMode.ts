@@ -15,10 +15,11 @@ while an external plugin is hosted and managed outside of the Storyden
 runtime. The mode determines how the plugin interacts with RPCs.
 
  */
-export type PluginMode = (typeof PluginMode)[keyof typeof PluginMode];
+export type PluginMode = typeof PluginMode[keyof typeof PluginMode];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PluginMode = {
-  supervised: "supervised",
-  external: "external",
+  supervised: 'supervised',
+  external: 'external',
 } as const;

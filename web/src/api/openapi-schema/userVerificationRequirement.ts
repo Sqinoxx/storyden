@@ -12,12 +12,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * https://www.w3.org/TR/webauthn-2/#enumdef-userverificationrequirement
 
  */
-export type UserVerificationRequirement =
-  (typeof UserVerificationRequirement)[keyof typeof UserVerificationRequirement];
+export type UserVerificationRequirement = typeof UserVerificationRequirement[keyof typeof UserVerificationRequirement];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const UserVerificationRequirement = {
-  discouraged: "discouraged",
-  preferred: "preferred",
-  required: "required",
+  discouraged: 'discouraged',
+  preferred: 'preferred',
+  required: 'required',
 } as const;

@@ -18,6 +18,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/asset/asset_querier"
 	"github.com/Southclaws/storyden/app/resources/asset/asset_writer"
 	"github.com/Southclaws/storyden/app/resources/message"
+	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/internal/config"
 	"github.com/Southclaws/storyden/internal/infrastructure/object"
 	infra_ocr "github.com/Southclaws/storyden/internal/infrastructure/ocr"
@@ -42,6 +43,7 @@ type Processor struct {
 	ocrClient    infra_ocr.Client
 	assetQuerier *asset_querier.Querier
 	assetWriter  *asset_writer.Writer
+	settings     *settings.SettingsRepository
 	objects      object.Storer
 	bus          *pubsub.Bus
 	// sem bounds concurrent extraction work (tesseract/rasterisation are
@@ -57,6 +59,7 @@ func NewProcessor(
 	logger *slog.Logger,
 	assetQuerier *asset_querier.Querier,
 	assetWriter *asset_writer.Writer,
+	settingsRepo *settings.SettingsRepository,
 	objects object.Storer,
 	bus *pubsub.Bus,
 ) *Processor {
@@ -68,6 +71,7 @@ func NewProcessor(
 		ocrClient:    ocrClient,
 		assetQuerier: assetQuerier,
 		assetWriter:  assetWriter,
+		settings:     settingsRepo,
 		objects:      objects,
 		bus:          bus,
 		sem:          make(chan struct{}, 1),
@@ -202,10 +206,11 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 		return err
 	}
 
-	maxBytes := int64(p.cfg.OCRMaxFileSizeMB) * 1024 * 1024
+	maxMB := p.maxFileSizeMB(ctx)
+	maxBytes := int64(maxMB) * 1024 * 1024
 	if maxBytes > 0 && int64(a.Size) > maxBytes {
 		p.logger.Warn("skipping OCR processing because file exceeds size limit", slog.String("id", id.String()), slog.Int("size", a.Size))
-		_, err := p.assetWriter.UpdateOCRSkipped(ctx, id, fmt.Sprintf("file exceeds max size of %d MB", p.cfg.OCRMaxFileSizeMB))
+		_, err := p.assetWriter.UpdateOCRSkipped(ctx, id, fmt.Sprintf("file exceeds max size of %d MB", maxMB))
 		return err
 	}
 
@@ -243,6 +248,10 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 		_, _ = p.assetWriter.UpdateOCRFailed(ctx, id, fmt.Sprintf("read object failed: %v", err))
 		return fault.Wrap(err, fctx.With(ctx))
 	}
+	if len(data) == 0 {
+		_, err := p.assetWriter.UpdateOCRSkipped(ctx, id, "asset file is empty")
+		return err
+	}
 
 	p.logger.Info("starting text extraction for asset", slog.String("id", id.String()), slog.String("filename", a.Name.String()))
 	_, _ = p.assetWriter.UpdateOCRProcessing(ctx, id)
@@ -252,10 +261,7 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 		return p.handleExtractionError(ctx, id, err)
 	}
 
-	text := result.Text
-	if p.cfg.OCRMaxTextLength > 0 && len(text) > p.cfg.OCRMaxTextLength {
-		text = strings.ToValidUTF8(text[:p.cfg.OCRMaxTextLength], "")
-	}
+	text := sanitiseText(result.Text, p.cfg.OCRMaxTextLength)
 
 	p.logger.Info("text extraction completed successfully",
 		slog.String("id", id.String()),
@@ -265,6 +271,7 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 
 	_, err = p.assetWriter.UpdateOCRCompleted(ctx, id, text)
 	if err != nil {
+		_, _ = p.assetWriter.UpdateOCRFailed(ctx, id, fmt.Sprintf("storing extracted text failed: %v", err))
 		return fault.Wrap(err, fctx.With(ctx))
 	}
 
@@ -273,6 +280,30 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 	}
 
 	return nil
+}
+
+func (p *Processor) maxFileSizeMB(ctx context.Context) int {
+	if p.settings == nil {
+		return p.cfg.OCRMaxFileSizeMB
+	}
+	s, err := p.settings.Get(ctx)
+	if err != nil {
+		return p.cfg.OCRMaxFileSizeMB
+	}
+	if v, ok := s.Services.OrZero().Assets.OrZero().OCRMaxFileSizeMB.Get(); ok && v > 0 {
+		return v
+	}
+	return p.cfg.OCRMaxFileSizeMB
+}
+
+// sanitiseText makes extracted text storable: Postgres rejects NUL bytes and
+// invalid UTF-8 in text columns, and PDF text layers regularly contain both.
+func sanitiseText(text string, maxLen int) string {
+	text = strings.ReplaceAll(text, "\x00", "")
+	if maxLen > 0 && len(text) > maxLen {
+		text = text[:maxLen]
+	}
+	return strings.ToValidUTF8(text, "")
 }
 
 // errOCRTimeout marks an extraction that ran past the configured deadline.

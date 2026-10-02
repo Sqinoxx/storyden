@@ -7,11 +7,11 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { RateLimitServiceSettingsCostOverrides } from "./rateLimitServiceSettingsCostOverrides";
+import type { RateLimitServiceSettingsCostOverrides } from './rateLimitServiceSettingsCostOverrides';
 
 export interface RateLimitServiceSettings {
   /** A map of operation names to their rate limiting cost overrides.
-   */
+ */
   cost_overrides?: RateLimitServiceSettingsCostOverrides;
   /**
    * How long a credential stays locked out after its last failed login

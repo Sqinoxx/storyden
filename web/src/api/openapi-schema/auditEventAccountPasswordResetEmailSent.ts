@@ -7,8 +7,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { AuditEventAccountPasswordResetEmailSentType } from "./auditEventAccountPasswordResetEmailSentType";
-import type { Identifier } from "./identifier";
+import type { Identifier } from './identifier';
+import type { AuditEventAccountPasswordResetEmailSentType } from './auditEventAccountPasswordResetEmailSentType';
 
 export interface AuditEventAccountPasswordResetEmailSent {
   /** Target account ID that received the password reset email. */

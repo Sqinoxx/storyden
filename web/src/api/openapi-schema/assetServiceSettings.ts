@@ -19,4 +19,13 @@ rejected before the file is written to storage. Bound to 1024 MB
    * @maximum 1024
    */
   max_upload_size_mb?: number;
+  /**
+   * The maximum size, in megabytes, of a file that is passed to text
+extraction (OCR). Larger files are skipped. Defaults to the
+OCR_MAX_FILE_SIZE_MB environment variable.
+
+   * @minimum 1
+   * @maximum 1024
+   */
+  ocr_max_file_size_mb?: number;
 }

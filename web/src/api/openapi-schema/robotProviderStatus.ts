@@ -7,10 +7,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { RobotModelCacheStatus } from "./robotModelCacheStatus";
-import type { RobotModelInfoList } from "./robotModelInfoList";
-import type { RobotModelProvider } from "./robotModelProvider";
-import type { RobotProviderSettings } from "./robotProviderSettings";
+import type { RobotModelCacheStatus } from './robotModelCacheStatus';
+import type { RobotModelInfoList } from './robotModelInfoList';
+import type { RobotModelProvider } from './robotModelProvider';
+import type { RobotProviderSettings } from './robotProviderSettings';
 
 export interface RobotProviderStatus {
   cache: RobotModelCacheStatus;

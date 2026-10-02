@@ -12,10 +12,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * https://www.w3.org/TR/webauthn-2/#enumdef-publickeycredentialtype
 
  */
-export type PublicKeyCredentialType =
-  (typeof PublicKeyCredentialType)[keyof typeof PublicKeyCredentialType];
+export type PublicKeyCredentialType = typeof PublicKeyCredentialType[keyof typeof PublicKeyCredentialType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PublicKeyCredentialType = {
-  "public-key": "public-key",
+  'public-key': 'public-key',
 } as const;

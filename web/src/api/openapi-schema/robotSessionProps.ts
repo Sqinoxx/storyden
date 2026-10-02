@@ -7,8 +7,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { PaginatedRobotMessageList } from "./paginatedRobotMessageList";
-import type { RobotWorkspaceMount } from "./robotWorkspaceMount";
+import type { RobotWorkspaceMount } from './robotWorkspaceMount';
+import type { PaginatedRobotMessageList } from './paginatedRobotMessageList';
 
 export interface RobotSessionProps {
   /** Most recently active Robot ID for this session, including built-in Robot IDs. */

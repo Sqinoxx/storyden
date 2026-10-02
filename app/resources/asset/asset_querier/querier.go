@@ -80,9 +80,10 @@ func (q *Querier) GetByID(ctx context.Context, id asset.AssetID) (*asset.Asset, 
 }
 
 // GetPendingOCR returns the IDs of assets that need text extraction: those
-// never processed, those that previously failed, and those stuck in
-// `processing` for longer than stuckAfter (e.g. because the process crashed
-// mid-run). Only IDs are returned because the processor re-reads each asset
+// never processed, and those failed or stuck in `processing` for longer than
+// stuckAfter. The backoff on failed assets is what lets a backfill pass
+// terminate: without it a permanently broken file is re-returned by every
+// batch and retried in a tight loop. Only IDs are returned because the processor re-reads each asset
 // individually anyway, and selecting whole rows here would drag the ocr_text
 // column of an entire batch into memory on every poll.
 func (q *Querier) GetPendingOCR(ctx context.Context, limit int, stuckAfter time.Duration) ([]asset.AssetID, error) {
@@ -92,10 +93,12 @@ func (q *Querier) GetPendingOCR(ctx context.Context, limit int, stuckAfter time.
 		Where(
 			ent_asset.Or(
 				ent_asset.OcrStatusEQ(ent_asset.OcrStatusPending),
-				ent_asset.OcrStatusEQ(ent_asset.OcrStatusFailed),
 				ent_asset.And(
-					ent_asset.OcrStatusEQ(ent_asset.OcrStatusProcessing),
-					ent_asset.OcrProcessedAtLT(stuckBefore),
+					ent_asset.OcrStatusIn(ent_asset.OcrStatusFailed, ent_asset.OcrStatusProcessing),
+					ent_asset.Or(
+						ent_asset.OcrProcessedAtIsNil(),
+						ent_asset.OcrProcessedAtLT(stuckBefore),
+					),
 				),
 			),
 		).
@@ -155,4 +158,34 @@ func (q *Querier) GetOCRStats(ctx context.Context) (*OCRStats, error) {
 	}
 
 	return stats, nil
+}
+
+// ListByOCRStatus lists assets in the given OCR statuses for admin
+// inspection, most recently processed first. ocr_text is deliberately not
+// selected as it can be up to OCRMaxTextLength per row.
+func (q *Querier) ListByOCRStatus(ctx context.Context, statuses []ent_asset.OcrStatus, limit int) ([]*asset.Asset, error) {
+	rows, err := q.db.Asset.Query().
+		Where(ent_asset.OcrStatusIn(statuses...)).
+		Select(
+			ent_asset.FieldID,
+			ent_asset.FieldFilename,
+			ent_asset.FieldSize,
+			ent_asset.FieldMimeType,
+			ent_asset.FieldOcrStatus,
+			ent_asset.FieldOcrError,
+			ent_asset.FieldOcrProcessedAt,
+		).
+		Order(ent.Desc(ent_asset.FieldOcrProcessedAt), ent.Desc(ent_asset.FieldID)).
+		Limit(limit).
+		All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	out := make([]*asset.Asset, len(rows))
+	for i, r := range rows {
+		out[i] = asset.Map(r)
+	}
+
+	return out, nil
 }

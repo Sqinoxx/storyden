@@ -7,8 +7,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { PluginInitialExternalMode } from "./pluginInitialExternalMode";
-import type { PluginManifest } from "./pluginManifest";
+import type { PluginManifest } from './pluginManifest';
+import type { PluginInitialExternalMode } from './pluginInitialExternalMode';
 
 /**
  * An external plugin is a plugin that is hosted and managed outside of the

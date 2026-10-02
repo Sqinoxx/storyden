@@ -8,10 +8,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type AuditEventAccountContentPurgedType =
-  (typeof AuditEventAccountContentPurgedType)[keyof typeof AuditEventAccountContentPurgedType];
+export type AuditEventAccountContentPurgedType = typeof AuditEventAccountContentPurgedType[keyof typeof AuditEventAccountContentPurgedType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AuditEventAccountContentPurgedType = {
-  account_content_purged: "account_content_purged",
+  account_content_purged: 'account_content_purged',
 } as const;

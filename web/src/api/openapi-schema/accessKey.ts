@@ -7,7 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { AccessKeyProps } from "./accessKeyProps";
-import type { CommonProperties } from "./commonProperties";
+import type { CommonProperties } from './commonProperties';
+import type { AccessKeyProps } from './accessKeyProps';
 
 export type AccessKey = CommonProperties & AccessKeyProps;

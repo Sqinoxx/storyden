@@ -8,9 +8,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type AbortPartType = (typeof AbortPartType)[keyof typeof AbortPartType];
+export type AbortPartType = typeof AbortPartType[keyof typeof AbortPartType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AbortPartType = {
-  abort: "abort",
+  abort: 'abort',
 } as const;

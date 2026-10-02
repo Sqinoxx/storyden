@@ -24,6 +24,4 @@ such a way that requires validation, however if you do need the schema,
 it is located in `plugin.yaml` in the same folder as this specification.
 
  */
-export interface PluginManifest {
-  [key: string]: unknown;
-}
+export interface PluginManifest { [key: string]: unknown }

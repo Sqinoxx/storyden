@@ -7,8 +7,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { AccessKey } from "./accessKey";
-import type { AccessKeySecret } from "./accessKeySecret";
+import type { AccessKey } from './accessKey';
+import type { AccessKeySecret } from './accessKeySecret';
 
 /**
  * An access key issued to an account, this is the full access key object

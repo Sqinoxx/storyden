@@ -337,6 +337,46 @@ paths:
                   failed: { type: integer }
                   skipped: { type: integer }
 
+  /admin/ocr/assets:
+    get:
+      operationId: AdminOCRAssetList
+      description: |
+        List file assets with their OCR status and failure reason. Without a
+        status filter, every asset that has not completed is returned.
+      tags: [admin]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, processing, completed, failed, skipped]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [assets]
+                properties:
+                  assets:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, filename, path, mime_type, size, status]
+                      properties:
+                        id: { type: string }
+                        filename: { type: string }
+                        path: { type: string }
+                        mime_type: { type: string }
+                        size: { type: integer }
+                        status: { type: string }
+                        error: { type: string }
+                        processed_at: { type: string, format: date-time }
+
   /admin/ocr/reindex:
     post:
       operationId: AdminOCRReindex
@@ -8348,6 +8388,14 @@ components:
             cover images, plugin archives, etc). Requests with a larger body are
             rejected before the file is written to storage. Bound to 1024 MB
             (1 GB) to keep this within sane resource limits for most deployments.
+        ocr_max_file_size_mb:
+          type: integer
+          minimum: 1
+          maximum: 1024
+          description: |
+            The maximum size, in megabytes, of a file that is passed to text
+            extraction (OCR). Larger files are skipped. Defaults to the
+            OCR_MAX_FILE_SIZE_MB environment variable.
 
     SessionServiceSettings:
       type: object

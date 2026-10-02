@@ -7,18 +7,24 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import useSwr from "swr";
-import type { Arguments, Key, SWRConfiguration } from "swr";
-import useSWRMutation from "swr/mutation";
-import type { SWRMutationConfiguration } from "swr/mutation";
-
-import { fetcher } from "../client";
+import useSwr from 'swr'
+import type {
+  Arguments,
+  Key,
+  SWRConfiguration
+} from 'swr'
+import useSWRMutation from 'swr/mutation'
+import type {
+  SWRMutationConfiguration
+} from 'swr/mutation'
 import type {
   AccountGetOKResponse,
   AdminAccessKeyListOKResponse,
   AdminDriveCredentialsUploadBody,
   AdminDriveFolderCreateBody,
   AdminDriveFolderUpdateBody,
+  AdminOCRAssetList200,
+  AdminOCRAssetListParams,
   AdminOCRReindex200,
   AdminOCRStats200,
   AdminSettingsGetOKResponse,
@@ -53,202 +59,206 @@ import type {
   OAuthRemoteConnectionOKResponse,
   OAuthRemoteDiscoverBody,
   OAuthRemoteDiscoverOKResponse,
-  UnauthorisedResponse,
-} from "../openapi-schema";
+  UnauthorisedResponse
+} from '../openapi-schema'
+import { fetcher } from '../client';
 
-/**
+
+
+  
+  /**
  * Retrieve all configuration settings for installation. This includes the
 publicly accessible information for the instance as well as admin-only
 access to sensitive configuration (environment variables) and settings.
 
  */
-export const adminSettingsGet = () => {
-  return fetcher<AdminSettingsGetOKResponse>({ url: `/admin`, method: "GET" });
-};
+export const adminSettingsGet = (
+    
+ ) => {
+    return fetcher<AdminSettingsGetOKResponse>(
+    {url: `/admin`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getAdminSettingsGetKey = () => [`/admin`] as const;
 
-export type AdminSettingsGetQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminSettingsGet>>
->;
-export type AdminSettingsGetQueryError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type AdminSettingsGetQueryResult = NonNullable<Awaited<ReturnType<typeof adminSettingsGet>>>
+export type AdminSettingsGetQueryError = UnauthorisedResponse | InternalServerErrorResponse
 
-export const useAdminSettingsGet = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof adminSettingsGet>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAdminSettingsGet = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminSettingsGet>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getAdminSettingsGetKey() : null));
-  const swrFn = () => adminSettingsGet();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminSettingsGetKey() : null);
+  const swrFn = () => adminSettingsGet()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Update non-env configuration settings for installation.
  */
 export const adminSettingsUpdate = (
-  adminSettingsUpdateBody: AdminSettingsUpdateBody,
-) => {
-  return fetcher<AdminSettingsUpdateOKResponse>({
-    url: `/admin`,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    data: adminSettingsUpdateBody,
-  });
-};
+    adminSettingsUpdateBody: AdminSettingsUpdateBody,
+ ) => {
+    return fetcher<AdminSettingsUpdateOKResponse>(
+    {url: `/admin`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: adminSettingsUpdateBody
+    },
+    );
+  }
 
-export const getAdminSettingsUpdateMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AdminSettingsUpdateBody },
-  ): Promise<AdminSettingsUpdateOKResponse> => {
+
+
+export const getAdminSettingsUpdateMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AdminSettingsUpdateBody }): Promise<AdminSettingsUpdateOKResponse> => {
     return adminSettingsUpdate(arg);
-  };
-};
+  }
+}
 export const getAdminSettingsUpdateMutationKey = () => [`/admin`] as const;
 
-export type AdminSettingsUpdateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminSettingsUpdate>>
->;
-export type AdminSettingsUpdateMutationError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type AdminSettingsUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof adminSettingsUpdate>>>
+export type AdminSettingsUpdateMutationError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse
 
-export const useAdminSettingsUpdate = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof adminSettingsUpdate>>,
-    TError,
-    Key,
-    AdminSettingsUpdateBody,
-    Awaited<ReturnType<typeof adminSettingsUpdate>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAdminSettingsUpdate = <TError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminSettingsUpdate>>, TError, Key, AdminSettingsUpdateBody, Awaited<ReturnType<typeof adminSettingsUpdate>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAdminSettingsUpdateMutationKey();
   const swrFn = getAdminSettingsUpdateMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Retrieve OCR processing statistics for file assets.
  */
-export const adminOCRStats = () => {
-  return fetcher<AdminOCRStats200>({ url: `/admin/ocr/stats`, method: "GET" });
-};
+export const adminOCRStats = (
+    
+ ) => {
+    return fetcher<AdminOCRStats200>(
+    {url: `/admin/ocr/stats`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getAdminOCRStatsKey = () => [`/admin/ocr/stats`] as const;
 
-export type AdminOCRStatsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminOCRStats>>
->;
-export type AdminOCRStatsQueryError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type AdminOCRStatsQueryResult = NonNullable<Awaited<ReturnType<typeof adminOCRStats>>>
+export type AdminOCRStatsQueryError = UnauthorisedResponse | InternalServerErrorResponse
 
-export const useAdminOCRStats = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof adminOCRStats>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAdminOCRStats = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminOCRStats>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getAdminOCRStatsKey() : null));
-  const swrFn = () => adminOCRStats();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminOCRStatsKey() : null);
+  const swrFn = () => adminOCRStats()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
+/**
+ * List file assets with their OCR status and failure reason. Without a
+status filter, every asset that has not completed is returned.
+
+ */
+export const adminOCRAssetList = (
+    params?: AdminOCRAssetListParams,
+ ) => {
+    return fetcher<AdminOCRAssetList200>(
+    {url: `/admin/ocr/assets`, method: 'GET',
+        params
+    },
+    );
+  }
+
+
+
+export const getAdminOCRAssetListKey = (params?: AdminOCRAssetListParams,) => [`/admin/ocr/assets`, ...(params ? [params]: [])] as const;
+
+export type AdminOCRAssetListQueryResult = NonNullable<Awaited<ReturnType<typeof adminOCRAssetList>>>
+export type AdminOCRAssetListQueryError = UnauthorisedResponse | InternalServerErrorResponse
+
+export const useAdminOCRAssetList = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+  params?: AdminOCRAssetListParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminOCRAssetList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminOCRAssetListKey(params) : null);
+  const swrFn = () => adminOCRAssetList(params)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 /**
  * Trigger background OCR processing for pending file assets.
  */
-export const adminOCRReindex = () => {
-  return fetcher<AdminOCRReindex200>({
-    url: `/admin/ocr/reindex`,
-    method: "POST",
-  });
-};
+export const adminOCRReindex = (
+    
+ ) => {
+    return fetcher<AdminOCRReindex200>(
+    {url: `/admin/ocr/reindex`, method: 'POST'
+    },
+    );
+  }
 
-export const getAdminOCRReindexMutationFetcher = () => {
+
+
+export const getAdminOCRReindexMutationFetcher = ( ) => {
   return (_: Key, __: { arg: Arguments }): Promise<AdminOCRReindex200> => {
     return adminOCRReindex();
-  };
-};
-export const getAdminOCRReindexMutationKey = () =>
-  [`/admin/ocr/reindex`] as const;
+  }
+}
+export const getAdminOCRReindexMutationKey = () => [`/admin/ocr/reindex`] as const;
 
-export type AdminOCRReindexMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminOCRReindex>>
->;
-export type AdminOCRReindexMutationError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type AdminOCRReindexMutationResult = NonNullable<Awaited<ReturnType<typeof adminOCRReindex>>>
+export type AdminOCRReindexMutationError = UnauthorisedResponse | InternalServerErrorResponse
 
-export const useAdminOCRReindex = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof adminOCRReindex>>,
-    TError,
-    Key,
-    Arguments,
-    Awaited<ReturnType<typeof adminOCRReindex>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAdminOCRReindex = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminOCRReindex>>, TError, Key, Arguments, Awaited<ReturnType<typeof adminOCRReindex>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAdminOCRReindexMutationKey();
   const swrFn = getAdminOCRReindexMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Retrieve aggregate usage statistics for the instance, including
 account and thread growth over time, recent activity, a breakdown of
@@ -259,286 +269,204 @@ history, and engagement breakdowns by category and session state.
 Intended for the admin statistics dashboard.
 
  */
-export const adminStatistics = () => {
-  return fetcher<AdminStatistics200>({
-    url: `/admin/statistics`,
-    method: "GET",
-  });
-};
+export const adminStatistics = (
+    
+ ) => {
+    return fetcher<AdminStatistics200>(
+    {url: `/admin/statistics`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getAdminStatisticsKey = () => [`/admin/statistics`] as const;
 
-export type AdminStatisticsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminStatistics>>
->;
-export type AdminStatisticsQueryError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type AdminStatisticsQueryResult = NonNullable<Awaited<ReturnType<typeof adminStatistics>>>
+export type AdminStatisticsQueryError = UnauthorisedResponse | InternalServerErrorResponse
 
-export const useAdminStatistics = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof adminStatistics>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAdminStatistics = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminStatistics>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getAdminStatisticsKey() : null));
-  const swrFn = () => adminStatistics();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminStatisticsKey() : null);
+  const swrFn = () => adminStatistics()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List every Google Drive folder registered on this installation,
 including those hidden from ordinary members.
 
  */
-export const adminDriveFolderList = () => {
-  return fetcher<DriveFolderListOKResponse>({
-    url: `/admin/drive/folders`,
-    method: "GET",
-  });
-};
+export const adminDriveFolderList = (
+    
+ ) => {
+    return fetcher<DriveFolderListOKResponse>(
+    {url: `/admin/drive/folders`, method: 'GET'
+    },
+    );
+  }
 
-export const getAdminDriveFolderListKey = () =>
-  [`/admin/drive/folders`] as const;
 
-export type AdminDriveFolderListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminDriveFolderList>>
->;
-export type AdminDriveFolderListQueryError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
 
-export const useAdminDriveFolderList = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof adminDriveFolderList>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const getAdminDriveFolderListKey = () => [`/admin/drive/folders`] as const;
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getAdminDriveFolderListKey() : null));
-  const swrFn = () => adminDriveFolderList();
+export type AdminDriveFolderListQueryResult = NonNullable<Awaited<ReturnType<typeof adminDriveFolderList>>>
+export type AdminDriveFolderListQueryError = UnauthorisedResponse | InternalServerErrorResponse
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+export const useAdminDriveFolderList = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminDriveFolderList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminDriveFolderListKey() : null);
+  const swrFn = () => adminDriveFolderList()
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Register a Google Drive folder so members can browse it. The folder must
 already be shared with the installation's service account.
 
  */
 export const adminDriveFolderCreate = (
-  adminDriveFolderCreateBody: AdminDriveFolderCreateBody,
-) => {
-  return fetcher<DriveFolderGetOKResponse>({
-    url: `/admin/drive/folders`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: adminDriveFolderCreateBody,
-  });
-};
+    adminDriveFolderCreateBody: AdminDriveFolderCreateBody,
+ ) => {
+    return fetcher<DriveFolderGetOKResponse>(
+    {url: `/admin/drive/folders`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: adminDriveFolderCreateBody
+    },
+    );
+  }
 
-export const getAdminDriveFolderCreateMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AdminDriveFolderCreateBody },
-  ): Promise<DriveFolderGetOKResponse> => {
+
+
+export const getAdminDriveFolderCreateMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AdminDriveFolderCreateBody }): Promise<DriveFolderGetOKResponse> => {
     return adminDriveFolderCreate(arg);
-  };
-};
-export const getAdminDriveFolderCreateMutationKey = () =>
-  [`/admin/drive/folders`] as const;
+  }
+}
+export const getAdminDriveFolderCreateMutationKey = () => [`/admin/drive/folders`] as const;
 
-export type AdminDriveFolderCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminDriveFolderCreate>>
->;
-export type AdminDriveFolderCreateMutationError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type AdminDriveFolderCreateMutationResult = NonNullable<Awaited<ReturnType<typeof adminDriveFolderCreate>>>
+export type AdminDriveFolderCreateMutationError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse
 
-export const useAdminDriveFolderCreate = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof adminDriveFolderCreate>>,
-    TError,
-    Key,
-    AdminDriveFolderCreateBody,
-    Awaited<ReturnType<typeof adminDriveFolderCreate>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAdminDriveFolderCreate = <TError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminDriveFolderCreate>>, TError, Key, AdminDriveFolderCreateBody, Awaited<ReturnType<typeof adminDriveFolderCreate>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAdminDriveFolderCreateMutationKey();
   const swrFn = getAdminDriveFolderCreateMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Change a registered Google Drive folder.
  */
 export const adminDriveFolderUpdate = (
-  driveFolderId: string,
-  adminDriveFolderUpdateBody: AdminDriveFolderUpdateBody,
-) => {
-  return fetcher<DriveFolderGetOKResponse>({
-    url: `/admin/drive/folders/${driveFolderId}`,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    data: adminDriveFolderUpdateBody,
-  });
-};
+    driveFolderId: string,
+    adminDriveFolderUpdateBody: AdminDriveFolderUpdateBody,
+ ) => {
+    return fetcher<DriveFolderGetOKResponse>(
+    {url: `/admin/drive/folders/${driveFolderId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: adminDriveFolderUpdateBody
+    },
+    );
+  }
 
-export const getAdminDriveFolderUpdateMutationFetcher = (
-  driveFolderId: string,
-) => {
-  return (
-    _: Key,
-    { arg }: { arg: AdminDriveFolderUpdateBody },
-  ): Promise<DriveFolderGetOKResponse> => {
+
+
+export const getAdminDriveFolderUpdateMutationFetcher = (driveFolderId: string, ) => {
+  return (_: Key, { arg }: { arg: AdminDriveFolderUpdateBody }): Promise<DriveFolderGetOKResponse> => {
     return adminDriveFolderUpdate(driveFolderId, arg);
-  };
-};
-export const getAdminDriveFolderUpdateMutationKey = (driveFolderId: string) =>
-  [`/admin/drive/folders/${driveFolderId}`] as const;
+  }
+}
+export const getAdminDriveFolderUpdateMutationKey = (driveFolderId: string,) => [`/admin/drive/folders/${driveFolderId}`] as const;
 
-export type AdminDriveFolderUpdateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminDriveFolderUpdate>>
->;
-export type AdminDriveFolderUpdateMutationError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AdminDriveFolderUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof adminDriveFolderUpdate>>>
+export type AdminDriveFolderUpdateMutationError = BadRequestResponse | UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAdminDriveFolderUpdate = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  driveFolderId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof adminDriveFolderUpdate>>,
-      TError,
-      Key,
-      AdminDriveFolderUpdateBody,
-      Awaited<ReturnType<typeof adminDriveFolderUpdate>>
-    > & { swrKey?: string };
-  },
+export const useAdminDriveFolderUpdate = <TError = BadRequestResponse | UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+  driveFolderId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminDriveFolderUpdate>>, TError, Key, AdminDriveFolderUpdateBody, Awaited<ReturnType<typeof adminDriveFolderUpdate>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAdminDriveFolderUpdateMutationKey(driveFolderId);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAdminDriveFolderUpdateMutationKey(driveFolderId);
   const swrFn = getAdminDriveFolderUpdateMutationFetcher(driveFolderId);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Withdraw a Google Drive folder from the site. Nothing is removed from
 Google Drive itself.
 
  */
-export const adminDriveFolderDelete = (driveFolderId: string) => {
-  return fetcher<void>({
-    url: `/admin/drive/folders/${driveFolderId}`,
-    method: "DELETE",
-  });
-};
+export const adminDriveFolderDelete = (
+    driveFolderId: string,
+ ) => {
+    return fetcher<void>(
+    {url: `/admin/drive/folders/${driveFolderId}`, method: 'DELETE'
+    },
+    );
+  }
 
-export const getAdminDriveFolderDeleteMutationFetcher = (
-  driveFolderId: string,
-) => {
+
+
+export const getAdminDriveFolderDeleteMutationFetcher = (driveFolderId: string, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<void> => {
     return adminDriveFolderDelete(driveFolderId);
-  };
-};
-export const getAdminDriveFolderDeleteMutationKey = (driveFolderId: string) =>
-  [`/admin/drive/folders/${driveFolderId}`] as const;
+  }
+}
+export const getAdminDriveFolderDeleteMutationKey = (driveFolderId: string,) => [`/admin/drive/folders/${driveFolderId}`] as const;
 
-export type AdminDriveFolderDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminDriveFolderDelete>>
->;
-export type AdminDriveFolderDeleteMutationError =
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AdminDriveFolderDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof adminDriveFolderDelete>>>
+export type AdminDriveFolderDeleteMutationError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAdminDriveFolderDelete = <
-  TError =
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  driveFolderId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof adminDriveFolderDelete>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof adminDriveFolderDelete>>
-    > & { swrKey?: string };
-  },
+export const useAdminDriveFolderDelete = <TError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+  driveFolderId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminDriveFolderDelete>>, TError, Key, Arguments, Awaited<ReturnType<typeof adminDriveFolderDelete>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAdminDriveFolderDeleteMutationKey(driveFolderId);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAdminDriveFolderDeleteMutationKey(driveFolderId);
   const swrFn = getAdminDriveFolderDeleteMutationFetcher(driveFolderId);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Get the status of the Google Drive service account credentials
 configured on this installation, whether set via the admin interface
@@ -546,50 +474,38 @@ or via the `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON`/`_FILE` environment
 configuration.
 
  */
-export const adminDriveCredentialsGet = () => {
-  return fetcher<DriveCredentialsStatusOKResponse>({
-    url: `/admin/drive/credentials`,
-    method: "GET",
-  });
-};
+export const adminDriveCredentialsGet = (
+    
+ ) => {
+    return fetcher<DriveCredentialsStatusOKResponse>(
+    {url: `/admin/drive/credentials`, method: 'GET'
+    },
+    );
+  }
 
-export const getAdminDriveCredentialsGetKey = () =>
-  [`/admin/drive/credentials`] as const;
 
-export type AdminDriveCredentialsGetQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminDriveCredentialsGet>>
->;
-export type AdminDriveCredentialsGetQueryError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
 
-export const useAdminDriveCredentialsGet = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof adminDriveCredentialsGet>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const getAdminDriveCredentialsGetKey = () => [`/admin/drive/credentials`] as const;
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getAdminDriveCredentialsGetKey() : null));
-  const swrFn = () => adminDriveCredentialsGet();
+export type AdminDriveCredentialsGetQueryResult = NonNullable<Awaited<ReturnType<typeof adminDriveCredentialsGet>>>
+export type AdminDriveCredentialsGetQueryError = UnauthorisedResponse | InternalServerErrorResponse
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+export const useAdminDriveCredentialsGet = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminDriveCredentialsGet>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminDriveCredentialsGetKey() : null);
+  const swrFn = () => adminDriveCredentialsGet()
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Upload a Google service account key (JSON) so this installation can
 read Google Drive folders shared with it. This overrides any
@@ -598,117 +514,87 @@ before it is stored.
 
  */
 export const adminDriveCredentialsUpload = (
-  adminDriveCredentialsUploadBody: AdminDriveCredentialsUploadBody,
-) => {
-  return fetcher<DriveCredentialsStatusOKResponse>({
-    url: `/admin/drive/credentials`,
-    method: "POST",
-    headers: { "Content-Type": "application/octet-stream" },
-    data: adminDriveCredentialsUploadBody,
-  });
-};
+    adminDriveCredentialsUploadBody: AdminDriveCredentialsUploadBody,
+ ) => {
+    return fetcher<DriveCredentialsStatusOKResponse>(
+    {url: `/admin/drive/credentials`, method: 'POST',
+      headers: {'Content-Type': 'application/octet-stream', },
+      data: adminDriveCredentialsUploadBody
+    },
+    );
+  }
 
-export const getAdminDriveCredentialsUploadMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: AdminDriveCredentialsUploadBody },
-  ): Promise<DriveCredentialsStatusOKResponse> => {
+
+
+export const getAdminDriveCredentialsUploadMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: AdminDriveCredentialsUploadBody }): Promise<DriveCredentialsStatusOKResponse> => {
     return adminDriveCredentialsUpload(arg);
-  };
-};
-export const getAdminDriveCredentialsUploadMutationKey = () =>
-  [`/admin/drive/credentials`] as const;
+  }
+}
+export const getAdminDriveCredentialsUploadMutationKey = () => [`/admin/drive/credentials`] as const;
 
-export type AdminDriveCredentialsUploadMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminDriveCredentialsUpload>>
->;
-export type AdminDriveCredentialsUploadMutationError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type AdminDriveCredentialsUploadMutationResult = NonNullable<Awaited<ReturnType<typeof adminDriveCredentialsUpload>>>
+export type AdminDriveCredentialsUploadMutationError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse
 
-export const useAdminDriveCredentialsUpload = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof adminDriveCredentialsUpload>>,
-    TError,
-    Key,
-    AdminDriveCredentialsUploadBody,
-    Awaited<ReturnType<typeof adminDriveCredentialsUpload>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAdminDriveCredentialsUpload = <TError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminDriveCredentialsUpload>>, TError, Key, AdminDriveCredentialsUploadBody, Awaited<ReturnType<typeof adminDriveCredentialsUpload>>> & { swrKey?: string }, }
+) => {
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAdminDriveCredentialsUploadMutationKey();
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAdminDriveCredentialsUploadMutationKey();
   const swrFn = getAdminDriveCredentialsUploadMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Remove the service account key uploaded via the admin interface. If
 `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON` or `_FILE` is set in the
 environment, the installation falls back to that.
 
  */
-export const adminDriveCredentialsDelete = () => {
-  return fetcher<DriveCredentialsStatusOKResponse>({
-    url: `/admin/drive/credentials`,
-    method: "DELETE",
-  });
-};
+export const adminDriveCredentialsDelete = (
+    
+ ) => {
+    return fetcher<DriveCredentialsStatusOKResponse>(
+    {url: `/admin/drive/credentials`, method: 'DELETE'
+    },
+    );
+  }
 
-export const getAdminDriveCredentialsDeleteMutationFetcher = () => {
-  return (
-    _: Key,
-    __: { arg: Arguments },
-  ): Promise<DriveCredentialsStatusOKResponse> => {
+
+
+export const getAdminDriveCredentialsDeleteMutationFetcher = ( ) => {
+  return (_: Key, __: { arg: Arguments }): Promise<DriveCredentialsStatusOKResponse> => {
     return adminDriveCredentialsDelete();
-  };
-};
-export const getAdminDriveCredentialsDeleteMutationKey = () =>
-  [`/admin/drive/credentials`] as const;
+  }
+}
+export const getAdminDriveCredentialsDeleteMutationKey = () => [`/admin/drive/credentials`] as const;
 
-export type AdminDriveCredentialsDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminDriveCredentialsDelete>>
->;
-export type AdminDriveCredentialsDeleteMutationError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type AdminDriveCredentialsDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof adminDriveCredentialsDelete>>>
+export type AdminDriveCredentialsDeleteMutationError = UnauthorisedResponse | InternalServerErrorResponse
 
-export const useAdminDriveCredentialsDelete = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof adminDriveCredentialsDelete>>,
-    TError,
-    Key,
-    Arguments,
-    Awaited<ReturnType<typeof adminDriveCredentialsDelete>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAdminDriveCredentialsDelete = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminDriveCredentialsDelete>>, TError, Key, Arguments, Awaited<ReturnType<typeof adminDriveCredentialsDelete>>> & { swrKey?: string }, }
+) => {
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAdminDriveCredentialsDeleteMutationKey();
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAdminDriveCredentialsDeleteMutationKey();
   const swrFn = getAdminDriveCredentialsDeleteMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List audit events for the installation. Audit events track important
 actions taken by accounts with elevated permissions such as admin
@@ -717,288 +603,197 @@ components that could not be responded to the client directly such as
 background job failures and configuration issues.
 
  */
-export const auditEventList = (params?: AuditEventListParams) => {
-  return fetcher<AuditEventListOKResponse>({
-    url: `/admin/audit-events`,
-    method: "GET",
-    params,
-  });
-};
+export const auditEventList = (
+    params?: AuditEventListParams,
+ ) => {
+    return fetcher<AuditEventListOKResponse>(
+    {url: `/admin/audit-events`, method: 'GET',
+        params
+    },
+    );
+  }
 
-export const getAuditEventListKey = (params?: AuditEventListParams) =>
-  [`/admin/audit-events`, ...(params ? [params] : [])] as const;
 
-export type AuditEventListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof auditEventList>>
->;
-export type AuditEventListQueryError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
 
-export const useAuditEventList = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(
-  params?: AuditEventListParams,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof auditEventList>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getAuditEventListKey = (params?: AuditEventListParams,) => [`/admin/audit-events`, ...(params ? [params]: [])] as const;
+
+export type AuditEventListQueryResult = NonNullable<Awaited<ReturnType<typeof auditEventList>>>
+export type AuditEventListQueryError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse
+
+export const useAuditEventList = <TError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+  params?: AuditEventListParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof auditEventList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getAuditEventListKey(params) : null));
-  const swrFn = () => auditEventList(params);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAuditEventListKey(params) : null);
+  const swrFn = () => auditEventList(params)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List durable email queue records for this installation. Shows pending,
 failed and sent deliveries with attempt history for diagnostics.
 
  */
-export const emailQueueList = (params?: EmailQueueListParams) => {
-  return fetcher<EmailQueueListOKResponse>({
-    url: `/admin/email-queue`,
-    method: "GET",
-    params,
-  });
-};
+export const emailQueueList = (
+    params?: EmailQueueListParams,
+ ) => {
+    return fetcher<EmailQueueListOKResponse>(
+    {url: `/admin/email-queue`, method: 'GET',
+        params
+    },
+    );
+  }
 
-export const getEmailQueueListKey = (params?: EmailQueueListParams) =>
-  [`/admin/email-queue`, ...(params ? [params] : [])] as const;
 
-export type EmailQueueListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof emailQueueList>>
->;
-export type EmailQueueListQueryError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
 
-export const useEmailQueueList = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(
-  params?: EmailQueueListParams,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof emailQueueList>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getEmailQueueListKey = (params?: EmailQueueListParams,) => [`/admin/email-queue`, ...(params ? [params]: [])] as const;
+
+export type EmailQueueListQueryResult = NonNullable<Awaited<ReturnType<typeof emailQueueList>>>
+export type EmailQueueListQueryError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse
+
+export const useEmailQueueList = <TError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+  params?: EmailQueueListParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof emailQueueList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getEmailQueueListKey(params) : null));
-  const swrFn = () => emailQueueList(params);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getEmailQueueListKey(params) : null);
+  const swrFn = () => emailQueueList(params)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Manually retry a delivery for an email queue record. This is used for
 failed deliveries. This will create a new delivery attempt and update
 the email queue record accordingly.
 
  */
-export const emailQueueRetry = (emailId: string) => {
-  return fetcher<EmailQueueGetOKResponse>({
-    url: `/admin/email-queue/${emailId}/attempt`,
-    method: "POST",
-  });
-};
+export const emailQueueRetry = (
+    emailId: string,
+ ) => {
+    return fetcher<EmailQueueGetOKResponse>(
+    {url: `/admin/email-queue/${emailId}/attempt`, method: 'POST'
+    },
+    );
+  }
 
-export const getEmailQueueRetryMutationFetcher = (emailId: string) => {
+
+
+export const getEmailQueueRetryMutationFetcher = (emailId: string, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<EmailQueueGetOKResponse> => {
     return emailQueueRetry(emailId);
-  };
-};
-export const getEmailQueueRetryMutationKey = (emailId: string) =>
-  [`/admin/email-queue/${emailId}/attempt`] as const;
+  }
+}
+export const getEmailQueueRetryMutationKey = (emailId: string,) => [`/admin/email-queue/${emailId}/attempt`] as const;
 
-export type EmailQueueRetryMutationResult = NonNullable<
-  Awaited<ReturnType<typeof emailQueueRetry>>
->;
-export type EmailQueueRetryMutationError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type EmailQueueRetryMutationResult = NonNullable<Awaited<ReturnType<typeof emailQueueRetry>>>
+export type EmailQueueRetryMutationError = BadRequestResponse | UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useEmailQueueRetry = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  emailId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof emailQueueRetry>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof emailQueueRetry>>
-    > & { swrKey?: string };
-  },
+export const useEmailQueueRetry = <TError = BadRequestResponse | UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+  emailId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof emailQueueRetry>>, TError, Key, Arguments, Awaited<ReturnType<typeof emailQueueRetry>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getEmailQueueRetryMutationKey(emailId);
   const swrFn = getEmailQueueRetryMutationFetcher(emailId);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Retrieve a specific audit event by ID.
  */
-export const auditEventGet = (auditEventId: string) => {
-  return fetcher<AuditEventGetOKResponse>({
-    url: `/admin/audit-events/${auditEventId}`,
-    method: "GET",
-  });
-};
+export const auditEventGet = (
+    auditEventId: string,
+ ) => {
+    return fetcher<AuditEventGetOKResponse>(
+    {url: `/admin/audit-events/${auditEventId}`, method: 'GET'
+    },
+    );
+  }
 
-export const getAuditEventGetKey = (auditEventId: string) =>
-  [`/admin/audit-events/${auditEventId}`] as const;
 
-export type AuditEventGetQueryResult = NonNullable<
-  Awaited<ReturnType<typeof auditEventGet>>
->;
-export type AuditEventGetQueryError =
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
 
-export const useAuditEventGet = <
-  TError =
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  auditEventId: string,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof auditEventGet>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getAuditEventGetKey = (auditEventId: string,) => [`/admin/audit-events/${auditEventId}`] as const;
+
+export type AuditEventGetQueryResult = NonNullable<Awaited<ReturnType<typeof auditEventGet>>>
+export type AuditEventGetQueryError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
+
+export const useAuditEventGet = <TError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+  auditEventId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof auditEventGet>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false && !!auditEventId;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getAuditEventGetKey(auditEventId) : null));
-  const swrFn = () => auditEventGet(auditEventId);
+  const isEnabled = swrOptions?.enabled !== false && !!(auditEventId)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAuditEventGetKey(auditEventId) : null);
+  const swrFn = () => auditEventGet(auditEventId)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Create a new moderation action such as a ban or content purge.
  */
 export const moderationActionCreate = (
-  moderationActionCreateBody: ModerationActionCreateBody,
-) => {
-  return fetcher<AuditEventCreatedOKResponse>({
-    url: `/admin/actions`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: moderationActionCreateBody,
-  });
-};
+    moderationActionCreateBody: ModerationActionCreateBody,
+ ) => {
+    return fetcher<AuditEventCreatedOKResponse>(
+    {url: `/admin/actions`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: moderationActionCreateBody
+    },
+    );
+  }
 
-export const getModerationActionCreateMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: ModerationActionCreateBody },
-  ): Promise<AuditEventCreatedOKResponse> => {
+
+
+export const getModerationActionCreateMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: ModerationActionCreateBody }): Promise<AuditEventCreatedOKResponse> => {
     return moderationActionCreate(arg);
-  };
-};
-export const getModerationActionCreateMutationKey = () =>
-  [`/admin/actions`] as const;
+  }
+}
+export const getModerationActionCreateMutationKey = () => [`/admin/actions`] as const;
 
-export type ModerationActionCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof moderationActionCreate>>
->;
-export type ModerationActionCreateMutationError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type ModerationActionCreateMutationResult = NonNullable<Awaited<ReturnType<typeof moderationActionCreate>>>
+export type ModerationActionCreateMutationError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse
 
-export const useModerationActionCreate = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof moderationActionCreate>>,
-    TError,
-    Key,
-    ModerationActionCreateBody,
-    Awaited<ReturnType<typeof moderationActionCreate>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useModerationActionCreate = <TError = BadRequestResponse | UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof moderationActionCreate>>, TError, Key, ModerationActionCreateBody, Awaited<ReturnType<typeof moderationActionCreate>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getModerationActionCreateMutationKey();
   const swrFn = getModerationActionCreateMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Suspend an account - soft delete. This disables the ability for the
 account owner to log in and use the platform. It keeps the account on
@@ -1006,285 +801,204 @@ record for linkage to content so UI doesn't break. It does not change
 anything else about the account such as the avatar, name, etc.
 
  */
-export const adminAccountBanCreate = (accountHandle: string) => {
-  return fetcher<AccountGetOKResponse>({
-    url: `/admin/bans/${accountHandle}`,
-    method: "POST",
-  });
-};
+export const adminAccountBanCreate = (
+    accountHandle: string,
+ ) => {
+    return fetcher<AccountGetOKResponse>(
+    {url: `/admin/bans/${accountHandle}`, method: 'POST'
+    },
+    );
+  }
 
-export const getAdminAccountBanCreateMutationFetcher = (
-  accountHandle: string,
-) => {
+
+
+export const getAdminAccountBanCreateMutationFetcher = (accountHandle: string, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<AccountGetOKResponse> => {
     return adminAccountBanCreate(accountHandle);
-  };
-};
-export const getAdminAccountBanCreateMutationKey = (accountHandle: string) =>
-  [`/admin/bans/${accountHandle}`] as const;
+  }
+}
+export const getAdminAccountBanCreateMutationKey = (accountHandle: string,) => [`/admin/bans/${accountHandle}`] as const;
 
-export type AdminAccountBanCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminAccountBanCreate>>
->;
-export type AdminAccountBanCreateMutationError =
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AdminAccountBanCreateMutationResult = NonNullable<Awaited<ReturnType<typeof adminAccountBanCreate>>>
+export type AdminAccountBanCreateMutationError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAdminAccountBanCreate = <
-  TError =
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  accountHandle: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof adminAccountBanCreate>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof adminAccountBanCreate>>
-    > & { swrKey?: string };
-  },
+export const useAdminAccountBanCreate = <TError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+  accountHandle: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminAccountBanCreate>>, TError, Key, Arguments, Awaited<ReturnType<typeof adminAccountBanCreate>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAdminAccountBanCreateMutationKey(accountHandle);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAdminAccountBanCreateMutationKey(accountHandle);
   const swrFn = getAdminAccountBanCreateMutationFetcher(accountHandle);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Given the account is suspended, remove the suspended state.
  */
-export const adminAccountBanRemove = (accountHandle: string) => {
-  return fetcher<AccountGetOKResponse>({
-    url: `/admin/bans/${accountHandle}`,
-    method: "DELETE",
-  });
-};
+export const adminAccountBanRemove = (
+    accountHandle: string,
+ ) => {
+    return fetcher<AccountGetOKResponse>(
+    {url: `/admin/bans/${accountHandle}`, method: 'DELETE'
+    },
+    );
+  }
 
-export const getAdminAccountBanRemoveMutationFetcher = (
-  accountHandle: string,
-) => {
+
+
+export const getAdminAccountBanRemoveMutationFetcher = (accountHandle: string, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<AccountGetOKResponse> => {
     return adminAccountBanRemove(accountHandle);
-  };
-};
-export const getAdminAccountBanRemoveMutationKey = (accountHandle: string) =>
-  [`/admin/bans/${accountHandle}`] as const;
+  }
+}
+export const getAdminAccountBanRemoveMutationKey = (accountHandle: string,) => [`/admin/bans/${accountHandle}`] as const;
 
-export type AdminAccountBanRemoveMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminAccountBanRemove>>
->;
-export type AdminAccountBanRemoveMutationError =
-  | UnauthorisedResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AdminAccountBanRemoveMutationResult = NonNullable<Awaited<ReturnType<typeof adminAccountBanRemove>>>
+export type AdminAccountBanRemoveMutationError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAdminAccountBanRemove = <
-  TError =
-    | UnauthorisedResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  accountHandle: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof adminAccountBanRemove>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof adminAccountBanRemove>>
-    > & { swrKey?: string };
-  },
+export const useAdminAccountBanRemove = <TError = UnauthorisedResponse | NotFoundResponse | InternalServerErrorResponse>(
+  accountHandle: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminAccountBanRemove>>, TError, Key, Arguments, Awaited<ReturnType<typeof adminAccountBanRemove>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAdminAccountBanRemoveMutationKey(accountHandle);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAdminAccountBanRemoveMutationKey(accountHandle);
   const swrFn = getAdminAccountBanRemoveMutationFetcher(accountHandle);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Permanently delete an account. The account MUST already be suspended.
 Only site Administrators can perform this action.
 
  */
-export const adminAccountDelete = (accountHandle: string) => {
-  return fetcher<NoContentResponse>({
-    url: `/admin/accounts/${accountHandle}`,
-    method: "DELETE",
-  });
-};
+export const adminAccountDelete = (
+    accountHandle: string,
+ ) => {
+    return fetcher<NoContentResponse>(
+    {url: `/admin/accounts/${accountHandle}`, method: 'DELETE'
+    },
+    );
+  }
 
-export const getAdminAccountDeleteMutationFetcher = (accountHandle: string) => {
+
+
+export const getAdminAccountDeleteMutationFetcher = (accountHandle: string, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<NoContentResponse> => {
     return adminAccountDelete(accountHandle);
-  };
-};
-export const getAdminAccountDeleteMutationKey = (accountHandle: string) =>
-  [`/admin/accounts/${accountHandle}`] as const;
+  }
+}
+export const getAdminAccountDeleteMutationKey = (accountHandle: string,) => [`/admin/accounts/${accountHandle}`] as const;
 
-export type AdminAccountDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminAccountDelete>>
->;
-export type AdminAccountDeleteMutationError =
-  | BadRequestResponse
-  | UnauthorisedResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AdminAccountDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof adminAccountDelete>>>
+export type AdminAccountDeleteMutationError = BadRequestResponse | UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAdminAccountDelete = <
-  TError =
-    | BadRequestResponse
-    | UnauthorisedResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  accountHandle: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof adminAccountDelete>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof adminAccountDelete>>
-    > & { swrKey?: string };
-  },
+export const useAdminAccountDelete = <TError = BadRequestResponse | UnauthorisedResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+  accountHandle: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminAccountDelete>>, TError, Key, Arguments, Awaited<ReturnType<typeof adminAccountDelete>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAdminAccountDeleteMutationKey(accountHandle);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAdminAccountDeleteMutationKey(accountHandle);
   const swrFn = getAdminAccountDeleteMutationFetcher(accountHandle);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List all access keys for the entire instance. This is only available to
 admin accounts and is used to manage access keys from other accounts.
 
  */
-export const adminAccessKeyList = () => {
-  return fetcher<AdminAccessKeyListOKResponse>({
-    url: `/admin/access-keys`,
-    method: "GET",
-  });
-};
+export const adminAccessKeyList = (
+    
+ ) => {
+    return fetcher<AdminAccessKeyListOKResponse>(
+    {url: `/admin/access-keys`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getAdminAccessKeyListKey = () => [`/admin/access-keys`] as const;
 
-export type AdminAccessKeyListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminAccessKeyList>>
->;
-export type AdminAccessKeyListQueryError =
-  | BadRequestResponse
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
+export type AdminAccessKeyListQueryResult = NonNullable<Awaited<ReturnType<typeof adminAccessKeyList>>>
+export type AdminAccessKeyListQueryError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse
 
-export const useAdminAccessKeyList = <
-  TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof adminAccessKeyList>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAdminAccessKeyList = <TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminAccessKeyList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getAdminAccessKeyListKey() : null));
-  const swrFn = () => adminAccessKeyList();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminAccessKeyListKey() : null);
+  const swrFn = () => adminAccessKeyList()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Revoke an access key. This will immediately invalidate the key and it
 will no longer be usable for authentication.
 
  */
-export const adminAccessKeyDelete = (accessKeyId: string) => {
-  return fetcher<NoContentResponse>({
-    url: `/admin/access-keys/${accessKeyId}`,
-    method: "DELETE",
-  });
-};
+export const adminAccessKeyDelete = (
+    accessKeyId: string,
+ ) => {
+    return fetcher<NoContentResponse>(
+    {url: `/admin/access-keys/${accessKeyId}`, method: 'DELETE'
+    },
+    );
+  }
 
-export const getAdminAccessKeyDeleteMutationFetcher = (accessKeyId: string) => {
+
+
+export const getAdminAccessKeyDeleteMutationFetcher = (accessKeyId: string, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<NoContentResponse> => {
     return adminAccessKeyDelete(accessKeyId);
-  };
-};
-export const getAdminAccessKeyDeleteMutationKey = (accessKeyId: string) =>
-  [`/admin/access-keys/${accessKeyId}`] as const;
+  }
+}
+export const getAdminAccessKeyDeleteMutationKey = (accessKeyId: string,) => [`/admin/access-keys/${accessKeyId}`] as const;
 
-export type AdminAccessKeyDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminAccessKeyDelete>>
->;
-export type AdminAccessKeyDeleteMutationError =
-  | BadRequestResponse
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
+export type AdminAccessKeyDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof adminAccessKeyDelete>>>
+export type AdminAccessKeyDeleteMutationError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse
 
-export const useAdminAccessKeyDelete = <
-  TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse,
->(
-  accessKeyId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof adminAccessKeyDelete>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof adminAccessKeyDelete>>
-    > & { swrKey?: string };
-  },
+export const useAdminAccessKeyDelete = <TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse>(
+  accessKeyId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminAccessKeyDelete>>, TError, Key, Arguments, Awaited<ReturnType<typeof adminAccessKeyDelete>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAdminAccessKeyDeleteMutationKey(accessKeyId);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAdminAccessKeyDeleteMutationKey(accessKeyId);
   const swrFn = getAdminAccessKeyDeleteMutationFetcher(accessKeyId);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List OAuth clients registered for this instance.
 
@@ -1294,50 +1008,38 @@ account; their grants and refresh tokens are owned by the approving
 account instead.
 
  */
-export const adminOAuthClientList = () => {
-  return fetcher<OAuthClientListOKResponse>({
-    url: `/admin/oauth/clients`,
-    method: "GET",
-  });
-};
+export const adminOAuthClientList = (
+    
+ ) => {
+    return fetcher<OAuthClientListOKResponse>(
+    {url: `/admin/oauth/clients`, method: 'GET'
+    },
+    );
+  }
 
-export const getAdminOAuthClientListKey = () =>
-  [`/admin/oauth/clients`] as const;
 
-export type AdminOAuthClientListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminOAuthClientList>>
->;
-export type AdminOAuthClientListQueryError =
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
 
-export const useAdminOAuthClientList = <
-  TError = ForbiddenResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof adminOAuthClientList>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const getAdminOAuthClientListKey = () => [`/admin/oauth/clients`] as const;
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getAdminOAuthClientListKey() : null));
-  const swrFn = () => adminOAuthClientList();
+export type AdminOAuthClientListQueryResult = NonNullable<Awaited<ReturnType<typeof adminOAuthClientList>>>
+export type AdminOAuthClientListQueryError = ForbiddenResponse | InternalServerErrorResponse
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+export const useAdminOAuthClientList = <TError = ForbiddenResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminOAuthClientList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminOAuthClientListKey() : null);
+  const swrFn = () => adminOAuthClientList()
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Create an OAuth client.
 
@@ -1347,58 +1049,44 @@ Public clients do not receive or use a client secret.
 
  */
 export const adminOAuthClientCreate = (
-  oAuthClientCreateBody: OAuthClientCreateBody,
-) => {
-  return fetcher<OAuthClientOKResponse>({
-    url: `/admin/oauth/clients`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: oAuthClientCreateBody,
-  });
-};
+    oAuthClientCreateBody: OAuthClientCreateBody,
+ ) => {
+    return fetcher<OAuthClientOKResponse>(
+    {url: `/admin/oauth/clients`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthClientCreateBody
+    },
+    );
+  }
 
-export const getAdminOAuthClientCreateMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthClientCreateBody },
-  ): Promise<OAuthClientOKResponse> => {
+
+
+export const getAdminOAuthClientCreateMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: OAuthClientCreateBody }): Promise<OAuthClientOKResponse> => {
     return adminOAuthClientCreate(arg);
-  };
-};
-export const getAdminOAuthClientCreateMutationKey = () =>
-  [`/admin/oauth/clients`] as const;
+  }
+}
+export const getAdminOAuthClientCreateMutationKey = () => [`/admin/oauth/clients`] as const;
 
-export type AdminOAuthClientCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminOAuthClientCreate>>
->;
-export type AdminOAuthClientCreateMutationError =
-  | BadRequestResponse
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
+export type AdminOAuthClientCreateMutationResult = NonNullable<Awaited<ReturnType<typeof adminOAuthClientCreate>>>
+export type AdminOAuthClientCreateMutationError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse
 
-export const useAdminOAuthClientCreate = <
-  TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof adminOAuthClientCreate>>,
-    TError,
-    Key,
-    OAuthClientCreateBody,
-    Awaited<ReturnType<typeof adminOAuthClientCreate>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useAdminOAuthClientCreate = <TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminOAuthClientCreate>>, TError, Key, OAuthClientCreateBody, Awaited<ReturnType<typeof adminOAuthClientCreate>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getAdminOAuthClientCreateMutationKey();
   const swrFn = getAdminOAuthClientCreateMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Read an OAuth client.
 
@@ -1408,54 +1096,38 @@ represented by device authorisations, authorisation requests, and
 refresh tokens.
 
  */
-export const adminOAuthClientGet = (oauthClientId: string) => {
-  return fetcher<OAuthClientOKResponse>({
-    url: `/admin/oauth/clients/${oauthClientId}`,
-    method: "GET",
-  });
-};
+export const adminOAuthClientGet = (
+    oauthClientId: string,
+ ) => {
+    return fetcher<OAuthClientOKResponse>(
+    {url: `/admin/oauth/clients/${oauthClientId}`, method: 'GET'
+    },
+    );
+  }
 
-export const getAdminOAuthClientGetKey = (oauthClientId: string) =>
-  [`/admin/oauth/clients/${oauthClientId}`] as const;
 
-export type AdminOAuthClientGetQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminOAuthClientGet>>
->;
-export type AdminOAuthClientGetQueryError =
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
 
-export const useAdminOAuthClientGet = <
-  TError = ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse,
->(
-  oauthClientId: string,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof adminOAuthClientGet>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-  },
+export const getAdminOAuthClientGetKey = (oauthClientId: string,) => [`/admin/oauth/clients/${oauthClientId}`] as const;
+
+export type AdminOAuthClientGetQueryResult = NonNullable<Awaited<ReturnType<typeof adminOAuthClientGet>>>
+export type AdminOAuthClientGetQueryError = ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
+
+export const useAdminOAuthClientGet = <TError = ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+  oauthClientId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminOAuthClientGet>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false && !!oauthClientId;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getAdminOAuthClientGetKey(oauthClientId) : null));
-  const swrFn = () => adminOAuthClientGet(oauthClientId);
+  const isEnabled = swrOptions?.enabled !== false && !!(oauthClientId)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminOAuthClientGetKey(oauthClientId) : null);
+  const swrFn = () => adminOAuthClientGet(oauthClientId)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Update an OAuth client.
 
@@ -1470,70 +1142,45 @@ permissions.
 
  */
 export const adminOAuthClientUpdate = (
-  oauthClientId: string,
-  oAuthClientUpdateBody: OAuthClientUpdateBody,
-) => {
-  return fetcher<OAuthClientOKResponse>({
-    url: `/admin/oauth/clients/${oauthClientId}`,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    data: oAuthClientUpdateBody,
-  });
-};
+    oauthClientId: string,
+    oAuthClientUpdateBody: OAuthClientUpdateBody,
+ ) => {
+    return fetcher<OAuthClientOKResponse>(
+    {url: `/admin/oauth/clients/${oauthClientId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthClientUpdateBody
+    },
+    );
+  }
 
-export const getAdminOAuthClientUpdateMutationFetcher = (
-  oauthClientId: string,
-) => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthClientUpdateBody },
-  ): Promise<OAuthClientOKResponse> => {
+
+
+export const getAdminOAuthClientUpdateMutationFetcher = (oauthClientId: string, ) => {
+  return (_: Key, { arg }: { arg: OAuthClientUpdateBody }): Promise<OAuthClientOKResponse> => {
     return adminOAuthClientUpdate(oauthClientId, arg);
-  };
-};
-export const getAdminOAuthClientUpdateMutationKey = (oauthClientId: string) =>
-  [`/admin/oauth/clients/${oauthClientId}`] as const;
+  }
+}
+export const getAdminOAuthClientUpdateMutationKey = (oauthClientId: string,) => [`/admin/oauth/clients/${oauthClientId}`] as const;
 
-export type AdminOAuthClientUpdateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminOAuthClientUpdate>>
->;
-export type AdminOAuthClientUpdateMutationError =
-  | BadRequestResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AdminOAuthClientUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof adminOAuthClientUpdate>>>
+export type AdminOAuthClientUpdateMutationError = BadRequestResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAdminOAuthClientUpdate = <
-  TError =
-    | BadRequestResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  oauthClientId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof adminOAuthClientUpdate>>,
-      TError,
-      Key,
-      OAuthClientUpdateBody,
-      Awaited<ReturnType<typeof adminOAuthClientUpdate>>
-    > & { swrKey?: string };
-  },
+export const useAdminOAuthClientUpdate = <TError = BadRequestResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+  oauthClientId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminOAuthClientUpdate>>, TError, Key, OAuthClientUpdateBody, Awaited<ReturnType<typeof adminOAuthClientUpdate>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAdminOAuthClientUpdateMutationKey(oauthClientId);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAdminOAuthClientUpdateMutationKey(oauthClientId);
   const swrFn = getAdminOAuthClientUpdateMutationFetcher(oauthClientId);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Delete an OAuth client.
 
@@ -1542,58 +1189,43 @@ tokens, preventing existing grants from being renewed. Existing JWT
 access tokens are self-contained and remain valid until expiry.
 
  */
-export const adminOAuthClientDelete = (oauthClientId: string) => {
-  return fetcher<NoContentResponse>({
-    url: `/admin/oauth/clients/${oauthClientId}`,
-    method: "DELETE",
-  });
-};
+export const adminOAuthClientDelete = (
+    oauthClientId: string,
+ ) => {
+    return fetcher<NoContentResponse>(
+    {url: `/admin/oauth/clients/${oauthClientId}`, method: 'DELETE'
+    },
+    );
+  }
 
-export const getAdminOAuthClientDeleteMutationFetcher = (
-  oauthClientId: string,
-) => {
+
+
+export const getAdminOAuthClientDeleteMutationFetcher = (oauthClientId: string, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<NoContentResponse> => {
     return adminOAuthClientDelete(oauthClientId);
-  };
-};
-export const getAdminOAuthClientDeleteMutationKey = (oauthClientId: string) =>
-  [`/admin/oauth/clients/${oauthClientId}`] as const;
+  }
+}
+export const getAdminOAuthClientDeleteMutationKey = (oauthClientId: string,) => [`/admin/oauth/clients/${oauthClientId}`] as const;
 
-export type AdminOAuthClientDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminOAuthClientDelete>>
->;
-export type AdminOAuthClientDeleteMutationError =
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AdminOAuthClientDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof adminOAuthClientDelete>>>
+export type AdminOAuthClientDeleteMutationError = ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAdminOAuthClientDelete = <
-  TError = ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse,
->(
-  oauthClientId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof adminOAuthClientDelete>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof adminOAuthClientDelete>>
-    > & { swrKey?: string };
-  },
+export const useAdminOAuthClientDelete = <TError = ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+  oauthClientId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminOAuthClientDelete>>, TError, Key, Arguments, Awaited<ReturnType<typeof adminOAuthClientDelete>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getAdminOAuthClientDeleteMutationKey(oauthClientId);
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAdminOAuthClientDeleteMutationKey(oauthClientId);
   const swrFn = getAdminOAuthClientDeleteMutationFetcher(oauthClientId);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List OAuth device authorisation records.
 
@@ -1602,50 +1234,38 @@ OAuth 2.0 Device Authorization Grant. They are not owned by an account
 until a signed-in user claims and approves or denies the user code.
 
  */
-export const adminOAuthDeviceAuthorisationList = () => {
-  return fetcher<OAuthDeviceAuthorisationListOKResponse>({
-    url: `/admin/oauth/device-authorizations`,
-    method: "GET",
-  });
-};
+export const adminOAuthDeviceAuthorisationList = (
+    
+ ) => {
+    return fetcher<OAuthDeviceAuthorisationListOKResponse>(
+    {url: `/admin/oauth/device-authorizations`, method: 'GET'
+    },
+    );
+  }
 
-export const getAdminOAuthDeviceAuthorisationListKey = () =>
-  [`/admin/oauth/device-authorizations`] as const;
 
-export type AdminOAuthDeviceAuthorisationListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminOAuthDeviceAuthorisationList>>
->;
-export type AdminOAuthDeviceAuthorisationListQueryError =
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
 
-export const useAdminOAuthDeviceAuthorisationList = <
-  TError = ForbiddenResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof adminOAuthDeviceAuthorisationList>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const getAdminOAuthDeviceAuthorisationListKey = () => [`/admin/oauth/device-authorizations`] as const;
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getAdminOAuthDeviceAuthorisationListKey() : null));
-  const swrFn = () => adminOAuthDeviceAuthorisationList();
+export type AdminOAuthDeviceAuthorisationListQueryResult = NonNullable<Awaited<ReturnType<typeof adminOAuthDeviceAuthorisationList>>>
+export type AdminOAuthDeviceAuthorisationListQueryError = ForbiddenResponse | InternalServerErrorResponse
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+export const useAdminOAuthDeviceAuthorisationList = <TError = ForbiddenResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminOAuthDeviceAuthorisationList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminOAuthDeviceAuthorisationListKey() : null);
+  const swrFn = () => adminOAuthDeviceAuthorisationList()
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List OAuth refresh tokens.
 
@@ -1654,50 +1274,38 @@ refresh token prevents future token renewal, but does not immediately
 invalidate already-issued JWT access tokens.
 
  */
-export const adminOAuthRefreshTokenList = () => {
-  return fetcher<OAuthRefreshTokenListOKResponse>({
-    url: `/admin/oauth/refresh-tokens`,
-    method: "GET",
-  });
-};
+export const adminOAuthRefreshTokenList = (
+    
+ ) => {
+    return fetcher<OAuthRefreshTokenListOKResponse>(
+    {url: `/admin/oauth/refresh-tokens`, method: 'GET'
+    },
+    );
+  }
 
-export const getAdminOAuthRefreshTokenListKey = () =>
-  [`/admin/oauth/refresh-tokens`] as const;
 
-export type AdminOAuthRefreshTokenListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminOAuthRefreshTokenList>>
->;
-export type AdminOAuthRefreshTokenListQueryError =
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
 
-export const useAdminOAuthRefreshTokenList = <
-  TError = ForbiddenResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof adminOAuthRefreshTokenList>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const getAdminOAuthRefreshTokenListKey = () => [`/admin/oauth/refresh-tokens`] as const;
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getAdminOAuthRefreshTokenListKey() : null));
-  const swrFn = () => adminOAuthRefreshTokenList();
+export type AdminOAuthRefreshTokenListQueryResult = NonNullable<Awaited<ReturnType<typeof adminOAuthRefreshTokenList>>>
+export type AdminOAuthRefreshTokenListQueryError = ForbiddenResponse | InternalServerErrorResponse
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+export const useAdminOAuthRefreshTokenList = <TError = ForbiddenResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminOAuthRefreshTokenList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminOAuthRefreshTokenListKey() : null);
+  const swrFn = () => adminOAuthRefreshTokenList()
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Revoke an OAuth refresh token.
 
@@ -1706,61 +1314,43 @@ tokens are JWTs, any access token already issued from this grant remains
 valid until its normal expiry.
 
  */
-export const adminOAuthRefreshTokenDelete = (oauthRefreshTokenId: string) => {
-  return fetcher<NoContentResponse>({
-    url: `/admin/oauth/refresh-tokens/${oauthRefreshTokenId}`,
-    method: "DELETE",
-  });
-};
+export const adminOAuthRefreshTokenDelete = (
+    oauthRefreshTokenId: string,
+ ) => {
+    return fetcher<NoContentResponse>(
+    {url: `/admin/oauth/refresh-tokens/${oauthRefreshTokenId}`, method: 'DELETE'
+    },
+    );
+  }
 
-export const getAdminOAuthRefreshTokenDeleteMutationFetcher = (
-  oauthRefreshTokenId: string,
-) => {
+
+
+export const getAdminOAuthRefreshTokenDeleteMutationFetcher = (oauthRefreshTokenId: string, ) => {
   return (_: Key, __: { arg: Arguments }): Promise<NoContentResponse> => {
     return adminOAuthRefreshTokenDelete(oauthRefreshTokenId);
-  };
-};
-export const getAdminOAuthRefreshTokenDeleteMutationKey = (
-  oauthRefreshTokenId: string,
-) => [`/admin/oauth/refresh-tokens/${oauthRefreshTokenId}`] as const;
+  }
+}
+export const getAdminOAuthRefreshTokenDeleteMutationKey = (oauthRefreshTokenId: string,) => [`/admin/oauth/refresh-tokens/${oauthRefreshTokenId}`] as const;
 
-export type AdminOAuthRefreshTokenDeleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminOAuthRefreshTokenDelete>>
->;
-export type AdminOAuthRefreshTokenDeleteMutationError =
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type AdminOAuthRefreshTokenDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof adminOAuthRefreshTokenDelete>>>
+export type AdminOAuthRefreshTokenDeleteMutationError = ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useAdminOAuthRefreshTokenDelete = <
-  TError = ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse,
->(
-  oauthRefreshTokenId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof adminOAuthRefreshTokenDelete>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof adminOAuthRefreshTokenDelete>>
-    > & { swrKey?: string };
-  },
+export const useAdminOAuthRefreshTokenDelete = <TError = ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+  oauthRefreshTokenId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof adminOAuthRefreshTokenDelete>>, TError, Key, Arguments, Awaited<ReturnType<typeof adminOAuthRefreshTokenDelete>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ??
-    getAdminOAuthRefreshTokenDeleteMutationKey(oauthRefreshTokenId);
-  const swrFn =
-    getAdminOAuthRefreshTokenDeleteMutationFetcher(oauthRefreshTokenId);
+  const {swr: swrOptions} = options ?? {}
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const swrKey = swrOptions?.swrKey ?? getAdminOAuthRefreshTokenDeleteMutationKey(oauthRefreshTokenId);
+  const swrFn = getAdminOAuthRefreshTokenDeleteMutationFetcher(oauthRefreshTokenId);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Discover OAuth configuration for a remote protected resource URL.
 
@@ -1770,236 +1360,163 @@ to the discovered authorization server metadata.
 
  */
 export const oAuthRemoteDiscover = (
-  oAuthRemoteDiscoverBody: OAuthRemoteDiscoverBody,
-) => {
-  return fetcher<OAuthRemoteDiscoverOKResponse>({
-    url: `/admin/oauth/remote/discover`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: oAuthRemoteDiscoverBody,
-  });
-};
+    oAuthRemoteDiscoverBody: OAuthRemoteDiscoverBody,
+ ) => {
+    return fetcher<OAuthRemoteDiscoverOKResponse>(
+    {url: `/admin/oauth/remote/discover`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthRemoteDiscoverBody
+    },
+    );
+  }
 
-export const getOAuthRemoteDiscoverMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthRemoteDiscoverBody },
-  ): Promise<OAuthRemoteDiscoverOKResponse> => {
+
+
+export const getOAuthRemoteDiscoverMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: OAuthRemoteDiscoverBody }): Promise<OAuthRemoteDiscoverOKResponse> => {
     return oAuthRemoteDiscover(arg);
-  };
-};
-export const getOAuthRemoteDiscoverMutationKey = () =>
-  [`/admin/oauth/remote/discover`] as const;
+  }
+}
+export const getOAuthRemoteDiscoverMutationKey = () => [`/admin/oauth/remote/discover`] as const;
 
-export type OAuthRemoteDiscoverMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthRemoteDiscover>>
->;
-export type OAuthRemoteDiscoverMutationError =
-  | BadRequestResponse
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
+export type OAuthRemoteDiscoverMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthRemoteDiscover>>>
+export type OAuthRemoteDiscoverMutationError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse
 
-export const useOAuthRemoteDiscover = <
-  TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof oAuthRemoteDiscover>>,
-    TError,
-    Key,
-    OAuthRemoteDiscoverBody,
-    Awaited<ReturnType<typeof oAuthRemoteDiscover>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useOAuthRemoteDiscover = <TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthRemoteDiscover>>, TError, Key, OAuthRemoteDiscoverBody, Awaited<ReturnType<typeof oAuthRemoteDiscover>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getOAuthRemoteDiscoverMutationKey();
   const swrFn = getOAuthRemoteDiscoverMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * List remote OAuth connections configured for this Storyden instance.
 
  */
-export const oAuthRemoteConnectionList = () => {
-  return fetcher<OAuthRemoteConnectionListOKResponse>({
-    url: `/admin/oauth/remote/connections`,
-    method: "GET",
-  });
-};
+export const oAuthRemoteConnectionList = (
+    
+ ) => {
+    return fetcher<OAuthRemoteConnectionListOKResponse>(
+    {url: `/admin/oauth/remote/connections`, method: 'GET'
+    },
+    );
+  }
 
-export const getOAuthRemoteConnectionListKey = () =>
-  [`/admin/oauth/remote/connections`] as const;
 
-export type OAuthRemoteConnectionListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthRemoteConnectionList>>
->;
-export type OAuthRemoteConnectionListQueryError =
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
 
-export const useOAuthRemoteConnectionList = <
-  TError = ForbiddenResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRConfiguration<
-    Awaited<ReturnType<typeof oAuthRemoteConnectionList>>,
-    TError
-  > & { swrKey?: Key; enabled?: boolean };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const getOAuthRemoteConnectionListKey = () => [`/admin/oauth/remote/connections`] as const;
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getOAuthRemoteConnectionListKey() : null));
-  const swrFn = () => oAuthRemoteConnectionList();
+export type OAuthRemoteConnectionListQueryResult = NonNullable<Awaited<ReturnType<typeof oAuthRemoteConnectionList>>>
+export type OAuthRemoteConnectionListQueryError = ForbiddenResponse | InternalServerErrorResponse
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+export const useOAuthRemoteConnectionList = <TError = ForbiddenResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof oAuthRemoteConnectionList>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getOAuthRemoteConnectionListKey() : null);
+  const swrFn = () => oAuthRemoteConnectionList()
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Create a remote OAuth connection using CIMD, DCR, or manual
 configuration. CIMD is preferred when discovery supports it.
 
  */
 export const oAuthRemoteConnectionCreate = (
-  oAuthRemoteConnectionCreateBody: OAuthRemoteConnectionCreateBody,
-) => {
-  return fetcher<OAuthRemoteConnectionOKResponse>({
-    url: `/admin/oauth/remote/connections`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: oAuthRemoteConnectionCreateBody,
-  });
-};
+    oAuthRemoteConnectionCreateBody: OAuthRemoteConnectionCreateBody,
+ ) => {
+    return fetcher<OAuthRemoteConnectionOKResponse>(
+    {url: `/admin/oauth/remote/connections`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthRemoteConnectionCreateBody
+    },
+    );
+  }
 
-export const getOAuthRemoteConnectionCreateMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: OAuthRemoteConnectionCreateBody },
-  ): Promise<OAuthRemoteConnectionOKResponse> => {
+
+
+export const getOAuthRemoteConnectionCreateMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: OAuthRemoteConnectionCreateBody }): Promise<OAuthRemoteConnectionOKResponse> => {
     return oAuthRemoteConnectionCreate(arg);
-  };
-};
-export const getOAuthRemoteConnectionCreateMutationKey = () =>
-  [`/admin/oauth/remote/connections`] as const;
+  }
+}
+export const getOAuthRemoteConnectionCreateMutationKey = () => [`/admin/oauth/remote/connections`] as const;
 
-export type OAuthRemoteConnectionCreateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthRemoteConnectionCreate>>
->;
-export type OAuthRemoteConnectionCreateMutationError =
-  | BadRequestResponse
-  | ForbiddenResponse
-  | InternalServerErrorResponse;
+export type OAuthRemoteConnectionCreateMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthRemoteConnectionCreate>>>
+export type OAuthRemoteConnectionCreateMutationError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse
 
-export const useOAuthRemoteConnectionCreate = <
-  TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof oAuthRemoteConnectionCreate>>,
-    TError,
-    Key,
-    OAuthRemoteConnectionCreateBody,
-    Awaited<ReturnType<typeof oAuthRemoteConnectionCreate>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useOAuthRemoteConnectionCreate = <TError = BadRequestResponse | ForbiddenResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthRemoteConnectionCreate>>, TError, Key, OAuthRemoteConnectionCreateBody, Awaited<ReturnType<typeof oAuthRemoteConnectionCreate>>> & { swrKey?: string }, }
+) => {
 
-  const swrKey =
-    swrOptions?.swrKey ?? getOAuthRemoteConnectionCreateMutationKey();
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getOAuthRemoteConnectionCreateMutationKey();
   const swrFn = getOAuthRemoteConnectionCreateMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Start OAuth authorization code with PKCE for a remote OAuth
 connection and return the authorization URL to open in a browser.
 
  */
 export const oAuthRemoteConnectionAuthorize = (
-  oauthRemoteConnectionId: string,
-) => {
-  return fetcher<OAuthRemoteAuthorizeOKResponse>({
-    url: `/admin/oauth/remote/connections/${oauthRemoteConnectionId}/authorize`,
-    method: "POST",
-  });
-};
+    oauthRemoteConnectionId: string,
+ ) => {
+    return fetcher<OAuthRemoteAuthorizeOKResponse>(
+    {url: `/admin/oauth/remote/connections/${oauthRemoteConnectionId}/authorize`, method: 'POST'
+    },
+    );
+  }
 
-export const getOAuthRemoteConnectionAuthorizeMutationFetcher = (
-  oauthRemoteConnectionId: string,
-) => {
-  return (
-    _: Key,
-    __: { arg: Arguments },
-  ): Promise<OAuthRemoteAuthorizeOKResponse> => {
+
+
+export const getOAuthRemoteConnectionAuthorizeMutationFetcher = (oauthRemoteConnectionId: string, ) => {
+  return (_: Key, __: { arg: Arguments }): Promise<OAuthRemoteAuthorizeOKResponse> => {
     return oAuthRemoteConnectionAuthorize(oauthRemoteConnectionId);
-  };
-};
-export const getOAuthRemoteConnectionAuthorizeMutationKey = (
-  oauthRemoteConnectionId: string,
-) =>
-  [
-    `/admin/oauth/remote/connections/${oauthRemoteConnectionId}/authorize`,
-  ] as const;
+  }
+}
+export const getOAuthRemoteConnectionAuthorizeMutationKey = (oauthRemoteConnectionId: string,) => [`/admin/oauth/remote/connections/${oauthRemoteConnectionId}/authorize`] as const;
 
-export type OAuthRemoteConnectionAuthorizeMutationResult = NonNullable<
-  Awaited<ReturnType<typeof oAuthRemoteConnectionAuthorize>>
->;
-export type OAuthRemoteConnectionAuthorizeMutationError =
-  | BadRequestResponse
-  | ForbiddenResponse
-  | NotFoundResponse
-  | InternalServerErrorResponse;
+export type OAuthRemoteConnectionAuthorizeMutationResult = NonNullable<Awaited<ReturnType<typeof oAuthRemoteConnectionAuthorize>>>
+export type OAuthRemoteConnectionAuthorizeMutationError = BadRequestResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse
 
-export const useOAuthRemoteConnectionAuthorize = <
-  TError =
-    | BadRequestResponse
-    | ForbiddenResponse
-    | NotFoundResponse
-    | InternalServerErrorResponse,
->(
-  oauthRemoteConnectionId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof oAuthRemoteConnectionAuthorize>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof oAuthRemoteConnectionAuthorize>>
-    > & { swrKey?: string };
-  },
+export const useOAuthRemoteConnectionAuthorize = <TError = BadRequestResponse | ForbiddenResponse | NotFoundResponse | InternalServerErrorResponse>(
+  oauthRemoteConnectionId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof oAuthRemoteConnectionAuthorize>>, TError, Key, Arguments, Awaited<ReturnType<typeof oAuthRemoteConnectionAuthorize>>> & { swrKey?: string }, }
 ) => {
-  const { swr: swrOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ??
-    getOAuthRemoteConnectionAuthorizeMutationKey(oauthRemoteConnectionId);
-  const swrFn = getOAuthRemoteConnectionAuthorizeMutationFetcher(
-    oauthRemoteConnectionId,
-  );
+  const {swr: swrOptions} = options ?? {}
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const swrKey = swrOptions?.swrKey ?? getOAuthRemoteConnectionAuthorizeMutationKey(oauthRemoteConnectionId);
+  const swrFn = getOAuthRemoteConnectionAuthorizeMutationFetcher(oauthRemoteConnectionId);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}

@@ -8,10 +8,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type TextDeltaPartType =
-  (typeof TextDeltaPartType)[keyof typeof TextDeltaPartType];
+export type TextDeltaPartType = typeof TextDeltaPartType[keyof typeof TextDeltaPartType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TextDeltaPartType = {
-  "text-delta": "text-delta",
+  'text-delta': 'text-delta',
 } as const;

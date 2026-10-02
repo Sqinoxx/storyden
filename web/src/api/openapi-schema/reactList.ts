@@ -7,7 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { React } from "./react";
+import type { React } from './react';
 
 /**
  * A list of reactions this post has had from people.

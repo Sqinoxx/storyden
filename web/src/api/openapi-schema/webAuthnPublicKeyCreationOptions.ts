@@ -7,7 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { PublicKeyCredentialCreationOptions } from "./publicKeyCredentialCreationOptions";
+import type { PublicKeyCredentialCreationOptions } from './publicKeyCredentialCreationOptions';
 
 /**
  * https://www.w3.org/TR/webauthn-2/#sctn-credentialcreationoptions-extension

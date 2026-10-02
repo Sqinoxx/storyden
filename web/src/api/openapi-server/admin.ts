@@ -13,6 +13,8 @@ import type {
   AdminDriveCredentialsUploadBody,
   AdminDriveFolderCreateBody,
   AdminDriveFolderUpdateBody,
+  AdminOCRAssetList200,
+  AdminOCRAssetListParams,
   AdminOCRReindex200,
   AdminOCRStats200,
   AdminSettingsGetOKResponse,
@@ -116,6 +118,43 @@ export const adminOCRStats = async (
     ...options,
     method: "GET",
   });
+};
+
+/**
+ * List file assets with their OCR status and failure reason. Without a
+status filter, every asset that has not completed is returned.
+
+ */
+export type adminOCRAssetListResponse = {
+  data: AdminOCRAssetList200;
+  status: number;
+};
+
+export const getAdminOCRAssetListUrl = (params?: AdminOCRAssetListParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  return normalizedParams.size
+    ? `/admin/ocr/assets?${normalizedParams.toString()}`
+    : `/admin/ocr/assets`;
+};
+
+export const adminOCRAssetList = async (
+  params?: AdminOCRAssetListParams,
+  options?: RequestInit,
+): Promise<adminOCRAssetListResponse> => {
+  return fetcher<Promise<adminOCRAssetListResponse>>(
+    getAdminOCRAssetListUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
 };
 
 /**

@@ -44,9 +44,10 @@ import type {
   RobotWorkspacesListOKResponse,
   RobotWorkspacesListParams,
   RobotsListOKResponse,
-  RobotsListParams,
-} from "../openapi-schema";
-import { fetcher } from "../server";
+  RobotsListParams
+} from '../openapi-schema'
+import { fetcher } from '../server';
+
 
 /**
  * Get a paginated list of all available robots.
@@ -55,31 +56,32 @@ import { fetcher } from "../server";
 export type robotsListResponse = {
   data: RobotsListOKResponse;
   status: number;
-};
+}
 
-export const getRobotsListUrl = (params?: RobotsListParams) => {
+export const getRobotsListUrl = (params?: RobotsListParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/robots?${normalizedParams.toString()}`
-    : `/robots`;
-};
+  return normalizedParams.size ? `/robots?${normalizedParams.toString()}` : `/robots`
+}
 
-export const robotsList = async (
-  params?: RobotsListParams,
-  options?: RequestInit,
-): Promise<robotsListResponse> => {
-  return fetcher<Promise<robotsListResponse>>(getRobotsListUrl(params), {
+export const robotsList = async (params?: RobotsListParams, options?: RequestInit): Promise<robotsListResponse> => {
+  
+  return fetcher<Promise<robotsListResponse>>(getRobotsListUrl(params),
+  {      
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Create a new Robot with the specified configuration. A Robot in Storyden
@@ -96,23 +98,26 @@ to build goal-specific Robots with minimal sets of tools.
 export type robotCreateResponse = {
   data: RobotCreateOKResponse;
   status: number;
-};
+}
 
 export const getRobotCreateUrl = () => {
-  return `/robots`;
-};
 
-export const robotCreate = async (
-  robotCreateBody: RobotCreateBody,
-  options?: RequestInit,
-): Promise<robotCreateResponse> => {
-  return fetcher<Promise<robotCreateResponse>>(getRobotCreateUrl(), {
+
+  return `/robots`
+}
+
+export const robotCreate = async (robotCreateBody: RobotCreateBody, options?: RequestInit): Promise<robotCreateResponse> => {
+  
+  return fetcher<Promise<robotCreateResponse>>(getRobotCreateUrl(),
+  {      
     ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(robotCreateBody),
-  });
-};
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      robotCreateBody,)
+  }
+);}
+
 
 /**
  * List all tools that may be assigned to Robots, including native Storyden
@@ -123,20 +128,25 @@ tools and discovered MCP tools.
 export type robotToolsListResponse = {
   data: RobotToolsListOKResponse;
   status: number;
-};
+}
 
 export const getRobotToolsListUrl = () => {
-  return `/robots/tools`;
-};
 
-export const robotToolsList = async (
-  options?: RequestInit,
-): Promise<robotToolsListResponse> => {
-  return fetcher<Promise<robotToolsListResponse>>(getRobotToolsListUrl(), {
+
+  return `/robots/tools`
+}
+
+export const robotToolsList = async ( options?: RequestInit): Promise<robotToolsListResponse> => {
+  
+  return fetcher<Promise<robotToolsListResponse>>(getRobotToolsListUrl(),
+  {      
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Send a message to a Robot and receive its response. This endpoint
@@ -156,23 +166,26 @@ generates its reply.
 export type robotChatSSEResponse = {
   data: RobotChatStreamResponse;
   status: number;
-};
+}
 
 export const getRobotChatSSEUrl = () => {
-  return `/robots/chat/sse`;
-};
 
-export const robotChatSSE = async (
-  robotChatStartBody: RobotChatStartBody,
-  options?: RequestInit,
-): Promise<robotChatSSEResponse> => {
-  return fetcher<Promise<robotChatSSEResponse>>(getRobotChatSSEUrl(), {
+
+  return `/robots/chat/sse`
+}
+
+export const robotChatSSE = async (robotChatStartBody: RobotChatStartBody, options?: RequestInit): Promise<robotChatSSEResponse> => {
+  
+  return fetcher<Promise<robotChatSSEResponse>>(getRobotChatSSEUrl(),
+  {      
     ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(robotChatStartBody),
-  });
-};
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      robotChatStartBody,)
+  }
+);}
+
 
 /**
  * Retrieve supported Robot model providers, redacted settings, cache
@@ -183,23 +196,25 @@ status and cached models.
 export type robotProvidersListResponse = {
   data: RobotProvidersListOKResponse;
   status: number;
-};
+}
 
 export const getRobotProvidersListUrl = () => {
-  return `/robots/providers`;
-};
 
-export const robotProvidersList = async (
-  options?: RequestInit,
-): Promise<robotProvidersListResponse> => {
-  return fetcher<Promise<robotProvidersListResponse>>(
-    getRobotProvidersListUrl(),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+
+  return `/robots/providers`
+}
+
+export const robotProvidersList = async ( options?: RequestInit): Promise<robotProvidersListResponse> => {
+  
+  return fetcher<Promise<robotProvidersListResponse>>(getRobotProvidersListUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Update a Robot model provider configuration. API keys are write-only and
@@ -210,27 +225,27 @@ are redacted from responses.
 export type robotProviderUpdateResponse = {
   data: RobotProviderGetOKResponse;
   status: number;
-};
+}
 
-export const getRobotProviderUpdateUrl = (provider: string) => {
-  return `/robots/providers/${provider}`;
-};
+export const getRobotProviderUpdateUrl = (provider: string,) => {
 
-export const robotProviderUpdate = async (
-  provider: string,
-  robotProviderUpdateBody: RobotProviderUpdateBody,
-  options?: RequestInit,
-): Promise<robotProviderUpdateResponse> => {
-  return fetcher<Promise<robotProviderUpdateResponse>>(
-    getRobotProviderUpdateUrl(provider),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(robotProviderUpdateBody),
-    },
-  );
-};
+
+  return `/robots/providers/${provider}`
+}
+
+export const robotProviderUpdate = async (provider: string,
+    robotProviderUpdateBody: RobotProviderUpdateBody, options?: RequestInit): Promise<robotProviderUpdateResponse> => {
+  
+  return fetcher<Promise<robotProviderUpdateResponse>>(getRobotProviderUpdateUrl(provider),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      robotProviderUpdateBody,)
+  }
+);}
+
 
 /**
  * Force refresh the cached model list for a Robot model provider.
@@ -240,24 +255,25 @@ export const robotProviderUpdate = async (
 export type robotProviderModelsRefreshResponse = {
   data: RobotProviderGetOKResponse;
   status: number;
-};
+}
 
-export const getRobotProviderModelsRefreshUrl = (provider: string) => {
-  return `/robots/providers/${provider}/models/refresh`;
-};
+export const getRobotProviderModelsRefreshUrl = (provider: string,) => {
 
-export const robotProviderModelsRefresh = async (
-  provider: string,
-  options?: RequestInit,
-): Promise<robotProviderModelsRefreshResponse> => {
-  return fetcher<Promise<robotProviderModelsRefreshResponse>>(
-    getRobotProviderModelsRefreshUrl(provider),
-    {
-      ...options,
-      method: "POST",
-    },
-  );
-};
+
+  return `/robots/providers/${provider}/models/refresh`
+}
+
+export const robotProviderModelsRefresh = async (provider: string, options?: RequestInit): Promise<robotProviderModelsRefreshResponse> => {
+  
+  return fetcher<Promise<robotProviderModelsRefreshResponse>>(getRobotProviderModelsRefreshUrl(provider),
+  {      
+    ...options,
+    method: 'POST'
+    
+    
+  }
+);}
+
 
 /**
  * Retrieve a list of all enabled models from all providers. Model names
@@ -269,20 +285,25 @@ further slashes, such as with OpenRouter: `openrouter/openai/gpt-4`.
 export type robotModelsListResponse = {
   data: RobotModelsListOKResponse;
   status: number;
-};
+}
 
 export const getRobotModelsListUrl = () => {
-  return `/robots/models`;
-};
 
-export const robotModelsList = async (
-  options?: RequestInit,
-): Promise<robotModelsListResponse> => {
-  return fetcher<Promise<robotModelsListResponse>>(getRobotModelsListUrl(), {
+
+  return `/robots/models`
+}
+
+export const robotModelsList = async ( options?: RequestInit): Promise<robotModelsListResponse> => {
+  
+  return fetcher<Promise<robotModelsListResponse>>(getRobotModelsListUrl(),
+  {      
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Retrieve the registered Robot workspace providers.
@@ -291,23 +312,25 @@ export const robotModelsList = async (
 export type robotWorkspaceProvidersListResponse = {
   data: RobotWorkspaceProvidersListOKResponse;
   status: number;
-};
+}
 
 export const getRobotWorkspaceProvidersListUrl = () => {
-  return `/robots/workspace-providers`;
-};
 
-export const robotWorkspaceProvidersList = async (
-  options?: RequestInit,
-): Promise<robotWorkspaceProvidersListResponse> => {
-  return fetcher<Promise<robotWorkspaceProvidersListResponse>>(
-    getRobotWorkspaceProvidersListUrl(),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+
+  return `/robots/workspace-providers`
+}
+
+export const robotWorkspaceProvidersList = async ( options?: RequestInit): Promise<robotWorkspaceProvidersListResponse> => {
+  
+  return fetcher<Promise<robotWorkspaceProvidersListResponse>>(getRobotWorkspaceProvidersListUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Get a paginated list of reusable Robot workspace templates.
@@ -316,36 +339,32 @@ export const robotWorkspaceProvidersList = async (
 export type robotWorkspacesListResponse = {
   data: RobotWorkspacesListOKResponse;
   status: number;
-};
+}
 
-export const getRobotWorkspacesListUrl = (
-  params?: RobotWorkspacesListParams,
-) => {
+export const getRobotWorkspacesListUrl = (params?: RobotWorkspacesListParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/robots/workspaces?${normalizedParams.toString()}`
-    : `/robots/workspaces`;
-};
+  return normalizedParams.size ? `/robots/workspaces?${normalizedParams.toString()}` : `/robots/workspaces`
+}
 
-export const robotWorkspacesList = async (
-  params?: RobotWorkspacesListParams,
-  options?: RequestInit,
-): Promise<robotWorkspacesListResponse> => {
-  return fetcher<Promise<robotWorkspacesListResponse>>(
-    getRobotWorkspacesListUrl(params),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+export const robotWorkspacesList = async (params?: RobotWorkspacesListParams, options?: RequestInit): Promise<robotWorkspacesListResponse> => {
+  
+  return fetcher<Promise<robotWorkspacesListResponse>>(getRobotWorkspacesListUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Create a reusable Robot workspace template.
@@ -354,26 +373,26 @@ export const robotWorkspacesList = async (
 export type robotWorkspaceCreateResponse = {
   data: RobotWorkspaceCreateOKResponse;
   status: number;
-};
+}
 
 export const getRobotWorkspaceCreateUrl = () => {
-  return `/robots/workspaces`;
-};
 
-export const robotWorkspaceCreate = async (
-  robotWorkspaceCreateBody: RobotWorkspaceCreateBody,
-  options?: RequestInit,
-): Promise<robotWorkspaceCreateResponse> => {
-  return fetcher<Promise<robotWorkspaceCreateResponse>>(
-    getRobotWorkspaceCreateUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(robotWorkspaceCreateBody),
-    },
-  );
-};
+
+  return `/robots/workspaces`
+}
+
+export const robotWorkspaceCreate = async (robotWorkspaceCreateBody: RobotWorkspaceCreateBody, options?: RequestInit): Promise<robotWorkspaceCreateResponse> => {
+  
+  return fetcher<Promise<robotWorkspaceCreateResponse>>(getRobotWorkspaceCreateUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      robotWorkspaceCreateBody,)
+  }
+);}
+
 
 /**
  * Retrieve a reusable Robot workspace template.
@@ -382,24 +401,25 @@ export const robotWorkspaceCreate = async (
 export type robotWorkspaceGetResponse = {
   data: RobotWorkspaceGetOKResponse;
   status: number;
-};
+}
 
-export const getRobotWorkspaceGetUrl = (workspaceId: string) => {
-  return `/robots/workspaces/${workspaceId}`;
-};
+export const getRobotWorkspaceGetUrl = (workspaceId: string,) => {
 
-export const robotWorkspaceGet = async (
-  workspaceId: string,
-  options?: RequestInit,
-): Promise<robotWorkspaceGetResponse> => {
-  return fetcher<Promise<robotWorkspaceGetResponse>>(
-    getRobotWorkspaceGetUrl(workspaceId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+
+  return `/robots/workspaces/${workspaceId}`
+}
+
+export const robotWorkspaceGet = async (workspaceId: string, options?: RequestInit): Promise<robotWorkspaceGetResponse> => {
+  
+  return fetcher<Promise<robotWorkspaceGetResponse>>(getRobotWorkspaceGetUrl(workspaceId),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Update a reusable Robot workspace template.
@@ -408,27 +428,27 @@ export const robotWorkspaceGet = async (
 export type robotWorkspaceUpdateResponse = {
   data: RobotWorkspaceGetOKResponse;
   status: number;
-};
+}
 
-export const getRobotWorkspaceUpdateUrl = (workspaceId: string) => {
-  return `/robots/workspaces/${workspaceId}`;
-};
+export const getRobotWorkspaceUpdateUrl = (workspaceId: string,) => {
 
-export const robotWorkspaceUpdate = async (
-  workspaceId: string,
-  robotWorkspaceUpdateBody: RobotWorkspaceUpdateBody,
-  options?: RequestInit,
-): Promise<robotWorkspaceUpdateResponse> => {
-  return fetcher<Promise<robotWorkspaceUpdateResponse>>(
-    getRobotWorkspaceUpdateUrl(workspaceId),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(robotWorkspaceUpdateBody),
-    },
-  );
-};
+
+  return `/robots/workspaces/${workspaceId}`
+}
+
+export const robotWorkspaceUpdate = async (workspaceId: string,
+    robotWorkspaceUpdateBody: RobotWorkspaceUpdateBody, options?: RequestInit): Promise<robotWorkspaceUpdateResponse> => {
+  
+  return fetcher<Promise<robotWorkspaceUpdateResponse>>(getRobotWorkspaceUpdateUrl(workspaceId),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      robotWorkspaceUpdateBody,)
+  }
+);}
+
 
 /**
  * Delete a reusable Robot workspace template.
@@ -437,24 +457,25 @@ export const robotWorkspaceUpdate = async (
 export type robotWorkspaceDeleteResponse = {
   data: void;
   status: number;
-};
+}
 
-export const getRobotWorkspaceDeleteUrl = (workspaceId: string) => {
-  return `/robots/workspaces/${workspaceId}`;
-};
+export const getRobotWorkspaceDeleteUrl = (workspaceId: string,) => {
 
-export const robotWorkspaceDelete = async (
-  workspaceId: string,
-  options?: RequestInit,
-): Promise<robotWorkspaceDeleteResponse> => {
-  return fetcher<Promise<robotWorkspaceDeleteResponse>>(
-    getRobotWorkspaceDeleteUrl(workspaceId),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
+
+  return `/robots/workspaces/${workspaceId}`
+}
+
+export const robotWorkspaceDelete = async (workspaceId: string, options?: RequestInit): Promise<robotWorkspaceDeleteResponse> => {
+  
+  return fetcher<Promise<robotWorkspaceDeleteResponse>>(getRobotWorkspaceDeleteUrl(workspaceId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
 
 /**
  * Get a paginated list of live reusable Robot workspace instances.
@@ -463,36 +484,32 @@ export const robotWorkspaceDelete = async (
 export type robotWorkspaceInstancesListResponse = {
   data: RobotWorkspaceInstancesListOKResponse;
   status: number;
-};
+}
 
-export const getRobotWorkspaceInstancesListUrl = (
-  params?: RobotWorkspaceInstancesListParams,
-) => {
+export const getRobotWorkspaceInstancesListUrl = (params?: RobotWorkspaceInstancesListParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/robots/workspace-instances?${normalizedParams.toString()}`
-    : `/robots/workspace-instances`;
-};
+  return normalizedParams.size ? `/robots/workspace-instances?${normalizedParams.toString()}` : `/robots/workspace-instances`
+}
 
-export const robotWorkspaceInstancesList = async (
-  params?: RobotWorkspaceInstancesListParams,
-  options?: RequestInit,
-): Promise<robotWorkspaceInstancesListResponse> => {
-  return fetcher<Promise<robotWorkspaceInstancesListResponse>>(
-    getRobotWorkspaceInstancesListUrl(params),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+export const robotWorkspaceInstancesList = async (params?: RobotWorkspaceInstancesListParams, options?: RequestInit): Promise<robotWorkspaceInstancesListResponse> => {
+  
+  return fetcher<Promise<robotWorkspaceInstancesListResponse>>(getRobotWorkspaceInstancesListUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Retrieve a live reusable Robot workspace instance.
@@ -501,26 +518,25 @@ export const robotWorkspaceInstancesList = async (
 export type robotWorkspaceInstanceGetResponse = {
   data: RobotWorkspaceInstanceGetOKResponse;
   status: number;
-};
+}
 
-export const getRobotWorkspaceInstanceGetUrl = (
-  workspaceInstanceId: string,
-) => {
-  return `/robots/workspace-instances/${workspaceInstanceId}`;
-};
+export const getRobotWorkspaceInstanceGetUrl = (workspaceInstanceId: string,) => {
 
-export const robotWorkspaceInstanceGet = async (
-  workspaceInstanceId: string,
-  options?: RequestInit,
-): Promise<robotWorkspaceInstanceGetResponse> => {
-  return fetcher<Promise<robotWorkspaceInstanceGetResponse>>(
-    getRobotWorkspaceInstanceGetUrl(workspaceInstanceId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+
+  return `/robots/workspace-instances/${workspaceInstanceId}`
+}
+
+export const robotWorkspaceInstanceGet = async (workspaceInstanceId: string, options?: RequestInit): Promise<robotWorkspaceInstanceGetResponse> => {
+  
+  return fetcher<Promise<robotWorkspaceInstanceGetResponse>>(getRobotWorkspaceInstanceGetUrl(workspaceInstanceId),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Delete a live reusable Robot workspace instance.
@@ -529,26 +545,25 @@ export const robotWorkspaceInstanceGet = async (
 export type robotWorkspaceInstanceDeleteResponse = {
   data: void;
   status: number;
-};
+}
 
-export const getRobotWorkspaceInstanceDeleteUrl = (
-  workspaceInstanceId: string,
-) => {
-  return `/robots/workspace-instances/${workspaceInstanceId}`;
-};
+export const getRobotWorkspaceInstanceDeleteUrl = (workspaceInstanceId: string,) => {
 
-export const robotWorkspaceInstanceDelete = async (
-  workspaceInstanceId: string,
-  options?: RequestInit,
-): Promise<robotWorkspaceInstanceDeleteResponse> => {
-  return fetcher<Promise<robotWorkspaceInstanceDeleteResponse>>(
-    getRobotWorkspaceInstanceDeleteUrl(workspaceInstanceId),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
+
+  return `/robots/workspace-instances/${workspaceInstanceId}`
+}
+
+export const robotWorkspaceInstanceDelete = async (workspaceInstanceId: string, options?: RequestInit): Promise<robotWorkspaceInstanceDeleteResponse> => {
+  
+  return fetcher<Promise<robotWorkspaceInstanceDeleteResponse>>(getRobotWorkspaceInstanceDeleteUrl(workspaceInstanceId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
 
 /**
  * Retrieve a specific Robot by its ID. Does not include any messages or
@@ -559,21 +574,25 @@ sessions associated with the Robot, just provides metadata about it.
 export type robotGetResponse = {
   data: RobotGetOKResponse;
   status: number;
-};
+}
 
-export const getRobotGetUrl = (robotId: string) => {
-  return `/robots/${robotId}`;
-};
+export const getRobotGetUrl = (robotId: string,) => {
 
-export const robotGet = async (
-  robotId: string,
-  options?: RequestInit,
-): Promise<robotGetResponse> => {
-  return fetcher<Promise<robotGetResponse>>(getRobotGetUrl(robotId), {
+
+  return `/robots/${robotId}`
+}
+
+export const robotGet = async (robotId: string, options?: RequestInit): Promise<robotGetResponse> => {
+  
+  return fetcher<Promise<robotGetResponse>>(getRobotGetUrl(robotId),
+  {      
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Update a Robot's name, description, playbook or available tools.
@@ -583,24 +602,27 @@ export const robotGet = async (
 export type robotUpdateResponse = {
   data: RobotGetOKResponse;
   status: number;
-};
+}
 
-export const getRobotUpdateUrl = (robotId: string) => {
-  return `/robots/${robotId}`;
-};
+export const getRobotUpdateUrl = (robotId: string,) => {
 
-export const robotUpdate = async (
-  robotId: string,
-  robotUpdateBody: RobotUpdateBody,
-  options?: RequestInit,
-): Promise<robotUpdateResponse> => {
-  return fetcher<Promise<robotUpdateResponse>>(getRobotUpdateUrl(robotId), {
+
+  return `/robots/${robotId}`
+}
+
+export const robotUpdate = async (robotId: string,
+    robotUpdateBody: RobotUpdateBody, options?: RequestInit): Promise<robotUpdateResponse> => {
+  
+  return fetcher<Promise<robotUpdateResponse>>(getRobotUpdateUrl(robotId),
+  {      
     ...options,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(robotUpdateBody),
-  });
-};
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      robotUpdateBody,)
+  }
+);}
+
 
 /**
  * Delete a Robot.
@@ -609,21 +631,25 @@ export const robotUpdate = async (
 export type robotDeleteResponse = {
   data: void;
   status: number;
-};
+}
 
-export const getRobotDeleteUrl = (robotId: string) => {
-  return `/robots/${robotId}`;
-};
+export const getRobotDeleteUrl = (robotId: string,) => {
 
-export const robotDelete = async (
-  robotId: string,
-  options?: RequestInit,
-): Promise<robotDeleteResponse> => {
-  return fetcher<Promise<robotDeleteResponse>>(getRobotDeleteUrl(robotId), {
+
+  return `/robots/${robotId}`
+}
+
+export const robotDelete = async (robotId: string, options?: RequestInit): Promise<robotDeleteResponse> => {
+  
+  return fetcher<Promise<robotDeleteResponse>>(getRobotDeleteUrl(robotId),
+  {      
     ...options,
-    method: "DELETE",
-  });
-};
+    method: 'DELETE'
+    
+    
+  }
+);}
+
 
 /**
  * Get a paginated list of Robot sessions. These are chat sessions with the
@@ -643,34 +669,32 @@ to be shared among the team rather than private assistants.
 export type robotSessionsListResponse = {
   data: RobotSessionsListOKResponse;
   status: number;
-};
+}
 
-export const getRobotSessionsListUrl = (params?: RobotSessionsListParams) => {
+export const getRobotSessionsListUrl = (params?: RobotSessionsListParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/robots/sessions?${normalizedParams.toString()}`
-    : `/robots/sessions`;
-};
+  return normalizedParams.size ? `/robots/sessions?${normalizedParams.toString()}` : `/robots/sessions`
+}
 
-export const robotSessionsList = async (
-  params?: RobotSessionsListParams,
-  options?: RequestInit,
-): Promise<robotSessionsListResponse> => {
-  return fetcher<Promise<robotSessionsListResponse>>(
-    getRobotSessionsListUrl(params),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+export const robotSessionsList = async (params?: RobotSessionsListParams, options?: RequestInit): Promise<robotSessionsListResponse> => {
+  
+  return fetcher<Promise<robotSessionsListResponse>>(getRobotSessionsListUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Retrieve a specific robot session with all of its messages. Sessions can
@@ -688,38 +712,34 @@ rather shared tools for the team to use for managing their community.
 export type robotSessionGetResponse = {
   data: RobotSessionGetOKResponse;
   status: number;
-};
+}
 
-export const getRobotSessionGetUrl = (
-  sessionId: string,
-  params?: RobotSessionGetParams,
-) => {
+export const getRobotSessionGetUrl = (sessionId: string,
+    params?: RobotSessionGetParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/robots/sessions/${sessionId}?${normalizedParams.toString()}`
-    : `/robots/sessions/${sessionId}`;
-};
+  return normalizedParams.size ? `/robots/sessions/${sessionId}?${normalizedParams.toString()}` : `/robots/sessions/${sessionId}`
+}
 
-export const robotSessionGet = async (
-  sessionId: string,
-  params?: RobotSessionGetParams,
-  options?: RequestInit,
-): Promise<robotSessionGetResponse> => {
-  return fetcher<Promise<robotSessionGetResponse>>(
-    getRobotSessionGetUrl(sessionId, params),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+export const robotSessionGet = async (sessionId: string,
+    params?: RobotSessionGetParams, options?: RequestInit): Promise<robotSessionGetResponse> => {
+  
+  return fetcher<Promise<robotSessionGetResponse>>(getRobotSessionGetUrl(sessionId,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * List external MCP servers configured for Robot tool discovery.
@@ -729,23 +749,25 @@ export const robotSessionGet = async (
 export type robotMCPServersListResponse = {
   data: RobotMCPServersListOKResponse;
   status: number;
-};
+}
 
 export const getRobotMCPServersListUrl = () => {
-  return `/robots/mcp-servers`;
-};
 
-export const robotMCPServersList = async (
-  options?: RequestInit,
-): Promise<robotMCPServersListResponse> => {
-  return fetcher<Promise<robotMCPServersListResponse>>(
-    getRobotMCPServersListUrl(),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+
+  return `/robots/mcp-servers`
+}
+
+export const robotMCPServersList = async ( options?: RequestInit): Promise<robotMCPServersListResponse> => {
+  
+  return fetcher<Promise<robotMCPServersListResponse>>(getRobotMCPServersListUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Configure an external streamable HTTP MCP server for Robot tool
@@ -756,26 +778,26 @@ discovery.
 export type robotMCPServerCreateResponse = {
   data: RobotMCPServerCreateOKResponse;
   status: number;
-};
+}
 
 export const getRobotMCPServerCreateUrl = () => {
-  return `/robots/mcp-servers`;
-};
 
-export const robotMCPServerCreate = async (
-  robotMCPServerCreateBody: RobotMCPServerCreateBody,
-  options?: RequestInit,
-): Promise<robotMCPServerCreateResponse> => {
-  return fetcher<Promise<robotMCPServerCreateResponse>>(
-    getRobotMCPServerCreateUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(robotMCPServerCreateBody),
-    },
-  );
-};
+
+  return `/robots/mcp-servers`
+}
+
+export const robotMCPServerCreate = async (robotMCPServerCreateBody: RobotMCPServerCreateBody, options?: RequestInit): Promise<robotMCPServerCreateResponse> => {
+  
+  return fetcher<Promise<robotMCPServerCreateResponse>>(getRobotMCPServerCreateUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      robotMCPServerCreateBody,)
+  }
+);}
+
 
 /**
  * Resolve an MCP endpoint from a URL, optionally using an MCP Server
@@ -786,26 +808,26 @@ Card, and attempt a streamable HTTP MCP handshake.
 export type robotMCPServerProbeResponse = {
   data: RobotMCPServerProbeOKResponse;
   status: number;
-};
+}
 
 export const getRobotMCPServerProbeUrl = () => {
-  return `/robots/mcp-servers/probe`;
-};
 
-export const robotMCPServerProbe = async (
-  robotMCPServerProbeBody: RobotMCPServerProbeBody,
-  options?: RequestInit,
-): Promise<robotMCPServerProbeResponse> => {
-  return fetcher<Promise<robotMCPServerProbeResponse>>(
-    getRobotMCPServerProbeUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(robotMCPServerProbeBody),
-    },
-  );
-};
+
+  return `/robots/mcp-servers/probe`
+}
+
+export const robotMCPServerProbe = async (robotMCPServerProbeBody: RobotMCPServerProbeBody, options?: RequestInit): Promise<robotMCPServerProbeResponse> => {
+  
+  return fetcher<Promise<robotMCPServerProbeResponse>>(getRobotMCPServerProbeUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      robotMCPServerProbeBody,)
+  }
+);}
+
 
 /**
  * Retrieve an external MCP server configuration and its cached tools.
@@ -815,24 +837,25 @@ export const robotMCPServerProbe = async (
 export type robotMCPServerGetResponse = {
   data: RobotMCPServerGetOKResponse;
   status: number;
-};
+}
 
-export const getRobotMCPServerGetUrl = (mcpServerId: string) => {
-  return `/robots/mcp-servers/${mcpServerId}`;
-};
+export const getRobotMCPServerGetUrl = (mcpServerId: string,) => {
 
-export const robotMCPServerGet = async (
-  mcpServerId: string,
-  options?: RequestInit,
-): Promise<robotMCPServerGetResponse> => {
-  return fetcher<Promise<robotMCPServerGetResponse>>(
-    getRobotMCPServerGetUrl(mcpServerId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+
+  return `/robots/mcp-servers/${mcpServerId}`
+}
+
+export const robotMCPServerGet = async (mcpServerId: string, options?: RequestInit): Promise<robotMCPServerGetResponse> => {
+  
+  return fetcher<Promise<robotMCPServerGetResponse>>(getRobotMCPServerGetUrl(mcpServerId),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Update an external MCP server configuration. Bearer tokens are
@@ -843,27 +866,27 @@ write-only and are redacted from responses.
 export type robotMCPServerUpdateResponse = {
   data: RobotMCPServerUpdateOKResponse;
   status: number;
-};
+}
 
-export const getRobotMCPServerUpdateUrl = (mcpServerId: string) => {
-  return `/robots/mcp-servers/${mcpServerId}`;
-};
+export const getRobotMCPServerUpdateUrl = (mcpServerId: string,) => {
 
-export const robotMCPServerUpdate = async (
-  mcpServerId: string,
-  robotMCPServerUpdateBody: RobotMCPServerUpdateBody,
-  options?: RequestInit,
-): Promise<robotMCPServerUpdateResponse> => {
-  return fetcher<Promise<robotMCPServerUpdateResponse>>(
-    getRobotMCPServerUpdateUrl(mcpServerId),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(robotMCPServerUpdateBody),
-    },
-  );
-};
+
+  return `/robots/mcp-servers/${mcpServerId}`
+}
+
+export const robotMCPServerUpdate = async (mcpServerId: string,
+    robotMCPServerUpdateBody: RobotMCPServerUpdateBody, options?: RequestInit): Promise<robotMCPServerUpdateResponse> => {
+  
+  return fetcher<Promise<robotMCPServerUpdateResponse>>(getRobotMCPServerUpdateUrl(mcpServerId),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      robotMCPServerUpdateBody,)
+  }
+);}
+
 
 /**
  * Delete an external MCP server configuration and remove its tools from
@@ -874,24 +897,25 @@ the runtime Robot tool registry.
 export type robotMCPServerDeleteResponse = {
   data: RobotMCPServerDeleteOKResponse;
   status: number;
-};
+}
 
-export const getRobotMCPServerDeleteUrl = (mcpServerId: string) => {
-  return `/robots/mcp-servers/${mcpServerId}`;
-};
+export const getRobotMCPServerDeleteUrl = (mcpServerId: string,) => {
 
-export const robotMCPServerDelete = async (
-  mcpServerId: string,
-  options?: RequestInit,
-): Promise<robotMCPServerDeleteResponse> => {
-  return fetcher<Promise<robotMCPServerDeleteResponse>>(
-    getRobotMCPServerDeleteUrl(mcpServerId),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
+
+  return `/robots/mcp-servers/${mcpServerId}`
+}
+
+export const robotMCPServerDelete = async (mcpServerId: string, options?: RequestInit): Promise<robotMCPServerDeleteResponse> => {
+  
+  return fetcher<Promise<robotMCPServerDeleteResponse>>(getRobotMCPServerDeleteUrl(mcpServerId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
 
 /**
  * Connect to the external MCP server, refresh its tool cache, and update
@@ -902,21 +926,23 @@ the runtime Robot tool registry.
 export type robotMCPServerRefreshResponse = {
   data: RobotMCPServerRefreshOKResponse;
   status: number;
-};
+}
 
-export const getRobotMCPServerRefreshUrl = (mcpServerId: string) => {
-  return `/robots/mcp-servers/${mcpServerId}/refresh`;
-};
+export const getRobotMCPServerRefreshUrl = (mcpServerId: string,) => {
 
-export const robotMCPServerRefresh = async (
-  mcpServerId: string,
-  options?: RequestInit,
-): Promise<robotMCPServerRefreshResponse> => {
-  return fetcher<Promise<robotMCPServerRefreshResponse>>(
-    getRobotMCPServerRefreshUrl(mcpServerId),
-    {
-      ...options,
-      method: "POST",
-    },
-  );
-};
+
+  return `/robots/mcp-servers/${mcpServerId}/refresh`
+}
+
+export const robotMCPServerRefresh = async (mcpServerId: string, options?: RequestInit): Promise<robotMCPServerRefreshResponse> => {
+  
+  return fetcher<Promise<robotMCPServerRefreshResponse>>(getRobotMCPServerRefreshUrl(mcpServerId),
+  {      
+    ...options,
+    method: 'POST'
+    
+    
+  }
+);}
+
+

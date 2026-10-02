@@ -7,15 +7,15 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { AssetNameQueryParameter } from "./assetNameQueryParameter";
-import type { ParentAssetIDQueryParameter } from "./parentAssetIDQueryParameter";
+import type { AssetNameQueryParameter } from './assetNameQueryParameter';
+import type { ParentAssetIDQueryParameter } from './parentAssetIDQueryParameter';
 
 export type AssetUploadParams = {
-  /**
-   * The client-provided file name for the asset.
-   */
-  filename?: AssetNameQueryParameter;
-  /**
+/**
+ * The client-provided file name for the asset.
+ */
+filename?: AssetNameQueryParameter;
+/**
  * For uploading new versions of an existing asset, set this parameter to
 the asset ID of the parent asset. This must be an ID and not a filename.
 This feature is used for situations where you want to replace an asset
@@ -23,5 +23,5 @@ in its usage context, but retain the original with a way to reference it
 for features such as editable/croppable images or file version history.
 
  */
-  parent_asset_id?: ParentAssetIDQueryParameter;
+parent_asset_id?: ParentAssetIDQueryParameter;
 };

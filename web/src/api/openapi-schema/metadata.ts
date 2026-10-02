@@ -11,6 +11,4 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 /**
  * Arbitrary metadata for the resource.
  */
-export interface Metadata {
-  [key: string]: unknown;
-}
+export interface Metadata { [key: string]: unknown }

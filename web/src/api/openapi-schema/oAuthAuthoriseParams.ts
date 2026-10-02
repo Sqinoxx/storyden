@@ -7,48 +7,48 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { OAuthClientIDQueryParameter } from "./oAuthClientIDQueryParameter";
-import type { OAuthCodeChallengeMethodQueryParameter } from "./oAuthCodeChallengeMethodQueryParameter";
-import type { OAuthCodeChallengeQueryParameter } from "./oAuthCodeChallengeQueryParameter";
-import type { OAuthNonceQueryParameter } from "./oAuthNonceQueryParameter";
-import type { OAuthRedirectURIQueryParameter } from "./oAuthRedirectURIQueryParameter";
-import type { OAuthResponseTypeQueryParameter } from "./oAuthResponseTypeQueryParameter";
-import type { OAuthScopeQueryParameter } from "./oAuthScopeQueryParameter";
-import type { OAuthStateQueryParameter } from "./oAuthStateQueryParameter";
+import type { OAuthResponseTypeQueryParameter } from './oAuthResponseTypeQueryParameter';
+import type { OAuthClientIDQueryParameter } from './oAuthClientIDQueryParameter';
+import type { OAuthRedirectURIQueryParameter } from './oAuthRedirectURIQueryParameter';
+import type { OAuthScopeQueryParameter } from './oAuthScopeQueryParameter';
+import type { OAuthStateQueryParameter } from './oAuthStateQueryParameter';
+import type { OAuthNonceQueryParameter } from './oAuthNonceQueryParameter';
+import type { OAuthCodeChallengeQueryParameter } from './oAuthCodeChallengeQueryParameter';
+import type { OAuthCodeChallengeMethodQueryParameter } from './oAuthCodeChallengeMethodQueryParameter';
 
 export type OAuthAuthoriseParams = {
-  /**
-   * OAuth response type. Storyden currently supports authorisation code.
-   */
-  response_type: OAuthResponseTypeQueryParameter;
-  /**
-   * OAuth client identifier.
-   */
-  client_id: OAuthClientIDQueryParameter;
-  /**
-   * Registered redirect URI for the OAuth client.
-   */
-  redirect_uri: OAuthRedirectURIQueryParameter;
-  /**
-   * Space-separated OAuth scopes requested by the client.
-   */
-  scope?: OAuthScopeQueryParameter;
-  /**
-   * Client-provided opaque state returned to the redirect URI.
-   */
-  state?: OAuthStateQueryParameter;
-  /**
+/**
+ * OAuth response type. Storyden currently supports authorisation code.
+ */
+response_type: OAuthResponseTypeQueryParameter;
+/**
+ * OAuth client identifier.
+ */
+client_id: OAuthClientIDQueryParameter;
+/**
+ * Registered redirect URI for the OAuth client.
+ */
+redirect_uri: OAuthRedirectURIQueryParameter;
+/**
+ * Space-separated OAuth scopes requested by the client.
+ */
+scope?: OAuthScopeQueryParameter;
+/**
+ * Client-provided opaque state returned to the redirect URI.
+ */
+state?: OAuthStateQueryParameter;
+/**
  * OpenID Connect nonce. When provided, it is returned unmodified as the
 `nonce` claim in the issued ID token (OIDC Core §3.1.2).
 
  */
-  nonce?: OAuthNonceQueryParameter;
-  /**
-   * PKCE code challenge.
-   */
-  code_challenge: OAuthCodeChallengeQueryParameter;
-  /**
-   * PKCE code challenge method.
-   */
-  code_challenge_method: OAuthCodeChallengeMethodQueryParameter;
+nonce?: OAuthNonceQueryParameter;
+/**
+ * PKCE code challenge.
+ */
+code_challenge: OAuthCodeChallengeQueryParameter;
+/**
+ * PKCE code challenge method.
+ */
+code_challenge_method: OAuthCodeChallengeMethodQueryParameter;
 };

@@ -208,6 +208,8 @@ export const en = {
     commandPlaceholder: "Ask, search or command...",
     searchDiscussions: "Search discussions",
     searchButton: "Search",
+    filters: "Filters",
+    emptyHint: "Enter a search term and narrow down the results with filters.",
   },
   link: {
     editLink: "Edit link",

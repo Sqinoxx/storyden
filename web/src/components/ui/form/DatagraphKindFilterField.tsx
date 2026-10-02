@@ -32,7 +32,12 @@ export function DatagraphKindFilterField<T extends FieldValues>({
         return (
           <ToggleGroup.Root
             multiple
-            size="xs"
+            variant="ghost"
+            size="sm"
+            w="full"
+            gap="2"
+            overflowX="auto"
+            style={{ scrollbarWidth: "none" }}
             onValueChange={handleChangeFilter}
             defaultValue={formState.defaultValues?.[props.name]}
           >
@@ -41,6 +46,21 @@ export function DatagraphKindFilterField<T extends FieldValues>({
                 key={item.value}
                 value={item.value}
                 aria-label={item.description}
+                flexShrink="0"
+                px="3"
+                borderRadius="full"
+                borderWidth="thin"
+                borderColor="border.default"
+                bg="bg.default"
+                _on={{
+                  bg: "bg.selected",
+                  color: "fg.selected",
+                  borderColor: "border.accent",
+                  _hover: {
+                    bg: "bg.selected",
+                    color: "fg.selected",
+                  },
+                }}
               >
                 <Tooltip.Root
                   lazyMount

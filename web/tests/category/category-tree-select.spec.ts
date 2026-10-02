@@ -220,3 +220,32 @@ test("a user allowed to post in any category can QuickShare into the category be
     page.getByText(`QuickShare into branch ${seed}`),
   ).toBeVisible({ timeout: 10000 });
 });
+
+test("a user allowed to post in any category has the viewed category preselected in QuickShare", async ({
+  page,
+}) => {
+  const seed = unique("qsprecat");
+  const { names } = await seedCategoryTree(seed);
+
+  const username = unique("qspreadmin").replace(/-/g, "");
+  await registerUser(page, username);
+  await withAdminAccessKey(async ({ accountAddRole }) => {
+    await accountAddRole(username, "00000000000000000a00");
+  });
+
+  await page.goto(`/d/tree-branch-${seed}`);
+  await dismissOnboarding(page);
+
+  const form = quickShareForm(page);
+  await expect(form).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: names.branch, exact: true }),
+  ).toBeVisible();
+
+  const title = `QuickShare preselected ${seed}`;
+  await form.getByPlaceholder("Thread title...").fill(title);
+  await form.locator(".ProseMirror").first().fill("no category picked by hand");
+  await form.getByRole("button", { name: "Share" }).click();
+
+  await expect(page.getByText(title)).toBeVisible({ timeout: 10000 });
+});

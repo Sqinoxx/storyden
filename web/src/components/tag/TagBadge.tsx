@@ -125,7 +125,7 @@ export function TagBadge({
   );
 }
 
-function badgeColourCSS(c: string) {
+export function badgeColourCSS(c: string) {
   const { bg, bo, fg } = badgeColours(c);
 
   return {

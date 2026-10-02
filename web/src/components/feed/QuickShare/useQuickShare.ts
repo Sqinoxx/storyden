@@ -64,7 +64,7 @@ export function useQuickShare({ initialCategory }: Props) {
       // A category with children is not a valid posting target for members
       // without PostInAnyCategory, so the tree picker starts empty there.
       category:
-        (initialCategory?.children?.length ?? 0) > 0
+        !canPostUncategorised && (initialCategory?.children?.length ?? 0) > 0
           ? undefined
           : initialCategory?.id,
       semester: termKey(termFor(new Date())),

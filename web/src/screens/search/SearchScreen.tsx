@@ -149,6 +149,7 @@ export function SearchScreen(props: Props) {
           size="sm"
           variant={filtersOpen ? "subtle" : "outline"}
           borderRadius="full"
+          borderColor="border.default"
           flexShrink="0"
           type="button"
           aria-expanded={filtersOpen}

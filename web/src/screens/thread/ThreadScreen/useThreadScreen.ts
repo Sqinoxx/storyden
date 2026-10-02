@@ -21,6 +21,12 @@ import { useBeacon } from "@/lib/beacon/useBeacon";
 import { useReportContext } from "@/lib/report/useReportContext";
 import type { Settings, SignatureConfig } from "@/lib/settings/settings";
 import { useThreadMutations } from "@/lib/thread/mutation";
+import {
+  parseTermKey,
+  termKey,
+  threadTerm,
+  writeThreadSemesterMeta,
+} from "@/lib/thread/semester";
 import { withUndo } from "@/lib/thread/undo";
 import {
   getCleanFilename,
@@ -43,6 +49,7 @@ export const FormSchema = z.object({
   title: z.string().min(1, "Please enter a title."),
   body: z.string().min(1),
   tags: z.array(z.string()).optional(),
+  semester: z.string().optional(),
 });
 export type Form = z.infer<typeof FormSchema>;
 
@@ -93,6 +100,7 @@ export function useThreadScreen({
     defaultValues: {
       title: thread.title,
       body: thread.body,
+      semester: termKey(threadTerm(thread)),
     },
   });
 
@@ -119,6 +127,7 @@ export function useThreadScreen({
           title: data.title,
           body: data.body,
           tags: data.tags?.map((t) => t.name) ?? [],
+          semester: termKey(threadTerm(data)),
         });
       }
     }
@@ -284,6 +293,7 @@ export function useThreadScreen({
       title: thread.title,
       body: thread.body,
       tags: thread.tags.map((t) => t.name),
+      semester: termKey(threadTerm(thread)),
     });
     setAttachments(extractDocumentAssetsFromThread(data ?? thread));
     setEditing(false);
@@ -360,11 +370,17 @@ export function useThreadScreen({
 
         const assetIds = Array.from(finalAssetIds);
 
+        const semester = parseTermKey(formData.semester);
+        const meta = semester
+          ? writeThreadSemesterMeta((data ?? thread).meta, semester)
+          : undefined;
+
         await mutate(
           {
             ...(data ?? thread),
             title: formData.title,
             body: formData.body,
+            meta: meta ?? (data ?? thread).meta,
             assets: attachments, // this is optimistic local state
           },
           { revalidate: false },
@@ -375,6 +391,7 @@ export function useThreadScreen({
           body: formData.body,
           tags: formData.tags,
           asset_ids: assetIds,
+          meta,
         });
 
         setEditing(false);

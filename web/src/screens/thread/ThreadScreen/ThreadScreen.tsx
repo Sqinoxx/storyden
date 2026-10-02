@@ -18,6 +18,7 @@ import { Breadcrumbs } from "@/components/thread/Breadcrumbs";
 import { PostReviewBadge } from "@/components/thread/PostReviewBadge";
 import { ReplyBox } from "@/components/thread/ReplyBox/ReplyBox";
 import { ReplyProvider } from "@/components/thread/ReplyContext";
+import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { ReplyList } from "@/components/thread/ReplyList/ReplyList";
 import { Signature } from "@/components/thread/Signature";
 import { ThreadDeletedAlert } from "@/components/thread/ThreadDeletedAlert";
@@ -146,12 +147,15 @@ export function ThreadScreen(props: Props) {
           )}
 
           {isEditing ? (
-            <TagListField
-              name="tags"
-              control={form.control}
-              initialTags={thread.tags}
-              attachments={thread.assets}
-            />
+            <HStack gap="2" flexWrap="wrap">
+              <SemesterSelect control={form.control} name="semester" />
+              <TagListField
+                name="tags"
+                control={form.control}
+                initialTags={thread.tags}
+                attachments={thread.assets}
+              />
+            </HStack>
           ) : (
             <TagBadgeList tags={thread.tags} />
           )}

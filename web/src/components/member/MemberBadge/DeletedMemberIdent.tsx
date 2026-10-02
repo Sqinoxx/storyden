@@ -1,4 +1,5 @@
 import { DeletedMemberIcon } from "@/components/ui/icons/DeletedMember";
+import { useTranslation } from "@/lib/i18n";
 import { Box, HStack, styled } from "@/styled-system/jsx";
 
 export type Props = {
@@ -27,9 +28,10 @@ export function DeletedMemberIdent({
   originalName,
   originalHandle,
 }: Props) {
+  const t = useTranslation();
   const width = iconSize(size);
 
-  const baseLabel = label ?? "Deleted user";
+  const baseLabel = label ?? t.profile.deletedUser;
   const detailsParts = [
     originalName,
     originalHandle ? `@${originalHandle}` : null,

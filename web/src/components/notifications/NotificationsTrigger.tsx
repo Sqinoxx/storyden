@@ -1,6 +1,7 @@
 import { ButtonProps } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { NotificationIcon } from "@/components/ui/icons/Notification";
+import { useTranslation } from "@/lib/i18n";
 import { Box } from "@/styled-system/jsx";
 
 import { AnchorProps, MenuItem } from "../site/Navigation/Anchors/Anchor";
@@ -19,12 +20,13 @@ export function NotificationsTrigger({
   unread,
   ...props
 }: AnchorProps & ButtonProps & Props) {
+  const t = useTranslation();
   return (
-    <IconButton size="sm" aria-label="Notifications" {...props}>
+    <IconButton size="sm" aria-label={t.nav.notifications} {...props}>
       {NotificationsIcon}
       {!hideLabel && (
         <>
-          &nbsp;<span>{NotificationsLabel}</span>
+          &nbsp;<span>{t.nav.notifications}</span>
         </>
       )}
 

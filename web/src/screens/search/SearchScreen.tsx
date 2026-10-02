@@ -19,8 +19,10 @@ import { Flex, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { vstack } from "@/styled-system/patterns";
 
 import { Props, useSearchScreen } from "./useSearch";
+import { useTranslation } from "@/lib/i18n";
 
 export function SearchScreen(props: Props) {
+  const t = useTranslation();
   const { ready, form, error, isLoading, data, handlers, filters } =
     useSearchScreen(props);
 
@@ -42,7 +44,7 @@ export function SearchScreen(props: Props) {
           borderRightRadius="none"
           type="search"
           background="bg.default"
-          placeholder={`Search...`}
+          placeholder={t.search.placeholder}
           _focus={{
             // NOTE: This disables the default focus behaviour styles for inputs.
             boxShadow: "none" as any, // TODO: Fix types at Park-UI or Panda level
@@ -85,21 +87,20 @@ export function SearchScreen(props: Props) {
           name="kind"
           items={[
             {
-              label: "Threads",
-              description: "Include discussion threads in the search.",
+              label: t.search.kindThreads,
+              description: t.search.kindThreadsDescription,
               icon: <DiscussionIcon />,
               value: DatagraphItemKind.thread,
             },
             {
-              label: "Replies",
-              description:
-                "Include replies to discussion threads in the search.",
+              label: t.search.kindReplies,
+              description: t.search.kindRepliesDescription,
               icon: <ReplyIcon />,
               value: DatagraphItemKind.reply,
             },
             {
-              label: "Library",
-              description: "Include library pages in the search.",
+              label: t.search.kindLibrary,
+              description: t.search.kindLibraryDescription,
               icon: <LibraryIcon />,
               value: DatagraphItemKind.node,
             },
@@ -120,7 +121,7 @@ export function SearchScreen(props: Props) {
             onQuery={handlers.handleQueryAuthors}
             queryResults={filters.authorsResults}
             queryError={filters.authorsError}
-            inputPlaceholder="Authors..."
+            inputPlaceholder={t.search.authorsPlaceholder}
             size="sm"
             triggerProps={{
               width: "full",
@@ -136,7 +137,7 @@ export function SearchScreen(props: Props) {
               onQuery={handlers.handleQueryCategories}
               queryResults={filters.categoriesResults}
               queryError={filters.categoriesError}
-              inputPlaceholder="Categories..."
+              inputPlaceholder={t.search.categoriesPlaceholder}
               size="sm"
               triggerProps={{
                 width: "full",
@@ -153,7 +154,7 @@ export function SearchScreen(props: Props) {
               onQuery={handlers.handleQueryTags}
               queryResults={filters.tagsResults}
               queryError={filters.tagsError}
-              inputPlaceholder="Tags..."
+              inputPlaceholder={t.search.tagsPlaceholder}
               size="sm"
               triggerProps={{
                 width: "full",
@@ -182,9 +183,9 @@ export function SearchScreen(props: Props) {
         <EmptyState hideContributionLabel>
           {query
             ? results && results.total_pages > 0 && page > results.total_pages
-              ? "You've gone past the last page! Nothing to see here."
-              : "Keine Suchergebnisse gefunden."
-            : "Suchen Sie nach Beiträgen, Antworten oder Dokumenten."}
+              ? t.search.pastLastPage
+              : t.search.noResults
+            : t.search.emptyPrompt}
         </EmptyState>
       )}
     </styled.form>

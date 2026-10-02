@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { Input } from "@/components/ui/input";
 import { WEB_ADDRESS } from "@/config";
+import { useTranslation } from "@/lib/i18n";
 import { styled } from "@/styled-system/jsx";
 import { vstack } from "@/styled-system/patterns";
 import { deriveError } from "@/utils/error";
@@ -65,6 +66,7 @@ export function usePasswordResetEmailScreen() {
 }
 
 export function PasswordResetEmailScreen() {
+  const t = useTranslation();
   const { error, setError, form, handlers } = usePasswordResetEmailScreen();
 
   return (
@@ -80,7 +82,7 @@ export function PasswordResetEmailScreen() {
           type="email"
           w="full"
           textAlign="center"
-          placeholder="Email address..."
+          placeholder={t.settings.email.placeholder}
           required
           {...form.register("email")}
         />
@@ -88,14 +90,14 @@ export function PasswordResetEmailScreen() {
       </FormControl>
 
       <Button type="submit" size="sm" w="full">
-        Reset
+        {t.auth.resetButton}
       </Button>
 
       <Admonition
         value={Boolean(error)}
         onChange={() => setError(null)}
         kind="failure"
-        title="Unable to send reset email"
+        title={t.auth.resetEmailFailed}
         textAlign="start"
       >
         {error}

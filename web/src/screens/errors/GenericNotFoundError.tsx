@@ -1,6 +1,7 @@
 import { UnreadyBanner } from "@/components/site/Unready";
 
 import { LinkButton } from "@/components/ui/link-button";
+import { Trans } from "@/lib/i18n";
 import { VStack } from "@/styled-system/jsx";
 
 export function GenericNotFoundError() {
@@ -9,7 +10,7 @@ export function GenericNotFoundError() {
       <VStack maxW="sm" minH="60" gap="8">
         <UnreadyBanner error="The link to this page did not lead anywhere." />
         <LinkButton variant="subtle" href="/">
-          Go back to the home page
+          <Trans path="errors.backToHome" />
         </LinkButton>
       </VStack>
     </VStack>

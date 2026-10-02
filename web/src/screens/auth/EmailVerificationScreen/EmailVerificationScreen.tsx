@@ -19,6 +19,7 @@ import { PinInputField } from "@/components/ui/form/PinInputField";
 import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
 import { vstack } from "@/styled-system/patterns";
+import { useTranslation } from "@/lib/i18n";
 
 export const FormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -32,6 +33,7 @@ type Props = {
 };
 
 export function EmailVerificationScreen(props: Props) {
+  const t = useTranslation();
   const probablyEmail = props.initialAccount?.email_addresses.find(
     (e) => e.verified === false,
   );
@@ -52,9 +54,9 @@ export function EmailVerificationScreen(props: Props) {
       // The address in the field wins so a mistyped signup can still be fixed.
       await toast
         .promise(resendVerificationEmail(form.getValues("email")), {
-          loading: "Sending a new code...",
-          success: "A new code is on its way. Check your inbox.",
-          error: "The confirmation email could not be sent.",
+          loading: t.verification.sendingCode,
+          success: t.verification.codeSent,
+          error: t.verification.resendError,
         })
         .unwrap();
     } catch {
@@ -89,13 +91,13 @@ export function EmailVerificationScreen(props: Props) {
 
   return (
     <form className={vstack()} onSubmit={handleSubmit}>
-      <Heading>Verify your email address.</Heading>
-      <p>Check your email for a 6 digit code.</p>
+      <Heading>{t.verification.screenTitle}</Heading>
+      <p>{t.verification.checkEmailForCode}</p>
 
       <FormControl>
         <Input
           type="email"
-          placeholder="Email address..."
+          placeholder={t.settings.email.placeholder}
           {...form.register("email")}
         />
         <FormErrorText>{form.formState.errors["email"]?.message}</FormErrorText>
@@ -111,7 +113,7 @@ export function EmailVerificationScreen(props: Props) {
         loading={form.formState.isSubmitting}
         disabled={!form.formState.isValid}
       >
-        Verify
+        {t.verification.verify}
       </Button>
 
       <FormErrorText>{form.formState.errors["root"]?.message}</FormErrorText>
@@ -123,12 +125,12 @@ export function EmailVerificationScreen(props: Props) {
         onClick={handleResend}
         loading={isResending}
       >
-        Send a new code
+        {t.verification.sendNewCode}
       </Button>
 
       {props.returnURL && (
         <Link className="link" href={props.returnURL}>
-          Back to previous page
+          {t.verification.backToPreviousPage}
         </Link>
       )}
     </form>

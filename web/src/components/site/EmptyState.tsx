@@ -3,6 +3,7 @@
 import { JSX, PropsWithChildren } from "react";
 
 import { useSession } from "@/auth";
+import { useTranslation } from "@/lib/i18n";
 import { Center, VStack, VstackProps } from "@/styled-system/jsx";
 import { vstack } from "@/styled-system/patterns";
 
@@ -23,6 +24,7 @@ export function EmptyState({
   children,
   ...props
 }: PropsWithChildren<Props & VstackProps>) {
+  const t = useTranslation();
   const session = useSession();
 
   const contributionLabel = session
@@ -34,7 +36,7 @@ export function EmptyState({
       {icon || <EmptyIcon />}
 
       <VStack gap="1" textAlign="center" fontStyle="italic">
-        {children || <p>There&apos;s no content here.</p>}
+        {children || <p>{t.common.noContent}</p>}
         {!hideContributionLabel && <p>{contributionLabel}</p>}
       </VStack>
     </Center>

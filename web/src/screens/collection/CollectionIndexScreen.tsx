@@ -8,6 +8,7 @@ import { UnreadyBanner } from "@/components/site/Unready";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { Heading } from "@/components/ui/heading";
 import { CardGrid } from "@/components/ui/rich-card";
+import { useTranslation } from "@/lib/i18n";
 import { LStack } from "@/styled-system/jsx";
 
 export type Props = {
@@ -16,6 +17,7 @@ export type Props = {
 };
 
 export function CollectionIndexScreen(props: Props) {
+  const t = useTranslation();
   const { data, error } = useCollectionList();
   if (!data) {
     return <UnreadyBanner error={error} />;
@@ -26,7 +28,7 @@ export function CollectionIndexScreen(props: Props) {
       <Breadcrumbs
         index={{
           href: "/c",
-          label: "Collections",
+          label: t.nav.collections,
         }}
         crumbs={[]}
       >
@@ -34,7 +36,7 @@ export function CollectionIndexScreen(props: Props) {
           <CollectionCreateTrigger
             session={props.session}
             size="xs"
-            label="Create"
+            label={t.actions.create}
           />
         )}
       </Breadcrumbs>

@@ -14,6 +14,7 @@ import { CommandPaletteProvider, useCommandPalette } from "./Context";
 import { RobotChatContext } from "./RobotChat/RobotChatContext";
 import { RobotCommandPaletteStatusBar } from "./RobotChat/RobotCommandPaletteStatusBar";
 import { useChatSessionState } from "./RobotChat/useChatSessionState";
+import { useTranslation } from "@/lib/i18n";
 
 export function CommandPalette() {
   return (
@@ -24,6 +25,7 @@ export function CommandPalette() {
 }
 
 function CommandPaletteDialog() {
+  const t = useTranslation();
   const { open, dialogRef, initialSessionID } = useCommandPalette();
   const { loadingState, sessionState } = useChatSessionState(initialSessionID);
 
@@ -31,14 +33,14 @@ function CommandPaletteDialog() {
     <Command.Dialog
       ref={dialogRef}
       open={open}
-      label="Command Menu"
+      label={t.search.commandMenu}
     >
       <DialogTitle asChild>
-        <styled.h2 srOnly>Command Menu</styled.h2>
+        <styled.h2 srOnly>{t.search.commandMenu}</styled.h2>
       </DialogTitle>
       <DialogDescription asChild>
         <styled.p srOnly>
-          The command palette allows you to quickly navigate and perform actions in Storyden.
+          {t.search.commandMenuDescription}
         </styled.p>
       </DialogDescription>
       <RobotChatContext

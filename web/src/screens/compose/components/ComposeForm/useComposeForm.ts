@@ -26,6 +26,7 @@ import {
 import { hasPermission } from "@/utils/permissions";
 
 import { normalizeAssetPath } from "@/utils/asset";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = { editing?: string; initialDraft?: Thread };
 
@@ -40,6 +41,7 @@ export const FormShapeSchema = z.object({
 export type FormShape = z.infer<typeof FormShapeSchema>;
 
 export function useComposeForm({ initialDraft, editing }: Props) {
+  const t = useTranslation();
   const router = useRouter();
   const session = useSession();
   const canPostUncategorised = hasPermission(
@@ -158,8 +160,8 @@ export function useComposeForm({ initialDraft, editing }: Props) {
       },
       {
         promiseToast: {
-          loading: "Saving draft...",
-          success: "Draft saved!",
+          loading: t.toasts.savingDraft,
+          success: t.toasts.draftSaved,
         },
         cleanup: async () => {
           setIsSavingDraft(false);
@@ -176,8 +178,8 @@ export function useComposeForm({ initialDraft, editing }: Props) {
       },
       {
         promiseToast: {
-          loading: "Publishing post...",
-          success: "Post published!",
+          loading: t.toasts.publishingPost,
+          success: t.toasts.postPublished,
         },
         cleanup: async () => {
           setIsPublishing(false);
@@ -195,8 +197,8 @@ export function useComposeForm({ initialDraft, editing }: Props) {
       },
       {
         promiseToast: {
-          loading: "Saving draft...",
-          success: "Draft saved!",
+          loading: t.toasts.savingDraft,
+          success: t.toasts.draftSaved,
         },
         cleanup: async () => {
           setIsSavingDraft(false);

@@ -12,6 +12,7 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { Heading } from "@/components/ui/heading";
 import { CardGrid } from "@/components/ui/rich-card";
 import { LStack, VStack, styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   session?: Account;
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export function CollectionScreen({ session, initialCollection }: Props) {
+  const t = useTranslation();
   const { data, error } = useCollectionGet(initialCollection.id, {
     swr: { fallbackData: initialCollection },
   });
@@ -35,12 +37,12 @@ export function CollectionScreen({ session, initialCollection }: Props) {
       <Breadcrumbs
         index={{
           href: "/c",
-          label: "Collections",
+          label: t.nav.collections,
         }}
         crumbs={[{ label: collection.name, href: url }]}
       >
         {session && (
-          <CollectionCreateTrigger session={session} size="xs" label="Create" />
+          <CollectionCreateTrigger session={session} size="xs" label={t.actions.create} />
         )}
       </Breadcrumbs>
 
@@ -52,7 +54,7 @@ export function CollectionScreen({ session, initialCollection }: Props) {
             <styled.span>{collection.description}</styled.span>
           ) : (
             <styled.span color="fg.muted" fontStyle="italic">
-              (no description)
+              ({t.collections.noDescription})
             </styled.span>
           )}
         </styled.p>

@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/site/EmptyState";
 import { styled } from "@/styled-system/jsx";
 
 import { DatagraphItemCard } from "../datagraph/DatagraphItemCard";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   result: DatagraphSearchResult;
@@ -11,10 +12,11 @@ type Props = {
 };
 
 export function DatagraphSearchResults({ result, query }: Props) {
+  const t = useTranslation();
   if (!result.items?.length) {
     return (
       <EmptyState>
-        <p>No items were found.</p>
+        <p>{t.search.noItems}</p>
       </EmptyState>
     );
   }

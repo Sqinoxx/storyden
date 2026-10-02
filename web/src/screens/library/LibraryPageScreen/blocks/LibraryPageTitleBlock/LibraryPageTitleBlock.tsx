@@ -14,6 +14,7 @@ import { useWatch } from "../../store";
 import { useEditState } from "../../useEditState";
 
 import { useLibraryPageTitleBlock } from "./useLibraryPageTitleBlock";
+import { useTranslation } from "@/lib/i18n";
 
 export function LibraryPageTitleBlock() {
   const name = useWatch((s) => s.draft.name);
@@ -154,6 +155,7 @@ export function LibraryPageTitleBlock() {
 }
 
 function LibraryPageTitleBlockEditing() {
+  const t = useTranslation();
   const {
     defaultValue,
     isTitleSuggestEnabled,
@@ -176,13 +178,13 @@ function LibraryPageTitleBlockEditing() {
             id="name-input"
             size={"2xl" as any}
             fontWeight="bold"
-            placeholder="Name..."
+            placeholder={t.library.namePlaceholder}
             onValueChange={handleChangeAndReset}
             defaultValue={defaultValue}
           />
           {isTitleSuggestEnabled && (
             <IntelligenceAction
-              title="Suggest a title for this page"
+              title={t.library.suggestTitle}
               onClick={handleSuggest}
               variant="subtle"
               h="full"

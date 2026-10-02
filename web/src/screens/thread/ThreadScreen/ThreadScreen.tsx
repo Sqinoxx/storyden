@@ -43,6 +43,7 @@ import { FileAttachmentList } from "@/components/post/FileAttachmentList";
 import { Form, Props, useThreadScreen } from "./useThreadScreen";
 
 export function ThreadScreen(props: Props) {
+  const t = useTranslation();
   const {
     ready,
     error,
@@ -89,10 +90,10 @@ export function ThreadScreen(props: Props) {
                     type="button"
                     onClick={handlers.handleDiscardChanges}
                   >
-                    Discard
+                    {t.common.discard}
                   </CancelAction>
                   <SaveAction type="submit" disabled={isEmpty}>
-                    Save
+                    {t.common.save}
                   </SaveAction>
                 </>
               )}
@@ -230,6 +231,7 @@ export function ThreadScreen(props: Props) {
 type TitleInputProps = Omit<ControllerProps<Form>, "render">;
 
 export function TitleInput({ control }: TitleInputProps) {
+  const t = useTranslation();
   return (
     <Controller<Form>
       render={({ field: { onChange, ...field }, formState, fieldState }) => {
@@ -237,7 +239,7 @@ export function TitleInput({ control }: TitleInputProps) {
           <>
             <HeadingInput
               id="title-input"
-              placeholder="Thread title..."
+              placeholder={t.editor.titlePlaceholder}
               onValueChange={onChange}
               defaultValue={formState.defaultValues?.["title"]}
               {...field}

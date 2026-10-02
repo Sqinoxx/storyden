@@ -14,9 +14,10 @@ export function LoginAnchor(props: JsxStyleProps) {
 }
 
 export function RegisterAnchor(props: JsxStyleProps) {
+  const t = useTranslation();
   return (
     <LinkButton href="/register" size="sm" {...props}>
-      Register
+      {t.auth.register}
     </LinkButton>
   );
 }

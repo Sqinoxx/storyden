@@ -1,3 +1,4 @@
+import { useLanguage } from "@/lib/i18n";
 import { timestamp } from "@/utils/date";
 
 import { styled } from "@/styled-system/jsx";
@@ -13,10 +14,11 @@ type Props = {
 
 export function Timestamp(props: Props & JsxStyleProps) {
   const { created, href, large, ...rest } = props;
+  const { language, t } = useLanguage();
 
   const createdDate = normaliseDate(created);
 
-  const createdAt = timestamp(createdDate, !large);
+  const createdAt = timestamp(createdDate, !large, language);
 
   return (
     <styled.span
@@ -31,7 +33,7 @@ export function Timestamp(props: Props & JsxStyleProps) {
         <Anchor className="timestamp__anchor" href={href}>
           {large && (
             <styled.span className="timestamp__label fluid-font-size">
-              created
+              {t.common.created}
             </styled.span>
           )}{" "}
           {createdAt}

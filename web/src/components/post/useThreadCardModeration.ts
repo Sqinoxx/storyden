@@ -4,9 +4,11 @@ import { handle } from "@/api/client";
 import { ThreadReference } from "@/api/openapi-schema";
 import { useConfirmation } from "@/components/site/useConfirmation";
 import { useFeedMutations } from "@/lib/feed/mutation";
+import { useTranslation } from "@/lib/i18n";
 import { withUndo } from "@/lib/thread/undo";
 
 export function useThreadCardModeration(thread: ThreadReference) {
+  const t = useTranslation();
   const router = useRouter();
   const { updateThread, deleteThread, revalidate } = useFeedMutations();
 
@@ -23,8 +25,8 @@ export function useThreadCardModeration(thread: ThreadReference) {
       },
       {
         promiseToast: {
-          loading: "Accepting...",
-          success: "Thread accepted!",
+          loading: t.toasts.accepting,
+          success: t.toasts.threadAccepted,
         },
         cleanup: async () => {
           await revalidate();
@@ -41,7 +43,7 @@ export function useThreadCardModeration(thread: ThreadReference) {
     await handle(
       async () => {
         await withUndo({
-          message: "Thread deleted",
+          message: t.toasts.threadDeleted,
           duration: 5000,
           toastId: `thread-${thread.id}`,
           action: async () => {

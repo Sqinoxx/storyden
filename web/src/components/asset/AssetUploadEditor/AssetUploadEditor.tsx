@@ -2,6 +2,7 @@ import { CSSProperties } from "react";
 import AvatarEditor from "react-avatar-editor";
 
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 import { Flex, LStack, styled } from "@/styled-system/jsx";
 import { button } from "@/styled-system/recipes";
 
@@ -16,6 +17,7 @@ const DEFAULT_WIDTH = 1280;
 const DEFAULT_HEIGHT = 720;
 
 export function AssetUploadEditor(props: AssetUploadEditorProps) {
+  const t = useTranslation();
   const {
     ref,
     pinchCaptureRef,
@@ -94,7 +96,7 @@ export function AssetUploadEditor(props: AssetUploadEditorProps) {
             })}
             htmlFor="asset-upload-editor__file-input"
           >
-            Edit
+            {t.common.edit}
           </styled.label>
           <Button
             flexGrow="1"
@@ -104,7 +106,7 @@ export function AssetUploadEditor(props: AssetUploadEditorProps) {
             onClick={onSave}
             disabled={saving}
           >
-            Save
+            {t.common.save}
           </Button>
         </Flex>
       </LStack>

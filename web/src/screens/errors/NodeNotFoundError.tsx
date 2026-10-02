@@ -1,6 +1,7 @@
 import { UnreadyBanner } from "@/components/site/Unready";
 
 import { LinkButton } from "@/components/ui/link-button";
+import { Trans } from "@/lib/i18n";
 import { VStack } from "@/styled-system/jsx";
 
 export function NodeNotFoundError() {
@@ -9,7 +10,7 @@ export function NodeNotFoundError() {
       <VStack maxW="sm" minH="60" gap="8">
         <UnreadyBanner error="The link to this page did not lead anywhere." />
         <LinkButton variant="subtle" href="/l">
-          Library
+          <Trans path="nav.library" />
         </LinkButton>
       </VStack>
     </VStack>

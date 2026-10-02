@@ -11,6 +11,7 @@ import { LinkButton } from "@/components/ui/link-button";
 import { Box, HStack, styled } from "@/styled-system/jsx";
 
 import { DiscussionRoute } from "../site/Navigation/Anchors/Discussion";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   thread?: Thread;
@@ -29,6 +30,7 @@ type Breadcrumb =
     };
 
 export function Breadcrumbs({ thread }: Props) {
+  const t = useTranslation();
   const category = thread?.category
     ? [
         {
@@ -66,7 +68,7 @@ export function Breadcrumbs({ thread }: Props) {
         minW="min"
         href={DiscussionRoute}
       >
-        Discussion
+        {t.nav.discussion}
       </LinkButton>
       {crumbs.map((c) => {
         return (

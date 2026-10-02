@@ -106,7 +106,7 @@ export const Breadcrumbs_ = (
             >
               {p}{" "}
               {isCurrent && visibility && visibility !== "published" && (
-                <span>({visibility})</span>
+                <span>({t.visibility[visibility]})</span>
               )}
             </LinkButton>
           </Fragment>

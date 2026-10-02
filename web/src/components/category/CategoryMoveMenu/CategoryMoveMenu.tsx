@@ -19,12 +19,14 @@ import {
   CreateCategoryID,
   CreateCategoryMenuItem,
 } from "../CategoryCreate/CategoryCreateTrigger";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   thread: ThreadReference;
 };
 
 export function useCategoryMoveMenu({ thread }: Props) {
+  const t = useTranslation();
   const { revalidate, updateCategory } = useThreadMutations(thread);
 
   async function handleSelect({ value }: MenuSelectionDetails) {
@@ -40,8 +42,8 @@ export function useCategoryMoveMenu({ thread }: Props) {
       },
       {
         promiseToast: {
-          loading: "Moving thread...",
-          success: "Moved!",
+          loading: t.toasts.movingThread,
+          success: t.toasts.moved,
         },
         async cleanup() {
           await revalidate();
@@ -58,6 +60,7 @@ export function useCategoryMoveMenu({ thread }: Props) {
 }
 
 export function CategoryMoveMenu(props: Props) {
+  const t = useTranslation();
   const { handlers } = useCategoryMoveMenu(props);
 
   return (
@@ -70,7 +73,7 @@ export function CategoryMoveMenu(props: Props) {
       <Menu.TriggerItem justifyContent="space-between">
         <HStack gap="1">
           <CategoryIcon />
-          Move
+          {t.thread.move}
         </HStack>
         <SubmenuIcon />
       </Menu.TriggerItem>
@@ -91,6 +94,7 @@ function LazyLoadedCategoryMoveMenuContent({
 }: {
   onSelect: (details: MenuSelectionDetails) => void;
 }) {
+  const t = useTranslation();
   const session = useSession();
   const { data, error } = useCategoryList();
 
@@ -105,7 +109,7 @@ function LazyLoadedCategoryMoveMenuContent({
     return (
       <Menu.Content minW="48" userSelect="none">
         <Menu.ItemGroup id="move-no-categories">
-          <Menu.ItemGroupLabel>No categories to move to</Menu.ItemGroupLabel>
+          <Menu.ItemGroupLabel>{t.thread.noCategoriesToMoveTo}</Menu.ItemGroupLabel>
 
           <CreateCategoryMenuItem />
         </Menu.ItemGroup>
@@ -122,7 +126,7 @@ function LazyLoadedCategoryMoveMenuContent({
   return (
     <Menu.Content minW="48" userSelect="none">
       <Menu.ItemGroup id="move">
-        <Menu.ItemGroupLabel>Move thread</Menu.ItemGroupLabel>
+        <Menu.ItemGroupLabel>{t.thread.moveThread}</Menu.ItemGroupLabel>
 
         <Menu.Separator />
 

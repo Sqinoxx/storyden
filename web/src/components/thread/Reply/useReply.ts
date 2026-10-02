@@ -14,6 +14,7 @@ import type { SignatureConfig } from "@/lib/settings/settings";
 import { useThreadMutations } from "@/lib/thread/mutation";
 import { withUndo } from "@/lib/thread/undo";
 import { hasPermission } from "@/utils/permissions";
+import { useTranslation } from "@/lib/i18n";
 
 export const FormSchema = z.object({
   body: z.string().min(1, "Reply is empty."),
@@ -34,6 +35,7 @@ export function useReply({
   reply,
   currentPage,
 }: Props) {
+  const t = useTranslation();
   const router = useRouter();
   const session = useSession(initialSession);
   const { resolveReport } = useReportContext();
@@ -101,8 +103,8 @@ export function useReply({
       },
       {
         promiseToast: {
-          loading: "Saving...",
-          success: isEditingInReview ? "Saved and published!" : "Saved!",
+          loading: t.toasts.saving,
+          success: isEditingInReview ? t.toasts.savedAndPublished : t.toasts.saved,
         },
         cleanup: async () => {
           await revalidate();
@@ -120,8 +122,8 @@ export function useReply({
       },
       {
         promiseToast: {
-          loading: "Accepting...",
-          success: "Reply accepted!",
+          loading: t.toasts.accepting,
+          success: t.toasts.replyAccepted,
         },
         cleanup: async () => {
           await revalidate();
@@ -134,7 +136,7 @@ export function useReply({
     await handle(
       async () => {
         await withUndo({
-          message: "Reply deleted",
+          message: t.toasts.replyDeleted,
           duration: 5000,
           toastId: `reply-${reply.id}`,
           action: async () => {

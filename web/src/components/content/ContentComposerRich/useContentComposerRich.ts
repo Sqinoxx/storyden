@@ -30,8 +30,8 @@ import {
 } from "./plugins/FileAttachmentPlugin";
 import { LinkPasteMenuPlugin } from "./plugins/LinkPasteMenuPlugin";
 import { LinkPreview } from "./plugins/LinkPreviewPlugin";
+import { useTranslation } from "@/lib/i18n";
 
-const ERROR_UNSUPPORTED_FILE_TYPE = "File type not supported";
 
 /**
  * Upload placeholders carry a blob URL and no asset, so they must never reach a
@@ -52,6 +52,7 @@ function stripPendingUploads(html: string): string {
 export type Block = "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
 export function useContentComposer(props: ContentComposerProps) {
+  const t = useTranslation();
   const { uploadWithProgress } = useImageUpload();
   const [uploadingCount, setUploadingCount] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -159,7 +160,7 @@ export function useContentComposer(props: ContentComposerProps) {
       handleCancel,
     }),
     Placeholder.configure({
-      placeholder: props.placeholder ?? "Write your heart out...",
+      placeholder: props.placeholder ?? t.editor.placeholder,
       includeChildren: true,
       showOnlyCurrent: false,
     }),
@@ -311,7 +312,7 @@ export function useContentComposer(props: ContentComposerProps) {
     const errorTransaction = currentState.tr.setNodeMarkup(pos, undefined, {
       ...currentState.doc.nodeAt(pos)?.attrs,
       "data-uploading": null,
-      "data-upload-error": "Upload failed",
+      "data-upload-error": t.editor.uploadFailed,
     });
 
     view.dispatch(errorTransaction);
@@ -697,8 +698,8 @@ export function useContentComposer(props: ContentComposerProps) {
       return dragErrorMessage;
     }
     return dragFileCount === 1
-      ? "Drop 1 file to upload"
-      : `Drop ${dragFileCount} files to upload`;
+      ? t.upload.dropOneFile
+      : t.upload.dropFiles.replace("{count}", String(dragFileCount));
   }
 
   function handleDragOver(e: React.DragEvent) {
@@ -738,7 +739,7 @@ export function useContentComposer(props: ContentComposerProps) {
 
     if (!hasAsset) {
       setIsDragError(true);
-      setDragErrorMessage(ERROR_UNSUPPORTED_FILE_TYPE);
+      setDragErrorMessage(t.upload.unsupportedType);
     } else {
       setIsDragError(false);
       setDragErrorMessage("");
@@ -792,7 +793,7 @@ export function useContentComposer(props: ContentComposerProps) {
 
     setIsDragError(true);
     setDragErrorMessage(
-      files.length > 0 ? ERROR_UNSUPPORTED_FILE_TYPE : "Drop not recognised, please try again",
+      files.length > 0 ? t.upload.unsupportedType : t.upload.dropNotRecognised,
     );
     setDragFileCount(0);
     setIsDragging(true);

@@ -6,6 +6,8 @@ import { token } from "@/styled-system/tokens";
 
 import { MemberIdent, MemberName } from "./MemberIdent";
 
+import { de } from "@/lib/i18n/translations/de";
+
 function role(overrides: Partial<AccountRoleRef> = {}): AccountRoleRef {
   return {
     id: "role_custom",
@@ -209,7 +211,7 @@ describe("MemberIdent common permutations", () => {
       />,
     );
 
-    expect(getByText("Deleted user")).toBeInTheDocument();
+    expect(getByText(de.profile.deletedUser)).toBeInTheDocument();
     expect(queryByText("@deleted-acc_deleted")).not.toBeInTheDocument();
   });
 
@@ -236,7 +238,7 @@ describe("MemberIdent common permutations", () => {
     );
 
     expect(
-      getByText("Deleted user (Original Name / @original_handle)"),
+      getByText(`${de.profile.deletedUser} (Original Name / @original_handle)`),
     ).toBeInTheDocument();
   });
 
@@ -260,6 +262,6 @@ describe("MemberIdent common permutations", () => {
 
     expect(getByText("John Doe")).toBeInTheDocument();
     expect(getByText("@john")).toBeInTheDocument();
-    expect(queryByText("Deleted user")).not.toBeInTheDocument();
+    expect(queryByText(de.profile.deletedUser)).not.toBeInTheDocument();
   });
 });

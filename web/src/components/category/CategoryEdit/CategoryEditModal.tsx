@@ -15,8 +15,10 @@ import {
 import { HStack, VStack, styled } from "@/styled-system/jsx";
 
 import { Props, useCategoryEdit } from "./useCategoryEdit";
+import { useTranslation } from "@/lib/i18n";
 
 export function CategoryEditModal(props: Props) {
+  const t = useTranslation();
   const { form, handlers } = useCategoryEdit(props);
 
   const hostname = new URL(WEB_ADDRESS).host;
@@ -26,7 +28,7 @@ export function CategoryEditModal(props: Props) {
       isOpen={props.isOpen}
       onClose={props.onClose}
       onOpenChange={props.onOpenChange}
-      title="Edit category"
+      title={t.category.editTitle}
     >
       <styled.form
         display="flex"
@@ -39,7 +41,7 @@ export function CategoryEditModal(props: Props) {
       >
         <VStack w="full">
           <FormControl>
-            <FormLabel>Cover Image</FormLabel>
+            <FormLabel>{t.category.coverImage}</FormLabel>
             <AssetUploadEditor
               width={CATEGORY_COVER_WIDTH}
               height={CATEGORY_COVER_HEIGHT}
@@ -47,21 +49,21 @@ export function CategoryEditModal(props: Props) {
               onUpload={handlers.handleImageUpload}
             />
             <FormFeedback error={form.formState.errors["cover_image"]?.message}>
-              Upload a cover image for the category (4:1 aspect ratio).
+              {t.category.coverImageHelper}
             </FormFeedback>
           </FormControl>
 
           <HStack w="full" alignItems="start">
             <FormControl>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>{t.category.name}</FormLabel>
               <Input {...form.register("name")} type="text" />
               <FormFeedback error={form.formState.errors["name"]?.message}>
-                The name of the category.
+                {t.category.nameHelper}
               </FormFeedback>
             </FormControl>
 
             <FormControl>
-              <FormLabel>URL Slug</FormLabel>
+              <FormLabel>{t.category.urlSlug}</FormLabel>
               <HStack gap="0" alignItems="stretch" flex="1">
                 <InputPrefix
                   display={{
@@ -86,24 +88,24 @@ export function CategoryEditModal(props: Props) {
                 />
               </HStack>
               <FormFeedback error={form.formState.errors["slug"]?.message}>
-                The URL path for the category.
+                {t.category.slugHelper}
               </FormFeedback>
             </FormControl>
           </HStack>
 
           <FormControl>
-            <FormLabel>Description</FormLabel>
+            <FormLabel>{t.category.description}</FormLabel>
             <Input {...form.register("description")} type="text" />
             <FormFeedback error={form.formState.errors["description"]?.message}>
-              The description for the category.
+              {t.category.descriptionHelper}
             </FormFeedback>
           </FormControl>
 
           <FormControl>
-            <FormLabel>Colour</FormLabel>
+            <FormLabel>{t.category.colour}</FormLabel>
             <ColourPickerField control={form.control} name="colour" />
             <FormFeedback error={form.formState.errors["colour"]?.message}>
-              The colour for the category.
+              {t.category.colourHelper}
             </FormFeedback>
           </FormControl>
         </VStack>
@@ -115,10 +117,10 @@ export function CategoryEditModal(props: Props) {
             size="sm"
             onClick={handlers.handleCancel}
           >
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button type="submit" size="sm">
-            Save
+            {t.common.save}
           </Button>
         </HStack>
       </styled.form>

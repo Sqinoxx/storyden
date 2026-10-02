@@ -7,12 +7,14 @@ import { LibraryPageMenu } from "@/components/library/LibraryPageMenu/LibraryPag
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import { Timestamp } from "@/components/site/Timestamp";
 import { Card, CardRows } from "@/components/ui/rich-card";
+import { useTranslation } from "@/lib/i18n";
 import { HStack, WStack } from "@/styled-system/jsx";
 import { getAssetURL } from "@/utils/asset";
 
 export function QueueNodeList({ nodes }: { nodes: NodeWithChildren[] }) {
+  const t = useTranslation();
   if (nodes.length === 0) {
-    return <p>Submissions appear here.</p>;
+    return <p>{t.queue.submissionsEmpty}</p>;
   }
 
   return (

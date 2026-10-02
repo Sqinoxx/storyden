@@ -13,6 +13,7 @@ import {
 import { ProfileReference } from "@/api/openapi-schema";
 import { Button } from "@/components/ui/button";
 import { HStack, VStack, styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 type MemberWarningTriggerProps = {
   children?: ReactNode;
@@ -23,6 +24,7 @@ export function MemberWarningTrigger({
   children,
   profile,
 }: MemberWarningTriggerProps) {
+  const t = useTranslation();
   const { mutate } = useSWRConfig();
   const { onOpen, onClose, isOpen } = useDisclosure();
   const { trigger: createWarning, isMutating: loading } =
@@ -31,7 +33,7 @@ export function MemberWarningTrigger({
 
   async function issueWarning() {
     if (!reason.trim()) {
-      toast.error("Please provide a warning reason.");
+      toast.error(t.moderation.warningReasonRequired);
       return;
     }
 
@@ -40,7 +42,7 @@ export function MemberWarningTrigger({
         reason: reason.trim(),
       });
       await mutate(getAccountWarningListKey(profile.id));
-      toast.success(`Warning issued to ${profile.name}.`);
+      toast.success(t.moderation.warningIssued.replace("{name}", profile.name));
       setReason("");
       onClose();
     });
@@ -52,7 +54,7 @@ export function MemberWarningTrigger({
     React.cloneElement(children, { onClick: onOpen })
   ) : (
     <Button colorPalette="orange" onClick={onOpen}>
-      Warn
+      {t.moderation.warn}
     </Button>
   );
 
@@ -62,17 +64,17 @@ export function MemberWarningTrigger({
       <ModalDrawer
         isOpen={isOpen}
         onClose={onClose}
-        title={`Issue warning to ${profile.name}`}
+        title={t.moderation.issueWarningTo.replace("{name}", profile.name)}
       >
         <VStack alignItems="start" gap="3">
           <styled.p fontSize="sm" color="fg.subtle">
-            Warnings are recorded for internal moderation history.
+            {t.moderation.warningsRecorded}
           </styled.p>
           <styled.textarea
             rows={5}
             value={reason}
             onChange={(e) => setReason(e.currentTarget.value)}
-            placeholder="Clear, specific reason for this warning"
+            placeholder={t.moderation.warningReasonPlaceholder}
             width="full"
             borderWidth="thin"
             borderRadius="sm"
@@ -87,7 +89,7 @@ export function MemberWarningTrigger({
               onClick={onClose}
               disabled={loading}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               type="button"
@@ -96,7 +98,7 @@ export function MemberWarningTrigger({
               onClick={issueWarning}
               loading={loading}
             >
-              Issue warning
+              {t.profile.issueWarning}
             </Button>
           </HStack>
         </VStack>

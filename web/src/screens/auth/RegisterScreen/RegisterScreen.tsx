@@ -2,6 +2,7 @@ import { AuthMode, RegistrationMode } from "@/api/openapi-schema";
 import { authProviderList } from "@/api/openapi-server/auth";
 import * as Alert from "@/components/ui/alert";
 import { WarningIcon } from "@/components/ui/icons/Warning";
+import { Trans } from "@/lib/i18n";
 import { VStack, styled } from "@/styled-system/jsx";
 
 import { RegisterEmailForm } from "./RegisterEmail/RegisterEmailForm";
@@ -25,10 +26,11 @@ export async function RegisterScreen({
   if (isInviteOnly && !invitationID) {
     return (
       <VStack textAlign="center">
-        <styled.h1 fontWeight="bold">Registration is invite-only.</styled.h1>
+        <styled.h1 fontWeight="bold">
+          <Trans path="auth.inviteOnlyTitle" />
+        </styled.h1>
         <styled.p color="fg.muted" textWrap="balance">
-          Ask a community member or administrator for an invitation link to
-          join.
+          <Trans path="auth.inviteOnlyDescription" />
         </styled.p>
       </VStack>
     );
@@ -39,10 +41,10 @@ export async function RegisterScreen({
     return (
       <VStack textAlign="center">
         <styled.h1 fontWeight="bold">
-          Registration is currently closed.
+          <Trans path="auth.registrationClosedTitle" />
         </styled.h1>
         <styled.p color="fg.muted" textWrap="balance">
-          This site has closed public registration of accounts.
+          <Trans path="auth.registrationClosedDescription" />
         </styled.p>
       </VStack>
     );
@@ -54,7 +56,9 @@ export async function RegisterScreen({
 
     return (
       <VStack>
-        <p>This instance is private.</p>
+        <p>
+          <Trans path="auth.instancePrivate" />
+        </p>
       </VStack>
     );
   }

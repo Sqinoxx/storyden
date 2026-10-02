@@ -11,6 +11,7 @@ import { Asset, AssetID } from "@/api/openapi-schema";
 import { Button } from "@/components/ui/button";
 import * as FileUpload from "@/components/ui/file-upload";
 import { MediaAddIcon, MediaIcon } from "@/components/ui/icons/Media";
+import { useTranslation } from "@/lib/i18n";
 import { useMaxUploadSizeBytes } from "@/lib/settings/uploads";
 import { ButtonVariantProps, button } from "@/styled-system/recipes";
 import { getExtensionsForMimeTypes } from "@/utils/mime-types";
@@ -32,6 +33,7 @@ export function AssetUploadAction({
   hideLabel,
   ...props
 }: PropsWithChildren<Props>) {
+  const t = useTranslation();
   const [buttonVariantProps, fileUploadProps] = button.splitVariantProps(props);
 
   const acceptedMIMEs = getMIMEs(props.accept);
@@ -47,7 +49,10 @@ export function AssetUploadAction({
 
       if (file.size > maxUploadSizeBytes) {
         throw new Error(
-          `File is larger than the ${Math.floor(maxUploadSizeBytes / 1024 / 1024)}MB upload limit.`,
+          t.upload.tooLarge.replace(
+            "{size}",
+            String(Math.floor(maxUploadSizeBytes / 1024 / 1024)),
+          ),
         );
       }
 
@@ -82,17 +87,20 @@ export function AssetUploadAction({
       .map((error) => {
         switch (error) {
           case "FILE_INVALID":
-            return "Invalid file.";
+            return t.upload.invalidFile;
           case "FILE_TOO_LARGE":
-            return `File is larger than the ${Math.floor(maxUploadSizeBytes / 1024 / 1024)}MB upload limit.`;
+            return t.upload.tooLarge.replace(
+              "{size}",
+              String(Math.floor(maxUploadSizeBytes / 1024 / 1024)),
+            );
           case "FILE_INVALID_TYPE":
-            return `File must be of type ${acceptedList}`;
+            return t.upload.invalidType.replace("{types}", acceptedList);
           case "FILE_TOO_SMALL":
-            return "File is too small.";
+            return t.upload.tooSmall;
           case "TOO_MANY_FILES":
-            return "Too many files.";
+            return t.upload.tooMany;
           default:
-            return "An unexpected error occurred while reading the file.";
+            return t.upload.readError;
         }
       })
       .join(", ");
@@ -120,11 +128,11 @@ export function AssetUploadAction({
             {operation === "add" ? (
               <>
                 <MediaAddIcon />
-                {hideLabel ? "" : "add cover"}
+                {hideLabel ? "" : t.library.addCover}
               </>
             ) : (
               <>
-                <MediaIcon /> {hideLabel ? "" : "replace cover"}
+                <MediaIcon /> {hideLabel ? "" : t.library.replaceCover}
               </>
             )}
           </Button>

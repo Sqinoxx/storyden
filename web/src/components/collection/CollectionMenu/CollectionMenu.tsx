@@ -12,8 +12,10 @@ import * as Menu from "@/components/ui/menu";
 import { HStack, styled } from "@/styled-system/jsx";
 
 import { Props, useCollectionMenu } from "./useCollectionMenu";
+import { useTranslation } from "@/lib/i18n";
 
 export function CollectionMenu(props: Props) {
+  const t = useTranslation();
   const { isSharingEnabled, isDeletingEnabled, handlers } =
     useCollectionMenu(props);
 
@@ -34,7 +36,7 @@ export function CollectionMenu(props: Props) {
                 flexDir="column"
                 userSelect="none"
               >
-                <styled.span>{`Collection by ${collection.owner.name}`}</styled.span>
+                <styled.span>{t.collections.collectionBy.replace("{name}", collection.owner.name)}</styled.span>
 
                 <styled.time fontWeight="normal">
                   {format(new Date(collection.createdAt), "yyyy-MM-dd")}
@@ -45,14 +47,14 @@ export function CollectionMenu(props: Props) {
 
               <Menu.Item value="copy-link" onClick={handlers.handleCopyLink}>
                 <HStack gap="1">
-                  <LinkIcon /> Copy link
+                  <LinkIcon /> {t.actions.copyLink}
                 </HStack>
               </Menu.Item>
 
               {isSharingEnabled && (
                 <Menu.Item value="share" onClick={handlers.handleShare}>
                   <HStack gap="1">
-                    <ShareIcon /> Share
+                    <ShareIcon /> {t.actions.share}
                   </HStack>
                 </Menu.Item>
               )}
@@ -94,7 +96,7 @@ export function CollectionMenu(props: Props) {
                     onClick={handlers.handleConfirmDelete}
                   >
                     <HStack gap="1">
-                      <TrashIcon width="1.4em" /> Delete
+                      <TrashIcon width="1.4em" /> {t.actions.delete}
                     </HStack>
                   </Menu.Item>
                 ))} */}

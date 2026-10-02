@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ProgressCircle } from "@/components/ui/progress";
 import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 
 // NOTE: This is the name of the component that will be used in the HTML.
 // It cannot be changed.
@@ -32,6 +33,7 @@ type Options = {
 };
 
 function Component(props: NodeViewProps) {
+  const t = useTranslation();
   const isUploading = props.node.attrs["data-uploading"] === "true";
   const uploadError = props.node.attrs["data-upload-error"];
   const uploadId = props.node.attrs["data-upload-id"];
@@ -110,7 +112,7 @@ function Component(props: NodeViewProps) {
           contentEditable={false}
         >
           <styled.p fontSize="sm" color="fg.error" fontWeight="medium">
-            Upload failed
+            {t.editor.uploadFailed}
           </styled.p>
           <styled.div display="flex" gap="2">
             <Button
@@ -119,7 +121,7 @@ function Component(props: NodeViewProps) {
               variant="outline"
               onClick={() => handleRetry(props.view, uploadId)}
             >
-              Retry
+              {t.common.retry}
             </Button>
             <Button
               type="button"
@@ -127,7 +129,7 @@ function Component(props: NodeViewProps) {
               variant="ghost"
               onClick={() => handleCancel(props.view, uploadId)}
             >
-              Remove
+              {t.common.remove}
             </Button>
           </styled.div>
         </styled.div>

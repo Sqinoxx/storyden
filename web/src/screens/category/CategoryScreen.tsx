@@ -16,6 +16,7 @@ import { getAssetURL } from "@/utils/asset";
 import { hasPermission } from "@/utils/permissions";
 
 import { ThreadFeedScreen } from "../feed/ThreadFeedScreen/ThreadFeedScreen";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   initialCategory: CategoryGetOKResponse;
@@ -65,6 +66,7 @@ type ScreenProps = {
 } & Props;
 
 export function CategoryScreen(props: ScreenProps) {
+  const t = useTranslation();
   const { ready, data, error } = useCategoryScreen(props);
   if (!ready) {
     return <UnreadyBanner error={error} />;
@@ -105,7 +107,7 @@ export function CategoryScreen(props: ScreenProps) {
       {category.children && category.children.length > 0 && (
         <LStack gap="1">
           <Heading size="sm" color="fg.muted">
-            Subcategories
+            {t.category.subcategoriesHeading}
           </Heading>
           <CategoryLayout layout="grid" categories={category.children} />
         </LStack>

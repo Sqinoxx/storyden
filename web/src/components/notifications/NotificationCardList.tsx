@@ -4,6 +4,7 @@ import { ArchiveIcon } from "@/components/ui/icons/Archive";
 import { InboxIcon } from "@/components/ui/icons/Inbox";
 import { Card, CardRows } from "@/components/ui/rich-card";
 import { getCommonProperties } from "@/lib/datagraph/item";
+import { useLanguage, useTranslation } from "@/lib/i18n";
 import { Center, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { timestamp } from "@/utils/date";
 
@@ -19,10 +20,11 @@ type Props = {
 };
 
 export function NotificationCardList({ notifications, onMove }: Props) {
+  const { t, language } = useLanguage();
   if (notifications.length === 0) {
     return (
       <Center h="96" w="full" display="flex" flexDirection="column" gap="1">
-        <styled.p color="fg.muted">no notifications.</styled.p>
+        <styled.p color="fg.muted">{t.notifications.empty}</styled.p>
       </Center>
     );
   }
@@ -41,7 +43,7 @@ export function NotificationCardList({ notifications, onMove }: Props) {
             key={n.id}
             id={n.id}
             shape="row"
-            title={timestamp(n.createdAt, false)}
+            title={timestamp(n.createdAt, false, language)}
             text={title}
             url={n.url}
             // controls={}
@@ -58,6 +60,7 @@ export function NotificationCardList({ notifications, onMove }: Props) {
 }
 
 function NotificationSource(props: NotificationItem) {
+  const t = useTranslation();
   if (props.source) {
     return (
       <MemberBadge profile={props.source} size="sm" name="full-horizontal" />
@@ -67,7 +70,9 @@ function NotificationSource(props: NotificationItem) {
   return (
     <HStack>
       <LStack gap="0">
-        <styled.span color="fg.subtle">system message</styled.span>
+        <styled.span color="fg.subtle">
+          {t.notifications.systemMessage}
+        </styled.span>
       </LStack>
     </HStack>
   );
@@ -80,6 +85,8 @@ function StatusControl({
   notification: NotificationItem;
   onMove: (id: string, status: NotificationStatus) => void;
 }) {
+  const t = useTranslation();
+
   function handleChangeStatus() {
     handle(async () => {
       const newStatus = notification.isRead ? "unread" : "read";
@@ -91,7 +98,7 @@ function StatusControl({
     <IconButton
       variant="ghost"
       size="xs"
-      title="Mark as unread"
+      title={t.notifications.markAsUnread}
       onClick={handleChangeStatus}
     >
       <InboxIcon color="fg.subtle" />
@@ -100,7 +107,7 @@ function StatusControl({
     <IconButton
       variant="ghost"
       size="xs"
-      title="Mark as read"
+      title={t.notifications.markAsRead}
       onClick={handleChangeStatus}
     >
       <ArchiveIcon color="fg.subtle" />

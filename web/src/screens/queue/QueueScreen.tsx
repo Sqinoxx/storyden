@@ -6,9 +6,11 @@ import { QueueNodeList } from "@/components/queue/QueueNodeList";
 import { QueueVersionList } from "@/components/queue/QueueVersionList";
 import { Unready } from "@/components/site/Unready";
 import { Heading } from "@/components/ui/heading";
+import { useTranslation } from "@/lib/i18n";
 import { LStack } from "@/styled-system/jsx";
 
 export function QueueScreen() {
+  const t = useTranslation();
   const { data: submissions, error: submissionError } = useNodeList({
     visibility: [Visibility.review],
     format: "flat",
@@ -22,13 +24,13 @@ export function QueueScreen() {
   return (
     <LStack gap="8">
       <LStack>
-        <Heading>Submission queue</Heading>
+        <Heading>{t.queue.submissions}</Heading>
 
         <QueueNodeList nodes={submissions.nodes} />
       </LStack>
 
       <LStack>
-        <Heading>Page edits for review</Heading>
+        <Heading>{t.queue.pageEdits}</Heading>
 
         <QueueVersionList drafts={drafts.drafts} />
       </LStack>

@@ -60,7 +60,7 @@ export function PasswordCreateForm() {
             value={success}
             onChange={handleCloseNotification}
             kind="success"
-            title={t.common?.yes ? "Erfolg" : "Success"}
+            title={t.common.success}
           >
             {t.settings?.auth?.passwordAddedSuccess ||
               "Your account now has a password! You can now use this to log in, but you can continue to use your other authentication methods as well."}

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { UnreadyBanner } from "@/components/site/Unready";
+import { Trans } from "@/lib/i18n";
 import { PasswordResetVerifyScreen } from "@/screens/auth/PasswordResetScreen/PasswordResetVerifyScreen";
 
 type Props = {
@@ -22,7 +23,11 @@ export default async function Page(props: Props) {
     const { token } = parsed;
 
     if (!token) {
-      return <p>Please check your email for a verification link.</p>;
+      return (
+        <p>
+          <Trans path="auth.checkEmailForLink" />
+        </p>
+      );
     }
 
     return <PasswordResetVerifyScreen token={token} />;

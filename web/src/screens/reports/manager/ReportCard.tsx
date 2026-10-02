@@ -9,6 +9,7 @@ import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import { Timestamp } from "@/components/site/Timestamp";
 import { SystemBadge } from "@/components/system/SystemBadge";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 import {
   Box,
   CardBox,
@@ -28,6 +29,7 @@ type Props = {
 };
 
 export function ReportCard({ report }: Props) {
+  const t = useTranslation();
   const session = useSession();
   const { mutate } = useSWRConfig();
   const { page, status, kind } = useReportsScreenFilters();
@@ -42,8 +44,8 @@ export function ReportCard({ report }: Props) {
       },
       {
         promiseToast: {
-          loading: "Acknowledging report...",
-          success: "Report acknowledged.",
+          loading: t.report.acknowledging,
+          success: t.report.acknowledged,
         },
         cleanup: async () => {
           mutate(
@@ -68,8 +70,8 @@ export function ReportCard({ report }: Props) {
       },
       {
         promiseToast: {
-          loading: "Resolving report...",
-          success: "Report resolved.",
+          loading: t.report.resolving,
+          success: t.report.resolved,
         },
         cleanup: async () => {
           mutate(
@@ -105,7 +107,7 @@ export function ReportCard({ report }: Props) {
         <WStack gap="1">
           <HStack gap="2" alignItems="center" minW="0" maxW="1/2">
             <styled.span fontSize="sm" color="fg.subtle" fontWeight="medium">
-              Reporter:
+              {t.report.reporter}
             </styled.span>
             {report.reported_by ? (
               <MemberBadge
@@ -121,7 +123,7 @@ export function ReportCard({ report }: Props) {
 
           <HStack gap="2" alignItems="center" minW="0" maxW="1/2">
             <styled.span fontSize="sm" color="fg.subtle" fontWeight="medium">
-              Handler:
+              {t.report.handler}
             </styled.span>
             {report.handled_by ? (
               <MemberBadge
@@ -132,7 +134,7 @@ export function ReportCard({ report }: Props) {
               />
             ) : (
               <styled.span color="fg.subtle" fontStyle="italic">
-                Unassigned
+                {t.report.unassigned}
               </styled.span>
             )}
           </HStack>
@@ -148,7 +150,7 @@ export function ReportCard({ report }: Props) {
             disabled={isAcknowledged || isResolved}
             onClick={handleAcknowledge}
           >
-            Acknowledge
+            {t.report.acknowledge}
           </Button>
           <Button
             type="button"
@@ -157,7 +159,7 @@ export function ReportCard({ report }: Props) {
             disabled={isResolved}
             onClick={handleResolve}
           >
-            Resolve
+            {t.report.resolve}
           </Button>
         </WStack>
       </LStack>

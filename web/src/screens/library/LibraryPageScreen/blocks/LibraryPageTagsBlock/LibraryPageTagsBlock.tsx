@@ -10,6 +10,7 @@ import { DatagraphItemCard } from "@/components/datagraph/DatagraphItemCard";
 import { IntelligenceAction } from "@/components/site/Action/Intelligence";
 import { TagBadgeList } from "@/components/tag/TagBadgeList";
 import { MultiSelectPicker } from "@/components/ui/MultiSelectPicker";
+import { useTranslation } from "@/lib/i18n";
 import { HStack, VStack } from "@/styled-system/jsx";
 
 import { useLibraryPageContext } from "../../Context";
@@ -85,6 +86,7 @@ export function LibraryPageTagsBlock() {
 }
 
 export function LibraryPageTagsBlockEditing() {
+  const t = useTranslation();
   const { nodeID } = useLibraryPageContext();
   const tags = useWatch((s) => s.draft.tags);
   const {
@@ -112,7 +114,7 @@ export function LibraryPageTagsBlockEditing() {
         />
         {isSuggestEnabled && (
           <IntelligenceAction
-            title="Suggest tags for this page"
+            title={t.library.suggestTags}
             onClick={handleSuggestTags}
             variant="subtle"
             loading={loadingTags}

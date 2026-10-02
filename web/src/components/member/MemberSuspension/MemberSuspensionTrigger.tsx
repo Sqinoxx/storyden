@@ -7,16 +7,18 @@ import { Button } from "@/components/ui/button";
 
 import { MemberSuspensionConfirmation } from "./MemberSuspensionConfirmation";
 import { Props } from "./useMemberSuspension";
+import { useTranslation } from "@/lib/i18n";
 
 export function MemberSuspensionTrigger({
   children,
   profile,
 }: PropsWithChildren<Props>) {
+  const t = useTranslation();
   const { onOpen, isOpen, onClose } = useDisclosure();
 
   const title = profile.suspended
-    ? `Reinstate account ${profile.name}`
-    : `Suspend account ${profile.name}`;
+    ? t.moderation.reinstateAccount.replace("{name}", profile.name)
+    : t.moderation.suspendAccount.replace("{name}", profile.name);
 
   return (
     <>
@@ -30,7 +32,7 @@ export function MemberSuspensionTrigger({
         )
       ) : (
         <Button colorPalette="red" onClick={onOpen}>
-          {profile.suspended ? "Reinstate" : "Suspend"}
+          {profile.suspended ? t.actions.unsuspend : t.actions.suspend}
         </Button>
       )}
 

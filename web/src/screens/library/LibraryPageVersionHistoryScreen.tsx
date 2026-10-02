@@ -10,6 +10,7 @@ import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import { Timestamp } from "@/components/site/Timestamp";
 import { Heading } from "@/components/ui/heading";
 import { LinkButton } from "@/components/ui/link-button";
+import { useTranslation } from "@/lib/i18n";
 import { CardBox, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 
 import { PageVersionStatusBadge } from "./LibraryPageScreen/PageVersionStatusBadge";
@@ -25,6 +26,7 @@ export function LibraryPageVersionHistoryScreen({
   versions,
   libraryPath,
 }: Props) {
+  const t = useTranslation();
   const pageHref = `/l/${libraryPath.join("/")}`;
 
   return (
@@ -36,7 +38,7 @@ export function LibraryPageVersionHistoryScreen({
           create="show"
         />
         <LinkButton href={pageHref} size="xs" variant="subtle" flexShrink="0">
-          View page
+          {t.library.viewPageButton}
         </LinkButton>
       </WStack>
 
@@ -46,14 +48,14 @@ export function LibraryPageVersionHistoryScreen({
             {node.name}
           </Heading>
           <styled.p color="fg.muted" fontSize="sm">
-            Version history
+            {t.library.versionHistory}
           </styled.p>
         </LStack>
       </WStack>
 
       {versions.length === 0 ? (
         <styled.p color="fg.muted" fontSize="sm">
-          No versions or drafts yet.
+          {t.library.noVersionsOrDrafts}
         </styled.p>
       ) : (
         <LStack gap="2">
@@ -77,9 +79,10 @@ function VersionHistoryItem({
   version: NodeVersion;
   pageHref: string;
 }) {
+  const t = useTranslation();
   const versionUrl = `${pageHref}?version=${version.id}`;
   const isApplied = version.status === NodeVersionStatus.applied;
-  const buttonLabel = isApplied ? "View changes" : "Review";
+  const buttonLabel = isApplied ? t.library.viewChanges : t.library.review;
 
   return (
     <CardBox>
@@ -87,7 +90,7 @@ function VersionHistoryItem({
         <WStack>
           <PageVersionStatusBadge status={version.status} />
           <styled.span color="fg.muted" fontSize="xs">
-            <Timestamp created={version.updated_at} /> ago
+            <Timestamp created={version.updated_at} large />
           </styled.span>
         </WStack>
 

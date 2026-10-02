@@ -1,5 +1,6 @@
 import { AuthMode } from "@/api/openapi-schema";
 import { authProviderList } from "@/api/openapi-server/auth";
+import { Trans } from "@/lib/i18n";
 import { VStack } from "@/styled-system/jsx";
 
 import { LoginEmailForm } from "./LoginEmail/LoginEmailForm";
@@ -26,7 +27,9 @@ export async function LoginScreen() {
 
       return (
         <VStack>
-          <p>This instance is closed.</p>
+          <p>
+            <Trans path="auth.instanceClosed" />
+          </p>
         </VStack>
       );
   }

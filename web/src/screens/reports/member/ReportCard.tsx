@@ -9,6 +9,7 @@ import {
 } from "@/components/datagraph/DatagraphItemCard";
 import { Timestamp } from "@/components/site/Timestamp";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 import { CardBox, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 
 import { ReportCardContent } from "../ReportCardContent";
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export function ReportCard({ report }: Props) {
+  const t = useTranslation();
   const { mutate } = useSWRConfig();
   const { page } = useReportsScreenFilters();
 
@@ -32,8 +34,8 @@ export function ReportCard({ report }: Props) {
       },
       {
         promiseToast: {
-          loading: "Cancelling report...",
-          success: "Report cancelled.",
+          loading: t.report.cancelling,
+          success: t.report.cancelled,
         },
         cleanup: async () => {
           mutate(getReportListKey({ page: page.toString() }));
@@ -59,7 +61,7 @@ export function ReportCard({ report }: Props) {
               disabled={report.status === "resolved"}
               onClick={handleCancel}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
           </HStack>
         </WStack>

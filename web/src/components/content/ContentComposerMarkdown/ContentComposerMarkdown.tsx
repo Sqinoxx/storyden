@@ -100,7 +100,7 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
         workingCount={uploadingCount}
       >
         <Switch size="sm" checked={showPreview} onClick={handleTogglePreview}>
-          Preview
+          {t.link.preview}
         </Switch>
         <label
           className={button({ size: "xs", variant: "ghost" })}

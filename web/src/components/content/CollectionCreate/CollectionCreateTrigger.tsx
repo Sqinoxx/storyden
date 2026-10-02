@@ -8,6 +8,7 @@ import { ButtonVariantProps } from "@/styled-system/recipes";
 
 import { CollectionCreateModal } from "./CollectionCreateModal";
 import { Props } from "./useCollectionCreate";
+import { useTranslation } from "@/lib/i18n";
 
 export function CollectionCreateTrigger(
   props: PropsWithChildren<
@@ -17,6 +18,7 @@ export function CollectionCreateTrigger(
       }
   >,
 ) {
+  const t = useTranslation();
   const { onOpen, isOpen, onClose } = useDisclosure();
   return (
     <>
@@ -30,7 +32,7 @@ export function CollectionCreateTrigger(
           {...props}
           onClick={onOpen}
         >
-          <CreateFolderIcon /> {props.label ?? "Collection"}
+          <CreateFolderIcon /> {props.label ?? t.collections.collection}
         </Button>
       )}
       <CollectionCreateModal isOpen={isOpen} onClose={onClose} {...props} />

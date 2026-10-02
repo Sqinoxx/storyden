@@ -11,6 +11,7 @@ import { useNotifications } from "@/components/notifications/useNotifications";
 import { UnreadyBanner } from "@/components/site/Unready";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { useTranslation } from "@/lib/i18n";
 import { LStack, WStack, styled } from "@/styled-system/jsx";
 
 type Props = {
@@ -61,6 +62,7 @@ export function useNotificationScreen(props: Props) {
 }
 
 export function NotificationScreen(props: Props) {
+  const t = useTranslation();
   const { ready, error, data, status, handlers } = useNotificationScreen(props);
   if (!ready) {
     return <UnreadyBanner error={error} />;
@@ -76,14 +78,14 @@ export function NotificationScreen(props: Props) {
     <LStack>
       <WStack justifyContent="space-between" alignItems="flex-start">
         <LStack>
-          <styled.h1 fontWeight="bold">Notifications</styled.h1>
+          <styled.h1 fontWeight="bold">{t.nav.notifications}</styled.h1>
 
           <Switch
             size="sm"
             checked={showingArchived}
             onClick={handlers.handleToggleStatus}
           >
-            Archived
+            {t.notifications.archived}
           </Switch>
         </LStack>
 
@@ -94,7 +96,7 @@ export function NotificationScreen(props: Props) {
             flexShrink="0"
             onClick={handlers.handleMarkAllAsRead}
           >
-            Mark all as read
+            {t.notifications.markAllAsRead}
           </Button>
         )}
       </WStack>

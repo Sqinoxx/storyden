@@ -12,6 +12,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/button";
 import { WarningIcon } from "@/components/ui/icons/Warning";
 import { LinkButton } from "@/components/ui/link-button";
+import { useTranslation } from "@/lib/i18n";
 import { css } from "@/styled-system/css";
 import { Center, LStack, styled } from "@/styled-system/jsx";
 import { deriveError } from "@/utils/error";
@@ -25,6 +26,7 @@ export type LinkPreviewAttributes = {
 };
 
 function LinkPreviewComponent(props: NodeViewProps) {
+  const t = useTranslation();
   const href = props.node.attrs["href"] as string;
   const dataDiff = props.node.attrs["data-diff"] as
     | "insertion"
@@ -93,7 +95,7 @@ function LinkPreviewComponent(props: NodeViewProps) {
                     fontWeight="medium"
                     maxW="prose"
                   >
-                    Link preview failed: {deriveError(error)}
+                    {t.editor.linkPreviewFailed}: {deriveError(error)}
                   </styled.p>
                   <Button
                     type="button"
@@ -102,7 +104,7 @@ function LinkPreviewComponent(props: NodeViewProps) {
                     onClick={() => trigger({ url: href })}
                     loading={isMutating}
                   >
-                    Retry
+                    {t.common.retry}
                   </Button>
                 </styled.div>
               ) : (
@@ -112,7 +114,7 @@ function LinkPreviewComponent(props: NodeViewProps) {
                   </LinkButton>
                   <styled.p fontSize="xs" color="fg.muted">
                     <WarningIcon w="3" display="inline" />
-                    &nbsp;<span>Link preview failed to load</span>
+                    &nbsp;<span>{t.editor.linkPreviewFailedToLoad}</span>
                   </styled.p>
                 </LStack>
               )

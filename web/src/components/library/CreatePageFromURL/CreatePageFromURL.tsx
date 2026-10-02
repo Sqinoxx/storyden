@@ -25,7 +25,6 @@ import {
   ImportState,
   ImportStep,
   importFromURLGenerator,
-  importStateLabel,
 } from "./import";
 
 const POPOVER_CLOSE_DELAY = 3000;
@@ -128,7 +127,7 @@ export function CreatePageFromURLAction({
       }
     } catch (error) {
       const derived = deriveError(error);
-      toast.error(`Failed to import from URL: ${derived}`);
+      toast.error(`${t.library.importFailed}: ${derived}`);
       setImportState({
         step: "failed",
         error: derived,
@@ -203,7 +202,7 @@ export function CreatePageFromURLAction({
                     color={getImportStateColor(importState.step)}
                     px="2"
                   >
-                    {importStateLabel[importState.step]}
+                    {t.library.importSteps[importState.step]}
                   </styled.span>
                 </motion.div>
               </AnimatePresence>

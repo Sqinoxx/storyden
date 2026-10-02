@@ -8,13 +8,15 @@ import { useDisclosure } from "@/utils/useDisclosure";
 
 import { EditAvatarScreen } from "./EditAvatarScreen";
 import { Props } from "./useEditAvatar";
+import { useTranslation } from "@/lib/i18n";
 
 export function EditAvatarModal(props: Props) {
+  const t = useTranslation();
   return (
     <ModalDrawer
       isOpen={props.isOpen}
       onClose={props.onClose}
-      title="Edit avatar"
+      title={t.profile.editAvatar}
       dismissable={false}
     >
       <EditAvatarScreen {...props} />
@@ -26,11 +28,12 @@ export function EditAvatarTrigger({
   asChild,
   ...props
 }: PropsWithChildren<Props & { asChild?: boolean }>) {
+  const t = useTranslation();
   const { onOpen, isOpen, onClose } = useDisclosure();
 
   const Trigger = asChild
     ? Slot
-    : (bp: ButtonProps) => <Button {...bp}>Edit</Button>;
+    : (bp: ButtonProps) => <Button {...bp}>{t.common.edit}</Button>;
 
   return (
     <>

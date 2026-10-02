@@ -28,6 +28,7 @@ import {
   normalizeFilename,
 } from "@/utils/asset";
 import { hasPermission } from "@/utils/permissions";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   initialSession?: Account;
@@ -51,6 +52,7 @@ export function useThreadScreen({
   slug,
   thread,
 }: Props) {
+  const t = useTranslation();
   const router = useRouter();
   const session = useSession(initialSession);
   const { reportId, resolveReport } = useReportContext();
@@ -373,8 +375,8 @@ export function useThreadScreen({
       },
       {
         promiseToast: {
-          loading: "Saving...",
-          success: "Saved!",
+          loading: t.toasts.saving,
+          success: t.toasts.saved,
         },
         cleanup: async () => {
           await mutate();
@@ -392,8 +394,8 @@ export function useThreadScreen({
       },
       {
         promiseToast: {
-          loading: "Accepting...",
-          success: "Thread accepted!",
+          loading: t.toasts.accepting,
+          success: t.toasts.threadAccepted,
         },
         cleanup: async () => {
           await revalidate();
@@ -411,7 +413,7 @@ export function useThreadScreen({
     await handle(
       async () => {
         await withUndo({
-          message: "Thread deleted",
+          message: t.toasts.threadDeleted,
           duration: 5000,
           toastId: `thread-${thread.id}`,
           action: async () => {

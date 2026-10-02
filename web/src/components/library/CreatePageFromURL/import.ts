@@ -18,16 +18,6 @@ export type ImportStep =
   | "complete"
   | "failed";
 
-export const importStateLabel: Record<ImportStep, string> = {
-  fetching_link: "Fetching page...",
-  generating_tags: "Generating tags",
-  generating_title: "Generating title",
-  generating_content: "Generating content",
-  creating_node: "Creating page",
-  complete: "Complete",
-  failed: "Failed to import",
-};
-
 export type ImportState = {
   step: ImportStep;
   data?: {

@@ -1,5 +1,6 @@
 import { Visibility } from "@/api/openapi-schema";
 import { Badge, BadgeProps } from "@/components/ui/badge";
+import { useTranslation } from "@/lib/i18n";
 import { visibilityColour } from "@/lib/library/visibilityColours";
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
 };
 
 export function VisibilityBadge({ visibility, size = "sm" }: Props) {
+  const t = useTranslation();
   const colorPalette = visibilityColour(visibility);
 
   return (
@@ -19,7 +21,7 @@ export function VisibilityBadge({ visibility, size = "sm" }: Props) {
       color="colorPalette.fg"
       textTransform="capitalize"
     >
-      {visibility}
+      {t.visibility[visibility]}
     </Badge>
   );
 }

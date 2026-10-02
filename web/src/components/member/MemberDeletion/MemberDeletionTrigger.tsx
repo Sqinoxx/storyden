@@ -7,14 +7,16 @@ import { Button } from "@/components/ui/button";
 
 import { MemberDeletionConfirmation } from "./MemberDeletionConfirmation";
 import { Props } from "./useMemberDeletion";
+import { useTranslation } from "@/lib/i18n";
 
 export function MemberDeletionTrigger({
   children,
   profile,
 }: PropsWithChildren<Props>) {
+  const t = useTranslation();
   const { onOpen, isOpen, onClose } = useDisclosure();
 
-  const title = `Delete account ${profile.name}`;
+  const title = t.moderation.deleteAccount.replace("{name}", profile.name);
 
   return (
     <>
@@ -27,7 +29,7 @@ export function MemberDeletionTrigger({
         )
       ) : (
         <Button colorPalette="red" onClick={onOpen}>
-          Delete member
+          {t.actions.deleteMember}
         </Button>
       )}
 

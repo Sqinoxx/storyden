@@ -21,6 +21,7 @@ import {
 import { LibraryPageEditMode, normaliseLibraryPageEditMode } from "./editMode";
 import { useLibraryPagePermissions } from "./permissions";
 import { overlayNodeVersion } from "./versionedEdit";
+import { useTranslation } from "@/lib/i18n";
 
 type EditStateContext = {
   editMode: LibraryPageEditMode;
@@ -42,6 +43,7 @@ type EditStateContext = {
 const Context = createContext<EditStateContext | null>(null);
 
 export function LibraryPageEditProvider({ children }: PropsWithChildren) {
+  const t = useTranslation();
   const [editing, setEditing] = useQueryState("edit", {
     ...parseAsBoolean,
     defaultValue: false,
@@ -171,7 +173,7 @@ export function LibraryPageEditProvider({ children }: PropsWithChildren) {
 
     setEditing(false);
     setRawEditMode(LibraryPageEditMode.direct);
-    toast.error("Start a draft edit from the page controls.");
+    toast.error(t.library.startDraftFromControls);
   }, [isProposalEditing, proposalVersion, setEditing, setRawEditMode]);
 
   useEffect(() => {

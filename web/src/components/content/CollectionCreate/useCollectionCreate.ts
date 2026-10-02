@@ -9,6 +9,7 @@ import { UseDisclosureProps } from "@/utils/useDisclosure";
 import { handle } from "@/api/client";
 import { Account } from "@/api/openapi-schema";
 import { useCollectionMutations } from "@/lib/collection/mutation";
+import { useTranslation } from "@/lib/i18n";
 
 export const FormSchema = z.object({
   name: z.string().min(1, "Please enter a name for the collection."),
@@ -21,6 +22,7 @@ export type Props = UseDisclosureProps & {
 };
 
 export function useCollectionCreate({ session, ...props }: Props) {
+  const t = useTranslation();
   const { register, handleSubmit } = useForm<Form>({
     resolver: zodResolver(FormSchema),
   });
@@ -36,8 +38,8 @@ export function useCollectionCreate({ session, ...props }: Props) {
       },
       {
         promiseToast: {
-          loading: "Creating collection...",
-          success: "Collection created!",
+          loading: t.collections.creating,
+          success: t.collections.created,
         },
         async cleanup() {
           await revalidate();

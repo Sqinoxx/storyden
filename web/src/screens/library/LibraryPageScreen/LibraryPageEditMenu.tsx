@@ -181,7 +181,7 @@ export function LibraryPageEditMenu({ node }: Props) {
               <>
                 <ButtonGroup
                   role="group"
-                  aria-label="Edit actions"
+                  aria-label={t.library.editActions}
                   px="1"
                   py="1"
                   attached
@@ -302,7 +302,7 @@ function VersionMenuItem({
           avatar="visible"
         />
         <styled.span color="fg.muted" fontSize="xs">
-          <Timestamp created={version.updated_at} /> ago
+          <Timestamp created={version.updated_at} large />
         </styled.span>
       </WStack>
     </LStack>

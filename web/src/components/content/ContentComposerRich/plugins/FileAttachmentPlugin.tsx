@@ -20,6 +20,7 @@ import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
 import { downloadAsset, getCleanFilename } from "@/utils/asset";
 import { FilePreviewModal, isPreviewableAsset } from "@/components/post/FilePreviewModal";
+import { useTranslation } from "@/lib/i18n";
 
 export interface FileAttachmentOptions {
   handleFiles: (view: EditorView, files: File[]) => Promise<Asset[]>;
@@ -28,6 +29,7 @@ export interface FileAttachmentOptions {
 }
 
 function Component(props: NodeViewProps) {
+  const t = useTranslation();
   const isUploading = props.node.attrs["data-uploading"] === "true";
   const uploadError = props.node.attrs["data-upload-error"];
   const uploadId = props.node.attrs["data-upload-id"];
@@ -222,7 +224,7 @@ function Component(props: NodeViewProps) {
               color="fg.error"
               gap="2"
             >
-              <styled.span fontSize="xs">Failed</styled.span>
+              <styled.span fontSize="xs">{t.editor.failed}</styled.span>
               <Button
                 type="button"
                 size="xs"
@@ -232,7 +234,7 @@ function Component(props: NodeViewProps) {
                   handleRetry(props.view, uploadId);
                 }}
               >
-                Retry
+                {t.common.retry}
               </Button>
               <Button
                 type="button"
@@ -243,7 +245,7 @@ function Component(props: NodeViewProps) {
                   handleCancel(props.view, uploadId);
                 }}
               >
-                Remove
+                {t.common.remove}
               </Button>
             </styled.div>
           )}

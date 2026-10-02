@@ -1,11 +1,13 @@
 import { IconEditor } from "@/components/site/IconEditor/IconEditor";
 import { Unready } from "@/components/site/Unready";
 import { InfoIcon } from "@/components/ui/icons/Info";
+import { useTranslation } from "@/lib/i18n";
 import { HStack, VStack } from "@/styled-system/jsx";
 
 import { Props, useEditAvatar } from "./useEditAvatar";
 
 export function EditAvatarScreen(props: Props) {
+  const t = useTranslation();
   const { ready, error, initialValue, handleSave } = useEditAvatar(props);
   if (!ready) {
     return <Unready error={error} />;
@@ -21,7 +23,7 @@ export function EditAvatarScreen(props: Props) {
       />
       <HStack color="fg.subtle">
         <InfoIcon width="4" />
-        <p>You can pinch or use a mouse wheel to zoom/crop.</p>
+        <p>{t.profile.avatarZoomHint}</p>
       </HStack>
     </VStack>
   );

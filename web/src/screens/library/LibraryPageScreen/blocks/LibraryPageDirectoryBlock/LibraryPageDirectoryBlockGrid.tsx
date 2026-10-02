@@ -54,6 +54,7 @@ import {
   mergeFieldsAndPropertySchema,
 } from "./column";
 import { useDirectoryBlock } from "./useDirectoryBlock";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   nodes: NodeWithChildren[];
@@ -66,6 +67,7 @@ export function LibraryPageDirectoryBlockGrid({
   block,
   currentChildPropertySchema,
 }: Props) {
+  const t = useTranslation();
   const { nodeID, store } = useLibraryPageContext();
   const { sort, handleSort } = useSortIndicator();
   const { isDirectEditing } = useEditState();
@@ -111,7 +113,7 @@ export function LibraryPageDirectoryBlockGrid({
   if (nodes.length === 0) {
     return (
       <Center w="full">
-        <EmptyState hideContributionLabel>There are no pages here.</EmptyState>
+        <EmptyState hideContributionLabel>{t.library.noPagesHere}</EmptyState>
       </Center>
     );
   }
@@ -206,6 +208,7 @@ function GridCard({
   handleSort,
   onFieldValueChange,
 }: GridCardProps) {
+  const t = useTranslation();
   const {
     attributes,
     listeners,
@@ -312,14 +315,14 @@ function GridCard({
 
                 <Tooltip.Content p="1" borderRadius="sm">
                   <p>
-                    <styled.span fontWeight="semibold">Click</styled.span>
+                    <styled.span fontWeight="semibold">{t.library.hintClick}</styled.span>
                     &nbsp;
-                    <styled.span fontWeight="normal">to open menu</styled.span>
+                    <styled.span fontWeight="normal">{t.library.hintOpenMenu}</styled.span>
                   </p>
                   <p>
-                    <styled.span fontWeight="semibold">Drag</styled.span>
+                    <styled.span fontWeight="semibold">{t.library.hintDrag}</styled.span>
                     &nbsp;
-                    <styled.span fontWeight="normal">to move</styled.span>
+                    <styled.span fontWeight="normal">{t.library.hintMove}</styled.span>
                   </p>
                 </Tooltip.Content>
               </Tooltip.Positioner>
@@ -438,7 +441,7 @@ function GridCard({
             (editing ? (
               <styled.input
                 w="full"
-                placeholder="Description..."
+                placeholder={t.library.descriptionPlaceholder}
                 _placeholder={{
                   color: "fg.subtle",
                 }}
@@ -472,7 +475,7 @@ function GridCard({
             (editing ? (
               <styled.input
                 w="full"
-                placeholder="Link..."
+                placeholder={t.library.linkPlaceholder}
                 _placeholder={{
                   color: "fg.subtle",
                 }}

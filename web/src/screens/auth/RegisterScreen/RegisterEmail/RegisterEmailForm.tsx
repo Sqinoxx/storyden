@@ -11,12 +11,14 @@ import { vstack } from "@/styled-system/patterns";
 
 import { SemesterField } from "../SemesterField";
 import { useRegisterEmailForm } from "./useRegisterEmailForm";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   invitationID?: string;
 };
 
 export function RegisterEmailForm(props: Props) {
+  const t = useTranslation();
   const { form, handlers } = useRegisterEmailForm(props);
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -44,7 +46,7 @@ export function RegisterEmailForm(props: Props) {
           w="full"
           size="sm"
           textAlign="center"
-          placeholder="email address"
+          placeholder={t.auth.emailPlaceholder}
           required
           {...form.register("email")}
         />
@@ -60,7 +62,7 @@ export function RegisterEmailForm(props: Props) {
           w="full"
           size="sm"
           textAlign="center"
-          placeholder="username"
+          placeholder={t.auth.usernamePlaceholder}
           required
           {...form.register("handle")}
         />
@@ -75,7 +77,7 @@ export function RegisterEmailForm(props: Props) {
           w="full"
           size="sm"
           textAlign="center"
-          placeholder="password"
+          placeholder={t.auth.passwordLabel}
           autoComplete="new-password"
           {...form.register("password")}
         />
@@ -93,7 +95,7 @@ export function RegisterEmailForm(props: Props) {
       </FormControl>
 
       <Button type="submit" w="full" loading={form.formState.isSubmitting}>
-        Register
+        {t.auth.register}
       </Button>
 
       <FormErrorText>{form.formState.errors["root"]?.message}</FormErrorText>

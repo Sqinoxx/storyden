@@ -1,6 +1,7 @@
 import { PropsWithChildren } from "react";
 
 import { LinkButton } from "@/components/ui/link-button";
+import { Trans } from "@/lib/i18n";
 import { allowsPublicRegistration } from "@/lib/settings/registration";
 import { getSettings } from "@/lib/settings/settings-server";
 import { HStack, VStack } from "@/styled-system/jsx";
@@ -15,12 +16,12 @@ export default async function Layout({ children }: PropsWithChildren) {
 
       <HStack>
         <LinkButton size="xs" variant="ghost" href="/login">
-          Login
+          <Trans path="auth.login" />
         </LinkButton>
 
         {canRegister && (
           <LinkButton size="xs" variant="subtle" href="/register">
-            Register
+            <Trans path="auth.register" />
           </LinkButton>
         )}
       </HStack>

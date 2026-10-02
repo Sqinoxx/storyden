@@ -8,6 +8,7 @@ import { handle } from "@/api/client";
 import { linkCreate } from "@/api/openapi-client/links";
 import { LinkReference } from "@/api/openapi-schema";
 import { isContentEmpty } from "@/lib/content/content";
+import { useTranslation } from "@/lib/i18n";
 import { useLibraryMutation } from "@/lib/library/library";
 
 import { useLibraryPageContext } from "../../Context";
@@ -16,6 +17,7 @@ import { useEmitLibraryContentEvent } from "../LibraryPageContentBlock/events";
 import { useEmitLibraryCoverEvent } from "../LibraryPageCoverBlock/events";
 
 export function useLibraryPageLinkBlock() {
+  const t = useTranslation();
   const { nodeID, store } = useLibraryPageContext();
   const { setLink, removeLink, setName, setTags } = store.getState();
   const tags = useWatch((s) => s.draft.tags);
@@ -131,7 +133,7 @@ export function useLibraryPageLinkBlock() {
 
   async function handleImport() {
     if (!resolvedLink) {
-      toast.error("No link available to import.");
+      toast.error(t.library.noLinkToImport);
       return;
     }
 

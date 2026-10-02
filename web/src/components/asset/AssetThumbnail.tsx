@@ -1,6 +1,7 @@
 import { useQueryState } from "nuqs";
 
 import { Asset } from "@/api/openapi-schema";
+import { useTranslation } from "@/lib/i18n";
 import { css } from "@/styled-system/css";
 import { Box, styled } from "@/styled-system/jsx";
 import { getAssetURL } from "@/utils/asset";
@@ -35,6 +36,7 @@ export function AssetThumbnail({
   showDeleteButton = false,
   handleDelete = undefined,
 }: Props) {
+  const t = useTranslation();
   const [view, setView] = useQueryState<string | null>("view", {
     defaultValue: null,
     clearOnDefault: true,
@@ -90,7 +92,7 @@ export function AssetThumbnail({
           w="5"
           h="5"
           minW="5"
-          title="Remove media from page"
+          title={t.library.removeMedia}
           onClick={handleDelete}
         >
           <DeleteIcon />

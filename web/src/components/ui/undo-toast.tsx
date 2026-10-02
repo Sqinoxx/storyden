@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { useTranslation } from "@/lib/i18n";
 import { Box, HStack } from "@/styled-system/jsx";
 
 import { Button } from "./button";
@@ -26,6 +27,7 @@ function UndoToastContent({
   onComplete,
   toastId,
 }: UndoToastContentProps) {
+  const t = useTranslation();
   const [progress, setProgress] = useState(100);
   const [isUndone, setIsUndone] = useState(false);
   const hasCompletedRef = useRef(false);
@@ -90,14 +92,14 @@ function UndoToastContent({
             onClick={handleUndo}
             disabled={isUndone}
           >
-            {isUndone ? "Cancelled" : "Undo"}
+            {isUndone ? t.common.undone : t.common.undo}
           </Button>
           <Button
             size="sm"
             variant="ghost"
             onClick={handleClose}
           >
-            Delete now
+            {t.common.deleteNow}
           </Button>
         </HStack>
       </HStack>

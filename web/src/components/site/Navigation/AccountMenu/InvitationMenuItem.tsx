@@ -116,8 +116,7 @@ function InvitationModalContent({
       <LStack gap="6">
         <LStack gap="2">
           <styled.p color="fg.muted">
-            Send this invitation link to someone you would like to welcome into
-            the community.
+            {t.invitation.sendLinkHint}
           </styled.p>
         </LStack>
 
@@ -125,7 +124,7 @@ function InvitationModalContent({
           <IconButton
             variant="outline"
             borderRadius="full"
-            aria-label="Generate new invitation link"
+            aria-label={t.invitation.regenerate}
             onClick={onRetry}
           >
             <RegenerateIcon />
@@ -134,10 +133,10 @@ function InvitationModalContent({
           <Clipboard.Root w="full" value={invitation.link}>
             <Clipboard.Control gap="0">
               <Clipboard.Input asChild>
-                <Input readOnly aria-label="Invitation link" />
+                <Input readOnly aria-label={t.invitations.linkLabel} />
               </Clipboard.Input>
               <Clipboard.Trigger asChild>
-                <IconButton variant="outline" aria-label="Copy invitation link">
+                <IconButton variant="outline" aria-label={t.invitations.copy}>
                   <Clipboard.Indicator copied={<CheckIcon />}>
                     <CopyIcon />
                   </Clipboard.Indicator>
@@ -161,7 +160,7 @@ function InvitationModalContent({
       <LStack gap="6">
         <LStack gap="2">
           <styled.p color="fg.muted">
-            Something went wrong while creating the invitation.
+            {t.invitation.createError}
           </styled.p>
           <styled.p color="fg.error" fontSize="sm">
             {invitation.message}
@@ -183,8 +182,8 @@ function InvitationModalContent({
   return (
     <Center minH="36">
       <VStack gap="3" textAlign="center">
-        <IconButton variant="ghost" loading aria-label="Creating invitation" />
-        <styled.p color="fg.muted">Creating an invitation...</styled.p>
+        <IconButton variant="ghost" loading aria-label={t.invitation.creating} />
+        <styled.p color="fg.muted">{t.invitation.creating}</styled.p>
       </VStack>
     </Center>
   );

@@ -7,6 +7,7 @@ import { DiscussionIcon } from "@/components/ui/icons/Discussion";
 import { LibraryIcon } from "@/components/ui/icons/Library";
 import { ProfileIcon } from "@/components/ui/icons/Profile";
 import { ReplyIcon } from "@/components/ui/icons/Reply";
+import { useTranslation } from "@/lib/i18n";
 import { Box, HStack, LStack, styled } from "@/styled-system/jsx";
 
 import {
@@ -22,13 +23,14 @@ type Props = {
 };
 
 export function DatagraphSearchItem({ result, handleNavigate }: Props) {
+  const t = useTranslation();
   const path = buildPermalink(result);
 
   function handleSelect() {
     handleNavigate(path);
   }
 
-  const label = getDatagraphKindLabel(result.kind);
+  const label = getDatagraphKindLabel(t, result.kind);
   const colour = getDatagraphKindColour(result.kind);
   const cssVars = badgeColourCSS(colour);
 

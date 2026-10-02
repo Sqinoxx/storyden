@@ -2,12 +2,14 @@ import { NodeVersionStatus } from "@/api/openapi-schema";
 import { Badge } from "@/components/ui/badge";
 import { CheckIcon } from "@/components/ui/icons/Check";
 import { DraftIcon } from "@/components/ui/icons/Draft";
+import { useTranslation } from "@/lib/i18n";
 
 export function PageVersionStatusBadge({
   status,
 }: {
   status: NodeVersionStatus;
 }) {
+  const t = useTranslation();
   const isApplied = status === NodeVersionStatus.applied;
   const Icon = isApplied ? CheckIcon : DraftIcon;
 
@@ -23,7 +25,7 @@ export function PageVersionStatusBadge({
       }}
     >
       <Icon />
-      {status}
+      {t.library.versionStatus[status]}
     </Badge>
   );
 }

@@ -4,7 +4,7 @@ import { PropsWithChildren } from "react";
 import { Lock, ShieldAlert } from "lucide-react";
 
 import { useSession } from "@/auth";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslateMessage, useTranslation } from "@/lib/i18n";
 import { usePublicRegistration } from "@/lib/settings/registration";
 import type { Settings } from "@/lib/settings/settings";
 import { ImpressumLink } from "@/components/site/ImpressumModal/ImpressumLink";
@@ -29,6 +29,7 @@ type Props = {
 
 export function Unready({ error }: Props) {
   const t = useTranslation();
+  const translate = useTranslateMessage();
   const session = useSession();
   const canRegister = usePublicRegistration();
 
@@ -40,7 +41,7 @@ export function Unready({ error }: Props) {
         role="status"
         aria-busy="true"
         aria-live="polite"
-        aria-label="Loading"
+        aria-label={t.common.loading}
       >
         <div aria-hidden="true">
           <Spinner />
@@ -164,7 +165,7 @@ export function Unready({ error }: Props) {
               {t.common.error}
             </styled.h2>
             <styled.p fontSize="sm" color="fg.muted" maxW="sm" id="error__message">
-              {message}
+              {translate(message)}
             </styled.p>
           </VStack>
         </VStack>
@@ -175,6 +176,7 @@ export function Unready({ error }: Props) {
 
 export function UnreadyBanner({ error, children }: PropsWithChildren<Props>) {
   const t = useTranslation();
+  const translate = useTranslateMessage();
 
   if (!error) {
     return (
@@ -184,7 +186,7 @@ export function UnreadyBanner({ error, children }: PropsWithChildren<Props>) {
         role="status"
         aria-busy="true"
         aria-live="polite"
-        aria-label="Loading"
+        aria-label={t.common.loading}
       >
         <Spinner aria-hidden="true" />
       </Center>
@@ -211,7 +213,7 @@ export function UnreadyBanner({ error, children }: PropsWithChildren<Props>) {
           </HStack>
 
           <styled.p id="error__message">
-            <span>{message}</span>
+            <span>{translate(message)}</span>
           </styled.p>
 
           {children && <LStack>{children}</LStack>}

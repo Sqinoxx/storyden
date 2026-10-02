@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { handle } from "@/api/client";
 import { useSession } from "@/auth";
+import { useTranslation } from "@/lib/i18n";
 import { useProfileMutations } from "@/lib/profile/mutation";
 import { Member } from "@/lib/settings/member-settings";
 
@@ -18,6 +19,7 @@ export type Props = {
 };
 
 export function useMemberInterfaceSettings({ session }: Props) {
+  const t = useTranslation();
   const { update, revalidate } = useProfileMutations(session.handle);
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
@@ -44,8 +46,8 @@ export function useMemberInterfaceSettings({ session }: Props) {
       },
       {
         promiseToast: {
-          loading: "Saving settings...",
-          success: "Settings saved",
+          loading: t.toasts.savingSettings,
+          success: t.toasts.settingsSaved,
         },
         cleanup: async () => {
           await revalidate();

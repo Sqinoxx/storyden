@@ -3,6 +3,7 @@
 import { CancelAction } from "@/components/site/Action/Cancel";
 import { DeleteIcon } from "@/components/ui/icons/Delete";
 import * as Menu from "@/components/ui/menu";
+import { useTranslation } from "@/lib/i18n";
 import { HStack } from "@/styled-system/jsx";
 import { menuItemColorPalette } from "@/styled-system/patterns";
 
@@ -13,6 +14,7 @@ export type Props = {
 };
 
 export function DeleteWithConfirmationMenuItem(props: Props) {
+  const t = useTranslation();
   const { isConfirming, handleConfirmAction, handleCancelAction } =
     useConfirmation(props.onDelete);
 
@@ -26,7 +28,7 @@ export function DeleteWithConfirmationMenuItem(props: Props) {
           closeOnSelect={false}
           onClick={props.onDelete}
         >
-          Are you sure?
+          {t.actions.deleteConfirm}
         </Menu.Item>
 
         <Menu.Item value="delete-cancel" closeOnSelect={false} asChild>
@@ -44,7 +46,7 @@ export function DeleteWithConfirmationMenuItem(props: Props) {
       onClick={handleConfirmAction}
     >
       <HStack gap="1">
-        <DeleteIcon /> Delete
+        <DeleteIcon /> {t.actions.delete}
       </HStack>
     </Menu.Item>
   );

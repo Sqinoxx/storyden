@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 import { HStack, VStack } from "@/styled-system/jsx";
 
 import {
@@ -8,14 +9,12 @@ import {
 } from "./useDeleteDeviceScreen";
 
 export function DeleteDeviceScreen(props: WithDisclosure<Props>) {
+  const t = useTranslation();
   const { handleConfirm } = useDeleteDeviceScreen(props);
 
   return (
     <VStack maxW="prose">
-      <p>
-        Warning: Deleting an authentication device is permanent. Make sure you
-        have another authentication method or device registered to your account.
-      </p>
+      <p>{t.settings.devices.deleteWarning}</p>
       <HStack
         w="full"
         justifyContent="space-between"
@@ -25,7 +24,7 @@ export function DeleteDeviceScreen(props: WithDisclosure<Props>) {
         gap="4"
       >
         <Button flexGrow="1" size="sm" variant="ghost" onClick={props.onClose}>
-          Cancel
+          {t.common.cancel}
         </Button>
         <Button
           flexGrow="1"
@@ -33,7 +32,7 @@ export function DeleteDeviceScreen(props: WithDisclosure<Props>) {
           colorPalette="red"
           onClick={handleConfirm}
         >
-          Delete
+          {t.common.delete}
         </Button>
       </HStack>
     </VStack>

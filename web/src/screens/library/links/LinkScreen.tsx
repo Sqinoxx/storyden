@@ -8,6 +8,7 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { Heading } from "@/components/ui/heading";
 import { SearchIcon } from "@/components/ui/icons/Search";
 import { LinkButton } from "@/components/ui/link-button";
+import { useTranslation } from "@/lib/i18n";
 import { Flex, HStack, LStack, styled } from "@/styled-system/jsx";
 import { getAssetURL } from "@/utils/asset";
 
@@ -17,6 +18,7 @@ export type Props = {
 };
 
 export function LinkScreen(props: Props) {
+  const t = useTranslation();
   const { data, error } = useLinkGet(props.slug, {
     swr: { fallbackData: props.initialLink },
   });
@@ -44,7 +46,7 @@ export function LinkScreen(props: Props) {
     <LStack>
       <Breadcrumbs
         index={{
-          label: "Links",
+          label: t.library.links,
           href: "/links",
         }}
         crumbs={[

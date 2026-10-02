@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 import { handle } from "@/api/client";
+import { useTranslation } from "@/lib/i18n";
 import { getAssetURL } from "@/utils/asset";
 import { htmlToMarkdown, markdownToHTML } from "@/utils/markdown";
 
@@ -13,9 +14,9 @@ import {
 } from "../useImageUpload";
 
 const PLACEHOLDER_SEPARATOR = "\n\n";
-const ERROR_UNSUPPORTED_FILE_TYPE = "File type not supported";
 
 export function useContentComposerMarkdown(props: ContentComposerProps) {
+  const t = useTranslation();
   const [value, setValue] = useState(() => getInitialMarkdownValue(props));
   const { upload } = useImageUpload();
   const [previewHTML, setPreviewHTML] = useState<string>("");
@@ -94,8 +95,8 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
       return dragErrorMessage;
     }
     return dragFileCount === 1
-      ? "Drop 1 file to upload"
-      : `Drop ${dragFileCount} files to upload`;
+      ? t.upload.dropOneFile
+      : t.upload.dropFiles.replace("{count}", String(dragFileCount));
   }
 
   async function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
@@ -254,7 +255,7 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
 
     if (!hasImage) {
       setIsDragError(true);
-      setDragErrorMessage(ERROR_UNSUPPORTED_FILE_TYPE);
+      setDragErrorMessage(t.upload.unsupportedType);
     } else {
       setIsDragError(false);
       setDragErrorMessage("");

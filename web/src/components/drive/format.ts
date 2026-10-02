@@ -1,22 +1,30 @@
-const KIND_LABELS: [RegExp, string][] = [
-  [/^application\/pdf$/, "PDF"],
-  [/^image\//, "Image"],
-  [/^video\//, "Video"],
-  [/^audio\//, "Audio"],
-  [/^text\/csv$/, "CSV"],
-  [/^text\//, "Text"],
-  [/wordprocessingml|msword/, "Document"],
-  [/spreadsheetml|ms-excel/, "Spreadsheet"],
-  [/presentationml|ms-powerpoint/, "Presentation"],
-  [/zip|compressed|tar|rar|7z/, "Archive"],
+import type { Translations } from "@/lib/i18n";
+
+type KindKey = keyof Translations["drive"]["kinds"];
+
+const KIND_LABELS: [RegExp, KindKey][] = [
+  [/^application\/pdf$/, "pdf"],
+  [/^image\//, "image"],
+  [/^video\//, "video"],
+  [/^audio\//, "audio"],
+  [/^text\/csv$/, "csv"],
+  [/^text\//, "text"],
+  [/wordprocessingml|msword/, "document"],
+  [/spreadsheetml|ms-excel/, "spreadsheet"],
+  [/presentationml|ms-powerpoint/, "presentation"],
+  [/zip|compressed|tar|rar|7z/, "archive"],
 ];
 
-export function driveKindLabel(mimeType: string, isFolder: boolean) {
-  if (isFolder) return "Folder";
+export function driveKindLabel(
+  t: Translations,
+  mimeType: string,
+  isFolder: boolean,
+) {
+  if (isFolder) return t.drive.kinds.folder;
 
   const match = KIND_LABELS.find(([pattern]) => pattern.test(mimeType));
 
-  return match?.[1] ?? "File";
+  return t.drive.kinds[match?.[1] ?? "file"];
 }
 
 const UNITS = ["B", "KB", "MB", "GB", "TB"];

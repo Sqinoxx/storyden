@@ -5,6 +5,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { LinkButton } from "./LinkButton";
 
+import { de } from "@/lib/i18n/translations/de";
+
 function createEditorState(options: { active: boolean; href?: string }) {
   const chain = {
     focus: vi.fn(() => chain),
@@ -30,8 +32,8 @@ describe("LinkButton", () => {
 
     render(<LinkButton editor={editor} />);
 
-    await user.click(screen.getByTitle("Add link"));
-    await user.type(screen.getByLabelText("Link URL"), "example.com{enter}");
+    await user.click(screen.getByTitle(de.link.addLink));
+    await user.type(screen.getByLabelText(de.link.linkUrl), "example.com{enter}");
 
     expect(chain.setLink).toHaveBeenCalledWith({ href: "https://example.com/" });
     expect(chain.extendMarkRange).not.toHaveBeenCalled();
@@ -47,11 +49,11 @@ describe("LinkButton", () => {
 
     render(<LinkButton editor={editor} />);
 
-    await user.click(screen.getByTitle("Edit link"));
+    await user.click(screen.getByTitle(de.link.editLink));
 
-    const input = screen.getByLabelText("Link URL");
+    const input = screen.getByLabelText(de.link.linkUrl);
     await user.clear(input);
-    await user.click(screen.getByRole("button", { name: "Update" }));
+    await user.click(screen.getByRole("button", { name: de.link.update }));
 
     expect(chain.unsetLink).toHaveBeenCalled();
     expect(chain.run).toHaveBeenCalled();
@@ -63,15 +65,15 @@ describe("LinkButton", () => {
 
     render(<LinkButton editor={editor} />);
 
-    await user.click(screen.getByTitle("Add link"));
+    await user.click(screen.getByTitle(de.link.addLink));
     await user.type(
-      screen.getByLabelText("Link URL"),
+      screen.getByLabelText(de.link.linkUrl),
       "javascript:alert(1).com",
     );
-    await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(screen.getByRole("button", { name: de.link.add }));
 
     expect(chain.setLink).not.toHaveBeenCalled();
-    expect(screen.getByLabelText("Link URL")).toBeInTheDocument();
+    expect(screen.getByLabelText(de.link.linkUrl)).toBeInTheDocument();
   });
 
   it("shows remove button for active links", async () => {
@@ -83,8 +85,8 @@ describe("LinkButton", () => {
 
     render(<LinkButton editor={editor} />);
 
-    await user.click(screen.getByTitle("Edit link"));
-    await user.click(screen.getByTitle("Remove link"));
+    await user.click(screen.getByTitle(de.link.editLink));
+    await user.click(screen.getByTitle(de.link.removeLink));
 
     expect(chain.unsetLink).toHaveBeenCalled();
   });

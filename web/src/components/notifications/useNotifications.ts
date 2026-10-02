@@ -12,6 +12,7 @@ import {
   NotificationStatus,
 } from "@/api/openapi-schema";
 import { getCommonProperties } from "@/lib/datagraph/item";
+import { Translations, useTranslation } from "@/lib/i18n";
 
 import { NotificationItem } from "./item";
 
@@ -21,8 +22,12 @@ export type Props = {
 };
 
 export function useNotifications(props: Props) {
+  const t = useTranslation();
   const filterByStatus = filterStatus(props.status);
-  const processNotifications = flow(filterByStatus, mapToItems);
+  const processNotifications = flow(
+    filterByStatus,
+    map((n: Notification) => mapToItem(t, n)),
+  );
 
   const { data, error, mutate } = useNotificationList(
     { status: [props.status] },
@@ -113,12 +118,10 @@ const filterStatus = (s: NotificationStatus) =>
 
 const filterUnread = filterStatus("unread");
 
-const mapToItems = map(mapToItem);
-
-function mapToItem(n: Notification): NotificationItem {
-  const content = getNotificationContent(n);
+function mapToItem(t: Translations, n: Notification): NotificationItem {
+  const content = getNotificationContent(t, n);
   const createdAt = new Date(n.created_at);
-  const title = n.source?.handle ?? "System";
+  const title = n.source?.handle ?? t.notifications.system;
   const isRead = n.status === "read";
 
   return {
@@ -133,49 +136,50 @@ function mapToItem(n: Notification): NotificationItem {
   };
 }
 
-function getNotificationContent(n: Notification) {
+function getNotificationContent(t: Translations, n: Notification) {
   const p = n.item && getCommonProperties(n.item);
+  const d = t.notifications.events;
   switch (n.event) {
     case "thread_reply":
-      return { description: "replied to your post", url: `/t/locate/${p?.id}` };
+      return { description: d.threadReply, url: `/t/locate/${p?.id}` };
     case "reply_to_reply":
-      return { description: "replied to you", url: `/t/locate/${p?.id}` };
+      return { description: d.replyToReply, url: `/t/locate/${p?.id}` };
     case "post_like":
-      return { description: "liked your post", url: `/t/locate/${p?.id}` };
+      return { description: d.postLike, url: `/t/locate/${p?.id}` };
     case "follow":
-      return { description: "followed you", url: `/m/${n.source?.handle}` };
+      return { description: d.follow, url: `/m/${n.source?.handle}` };
     case "profile_mention":
-      return { description: "mentioned you", url: `/t/locate/${p?.id}` };
+      return { description: d.profileMention, url: `/t/locate/${p?.id}` };
     case "event_host_added":
-      return { description: "added you as an event host", url: `#` }; // not implemented
+      return { description: d.eventHostAdded, url: `#` }; // not implemented
     case "member_attending_event":
-      return { description: "is attending your event", url: `#` }; // not implemented
+      return { description: d.memberAttendingEvent, url: `#` }; // not implemented
     case "member_declined_event":
-      return { description: "declined your event", url: `#` }; // not implemented
+      return { description: d.memberDeclinedEvent, url: `#` }; // not implemented
     case "attendee_removed":
-      return { description: "removed you from their event", url: `#` }; // not implemented
+      return { description: d.attendeeRemoved, url: `#` }; // not implemented
     case "report_submitted":
-      return { description: "submitted a report", url: `/reports` };
+      return { description: d.reportSubmitted, url: `/reports` };
     case "report_updated":
-      return { description: "report status updated", url: `/reports` };
+      return { description: d.reportUpdated, url: `/reports` };
     case "warning_issued":
       return {
-        description: "issued you a warning",
+        description: d.warningIssued,
         url: p?.slug ? `/m/${p.slug}` : "#",
       };
     case "node_version_created":
       return {
-        description: "created a draft for your page",
+        description: d.nodeVersionCreated,
         url: p?.slug ? `/l/${p.slug}` : "#",
       };
     case "node_version_applied":
       return {
-        description: "applied your draft",
+        description: d.nodeVersionApplied,
         url: p?.slug ? `/l/${p.slug}` : "#",
       };
     case "node_version_deleted":
       return {
-        description: "discarded your draft",
+        description: d.nodeVersionDeleted,
         url: p?.slug ? `/l/${p.slug}` : "#",
       };
   }

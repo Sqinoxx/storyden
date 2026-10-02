@@ -15,6 +15,7 @@ import { RichCardVariantProps, richCard } from "@/styled-system/recipes";
 import { isExternalURL } from "@/utils/url";
 
 import { ContentComposer } from "../content/ContentComposer/ContentComposer";
+import { useTranslation } from "@/lib/i18n";
 
 export type CardItem = {
   id: string;
@@ -217,6 +218,7 @@ function ShowMore({
   showingMore,
   ...props
 }: { showingMore: boolean } & DOMAttributes<HTMLAnchorElement>) {
+  const t = useTranslation();
   return (
     <styled.p display="flex" justifyContent="space-between">
       <styled.span color="fg.muted">{showingMore || "..."}</styled.span>
@@ -230,7 +232,7 @@ function ShowMore({
         onClick={(e) => e.preventDefault()}
         {...props}
       >
-        {showingMore ? "hide" : "show more"}
+        {showingMore ? t.common.showLess : t.common.showMore}
       </styled.a>
     </styled.p>
   );

@@ -52,6 +52,7 @@ import {
   mergeFieldsAndPropertySchema,
 } from "./column";
 import { useDirectoryBlock } from "./useDirectoryBlock";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   nodes: NodeWithChildren[];
@@ -254,6 +255,7 @@ function Row({
   ) => void;
   editing: boolean;
 }) {
+  const t = useTranslation();
   const {
     attributes,
     listeners,
@@ -394,20 +396,20 @@ function Row({
                           <Tooltip.Content p="1" borderRadius="sm">
                             <p>
                               <styled.span fontWeight="semibold">
-                                Click
+                                {t.library.hintClick}
                               </styled.span>
                               &nbsp;
                               <styled.span fontWeight="normal">
-                                to open menu
+                                {t.library.hintOpenMenu}
                               </styled.span>
                             </p>
                             <p>
                               <styled.span fontWeight="semibold">
-                                Drag
+                                {t.library.hintDrag}
                               </styled.span>
                               &nbsp;
                               <styled.span fontWeight="normal">
-                                to move
+                                {t.library.hintMove}
                               </styled.span>
                             </p>
                           </Tooltip.Content>

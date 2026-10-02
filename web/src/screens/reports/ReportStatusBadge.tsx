@@ -3,12 +3,7 @@ import chroma from "chroma-js";
 import { ReportStatus } from "@/api/openapi-schema";
 import { badgeColourCSS } from "@/components/datagraph/DatagraphItemCard";
 import { Badge } from "@/components/ui/badge";
-
-const REPORT_STATUS_LABEL: Record<ReportStatus, string> = {
-  [ReportStatus.submitted]: "Submitted",
-  [ReportStatus.acknowledged]: "Acknowledged",
-  [ReportStatus.resolved]: "Resolved",
-};
+import { useTranslation } from "@/lib/i18n";
 
 const REPORT_STATUS_COLOR: Record<ReportStatus, string> = {
   [ReportStatus.submitted]: "#f59e0b",
@@ -21,6 +16,7 @@ type Props = {
 };
 
 export function ReportStatusBadge({ status }: Props) {
+  const t = useTranslation();
   const colour = REPORT_STATUS_COLOR[status];
   const cssVars = badgeColourCSS(colour);
 
@@ -32,7 +28,7 @@ export function ReportStatusBadge({ status }: Props) {
       color="var(--colors-color-palette-fg)"
       fontWeight="medium"
     >
-      {REPORT_STATUS_LABEL[status]}
+      {t.report.status[status]}
     </Badge>
   );
 }

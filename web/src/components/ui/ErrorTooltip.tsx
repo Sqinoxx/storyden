@@ -2,6 +2,7 @@ import { Portal } from "@ark-ui/react";
 
 import { WarningIcon } from "@/components/ui/icons/Warning";
 import * as Popover from "@/components/ui/popover";
+import { useTranslation } from "@/lib/i18n";
 import { deriveError } from "@/utils/error";
 
 import { IconButton } from "./icon-button";
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function ErrorTooltip({ error }: Props) {
+  const t = useTranslation();
   if (!error) {
     return null;
   }
@@ -24,7 +26,7 @@ export function ErrorTooltip({ error }: Props) {
           type="button"
           size="xs"
           variant="ghost"
-          aria-label="Show error details"
+          aria-label={t.common.showErrorDetails}
         >
           <WarningIcon color="fg.error" />
         </IconButton>

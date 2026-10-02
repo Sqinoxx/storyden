@@ -1,6 +1,7 @@
 import { Presence } from "@ark-ui/react";
 import type { PropsWithChildren } from "react";
 
+import { useTranslation } from "@/lib/i18n";
 import { css } from "@/styled-system/css";
 import { VStack, styled } from "@/styled-system/jsx";
 import { AdmonitionVariantProps, admonition } from "@/styled-system/recipes";
@@ -26,6 +27,7 @@ export type AdmonitionProps = {
   >;
 
 export function Admonition(props: PropsWithChildren<AdmonitionProps>) {
+  const t = useTranslation();
   const { children, onChange, title, value, ...rest } = props;
 
   function handleClose() {
@@ -51,7 +53,7 @@ export function Admonition(props: PropsWithChildren<AdmonitionProps>) {
           type="button"
           size="xs"
           variant="ghost"
-          aria-label="Close"
+          aria-label={t.common.close}
           onClick={handleClose}
         >
           <CloseIcon />

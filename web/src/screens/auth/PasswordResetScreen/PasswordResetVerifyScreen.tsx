@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { Input } from "@/components/ui/input";
 import { PasswordSchema } from "@/lib/auth/schemas";
+import { useTranslation } from "@/lib/i18n";
 import { styled } from "@/styled-system/jsx";
 import { vstack } from "@/styled-system/patterns";
 
@@ -25,6 +26,7 @@ const FormSchema = z.object({
 type Form = z.infer<typeof FormSchema>;
 
 export function usePasswordResetVerifyScreen({ token }: Props) {
+  const t = useTranslation();
   const router = useRouter();
 
   const form = useForm<Form>({
@@ -42,8 +44,8 @@ export function usePasswordResetVerifyScreen({ token }: Props) {
       },
       {
         promiseToast: {
-          loading: "Resetting password...",
-          success: "Password reset successfully.",
+          loading: t.auth.resettingPassword,
+          success: t.auth.passwordResetSuccess,
         },
       },
     );
@@ -58,6 +60,7 @@ export function usePasswordResetVerifyScreen({ token }: Props) {
 }
 
 export function PasswordResetVerifyScreen(props: Props) {
+  const t = useTranslation();
   const { form, handlers } = usePasswordResetVerifyScreen(props);
 
   return (
@@ -73,7 +76,7 @@ export function PasswordResetVerifyScreen(props: Props) {
           type="password"
           w="full"
           textAlign="center"
-          placeholder="Your new password..."
+          placeholder={t.auth.newPasswordPlaceholder}
           required
           {...form.register("password")}
         />
@@ -86,7 +89,7 @@ export function PasswordResetVerifyScreen(props: Props) {
         w="full"
         loading={form.formState.isSubmitting}
       >
-        Reset
+        {t.auth.resetButton}
       </Button>
 
       <FormErrorText>{form.formState.errors["root"]?.message}</FormErrorText>

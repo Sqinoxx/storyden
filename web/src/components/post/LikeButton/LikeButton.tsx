@@ -1,6 +1,7 @@
 import { LikeAction } from "@/components/site/Action/Like";
 import { Button } from "@/components/ui/button";
 import { LikeIcon, LikeSavedIcon } from "@/components/ui/icons/Like";
+import { useTranslation } from "@/lib/i18n";
 import { styled } from "@/styled-system/jsx";
 
 import { Props, useLikeButton } from "./useLikeButton";
@@ -10,6 +11,7 @@ type LikeButtonProps = Props & {
 };
 
 export function LikeButton({ showCount = false, ...props }: LikeButtonProps) {
+  const t = useTranslation();
   const { enabled, handleClick } = useLikeButton({ thread: props.thread });
   const likeCount = props.thread.likes.likes;
 
@@ -22,8 +24,12 @@ export function LikeButton({ showCount = false, ...props }: LikeButtonProps) {
         size="xs"
         gap="1"
         color="fg.muted"
-        aria-label={props.thread.likes.liked ? "Unlike" : "Like"}
-        title={props.thread.likes.liked ? "Unlike" : "Like"}
+        aria-label={
+          props.thread.likes.liked ? t.thread.unlikeAction : t.thread.likeAction
+        }
+        title={
+          props.thread.likes.liked ? t.thread.unlikeAction : t.thread.likeAction
+        }
         onClick={handleClick}
         disabled={!enabled}
       >

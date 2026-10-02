@@ -9,8 +9,10 @@ import { Flex, styled } from "@/styled-system/jsx";
 
 import { SemesterField } from "../SemesterField";
 import { Props, useRegisterHandleForm } from "./useRegisterHandleForm";
+import { useTranslateMessage, useTranslation } from "@/lib/i18n";
 
 export function RegisterHandleForm(props: Props) {
+  const t = useTranslation();
   const {
     form: {
       register,
@@ -21,6 +23,7 @@ export function RegisterHandleForm(props: Props) {
       isSubmitting,
     },
   } = useRegisterHandleForm(props);
+  const translate = useTranslateMessage();
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -47,16 +50,16 @@ export function RegisterHandleForm(props: Props) {
         w="full"
         size="sm"
         textAlign="center"
-        placeholder="username"
+        placeholder={t.auth.usernamePlaceholder}
         required
         {...register("identifier")}
       />
       <styled.p color="fg.error" fontSize="sm">
-        {errors.identifier?.message}
+        {errors.identifier?.message && translate(errors.identifier.message)}
       </styled.p>
       <SemesterField register={register("semester")} />
       <styled.p color="fg.error" fontSize="sm">
-        {errors.semester?.message}
+        {errors.semester?.message && translate(errors.semester.message)}
       </styled.p>
       <Flex alignItems="center" gap="2">
         <Input
@@ -64,13 +67,13 @@ export function RegisterHandleForm(props: Props) {
           w="full"
           size="sm"
           textAlign="center"
-          placeholder="password"
+          placeholder={t.auth.passwordLabel}
           autoComplete="new-password"
           {...register("token")}
         />
         {props.webauthn && isWebauthnEnabled && (
           <>
-            <styled.span>or</styled.span>
+            <styled.span>{t.auth.or}</styled.span>
 
             <Button
               w="full"
@@ -80,7 +83,7 @@ export function RegisterHandleForm(props: Props) {
               onClick={handleWebauthn}
             >
               <styled.span display="flex" gap="1" alignItems="center" px="4">
-                device
+                {t.auth.device}
                 <BiometricIcon />
               </styled.span>
             </Button>
@@ -88,13 +91,13 @@ export function RegisterHandleForm(props: Props) {
         )}
       </Flex>
       <styled.p color="fg.error" fontSize="sm">
-        {errors.token?.message}
+        {errors.token?.message && translate(errors.token.message)}
       </styled.p>
       <Button type="submit" w="full" loading={isSubmitting}>
-        Register
+        {t.auth.register}
       </Button>
       <styled.p color="fg.error" fontSize="sm">
-        {errors.root?.message}
+        {errors.root?.message && translate(errors.root.message)}
       </styled.p>
     </styled.form>
   );

@@ -6,12 +6,14 @@ import { deriveColour } from "@/utils/colour";
 
 import { MultiSelectPicker, MultiSelectPickerItem } from "./MultiSelectPicker";
 
+import { de } from "@/lib/i18n/translations/de";
+
 function openPicker() {
-  return userEvent.click(screen.getByRole("button", { name: /Select items/i }));
+  return userEvent.click(screen.getByRole("button", { name: new RegExp(de.picker.selectItems, "i") }));
 }
 
 function getSearchInput() {
-  return screen.getByRole("textbox", { name: "Search for items" });
+  return screen.getByRole("textbox", { name: de.picker.searchItems });
 }
 
 function rect({
@@ -126,7 +128,7 @@ describe("MultiSelectPicker", () => {
     );
 
     await openPicker();
-    await user.click(screen.getByRole("button", { name: "Remove Alpha" }));
+    await user.click(screen.getByRole("button", { name: de.picker.removeItem.replace("{label}", "Alpha") }));
 
     await waitFor(() => expect(onChange).toHaveBeenCalledWith([]));
   });
@@ -146,7 +148,7 @@ describe("MultiSelectPicker", () => {
     await openPicker();
     await user.type(getSearchInput(), "zzz");
 
-    expect(screen.getByText("No results found")).toBeInTheDocument();
+    expect(screen.getByText(de.picker.noResults)).toBeInTheDocument();
   });
 
   it("shows hidden badge count when badges overflow the trigger", async () => {
@@ -165,7 +167,7 @@ describe("MultiSelectPicker", () => {
     );
 
     const trigger = screen.getByRole("button", {
-      name: /Select items, 3 selected/i,
+      name: `${de.picker.selectItems}, ${de.picker.selectedCount.replace("{count}", "3")}`,
     });
     const container = trigger.querySelector("div");
     const one = screen.getByText("One");

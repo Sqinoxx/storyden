@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { handle } from "@/api/client";
+import { useTranslation } from "@/lib/i18n";
 import { useProfileMutations } from "@/lib/profile/mutation";
 import { Member } from "@/lib/settings/member-settings";
 
@@ -25,6 +26,7 @@ export type Props = {
 };
 
 export function useSessionSettings({ session }: Props) {
+  const t = useTranslation();
   const { update, revalidate } = useProfileMutations(session.handle);
 
   const form = useForm<Form>({
@@ -48,8 +50,8 @@ export function useSessionSettings({ session }: Props) {
       },
       {
         promiseToast: {
-          loading: "Saving settings...",
-          success: "Settings saved",
+          loading: t.toasts.savingSettings,
+          success: t.toasts.settingsSaved,
         },
         cleanup: async () => {
           await revalidate();

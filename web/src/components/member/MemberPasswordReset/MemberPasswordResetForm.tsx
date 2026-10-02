@@ -16,6 +16,7 @@ import { SelectIcon } from "@/components/ui/icons/Select";
 import { Input } from "@/components/ui/input";
 import * as Select from "@/components/ui/select";
 import { WEB_ADDRESS } from "@/config";
+import { useTranslation } from "@/lib/i18n";
 import { HStack, VStack, styled } from "@/styled-system/jsx";
 
 export type Props = {
@@ -61,6 +62,7 @@ function MemberPasswordResetFormWithEmail({
   account,
   onClose,
 }: Props) {
+  const t = useTranslation();
   const verifiedEmailAddresses = useMemo(
     () =>
       account.email_addresses?.filter(
@@ -107,8 +109,8 @@ function MemberPasswordResetFormWithEmail({
       },
       {
         promiseToast: {
-          loading: "Sending password reset email...",
-          success: "Password reset email sent successfully",
+          loading: t.moderation.resetEmailSending,
+          success: t.moderation.resetEmailSent,
         },
       },
     );
@@ -121,18 +123,20 @@ function MemberPasswordResetFormWithEmail({
 
   return (
     <VStack alignItems="start" gap="4">
-      <styled.p>Send a password reset email to {profile.name}?</styled.p>
+      <styled.p>
+        {t.moderation.resetEmailConfirm.replace("{name}", profile.name)}
+      </styled.p>
 
       {!hasVerifiedEmailAddress && (
         <styled.p fontSize="sm" color="fg.error">
-          This account has no verified email address configured.
+          {t.moderation.noVerifiedEmail}
         </styled.p>
       )}
 
       {selectedEmailAddress && !hasMultipleVerifiedEmailAddresses && (
         <VStack alignItems="start" gap="1" w="full">
           <styled.span fontSize="sm" fontWeight="medium">
-            Recipient email
+            {t.moderation.recipientEmail}
           </styled.span>
           <styled.p
             bg="bg.muted"
@@ -158,10 +162,10 @@ function MemberPasswordResetFormWithEmail({
           onValueChange={handleEmailAddressChange}
           w="full"
         >
-          <Select.Label>Recipient email</Select.Label>
+          <Select.Label>{t.moderation.recipientEmail}</Select.Label>
           <Select.Control>
             <Select.Trigger w="full">
-              <Select.ValueText placeholder="Select an email address" />
+              <Select.ValueText placeholder={t.moderation.selectEmail} />
               <SelectIcon />
             </Select.Trigger>
           </Select.Control>
@@ -181,13 +185,12 @@ function MemberPasswordResetFormWithEmail({
       )}
 
       <styled.p fontSize="sm" color="fg.muted">
-        An email will be sent to their verified email address with instructions
-        to reset their password. The link will be valid for 1 hour.
+        {t.moderation.resetEmailHint}
       </styled.p>
 
       <HStack w="full">
         <Button type="button" flexGrow="1" variant="outline" onClick={onClose}>
-          Cancel
+          {t.common.cancel}
         </Button>
 
         <Button
@@ -196,7 +199,7 @@ function MemberPasswordResetFormWithEmail({
           onClick={handleSendEmail}
           disabled={!hasVerifiedEmailAddress}
         >
-          Send Email
+          {t.moderation.sendEmail}
         </Button>
       </HStack>
     </VStack>
@@ -204,6 +207,7 @@ function MemberPasswordResetFormWithEmail({
 }
 
 function MemberPasswordResetFormWithLink({ profile, onClose }: Props) {
+  const t = useTranslation();
   const [resetUrl, setResetUrl] = useState<string | null>(null);
 
   async function handleGenerateToken() {
@@ -225,12 +229,11 @@ function MemberPasswordResetFormWithLink({ profile, onClose }: Props) {
     return (
       <VStack alignItems="start" gap="4">
         <styled.p>
-          <strong>Password reset link generated successfully.</strong>
+          <strong>{t.moderation.resetLinkGenerated}</strong>
         </styled.p>
 
         <styled.p>
-          Copy this link and send it to {profile.name}. This link is valid for 1
-          hour.
+          {t.moderation.resetLinkHint.replace("{name}", profile.name)}
         </styled.p>
 
         <Clipboard.Root w="full" value={resetUrl}>
@@ -249,7 +252,7 @@ function MemberPasswordResetFormWithLink({ profile, onClose }: Props) {
         </Clipboard.Root>
 
         <Button onClick={onClose} w="full">
-          Done
+          {t.actions.done}
         </Button>
       </VStack>
     );
@@ -257,21 +260,21 @@ function MemberPasswordResetFormWithLink({ profile, onClose }: Props) {
 
   return (
     <VStack alignItems="start" gap="4">
-      <styled.p>Generate a password reset link for {profile.name}?</styled.p>
+      <styled.p>
+        {t.moderation.resetLinkConfirm.replace("{name}", profile.name)}
+      </styled.p>
 
       <styled.p fontSize="sm" color="fg.muted">
-        A password reset email cannot be sent for this member. A password reset
-        link will be generated for you to copy and send through another
-        communication method.
+        {t.moderation.resetLinkExplanation}
       </styled.p>
 
       <HStack w="full">
         <Button type="button" flexGrow="1" variant="outline" onClick={onClose}>
-          Cancel
+          {t.common.cancel}
         </Button>
 
         <Button type="button" flexGrow="1" onClick={handleGenerateToken}>
-          Generate Link
+          {t.moderation.generateLink}
         </Button>
       </HStack>
     </VStack>

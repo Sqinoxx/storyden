@@ -12,6 +12,7 @@ import { withUndo } from "@/lib/thread/undo";
 import { useCopyToClipboard } from "@/utils/useCopyToClipboard";
 
 import { getPermalinkForPost } from "../utils";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   thread: Thread;
@@ -21,6 +22,7 @@ export type Props = {
 };
 
 export function useReplyMenu({ thread, reply, currentPage, onEdit }: Props) {
+  const t = useTranslation();
   const { revalidate, deleteReply } = useThreadMutations(thread, currentPage);
   const { resolveReport } = useReportContext();
 
@@ -41,7 +43,7 @@ export function useReplyMenu({ thread, reply, currentPage, onEdit }: Props) {
 
   async function handleShare() {
     await navigator.share({
-      title: `A post by ${reply.author.name}`,
+      title: t.thread.postBy.replace("{name}", reply.author.name),
       url: permalink,
       text: reply.body,
     });
@@ -55,7 +57,7 @@ export function useReplyMenu({ thread, reply, currentPage, onEdit }: Props) {
     await handle(
       async () => {
         await withUndo({
-          message: "Message deleted",
+          message: t.toasts.replyDeleted,
           duration: 5000,
           toastId: `reply-${reply.id}`,
           action: async () => {

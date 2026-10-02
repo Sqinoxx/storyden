@@ -5,9 +5,10 @@ import { PropsWithChildren } from "react";
 import { ButtonProps } from "@/components/ui/button";
 import { DeleteIcon } from "@/components/ui/icons/Delete";
 import * as Menu from "@/components/ui/menu";
+import { useTranslation } from "@/lib/i18n";
 import { allBlockTypes } from "@/lib/library/blockTypes";
 import { useEmitLibraryBlockEvent } from "@/lib/library/events";
-import { LibraryPageBlock, LibraryPageBlockName } from "@/lib/library/metadata";
+import { LibraryPageBlock } from "@/lib/library/metadata";
 import { styled } from "@/styled-system/jsx";
 
 import { useWatch } from "../store";
@@ -27,6 +28,7 @@ type Props = {
 type AllProps = PropsWithChildren<Props & ButtonProps>;
 
 export function BlockMenu({ children, open, block, index }: AllProps) {
+  const t = useTranslation();
   const emit = useEmitLibraryBlockEvent();
 
   const currentMetadata = useWatch((s) => s.draft.meta);
@@ -71,14 +73,14 @@ export function BlockMenu({ children, open, block, index }: AllProps) {
                 flexDir="column"
                 userSelect="none"
               >
-                <styled.span>{LibraryPageBlockName[block.type]}</styled.span>
+                <styled.span>{t.library.blockTypes[block.type]}</styled.span>
               </Menu.ItemGroupLabel>
 
               <Menu.Separator />
 
               <Menu.Item value="delete">
                 <DeleteIcon />
-                &nbsp;Delete
+                &nbsp;{t.actions.delete}
               </Menu.Item>
               <BlockConfigMenu index={index} block={block} />
               {newBlocksAvailable && <CreateBlockMenu />}

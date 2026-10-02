@@ -94,7 +94,7 @@ export function LinkButton({ editor }: LinkButtonProps) {
           type="button"
           size="xs"
           variant={isActive ? "subtle" : "ghost"}
-          title={isActive ? "Edit link" : "Add link"}
+          title={isActive ? t.link.editLink : t.link.addLink}
           onClick={handleOpen}
         >
           <LinkIcon />
@@ -120,7 +120,7 @@ export function LinkButton({ editor }: LinkButtonProps) {
                 }
               }}
               autoFocus
-              aria-label="Link URL"
+              aria-label={t.link.linkUrl}
             />
             <HStack gap="2" justifyContent="flex-end">
               {isActive && (
@@ -129,13 +129,13 @@ export function LinkButton({ editor }: LinkButtonProps) {
                   size="xs"
                   variant="ghost"
                   onClick={handleRemoveLink}
-                  title="Remove link"
+                  title={t.link.removeLink}
                 >
                   <DeleteIcon />
                 </Button>
               )}
               <Button type="button" size="xs" onClick={handleSetLink}>
-                {isActive ? "Update" : "Add"}
+                {isActive ? t.link.update : t.link.add}
               </Button>
             </HStack>
           </HStack>

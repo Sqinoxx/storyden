@@ -330,7 +330,7 @@ export const ThreadReferenceCard = memo(
     );
 
     const { isConfirmingDelete, handlers } = useThreadCardModeration(thread);
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const { settings } = useSettings();
     const showTags = settings?.metadata.postList.showTags ?? true;
 
@@ -349,7 +349,7 @@ export const ThreadReferenceCard = memo(
     const lastReadAt = thread.read_status?.last_read_at;
     const newRepliesLabel =
       newRepliesCount > 0 && lastReadAt
-        ? `${newRepliesCount} ${newRepliesCount === 1 ? t.thread.reply : t.thread.replies} ${t.thread.sinceLastVisit} ${timestamp(lastReadAt, false)} ${t.thread.ago}`
+        ? `${newRepliesCount} ${newRepliesCount === 1 ? t.thread.reply : t.thread.replies} ${t.thread.sinceLastVisit} ${timestamp(lastReadAt, false, language)}`
         : undefined;
 
     const isInReview = thread.visibility === Visibility.review;

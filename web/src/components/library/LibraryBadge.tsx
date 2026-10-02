@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Node } from "@/api/openapi-schema";
+import { useTranslation } from "@/lib/i18n";
 import { styled } from "@/styled-system/jsx";
 
 export function LibraryBadge() {
@@ -35,6 +36,7 @@ export function LibraryPageBadge(props: Node) {
 
 // TODO: Make this a recipe component.
 export function NewBadge() {
+  const t = useTranslation();
   return (
     <styled.span
       fontSize="xs"
@@ -45,7 +47,7 @@ export function NewBadge() {
       py="0.5"
       borderRadius="sm"
     >
-      New
+      {t.library.newBadge}
     </styled.span>
   );
 }

@@ -3,6 +3,7 @@ import { getServerSession } from "@/auth/server-session";
 import { MemberIdent } from "@/components/member/MemberBadge/MemberIdent";
 import { UnreadyBanner } from "@/components/site/Unready";
 import { LinkButton } from "@/components/ui/link-button";
+import { Trans } from "@/lib/i18n";
 import { getSettings } from "@/lib/settings/settings-server";
 import { Box, Divider, LStack, VStack, styled } from "@/styled-system/jsx";
 
@@ -34,7 +35,7 @@ export default async function Page({ params }: Props) {
             />
           </Box>
           <styled.p>
-            has invited you to <strong>{settings.title}</strong>
+            <Trans path="auth.invitedYouTo" /> <strong>{settings.title}</strong>
           </styled.p>
         </VStack>
 
@@ -52,16 +53,16 @@ export default async function Page({ params }: Props) {
           >
             <VStack gap="1" textWrap="balance">
               <styled.p fontWeight="semibold">
-                You&apos;re already signed in as{" "}
-                <strong>{session.handle}</strong> on {settings.title}.
+                <Trans path="auth.alreadySignedInAs" />{" "}
+                <strong>{session.handle}</strong> ({settings.title})
               </styled.p>
               <styled.p fontSize="sm">
-                You cannot accept an invitation while already signed in.
+                <Trans path="auth.cannotAcceptWhileSignedIn" />
               </styled.p>
             </VStack>
 
             <LinkButton w="full" href="/">
-              Home
+              <Trans path="nav.home" />
             </LinkButton>
           </VStack>
         ) : (
@@ -69,7 +70,7 @@ export default async function Page({ params }: Props) {
             w="full"
             href={`/register?invitation_id=${invitation.id}`}
           >
-            Accept
+            <Trans path="auth.acceptInvitation" />
           </LinkButton>
         )}
       </LStack>

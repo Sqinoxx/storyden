@@ -17,6 +17,7 @@ import { hasPermission } from "@/utils/permissions";
 import { useCopyToClipboard } from "@/utils/useCopyToClipboard";
 
 import { getPermalinkForThread } from "../utils";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   thread: ThreadReference;
@@ -29,6 +30,7 @@ export function useThreadMenu({
   editingEnabled,
   movingEnabled,
 }: Props) {
+  const t = useTranslation();
   const router = useRouter();
   const account = useSession();
   const { resolveReport } = useReportContext();
@@ -64,7 +66,7 @@ export function useThreadMenu({
 
   async function handleShare() {
     await navigator.share({
-      title: `A post by ${thread.author.name}`,
+      title: t.thread.postBy.replace("{name}", thread.author.name),
       url: permalink,
       text: thread.description,
     });
@@ -78,7 +80,7 @@ export function useThreadMenu({
     await handle(
       async () => {
         await withUndo({
-          message: "Thread deleted",
+          message: t.toasts.threadDeleted,
           duration: 5000,
           toastId: `thread-${thread.id}`,
           action: async () => {

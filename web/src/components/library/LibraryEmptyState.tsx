@@ -1,9 +1,12 @@
+import { useTranslation } from "@/lib/i18n";
+
 import { EmptyState } from "../site/EmptyState";
 
 export function LibraryEmptyState() {
+  const t = useTranslation();
   return (
     <EmptyState w="full">
-      <p>The community library is empty.</p>
+      <p>{t.library.empty}</p>
     </EmptyState>
   );
 }

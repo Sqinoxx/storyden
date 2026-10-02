@@ -69,7 +69,7 @@ export function ReplyMenu(props: Props) {
                 targetKind={DatagraphItemKind.reply}
                 targetId={props.reply.id}
                 author={props.reply.author}
-                headline={`Reply from ${props.reply.author.name}`}
+                headline={t.thread.replyFrom.replace("{name}", props.reply.author.name)}
                 body={truncateBody(props.reply.body)}
               />
 

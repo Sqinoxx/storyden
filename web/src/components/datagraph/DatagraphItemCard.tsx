@@ -19,6 +19,7 @@ import { MemberBadge } from "../member/MemberBadge/MemberBadge";
 import { Timestamp } from "../site/Timestamp";
 import { Badge } from "../ui/badge";
 import { Card } from "../ui/rich-card";
+import { Translations, useTranslation } from "@/lib/i18n";
 
 type Props = {
   item: DatagraphItem;
@@ -191,7 +192,8 @@ export function DatagraphItemProfileCard({
 }
 
 export function DatagraphItemBadge({ kind }: { kind: DatagraphItemKind }) {
-  const label = getDatagraphKindLabel(kind);
+  const t = useTranslation();
+  const label = getDatagraphKindLabel(t, kind);
   const colour = getDatagraphKindColour(kind);
 
   const cssVars = badgeColourCSS(colour);
@@ -228,22 +230,25 @@ export function badgeColours(c: string) {
   return { bg, bo, fg };
 }
 
-export function getDatagraphKindLabel(kind: DatagraphItemKind): string {
+export function getDatagraphKindLabel(
+  t: Translations,
+  kind: DatagraphItemKind,
+): string {
   switch (kind) {
     case DatagraphItemKind.post:
-      return "Post";
+      return t.datagraph.post;
     case DatagraphItemKind.thread:
-      return "Thread";
+      return t.datagraph.thread;
     case DatagraphItemKind.reply:
-      return "Reply";
+      return t.datagraph.reply;
     case DatagraphItemKind.node:
-      return "Library";
+      return t.datagraph.node;
     case DatagraphItemKind.collection:
-      return "Collection";
+      return t.datagraph.collection;
     case DatagraphItemKind.profile:
-      return "Profile";
+      return t.datagraph.profile;
     case DatagraphItemKind.event:
-      return "Event";
+      return t.datagraph.event;
   }
 }
 

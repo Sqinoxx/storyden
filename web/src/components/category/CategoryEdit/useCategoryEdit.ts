@@ -10,6 +10,7 @@ import { UseDisclosureProps } from "@/utils/useDisclosure";
 import { handle } from "@/api/client";
 import { useCategoryMutations } from "@/lib/category/mutation";
 import { isSlug } from "@/utils/slugify";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   category: Category;
@@ -28,6 +29,7 @@ export const FormSchema = z.object({
 export type Form = z.infer<typeof FormSchema>;
 
 export function useCategoryEdit(props: Props) {
+  const t = useTranslation();
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -66,8 +68,8 @@ export function useCategoryEdit(props: Props) {
       },
       {
         promiseToast: {
-          loading: "Updating category...",
-          success: "Category updated.",
+          loading: t.category.updating,
+          success: t.category.updated,
         },
         cleanup: () => revalidateList(),
       },

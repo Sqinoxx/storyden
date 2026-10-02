@@ -130,6 +130,7 @@ function CommandPaletteContentMode({ mode }: { mode: CommandPaletteMode }) {
 }
 
 function CommandPaletteContentCommands() {
+  const t = useTranslation();
   const {
     mode,
     handleSelectItem,
@@ -194,7 +195,7 @@ function CommandPaletteContentCommands() {
             >
               <HStack gap="2">
                 <HomeIcon />
-                Home
+                {t.nav.home}
               </HStack>
             </Command.Item>
             <Command.Item
@@ -204,7 +205,7 @@ function CommandPaletteContentCommands() {
             >
               <HStack gap="2">
                 <SettingsIcon />
-                Settings
+                {t.nav.settings}
               </HStack>
             </Command.Item>
             {isAdmin && (
@@ -215,7 +216,7 @@ function CommandPaletteContentCommands() {
               >
                 <HStack gap="2">
                   <AdminIcon />
-                  Admin
+                  {t.nav.admin}
                 </HStack>
               </Command.Item>
             )}

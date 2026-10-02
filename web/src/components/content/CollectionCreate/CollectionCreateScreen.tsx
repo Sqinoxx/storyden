@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { VStack, WStack, styled } from "@/styled-system/jsx";
 
 import { Props, useCollectionCreate } from "./useCollectionCreate";
+import { useTranslation } from "@/lib/i18n";
 
 export function CollectionCreateScreen(props: Props) {
+  const t = useTranslation();
   const { register, onSubmit } = useCollectionCreate(props);
 
   return (
@@ -26,17 +28,17 @@ export function CollectionCreateScreen(props: Props) {
         onSubmit={onSubmit}
       >
         <FormControl>
-          <FormLabel>Name*</FormLabel>
+          <FormLabel>{t.collections.nameLabel}*</FormLabel>
           <Input {...register("name")} type="text" />
-          <FormHelperText>The name for your collection</FormHelperText>
+          <FormHelperText>{t.collections.nameHelper}</FormHelperText>
         </FormControl>
         <FormControl>
-          <FormLabel>Description</FormLabel>
+          <FormLabel>{t.collections.descriptionLabel}</FormLabel>
 
           {/* TODO: Make a larger textarea component for this. */}
           <Input {...register("description")} type="text" />
           <FormHelperText>
-            Optional description for your collection.
+            {t.collections.descriptionHelper}
           </FormHelperText>
         </FormControl>
 
@@ -47,10 +49,10 @@ export function CollectionCreateScreen(props: Props) {
             variant="outline"
             onClick={props.onClose}
           >
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button flexGrow="1" type="submit">
-            Create
+            {t.actions.create}
           </Button>
         </WStack>
       </styled.form>

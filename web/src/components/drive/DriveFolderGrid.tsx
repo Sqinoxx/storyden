@@ -4,6 +4,7 @@ import Link from "next/link";
 import { DriveFolder, DriveVisibility } from "@/api/openapi-schema";
 import { Heading } from "@/components/ui/heading";
 import { CardGrid } from "@/components/ui/rich-card";
+import { useTranslation } from "@/lib/i18n";
 import { CardBox, HStack, VStack, styled } from "@/styled-system/jsx";
 
 import { getDriveFolderHref } from "./url";
@@ -47,9 +48,11 @@ export function DriveFolderGrid({ folders }: Props) {
  * they share may not work for the person they send it to.
  */
 function VisibilityHint({ visibility }: { visibility: DriveVisibility }) {
+  const t = useTranslation();
   if (visibility === "public") return null;
 
-  const label = visibility === "admin" ? "Admins only" : "Members only";
+  const label =
+    visibility === "admin" ? t.drive.adminsOnly : t.drive.membersOnly;
   const Icon = visibility === "admin" ? Lock : Users;
 
   return (

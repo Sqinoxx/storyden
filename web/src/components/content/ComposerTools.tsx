@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { IconButton } from "@/components/ui/icon-button";
+import { useTranslation } from "@/lib/i18n";
 import { Box, HStack, styled } from "@/styled-system/jsx";
 
 import { Spinner } from "../ui/Spinner";
@@ -36,6 +37,7 @@ export function ComposerTools({
   onClick,
   children,
 }: PropsWithChildren<Props>) {
+  const t = useTranslation();
   // NOTE: Defaults to collapsed on mobile so the toolbar doesn't cover the
   // text being edited; desktop has enough room so it starts expanded.
   const [isExpanded, setIsExpanded] = useState(() =>
@@ -209,7 +211,7 @@ export function ComposerTools({
               variant="ghost"
               size="xs"
               onClick={handleClick}
-              aria-label="Show editor tools"
+              aria-label={t.editor.showTools}
               aria-expanded={isExpanded}
             >
               {expandedIcon ? <>{isExpanded ? expandedIcon : icon}</> : icon}

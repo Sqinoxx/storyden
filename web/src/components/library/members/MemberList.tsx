@@ -21,7 +21,7 @@ export function MemberList({ profiles, hideDeleted }: Props) {
     : profiles;
 
   if (visibleProfiles.length === 0) {
-    return <EmptyState>no members were found</EmptyState>;
+    return <EmptyState>{t.members.noMembers}</EmptyState>;
   }
 
   return (
@@ -31,10 +31,10 @@ export function MemberList({ profiles, hideDeleted }: Props) {
         <Table.Root size="sm">
           <Table.Head>
             <Table.Row>
-              <Table.Cell>Member</Table.Cell>
-              <Table.Cell>Invited by</Table.Cell>
-              <Table.Cell>Likes</Table.Cell>
-              <Table.Cell textAlign="right">Joined</Table.Cell>
+              <Table.Cell>{t.members.member}</Table.Cell>
+              <Table.Cell>{t.members.invitedBy}</Table.Cell>
+              <Table.Cell>{t.members.likes}</Table.Cell>
+              <Table.Cell textAlign="right">{t.members.joined}</Table.Cell>
             </Table.Row>
           </Table.Head>
 
@@ -103,7 +103,7 @@ export function MemberList({ profiles, hideDeleted }: Props) {
                       fontSize="sm"
                       fontWeight="medium"
                     >
-                      Joined
+                      {t.members.joined}
                     </styled.span>
                     <Timestamp created={profile.createdAt} large />
                   </HStack>
@@ -114,7 +114,7 @@ export function MemberList({ profiles, hideDeleted }: Props) {
                       fontSize="sm"
                       fontWeight="medium"
                     >
-                      Likes
+                      {t.members.likes}
                     </styled.span>
                     <styled.span fontSize="sm">
                       {profile.like_score}
@@ -127,7 +127,7 @@ export function MemberList({ profiles, hideDeleted }: Props) {
                       fontSize="sm"
                       fontWeight="medium"
                     >
-                      Invited by
+                      {t.members.invitedBy}
                     </styled.span>
                     <Box>
                       {profile.invited_by ? (

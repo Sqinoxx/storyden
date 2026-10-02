@@ -17,6 +17,7 @@ import { LoginAnchor } from "../Anchors/Login";
 import { ContentNavigationList } from "../ContentNavigationList/ContentNavigationList";
 
 import { useMobileCommandBar } from "./useMobileCommandBar";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   canRegister?: boolean;
@@ -90,9 +91,10 @@ export function MobileCommandBar({ canRegister }: Props) {
 }
 
 function ExpandTrigger(props: ButtonProps) {
+  const t = useTranslation();
   return (
     <IconButton
-      title="Main navigation menu"
+      title={t.nav.mainMenu}
       variant="ghost"
       size="sm"
       {...props}

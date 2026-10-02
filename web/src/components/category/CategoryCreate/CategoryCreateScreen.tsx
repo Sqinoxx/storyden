@@ -28,12 +28,7 @@ export function CategoryCreateScreen(props: CategoryCreateProps) {
 
   return (
     <VStack alignItems="start" gap="4">
-      <styled.p>
-        Use categories to organise posts. A post can only have one category,
-        unlike tags. So it&apos;s best to keep categories high-level and
-        different enough so that it&apos;s not easy to get confused between
-        them.
-      </styled.p>
+      <styled.p>{t.category.createIntro}</styled.p>
       <styled.form
         display="flex"
         flexDir="column"
@@ -42,25 +37,23 @@ export function CategoryCreateScreen(props: CategoryCreateProps) {
         onSubmit={onSubmit}
       >
         <FormControl>
-          <FormLabel>Cover Image</FormLabel>
+          <FormLabel>{t.category.coverImage}</FormLabel>
           <AssetUploadEditor
             width={CATEGORY_COVER_WIDTH}
             height={CATEGORY_COVER_HEIGHT}
             onUpload={handleImageUpload}
           />
-          <FormHelperText>
-            Upload a cover image for the category (4:1 aspect ratio)
-          </FormHelperText>
+          <FormHelperText>{t.category.coverImageHelper}</FormHelperText>
         </FormControl>
 
         <FormControl>
-          <FormLabel>Name</FormLabel>
+          <FormLabel>{t.category.name}</FormLabel>
           <Input {...register("name")} type="text" />
-          <FormHelperText>The name for your category</FormHelperText>
+          <FormHelperText>{t.category.nameHelper}</FormHelperText>
         </FormControl>
 
         <FormControl>
-          <FormLabel>URL Slug</FormLabel>
+          <FormLabel>{t.category.urlSlug}</FormLabel>
           <HStack gap="0" alignItems="stretch" flex="1">
             <InputPrefix
               display={{
@@ -85,45 +78,41 @@ export function CategoryCreateScreen(props: CategoryCreateProps) {
             />
           </HStack>
           <FormFeedback error={formState.errors["slug"]?.message}>
-            The URL path for your category (e.g., &quot;general&quot;,
-            &quot;announcements&quot;)
+            {t.category.slugHelper}
           </FormFeedback>
         </FormControl>
 
         <FormControl>
-          <FormLabel>Description</FormLabel>
+          <FormLabel>{t.category.description}</FormLabel>
 
           {/* TODO: Make a larger textarea component for this. */}
           <Input {...register("description")} type="text" />
-          <FormHelperText>Describe your category</FormHelperText>
+          <FormHelperText>{t.category.descriptionHelper}</FormHelperText>
         </FormControl>
 
         <FormControl>
-          <FormLabel>Parent Category</FormLabel>
+          <FormLabel>{t.category.parentCategory}</FormLabel>
           <CategoryTreeSelect
             name="parent"
             control={control}
             selectable="all"
             emptyOption={{ label: t.category.noParentCategory, value: "" }}
           />
-          <FormHelperText>
-            Choose a parent category to create a subcategory, or leave as root
-            category
-          </FormHelperText>
+          <FormHelperText>{t.category.parentHelper}</FormHelperText>
         </FormControl>
 
         <FormControl>
-          <FormLabel>Colour</FormLabel>
+          <FormLabel>{t.category.colour}</FormLabel>
           <ColourPickerField control={control} name="colour" />
-          <FormHelperText>The colour for the category</FormHelperText>
+          <FormHelperText>{t.category.colourHelper}</FormHelperText>
         </FormControl>
 
         <WStack>
           <Button flexGrow="1" type="button" onClick={props.onClose}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button flexGrow="1" type="submit">
-            Create
+            {t.actions.create}
           </Button>
         </WStack>
       </styled.form>

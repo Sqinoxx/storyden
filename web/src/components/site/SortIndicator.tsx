@@ -5,6 +5,7 @@ import {
   ChevronUpDownIcon,
   ChevronUpIcon,
 } from "@/components/ui/icons/Chevron";
+import { useTranslation } from "@/lib/i18n";
 import { styled } from "@/styled-system/jsx";
 
 type Direction = "asc" | "desc" | "none";
@@ -43,12 +44,13 @@ export function useSortIndicator() {
 }
 
 export function SortIndicator({ order }: SortIndicatorProps) {
+  const t = useTranslation();
   const label =
     order === "none"
-      ? "No sort"
+      ? t.common.noSort
       : order === "asc"
-        ? "Sort ascending"
-        : "Sort descending";
+        ? t.common.sortAscending
+        : t.common.sortDescending;
 
   return (
     <styled.span width="4" height="4" aria-label={label} title={label}>

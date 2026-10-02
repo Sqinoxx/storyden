@@ -15,6 +15,7 @@ import {
 import { useFeedMutations } from "@/lib/feed/mutation";
 import { useShare } from "@/utils/client";
 import { useCopyToClipboard } from "@/utils/useCopyToClipboard";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   session?: Account;
@@ -22,6 +23,7 @@ export type Props = {
 };
 
 export function useCollectionMenu({ session, collection }: Props) {
+  const t = useTranslation();
   const router = useRouter();
   const account = useSession();
   const [, copyToClipboard] = useCopyToClipboard();
@@ -40,7 +42,7 @@ export function useCollectionMenu({ session, collection }: Props) {
 
   async function handleShare() {
     await navigator.share({
-      title: `A collection by ${collection.owner.name}`,
+      title: t.collections.collectionBy.replace("{name}", collection.owner.name),
       url: permalink,
       text: collection.description,
     });

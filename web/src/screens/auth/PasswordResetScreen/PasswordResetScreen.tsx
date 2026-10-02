@@ -1,6 +1,7 @@
 import { AuthMode } from "@/api/openapi-schema";
 import { authProviderList } from "@/api/openapi-server/auth";
 import { Unready } from "@/components/site/Unready";
+import { Trans } from "@/lib/i18n";
 import { VStack } from "@/styled-system/jsx";
 
 import { PasswordResetEmailScreen } from "./PasswordResetEmailScreen";
@@ -29,8 +30,7 @@ function Warning() {
   return (
     <VStack textWrap="balance" textAlign="center">
       <p>
-        Password reset is currently disabled. Please contact the site
-        administrator.
+        <Trans path="auth.passwordResetDisabled" />
       </p>
     </VStack>
   );

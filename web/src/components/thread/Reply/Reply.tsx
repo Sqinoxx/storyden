@@ -20,8 +20,10 @@ import { Signature } from "../Signature";
 import { ReplyToButton } from "./ReplyToButton";
 import { useFragmentScroll } from "./useFragmentScroll";
 import { Form, Props, useReply } from "./useReply";
+import { useTranslation } from "@/lib/i18n";
 
 export function Reply(props: Props) {
+  const t = useTranslation();
   const {
     isEmpty,
     isEditing,
@@ -83,10 +85,10 @@ export function Reply(props: Props) {
                   type="button"
                   onClick={handlers.handleDiscardChanges}
                 >
-                  Discard
+                  {t.common.discard}
                 </CancelAction>
                 <SaveAction type="submit" disabled={isEmpty}>
-                  {isEditingInReview ? "Accept" : "Save"}
+                  {isEditingInReview ? t.common.accept : t.common.save}
                 </SaveAction>
               </>
             </HStack>

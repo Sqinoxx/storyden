@@ -5,14 +5,15 @@ import { formatDistanceToNow } from "date-fns";
 import { Box, CardBox, Flex, HStack, styled } from "@/styled-system/jsx";
 
 import { BanIcon } from "../ui/icons/BanIcon";
-import { useTranslation } from "@/lib/i18n";
+import { useLanguage } from "@/lib/i18n";
+import { dateFnsLocale } from "@/utils/date";
 
 type Props = {
   date: Date;
 };
 
 export function ProfileSuspendedBanner({ date }: Props) {
-  const t = useTranslation();
+  const { t, language } = useLanguage();
   return (
     <CardBox
       p="0"
@@ -38,6 +39,7 @@ export function ProfileSuspendedBanner({ date }: Props) {
           <styled.time textWrap="nowrap">
             {formatDistanceToNow(date, {
               addSuffix: true,
+              locale: dateFnsLocale(language),
             })}
           </styled.time>
         </styled.p>

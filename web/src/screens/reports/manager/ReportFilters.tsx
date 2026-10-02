@@ -6,48 +6,47 @@ import { CheckIcon } from "@/components/ui/icons/Check";
 import { SelectIcon } from "@/components/ui/icons/Select";
 import * as Select from "@/components/ui/select";
 import { DatagraphKindTable } from "@/lib/datagraph/schema";
+import { useTranslation } from "@/lib/i18n";
 import { WStack } from "@/styled-system/jsx";
 
 import { useReportsScreenFilters } from "./useReportsScreenFilters";
 
 const REPORT_STATUS_VALUES = Object.values(ReportStatus) as ReportStatus[];
-const REPORT_STATUS_LABEL: Record<ReportStatus, string> = {
-  [ReportStatus.submitted]: "Submitted",
-  [ReportStatus.acknowledged]: "Acknowledged",
-  [ReportStatus.resolved]: "Resolved",
-};
-
-// TODO: Don't show "post", only thread and reply.
-const REPORT_KIND_OPTIONS = Object.entries(DatagraphKindTable).map(
-  ([value, label]) => ({
-    value: value as DatagraphItemKind,
-    label,
-  }),
-);
+const REPORT_KIND_VALUES = Object.keys(
+  DatagraphKindTable,
+) as DatagraphItemKind[];
 
 export function ReportFilters() {
+  const t = useTranslation();
   const { status, setStatus, kind, setKind } = useReportsScreenFilters();
 
   const statusCollection = useMemo(
     () =>
       createListCollection({
         items: [
-          { label: "All statuses", value: "__all" },
+          { label: t.report.allStatuses, value: "__all" },
           ...REPORT_STATUS_VALUES.map((value) => ({
-            label: REPORT_STATUS_LABEL[value],
+            label: t.report.status[value],
             value,
           })),
         ],
       }),
-    [],
+    [t],
   );
 
   const kindCollection = useMemo(
     () =>
       createListCollection({
-        items: [{ label: "All items", value: "__all" }, ...REPORT_KIND_OPTIONS],
+        // TODO: Don't show "post", only thread and reply.
+        items: [
+          { label: t.report.allItems, value: "__all" },
+          ...REPORT_KIND_VALUES.map((value) => ({
+            value,
+            label: t.datagraph[value],
+          })),
+        ],
       }),
-    [],
+    [t],
   );
 
   const statusValue = status;
@@ -82,7 +81,7 @@ export function ReportFilters() {
       >
         <Select.Control>
           <Select.Trigger>
-            <Select.ValueText placeholder="Filter by status" />
+            <Select.ValueText placeholder={t.report.filterByStatus} />
             <SelectIcon />
           </Select.Trigger>
         </Select.Control>
@@ -109,7 +108,7 @@ export function ReportFilters() {
       >
         <Select.Control>
           <Select.Trigger>
-            <Select.ValueText placeholder="Filter by item type" />
+            <Select.ValueText placeholder={t.report.filterByType} />
             <SelectIcon />
           </Select.Trigger>
         </Select.Control>

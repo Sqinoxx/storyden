@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { CloseIcon } from "@/components/ui/icons/Close";
 import { DiscussionIcon } from "@/components/ui/icons/Discussion";
-import { useTranslation } from "@/lib/i18n";
+import { useLanguage, useTranslation } from "@/lib/i18n";
 import { usePublicRegistration } from "@/lib/settings/registration";
 import { css } from "@/styled-system/css";
 import { Box, HStack, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
@@ -30,6 +30,7 @@ export function ReplyBox(props: Props) {
   const fileInputId = useId();
   const { replyTo, clearReplyTo } = useReplyContext();
   const t = useTranslation();
+  const { language } = useLanguage();
   const { isUploading, upload } = useAttachmentUpload();
   const {
     isLoggedIn,
@@ -90,14 +91,14 @@ export function ReplyBox(props: Props) {
         {replyTo && (
           <WStack py="1.5" px="3" borderRadius="md" bgColor="bg.muted" justifyContent="space-between">
             <HStack gap="1" fontSize="sm" color="fg.muted">
-              <styled.span>Replying&nbsp;to</styled.span>
+              <styled.span>{t.thread.replyingTo}</styled.span>
               <MemberIdent
                 profile={replyTo.reply.author}
                 name="handle"
                 size="xs"
               />
               <styled.a href={`#${replyTo.reply.id}`}>
-                {timestamp(replyTo.reply.createdAt)}
+                {timestamp(replyTo.reply.createdAt, true, language)}
               </styled.a>
             </HStack>
 
@@ -105,7 +106,7 @@ export function ReplyBox(props: Props) {
               type="button"
               size="xs"
               variant="ghost"
-              aria-label="Clear reply-to"
+              aria-label={t.thread.clearReplyTo}
               onClick={clearReplyTo}
             >
               <CloseIcon />
@@ -230,8 +231,9 @@ function LoginToReply({
 }: {
   initialSettings?: Props["initialSettings"];
 }) {
+  const t = useTranslation();
   const canRegister = usePublicRegistration(initialSettings);
-  const action = canRegister ? "sign up or log in" : "log in";
+  const action = canRegister ? t.thread.signUpOrLogIn : t.thread.logIn;
 
   return (
     <HStack
@@ -244,8 +246,9 @@ function LoginToReply({
       <DiscussionIcon width="4" />
 
       <p>
-        Please <Anchor href={canRegister ? "/register" : "/login"}>{action}</Anchor>{" "}
-        to reply
+        {t.thread.pleasePrefix}{" "}
+        <Anchor href={canRegister ? "/register" : "/login"}>{action}</Anchor>
+        {t.thread.toReply}
       </p>
     </HStack>
   );

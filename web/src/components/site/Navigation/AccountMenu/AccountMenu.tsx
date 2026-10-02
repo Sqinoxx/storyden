@@ -26,6 +26,7 @@ import {
   InvitationModal,
   useInvitation,
 } from "./InvitationMenuItem";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   account: Account;
@@ -42,6 +43,7 @@ export function AccountMenu({
   onOpenChange,
   closeOnThemeChange = false,
 }: Props) {
+  const t = useTranslation();
   const isAdmin = hasPermission(account, Permission.ADMINISTRATOR);
   const canCreateInvitations = hasPermission(account, Permission.CREATE_INVITATION);
   const isStaff = isModeratorOrAdmin(account);
@@ -73,7 +75,7 @@ export function AccountMenu({
           shift: size === "md" ? 24 : 0,
         }}
       >
-        <Menu.Trigger cursor="pointer" aria-label="Account menu">
+        <Menu.Trigger cursor="pointer" aria-label={t.nav.accountMenu}>
           <MemberAvatar profile={account} size={size} />
         </Menu.Trigger>
 

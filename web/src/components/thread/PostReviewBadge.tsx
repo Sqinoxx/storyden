@@ -48,10 +48,10 @@ export function PostReviewBadge({
           <Badge
             variant="subtle"
             cursor="pointer"
-            aria-label="Post is in review"
+            aria-label={t.thread.postInReview}
           >
             <WarningIcon />
-            In review
+            {t.thread.inReview}
           </Badge>
         </Tooltip.Trigger>
         <Portal>
@@ -61,8 +61,7 @@ export function PostReviewBadge({
             </Tooltip.Arrow>
 
             <Tooltip.Content p="2" borderRadius="2xl" maxW="xs">
-              Your post has been flagged for review by a moderator. It will be
-              visible to others once approved.
+              {t.thread.inReviewDescription}
             </Tooltip.Content>
           </Tooltip.Positioner>
         </Portal>
@@ -84,10 +83,10 @@ export function PostReviewBadge({
           _hover={{
             borderColor: "colorPalette.6",
           }}
-          aria-label="Post review actions"
+          aria-label={t.thread.reviewActions}
         >
           <WarningIcon />
-          In review
+          {t.thread.inReview}
         </Badge>
       </Menu.Trigger>
 
@@ -97,7 +96,7 @@ export function PostReviewBadge({
             <Menu.Item
               value="accept"
               onClick={() => onAccept(postId)}
-              aria-label="Accept post"
+              aria-label={t.actions.approve}
             >
               <HStack gap="1">
                 <CheckIcon /> {t.actions.approve}
@@ -107,7 +106,7 @@ export function PostReviewBadge({
             <Menu.Item
               value="edit-and-accept"
               onClick={() => onEditAndAccept(postId)}
-              aria-label="Edit and accept post"
+              aria-label={t.actions.editAndAccept}
             >
               <HStack gap="1">
                 <EditIcon /> {t.actions.editAndAccept}
@@ -124,7 +123,7 @@ export function PostReviewBadge({
                   w="full"
                   closeOnSelect={false}
                   onClick={() => onDelete(postId)}
-                  aria-label="Confirm delete post"
+                  aria-label={t.actions.deleteConfirm}
                 >
                   {t.actions.deleteConfirm}
                 </Menu.Item>
@@ -133,7 +132,7 @@ export function PostReviewBadge({
                   value="cancel-delete"
                   closeOnSelect={false}
                   asChild
-                  aria-label="Cancel delete"
+                  aria-label={t.common.cancel}
                 >
                   <CancelAction borderRadius="md" onClick={onCancelDelete} />
                 </Menu.Item>
@@ -144,7 +143,7 @@ export function PostReviewBadge({
                 value="delete"
                 closeOnSelect={false}
                 onClick={() => onDelete(postId)}
-                aria-label="Delete post"
+                aria-label={t.actions.delete}
               >
                 <HStack gap="1">
                   <DeleteIcon /> {t.actions.delete}

@@ -5,6 +5,7 @@ import { css, cx } from "@/styled-system/css";
 import { HStack, styled } from "@/styled-system/jsx";
 import { button } from "@/styled-system/recipes";
 import { ChevronRightIcon } from "@/components/ui/icons/Chevron";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   href: string;
@@ -24,6 +25,7 @@ export function NavigationHeader({
   isCollapsed = false,
   onToggleCollapse,
 }: PropsWithChildren<Props>) {
+  const t = useTranslation();
   const buttonSize = size === "lg" ? "md" : size === "md" ? "sm" : size === "sm" ? "sm" : "xs";
   const fontSize = size;
   const fontWeight = size === "xs" ? "medium" : size === "sm" ? "semibold" : "bold";
@@ -57,7 +59,7 @@ export function NavigationHeader({
               flexShrink: "0",
               _hover: { color: "fg.default", bg: "bg.muted" },
             })}
-            aria-label={isCollapsed ? "Expand section" : "Collapse section"}
+            aria-label={isCollapsed ? t.nav.expandSection : t.nav.collapseSection}
           >
             <ChevronRightIcon
               className={css({

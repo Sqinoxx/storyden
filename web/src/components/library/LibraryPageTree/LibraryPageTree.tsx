@@ -83,10 +83,10 @@ export const LibraryPageTree = (props: LibraryPageTreeProps) => {
   const styles = treeView();
 
   const visibilityLabels: Record<Visibility, string> = {
-    [Visibility.published]: "Published",
-    [Visibility.review]: t.library?.inReview ? t.library.inReview.replace(/^\(|\)$/g, "") : "In review",
-    [Visibility.draft]: t.nav?.drafts ?? "Drafts",
-    [Visibility.unlisted]: "Unlisted",
+    [Visibility.published]: t.visibility.published,
+    [Visibility.review]: t.visibility.review,
+    [Visibility.draft]: t.visibility.draft,
+    [Visibility.unlisted]: t.visibility.unlisted,
   };
 
   const defaultExpandedValue: string[] = [];

@@ -7,10 +7,12 @@ import { LinkButton } from "@/components/ui/link-button";
 import { Card, CardRows } from "@/components/ui/rich-card";
 import { HStack, WStack } from "@/styled-system/jsx";
 import { getAssetURL } from "@/utils/asset";
+import { useTranslation } from "@/lib/i18n";
 
 export function QueueVersionList({ drafts }: { drafts: NodeDraft[] }) {
+  const t = useTranslation();
   if (drafts.length === 0) {
-    return <p>Edit proposals appear here.</p>;
+    return <p>{t.queue.editsEmpty}</p>;
   }
 
   return (
@@ -23,6 +25,7 @@ export function QueueVersionList({ drafts }: { drafts: NodeDraft[] }) {
 }
 
 function QueueVersionListItem({ draft }: { draft: NodeDraft }) {
+  const t = useTranslation();
   const node = draft.node;
   const url = node.parent
     ? `/l/${node.parent.slug}/${node.slug}`
@@ -56,7 +59,7 @@ function QueueVersionListItem({ draft }: { draft: NodeDraft }) {
             size="xs"
             variant="subtle"
           >
-            Review
+            {t.library.review}
           </LinkButton>
         </WStack>
       }

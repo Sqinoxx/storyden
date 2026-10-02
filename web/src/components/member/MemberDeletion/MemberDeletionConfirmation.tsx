@@ -13,7 +13,8 @@ export function MemberDeletionConfirmation(props: WithDisclosure<Props>) {
   return (
     <VStack alignItems="start" gap="4">
       <styled.p>
-        Are you sure you want to permanently delete the account <strong>{props.profile.name}</strong>? This action cannot be undone.
+        {t.moderation.confirmDeletePrefix} <strong>{props.profile.name}</strong>
+        {t.moderation.confirmDeleteSuffix}
       </styled.p>
 
       <HStack w="full">

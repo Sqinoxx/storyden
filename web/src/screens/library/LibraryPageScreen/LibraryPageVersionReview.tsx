@@ -297,7 +297,7 @@ function VersionComparisonContext({
           />
         </Box>
         <span>
-          <Timestamp created={previous.updated_at} /> {t.thread.ago}
+          <Timestamp created={previous.updated_at} large />
         </span>
       </HStack>
     </LStack>
@@ -452,12 +452,13 @@ const diffAfterStyles = css({
 });
 
 function FieldDiffRow({ row }: { row: FieldDiffRow }) {
+  const t = useTranslation();
   switch (row.kind) {
     case "added":
       return (
         <Table.Row key={row.key}>
           <Table.Cell className={diffAfterLabelStyles}>
-            <styled.span fontWeight="medium">{row.kind}</styled.span>
+            <styled.span fontWeight="medium">{t.library.diffKinds[row.kind]}</styled.span>
             <br />
             <span className={diffAfterStyles}>{row.after.name}</span>
           </Table.Cell>
@@ -469,7 +470,7 @@ function FieldDiffRow({ row }: { row: FieldDiffRow }) {
       return (
         <Table.Row key={row.key}>
           <Table.Cell className={diffBeforeLabelStyles}>
-            <styled.span fontWeight="medium">{row.kind}</styled.span>
+            <styled.span fontWeight="medium">{t.library.diffKinds[row.kind]}</styled.span>
             <br />
             <span className={diffBeforeStyles}>{row.before.name}</span>
           </Table.Cell>

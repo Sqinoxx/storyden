@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { linkCreate } from "@/api/openapi-client/links";
 import { LinkListResult, LinkReference } from "@/api/openapi-schema";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   links: LinkListResult;
@@ -42,6 +43,7 @@ export type IndexingState =
 const defaultIndexingState = { state: "not-indexing" } satisfies IndexingState;
 
 export function useLinkIndexView(props: Props) {
+  const t = useTranslation();
   const router = useRouter();
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
@@ -90,7 +92,7 @@ export function useLinkIndexView(props: Props) {
       } catch (_) {
         setIndexing({
           state: "error",
-          error: "Failed to index the provided link.",
+          error: t.library.indexFailed,
         });
 
         resetIndexingState();

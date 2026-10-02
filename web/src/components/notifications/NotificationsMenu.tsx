@@ -7,6 +7,7 @@ import { ArchiveIcon } from "@/components/ui/icons/Archive";
 import { SettingsIcon } from "@/components/ui/icons/Settings";
 import { LinkButton } from "@/components/ui/link-button";
 import * as Menu from "@/components/ui/menu";
+import { useTranslation } from "@/lib/i18n";
 import { Center, LStack, WStack, styled } from "@/styled-system/jsx";
 import { hstack } from "@/styled-system/patterns";
 import { deriveError } from "@/utils/error";
@@ -16,6 +17,7 @@ import { NotificationItem } from "./item";
 import { Props, useNotifications } from "./useNotifications";
 
 export function NotificationsMenu(props: Props) {
+  const t = useTranslation();
   const { ready, error, data, handlers } = useNotifications(props);
   if (!ready) {
     return (
@@ -52,7 +54,7 @@ export function NotificationsMenu(props: Props) {
                 <LStack fontSize="sm">
                   <WStack>
                     <styled.p color="fg.muted">
-                      Notifications ({unreads})
+                      {t.nav.notifications} ({unreads})
                     </styled.p>
 
                     <LinkButton
@@ -60,7 +62,7 @@ export function NotificationsMenu(props: Props) {
                       size="xs"
                       variant="outline"
                     >
-                      see all
+                      {t.notifications.seeAll}
                     </LinkButton>
                   </WStack>
                 </LStack>
@@ -70,7 +72,7 @@ export function NotificationsMenu(props: Props) {
 
               {isEmpty ? (
                 <Center w="full" py="4" color="fg.muted" fontSize="xs">
-                  You&apos;re all caught up!
+                  {t.notifications.allCaughtUp}
                 </Center>
               ) : (
                 notifications.map((notification) => (
@@ -101,7 +103,8 @@ export function NotificationsMenu(props: Props) {
                             overflow="hidden"
                             maxW="full"
                           >
-                            {notification.source?.handle ?? "System"}
+                            {notification.source?.handle ??
+                              t.notifications.system}
                           </styled.span>
                           <styled.span fontWeight="normal">
                             {notification.description}
@@ -112,7 +115,7 @@ export function NotificationsMenu(props: Props) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        title="Mark as read"
+                        title={t.notifications.markAsRead}
                         onClick={() =>
                           handlers.handleMarkAs(notification.id, "read")
                         }

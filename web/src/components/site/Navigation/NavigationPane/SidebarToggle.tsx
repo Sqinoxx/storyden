@@ -5,17 +5,19 @@ import { Sidebar } from "@/components/graphics/Sidebar/Sidebar";
 import { Button } from "@/components/ui/button";
 
 import { useSidebar } from "./useSidebar";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   initialValue: boolean;
 };
 
 export function SidebarToggle({ initialValue }: Props) {
+  const t = useTranslation();
   const { setShowLeftBar, showLeftBar } = useSidebar(initialValue);
   const isOpen = showLeftBar;
   const label = isOpen
-    ? "Close navigation sidebar"
-    : "Open navigation sidebar";
+    ? t.nav.closeSidebar
+    : t.nav.openSidebar;
 
   return (
     <Button

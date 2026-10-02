@@ -24,6 +24,7 @@ import { useProfileMutations } from "@/lib/profile/mutation";
 import type { SignatureConfig } from "@/lib/settings/settings";
 import { hasPermissionOr } from "@/utils/permissions";
 import { isSlug } from "@/utils/slugify";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   initialSession?: Account;
@@ -53,6 +54,7 @@ export function useProfileScreen({
   profile,
   initialSignatureConfig,
 }: Props) {
+  const t = useTranslation();
   const router = useRouter();
   const session = useSession(initialSession);
   const signaturesEnabled = initialSignatureConfig.enabled;
@@ -113,8 +115,8 @@ export function useProfileScreen({
       {
         cleanup: async () => await revalidate(),
         promiseToast: {
-          loading: "Updating profile...",
-          success: "Profile updated",
+          loading: t.toasts.updatingProfile,
+          success: t.toasts.profileUpdated,
         },
       },
     );

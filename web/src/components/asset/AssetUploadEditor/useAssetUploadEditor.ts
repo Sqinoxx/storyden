@@ -5,6 +5,7 @@ import AvatarEditor from "react-avatar-editor";
 import { handle } from "@/api/client";
 import { assetUpload } from "@/api/openapi-client/assets";
 import { Asset } from "@/api/openapi-schema";
+import { useTranslation } from "@/lib/i18n";
 import { getAssetURL } from "@/utils/asset";
 
 export type Props = {
@@ -13,6 +14,7 @@ export type Props = {
 };
 
 export function useAssetUploadEditor(props: Props) {
+  const t = useTranslation();
   const ref = useRef<AvatarEditor>(null);
 
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -107,8 +109,8 @@ export function useAssetUploadEditor(props: Props) {
         },
         {
           promiseToast: {
-            loading: "Uploading image...",
-            success: "Upload complete!",
+            loading: t.toasts.uploadingImage,
+            success: t.toasts.uploadComplete,
           },
           cleanup: async () => {
             setSaving(false);

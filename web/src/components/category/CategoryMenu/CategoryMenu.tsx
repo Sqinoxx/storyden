@@ -27,6 +27,7 @@ type Props = {
 };
 
 export function useCategoryMenu({ category, onMoveUp, onMoveDown, onPromote }: Props) {
+  const t = useTranslation();
   const account = useSession();
   const [, copyToClipboard] = useCopyToClipboard();
 
@@ -42,7 +43,7 @@ export function useCategoryMenu({ category, onMoveUp, onMoveDown, onPromote }: P
 
   async function handleShare() {
     await navigator.share({
-      title: `Discussion category: ${category.name}`,
+      title: `${t.category.discussionCategory}: ${category.name}`,
       url: permalink,
       text: category.description,
     });

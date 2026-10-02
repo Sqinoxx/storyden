@@ -10,8 +10,10 @@ import { LinkCard } from "../LinkCard";
 
 import { LinkResultList } from "./LinkResultList";
 import { IndexingState, Props, useLinkIndexView } from "./useLinkIndexView";
+import { useTranslation } from "@/lib/i18n";
 
 export function LinkIndexView(props: Props) {
+  const t = useTranslation();
   const { form, data, handlers } = useLinkIndexView(props);
 
   if (form.formState.isLoading) return <Unready />;
@@ -29,7 +31,7 @@ export function LinkIndexView(props: Props) {
           borderRight="none"
           borderRightRadius="none"
           type="search"
-          placeholder="Search or paste a new link"
+          placeholder={t.library.linkSearchPlaceholder}
           defaultValue={props.query}
           {...form.register("q")}
         />
@@ -51,7 +53,7 @@ export function LinkIndexView(props: Props) {
           type="submit"
           width="min"
         >
-          Search
+          {t.search.searchButton}
         </Button>
       </styled.form>
 
@@ -74,11 +76,12 @@ export function LinkIndexView(props: Props) {
 }
 
 function IndexingStateBadge(props: IndexingState) {
+  const t = useTranslation();
   switch (props.state) {
     case "not-indexing":
       return <></>;
     case "indexing":
-      return <>Indexing {props.url}...</>;
+      return <>{t.library.indexing.replace("{url}", props.url)}</>;
     case "indexed":
       return <LinkCard shape="row" link={props.link} />;
     case "error":

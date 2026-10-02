@@ -10,6 +10,7 @@ import { MediaAddIcon } from "@/components/ui/icons/Media";
 import { SizeIcon } from "@/components/ui/icons/Size";
 import * as Menu from "@/components/ui/menu";
 import { Slider } from "@/components/ui/slider";
+import { useTranslation } from "@/lib/i18n";
 import { LibraryPageBlockTypeAssetsLayout } from "@/lib/library/metadata";
 import { HStack } from "@/styled-system/jsx";
 
@@ -19,6 +20,7 @@ import { useBlock } from "../useBlock";
 import { useLibraryPageAssetsBlock } from "./useLibraryPageAssetsBlock";
 
 export function LibraryPageAssetsBlockMenuItems() {
+  const t = useTranslation();
   const { handleUpload } = useLibraryPageAssetsBlock();
 
   return (
@@ -29,7 +31,7 @@ export function LibraryPageAssetsBlockMenuItems() {
 
       <Menu.Item value="add-media">
         <AssetUploadAction
-          title="Upload media"
+          title={t.library.uploadMedia}
           operation="add"
           onFinish={handleUpload}
           hideLabel
@@ -37,7 +39,7 @@ export function LibraryPageAssetsBlockMenuItems() {
         >
           <HStack w="full" gap="1">
             <MediaAddIcon />
-            <span>Add media</span>
+            <span>{t.library.addMedia}</span>
           </HStack>
         </AssetUploadAction>
       </Menu.Item>
@@ -46,6 +48,7 @@ export function LibraryPageAssetsBlockMenuItems() {
 }
 
 function LayoutMenu() {
+  const t = useTranslation();
   const { store } = useLibraryPageContext();
   const block = useBlock("assets");
   if (block === undefined) {
@@ -77,8 +80,8 @@ function LayoutMenu() {
       <Portal>
         <Menu.Positioner>
           <Menu.Content minW="36">
-            <Menu.Item value="strip">Strip</Menu.Item>
-            <Menu.Item value="grid">Grid</Menu.Item>
+            <Menu.Item value="strip">{t.library.layoutStrip}</Menu.Item>
+            <Menu.Item value="grid">{t.library.layoutGrid}</Menu.Item>
           </Menu.Content>
         </Menu.Positioner>
       </Portal>
@@ -87,6 +90,7 @@ function LayoutMenu() {
 }
 
 function GridSizeControl() {
+  const t = useTranslation();
   const { handleChangeSize, config } = useLibraryPageAssetsBlock();
 
   const defaultValue = config?.gridSize ?? 3;
@@ -104,7 +108,7 @@ function GridSizeControl() {
     <Menu.Item value="size">
       <HStack w="full" gap="1">
         <SizeIcon flexShrink="0" w="4" h="4" />
-        Size
+        {t.library.size}
         <Slider
           size="sm"
           minWidth="0"

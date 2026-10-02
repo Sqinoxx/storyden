@@ -19,6 +19,7 @@ import { Badge, badgeColourPalette, badgeColours } from "./badge";
 import { ButtonProps } from "./button";
 import { Input } from "./input";
 import { Text } from "./text";
+import { useTranslation } from "@/lib/i18n";
 
 export type MultiSelectPickerItem = {
   label: string;
@@ -59,6 +60,7 @@ export function MultiSelectPicker({
   menuVariantProps,
   inputVariantProps,
 }: Props) {
+  const t = useTranslation();
   const [queryInput, setQueryInput] = useState("");
   const [hiddenCount, setHiddenCount] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -185,7 +187,7 @@ export function MultiSelectPicker({
         flexShrink="1"
         justifyContent="space-between"
         cursor="pointer"
-        aria-label={`Select items${value.length > 0 ? `, ${value.length} selected` : ""}`}
+        aria-label={`${t.picker.selectItems}${value.length > 0 ? `, ${t.picker.selectedCount.replace("{count}", String(value.length))}` : ""}`}
         {...triggerProps}
       >
         <HStack
@@ -263,7 +265,7 @@ export function MultiSelectPicker({
             </>
           ) : (
             <Text size="sm" color="fg.muted" textWrap="nowrap">
-              {inputPlaceholder || "Select items..."}
+              {inputPlaceholder || `${t.picker.selectItems}...`}
             </Text>
           )}
         </HStack>
@@ -276,8 +278,8 @@ export function MultiSelectPicker({
               <Input
                 size={size}
                 value={queryInput}
-                placeholder="Search..."
-                aria-label="Search for items"
+                placeholder={t.search.placeholder}
+                aria-label={t.picker.searchItems}
                 {...inputVariantProps}
                 onChange={handleQuery}
                 onKeyDown={handleKeyDown}
@@ -286,7 +288,7 @@ export function MultiSelectPicker({
 
             {value.length > 0 && (
               <Menu.ItemGroup pt="1">
-                <Menu.ItemGroupLabel>Selected</Menu.ItemGroupLabel>
+                <Menu.ItemGroupLabel>{t.picker.selected}</Menu.ItemGroupLabel>
                 {value.map((item) => {
                   return (
                     <Menu.Item
@@ -300,7 +302,7 @@ export function MultiSelectPicker({
 
                         <CancelAction
                           onClick={handleRemoveItem(item)}
-                          aria-label={`Remove ${item.label}`}
+                          aria-label={t.picker.removeItem.replace("{label}", item.label)}
                         />
                       </WStack>
                     </Menu.Item>
@@ -411,7 +413,7 @@ export function MultiSelectPicker({
                   !showCreateNew && (
                     <Menu.ItemGroup p="2">
                       <Text size="sm" color="fg.subtle">
-                        No results found
+                        {t.picker.noResults}
                       </Text>
                     </Menu.ItemGroup>
                   )}

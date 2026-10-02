@@ -8,6 +8,7 @@ import { DriveEntry } from "@/api/openapi-schema";
 import { FilePreviewModal } from "@/components/post/FilePreviewModal";
 import { IconButton } from "@/components/ui/icon-button";
 import * as Table from "@/components/ui/table";
+import { useTranslation } from "@/lib/i18n";
 import { HStack, styled } from "@/styled-system/jsx";
 import { downloadAsset } from "@/utils/asset";
 
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export function DriveContentsTable({ folderID, entries }: Props) {
+  const t = useTranslation();
   const [previewing, setPreviewing] = useState<DriveEntry | undefined>();
 
   async function handleDownload(entry: DriveEntry) {
@@ -35,10 +37,10 @@ export function DriveContentsTable({ folderID, entries }: Props) {
         <Table.Root size="sm" variant="dense">
           <Table.Head>
             <Table.Row>
-              <Table.Header>Name</Table.Header>
-              <Table.Header>Type</Table.Header>
-              <Table.Header>Size</Table.Header>
-              <Table.Header>Modified</Table.Header>
+              <Table.Header>{t.drive.name}</Table.Header>
+              <Table.Header>{t.drive.type}</Table.Header>
+              <Table.Header>{t.drive.size}</Table.Header>
+              <Table.Header>{t.drive.modified}</Table.Header>
               <Table.Header />
             </Table.Row>
           </Table.Head>
@@ -78,7 +80,7 @@ export function DriveContentsTable({ folderID, entries }: Props) {
                 </Table.Cell>
 
                 <Table.Cell color="fg.muted">
-                  {driveKindLabel(entry.mime_type, entry.is_folder)}
+                  {driveKindLabel(t, entry.mime_type, entry.is_folder)}
                 </Table.Cell>
 
                 <Table.Cell color="fg.muted">

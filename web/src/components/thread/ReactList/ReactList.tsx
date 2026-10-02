@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { ReactionAddIcon } from "@/components/ui/icons/Reaction";
 import * as Popover from "@/components/ui/popover";
+import { useTranslation } from "@/lib/i18n";
 import { css } from "@/styled-system/css";
 import { HStack } from "@/styled-system/jsx";
 import { useDisclosure } from "@/utils/useDisclosure";
@@ -168,6 +169,7 @@ type ReactionPickerTriggerProps = {
 };
 
 function ReactionPickerTrigger(props: ReactionPickerTriggerProps) {
+  const t = useTranslation();
   const { isOpen, onToggle, onClose } = useDisclosure();
 
   function handleSelect(e: EmojiClickData) {
@@ -201,7 +203,7 @@ function ReactionPickerTrigger(props: ReactionPickerTriggerProps) {
           variant="subtle"
           borderRadius="md"
           color="fg.muted"
-          aria-label="Add reaction"
+          aria-label={t.thread.addReaction}
         >
           <ReactionAddIcon />
         </IconButton>

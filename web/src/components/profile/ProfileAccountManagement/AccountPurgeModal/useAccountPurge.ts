@@ -5,6 +5,7 @@ import { z } from "zod";
 import { handle } from "@/api/client";
 import { moderationActionCreate } from "@/api/openapi-client/admin";
 import { ModerationActionPurgeAccountContentType } from "@/api/openapi-schema";
+import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   accountId: string;
@@ -21,6 +22,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function useAccountPurgeScreen({ accountId, onSave }: Props) {
+  const t = useTranslation();
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -41,8 +43,8 @@ export function useAccountPurgeScreen({ accountId, onSave }: Props) {
       },
       {
         promiseToast: {
-          loading: "Purging account content...",
-          success: "Account content purged successfully",
+          loading: t.moderation.purging,
+          success: t.moderation.purged,
         },
       },
     );

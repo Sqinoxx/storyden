@@ -4,25 +4,27 @@ import { Button } from "@/components/ui/button";
 import { HStack, VStack, styled } from "@/styled-system/jsx";
 
 import { Props, useMemberSuspension } from "./useMemberSuspension";
+import { useTranslation } from "@/lib/i18n";
 
 export function MemberSuspensionConfirmation(props: WithDisclosure<Props>) {
+  const t = useTranslation();
   const { handlers } = useMemberSuspension(props);
 
   return (
     <VStack alignItems="start">
       {props.profile.suspended ? (
         <styled.p>
-          Do you want to reinstate the suspended account {props.profile.name}?
+          {t.moderation.confirmReinstate.replace("{name}", props.profile.name)}
         </styled.p>
       ) : (
         <styled.p>
-          Do you want to suspend the account {props.profile.name}?
+          {t.moderation.confirmSuspend.replace("{name}", props.profile.name)}
         </styled.p>
       )}
 
       <HStack w="full">
         <Button type="button" flexGrow="1" onClick={props.onClose}>
-          Cancel
+          {t.common.cancel}
         </Button>
 
         {props.profile.suspended ? (
@@ -32,7 +34,7 @@ export function MemberSuspensionConfirmation(props: WithDisclosure<Props>) {
             colorPalette="red"
             onClick={handlers.handleReinstate}
           >
-            Reinstate
+            {t.actions.unsuspend}
           </Button>
         ) : (
           <Button
@@ -41,7 +43,7 @@ export function MemberSuspensionConfirmation(props: WithDisclosure<Props>) {
             colorPalette="red"
             onClick={handlers.handleSuspension}
           >
-            Suspend
+            {t.actions.suspend}
           </Button>
         )}
       </HStack>

@@ -154,6 +154,7 @@ function LibraryPageBlockEditable({
   block: LibraryPageBlock;
   index: number;
 }) {
+  const t = useTranslation();
   const { initialNode } = useLibraryPageContext();
   const {
     attributes,
@@ -291,12 +292,12 @@ function LibraryPageBlockEditable({
 
                 <Tooltip.Content p="1" borderRadius="sm">
                   <p>
-                    <styled.span fontWeight="semibold">Click</styled.span>&nbsp;
-                    <styled.span fontWeight="normal">to open menu</styled.span>
+                    <styled.span fontWeight="semibold">{t.library.hintClick}</styled.span>&nbsp;
+                    <styled.span fontWeight="normal">{t.library.hintOpenMenu}</styled.span>
                   </p>
                   <p>
-                    <styled.span fontWeight="semibold">Drag</styled.span>&nbsp;
-                    <styled.span fontWeight="normal">to move</styled.span>
+                    <styled.span fontWeight="semibold">{t.library.hintDrag}</styled.span>&nbsp;
+                    <styled.span fontWeight="normal">{t.library.hintMove}</styled.span>
                   </p>
                 </Tooltip.Content>
               </Tooltip.Positioner>

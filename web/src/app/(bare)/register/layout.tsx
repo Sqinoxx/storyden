@@ -1,6 +1,7 @@
 import { PropsWithChildren } from "react";
 
 import { LinkButton } from "@/components/ui/link-button";
+import { Trans } from "@/lib/i18n";
 import { VStack } from "@/styled-system/jsx";
 
 export default async function Layout({ children }: PropsWithChildren) {
@@ -9,7 +10,7 @@ export default async function Layout({ children }: PropsWithChildren) {
       {children}
 
       <LinkButton size="xs" variant="subtle" href="/login">
-        Sign in
+        <Trans path="auth.login" />
       </LinkButton>
     </VStack>
   );

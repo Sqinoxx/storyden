@@ -4,6 +4,7 @@ import { PropsWithChildren } from "react";
 import { HideIcon } from "@/components/ui/icons/HideIcon";
 import { ShowIcon } from "@/components/ui/icons/ShowIcon";
 import * as Menu from "@/components/ui/menu";
+import { useTranslation } from "@/lib/i18n";
 import { BlockIcon } from "@/lib/library/blockIcons";
 import { HStack } from "@/styled-system/jsx";
 
@@ -20,6 +21,7 @@ export function PropertyListMenu({
   children,
   hideFixedFields = false,
 }: PropsWithChildren<Props>) {
+  const t = useTranslation();
   const { store } = useLibraryPageContext();
   const { setChildPropertyHiddenState } = store.getState();
 
@@ -72,12 +74,12 @@ export function PropertyListMenu({
           <Menu.Content minW="36" maxW="max">
             {supportsCoverImage && (
               <Menu.ItemGroup pl="2" py="1">
-                <Menu.ItemGroupLabel>Options</Menu.ItemGroupLabel>
+                <Menu.ItemGroupLabel>{t.library.options}</Menu.ItemGroupLabel>
                 <Menu.Item value="fixed:primary_image">
                   <HStack w="full">
                     <HStack w="full" gap="1" textWrap="nowrap">
                       <BlockIcon blockType="cover" />
-                      <span>Cover image</span>
+                      <span>{t.library.blockTypes.cover}</span>
                     </HStack>
 
                     {coverImageHiddenState ? <HideIcon /> : <ShowIcon />}
@@ -87,7 +89,7 @@ export function PropertyListMenu({
             )}
 
             <Menu.ItemGroup pl="2" py="1">
-              <Menu.ItemGroupLabel>Properties</Menu.ItemGroupLabel>
+              <Menu.ItemGroupLabel>{t.library.properties}</Menu.ItemGroupLabel>
 
               {columns.map((property) => (
                 <Menu.Item key={property.fid} value={property.fid}>

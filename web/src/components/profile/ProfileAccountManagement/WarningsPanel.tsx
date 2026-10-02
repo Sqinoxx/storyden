@@ -86,6 +86,7 @@ function WarningRecordCard({
   warning: Warning;
   canManageWarnings: boolean;
 }) {
+  const t = useTranslation();
   const { mutate } = useSWRConfig();
   const [isEditing, setIsEditing] = useState(false);
   const [reasonDraft, setReasonDraft] = useState(warning.reason ?? "");
@@ -131,8 +132,8 @@ function WarningRecordCard({
         },
         {
           promiseToast: {
-            loading: "Deleting warning...",
-            success: "Warning deleted.",
+            loading: t.moderation.deletingWarning,
+            success: t.moderation.warningDeleted,
           },
         },
       );
@@ -141,7 +142,7 @@ function WarningRecordCard({
   async function handleSave() {
     const trimmed = reasonDraft.trim();
     if (!trimmed) {
-      toast.error("Reason cannot be empty.");
+      toast.error(t.moderation.reasonEmpty);
       return;
     }
 
@@ -178,8 +179,8 @@ function WarningRecordCard({
       },
       {
         promiseToast: {
-          loading: "Saving warning...",
-          success: "Warning updated.",
+          loading: t.moderation.savingWarning,
+          success: t.moderation.warningUpdated,
         },
       },
     );
@@ -234,7 +235,7 @@ function WarningRecordCard({
                     onClick={handleSave}
                     loading={isUpdating}
                   >
-                    Save
+                    {t.common.save}
                   </Button>
                   <Button
                     size="xs"
@@ -242,7 +243,7 @@ function WarningRecordCard({
                     onClick={cancelEditing}
                     disabled={isUpdating}
                   >
-                    Cancel
+                    {t.common.cancel}
                   </Button>
                 </>
               ) : (
@@ -251,7 +252,7 @@ function WarningRecordCard({
                   variant="ghost"
                   onClick={() => setIsEditing(true)}
                 >
-                  Edit
+                  {t.common.edit}
                 </Button>
               )}
 
@@ -264,7 +265,7 @@ function WarningRecordCard({
                     onClick={handleConfirmAction}
                     loading={isDeleting}
                   >
-                    Confirm delete
+                    {t.actions.deleteConfirm}
                   </Button>
                   <Button
                     size="xs"
@@ -272,15 +273,15 @@ function WarningRecordCard({
                     onClick={handleCancelAction}
                     disabled={isDeleting}
                   >
-                    Cancel
+                    {t.common.cancel}
                   </Button>
                 </HStack>
               ) : (
                 <Button
                   size="xs"
                   variant="ghost"
-                  aria-label="Delete warning"
-                  title="Delete warning"
+                  aria-label={t.moderation.deleteWarning}
+                  title={t.moderation.deleteWarning}
                   onClick={handleConfirmAction}
                 >
                   <DeleteIcon />

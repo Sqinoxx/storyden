@@ -14,6 +14,7 @@ import {
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import { Timestamp } from "@/components/site/Timestamp";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/lib/i18n";
 import { Box, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 
 function getItemPath(
@@ -41,13 +42,14 @@ type Props = {
 };
 
 export function ReportCardContent({ report }: Props) {
+  const t = useTranslation();
   const item = report.item as DatagraphItem | undefined;
 
   if (!item) {
     return (
       <Box p="3" borderRadius="md" bg="bg.muted">
         <styled.p color="fg.muted" fontStyle="italic">
-          Content no longer available
+          {t.report.contentUnavailable}
         </styled.p>
       </Box>
     );
@@ -65,7 +67,7 @@ export function ReportCardContent({ report }: Props) {
     default:
       return (
         <Box p="3" borderRadius="md" bg="bg.muted">
-          <styled.p color="fg.muted">Unknown content type</styled.p>
+          <styled.p color="fg.muted">{t.report.unknownContentType}</styled.p>
         </Box>
       );
   }
@@ -191,13 +193,14 @@ function ProfileContent({ reportID, item }: ProfileContentProps) {
 }
 
 function ContentDeletedBadge() {
+  const t = useTranslation();
   return (
     <Badge
       bg="bg.destructive"
       color="fg.destructive"
       borderColor="border.destructive"
     >
-      Content deleted
+      {t.report.contentDeleted}
     </Badge>
   );
 }

@@ -7,7 +7,6 @@ import { AdminOCRAssetList200AssetsItem } from "@/api/openapi-schema";
 import { AdminOCRAssetListStatus } from "@/api/openapi-schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import * as Table from "@/components/ui/table";
 import { useTranslation } from "@/lib/i18n";
 import { Box, HStack, styled } from "@/styled-system/jsx";
 
@@ -159,61 +158,69 @@ export function OCRAssetList({ onRefresh }: { onRefresh?: () => void }) {
           Keine Dateien in diesem Status.
         </styled.p>
       ) : (
-        <Box overflowX="auto">
-          <Table.Root size="sm" variant="dense">
-            <Table.Head>
-              <Table.Row>
-                <Table.Header>Datei</Table.Header>
-                <Table.Header>Status</Table.Header>
-                <Table.Header>Grund</Table.Header>
-                <Table.Header>Typ</Table.Header>
-                <Table.Header>Größe</Table.Header>
-                <Table.Header>Zeit</Table.Header>
-              </Table.Row>
-            </Table.Head>
-            <Table.Body>
-              {assets.map((a) => (
-                <Table.Row key={a.id}>
-                  <Table.Cell maxW="80" wordBreak="break-all">
-                    <styled.a
-                      href={a.path}
-                      target="_blank"
-                      rel="noreferrer"
-                      color="fg.default"
-                      textDecoration="underline"
-                    >
-                      {displayName(a)}
-                    </styled.a>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge
-                      size="sm"
-                      colorPalette={statusColour[a.status] ?? "gray"}
-                    >
-                      {statusLabel[a.status] ?? a.status}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell color="fg.muted" maxW="96">
-                    <styled.span title={a.error}>
-                      {describeReason(a.error)}
-                    </styled.span>
-                  </Table.Cell>
-                  <Table.Cell color="fg.muted">{a.mime_type}</Table.Cell>
-                  <Table.Cell color="fg.muted" whiteSpace="nowrap">
-                    {formatSize(a.size)}
-                  </Table.Cell>
-                  <Table.Cell color="fg.muted" whiteSpace="nowrap">
-                    {a.processed_at
+        <styled.ul display="flex" flexDirection="column" gap="2">
+          {assets.map((a) => (
+            <styled.li
+              key={a.id}
+              display="flex"
+              alignItems="flex-start"
+              justifyContent="space-between"
+              gap="3"
+              px="3"
+              py="2"
+              borderRadius="md"
+              borderWidth="thin"
+              borderColor="border.subtle"
+              bgColor="bg.subtle"
+            >
+              <Box minW="0" flex="1">
+                <styled.a
+                  href={a.path}
+                  target="_blank"
+                  rel="noreferrer"
+                  display="block"
+                  fontSize="sm"
+                  fontWeight="medium"
+                  color="fg.default"
+                  overflowWrap="anywhere"
+                  _hover={{ textDecoration: "underline" }}
+                >
+                  {displayName(a)}
+                </styled.a>
+                {a.error && (
+                  <styled.p
+                    fontSize="sm"
+                    color={a.status === "failed" ? "fg.error" : "fg.muted"}
+                    overflowWrap="anywhere"
+                    title={a.error}
+                  >
+                    {describeReason(a.error)}
+                  </styled.p>
+                )}
+                <styled.p fontSize="xs" color="fg.subtle" mt="0.5">
+                  {[
+                    a.mime_type,
+                    formatSize(a.size),
+                    a.processed_at
                       ? a.status === "processing"
                         ? formatElapsed(a.processed_at, now)
                         : formatTime(a.processed_at)
-                      : "–"}
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
-        </Box>
+                      : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </styled.p>
+              </Box>
+              <Badge
+                size="sm"
+                flexShrink="0"
+                colorPalette={statusColour[a.status] ?? "gray"}
+              >
+                {statusLabel[a.status] ?? a.status}
+              </Badge>
+            </styled.li>
+          ))}
+        </styled.ul>
       )}
     </Box>
   );

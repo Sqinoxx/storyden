@@ -91,6 +91,7 @@ export * from "./adminOCRAssetList200";
 export * from "./adminOCRAssetList200AssetsItem";
 export * from "./adminOCRAssetListParams";
 export * from "./adminOCRAssetListStatus";
+export * from "./adminOCRAssetSkip200";
 export * from "./adminOCRReindex200";
 export * from "./adminOCRStats200";
 export * from "./adminSettingsGetOKResponse";

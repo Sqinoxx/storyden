@@ -15,9 +15,11 @@ import { useSettingsMutation } from "@/lib/settings/mutation";
 import { Box, HStack, styled } from "@/styled-system/jsx";
 
 const DEFAULT_OCR_MAX_FILE_SIZE_MB = 10;
+const DEFAULT_OCR_TIMEOUT_SECONDS = 60;
 
 const FormSchema = z.object({
   ocrMaxFileSizeMb: z.number().min(1).max(1024),
+  ocrTimeoutSeconds: z.number().min(5).max(3600),
 });
 type Form = z.infer<typeof FormSchema>;
 
@@ -27,10 +29,14 @@ export function OCRFileSizeSettings({ onSaved }: { onSaved?: () => void }) {
 
   return (
     <OCRFileSizeForm
-      initial={
-        data.services?.assets?.ocr_max_file_size_mb ??
-        DEFAULT_OCR_MAX_FILE_SIZE_MB
-      }
+      initial={{
+        ocrMaxFileSizeMb:
+          data.services?.assets?.ocr_max_file_size_mb ??
+          DEFAULT_OCR_MAX_FILE_SIZE_MB,
+        ocrTimeoutSeconds:
+          data.services?.assets?.ocr_timeout_seconds ??
+          DEFAULT_OCR_TIMEOUT_SECONDS,
+      }}
       onSaved={onSaved}
     />
   );
@@ -40,13 +46,13 @@ function OCRFileSizeForm({
   initial,
   onSaved,
 }: {
-  initial: number;
+  initial: Form;
   onSaved?: () => void;
 }) {
   const { revalidate, updateSettings } = useSettingsMutation();
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { ocrMaxFileSizeMb: initial },
+    defaultValues: initial,
   });
 
   const onSubmit = form.handleSubmit(async (data) => {
@@ -54,7 +60,10 @@ function OCRFileSizeForm({
       async () => {
         await updateSettings({
           services: {
-            assets: { ocr_max_file_size_mb: data.ocrMaxFileSizeMb },
+            assets: {
+              ocr_max_file_size_mb: data.ocrMaxFileSizeMb,
+              ocr_timeout_seconds: data.ocrTimeoutSeconds,
+            },
           },
         });
         onSaved?.();
@@ -103,7 +112,25 @@ function OCRFileSizeForm({
             Größere Dateien werden bei der Texterkennung übersprungen. Bereits
             übersprungene Dateien werden erst nach „OCR erneut ausführen“ neu
             verarbeitet. Große, gescannte PDFs können das Zeitlimit
-            (OCR_TIMEOUT) überschreiten und belasten den Server stärker.
+            überschreiten und belasten den Server stärker.
+          </FormHelperText>
+        </FormControl>
+
+        <FormControl mt="4">
+          <FormLabel>Zeitlimit pro Datei (Sekunden)</FormLabel>
+          <NumberInputField
+            control={form.control}
+            name="ocrTimeoutSeconds"
+            scrubber={true}
+            min={5}
+            max={3600}
+            step={30}
+          />
+          <FormHelperText>
+            Dauert die Texterkennung einer Datei länger, wird sie abgebrochen
+            und übersprungen. Höhere Werte helfen bei großen, gescannten PDFs,
+            blockieren aber währenddessen alle anderen Dateien, da immer nur
+            eine Datei gleichzeitig verarbeitet wird.
           </FormHelperText>
         </FormControl>
       </Box>

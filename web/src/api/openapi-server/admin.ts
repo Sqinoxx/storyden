@@ -15,6 +15,7 @@ import type {
   AdminDriveFolderUpdateBody,
   AdminOCRAssetList200,
   AdminOCRAssetListParams,
+  AdminOCRAssetSkip200,
   AdminOCRReindex200,
   AdminOCRStats200,
   AdminSettingsGetOKResponse,
@@ -153,6 +154,34 @@ export const adminOCRAssetList = async (
     {
       ...options,
       method: "GET",
+    },
+  );
+};
+
+/**
+ * Skip text extraction for an asset. If the asset is currently being
+processed, the running extraction is cancelled. Pending or failed
+assets are marked as skipped so they are not retried.
+
+ */
+export type adminOCRAssetSkipResponse = {
+  data: AdminOCRAssetSkip200;
+  status: number;
+};
+
+export const getAdminOCRAssetSkipUrl = (assetId: string) => {
+  return `/admin/ocr/assets/${assetId}/skip`;
+};
+
+export const adminOCRAssetSkip = async (
+  assetId: string,
+  options?: RequestInit,
+): Promise<adminOCRAssetSkipResponse> => {
+  return fetcher<Promise<adminOCRAssetSkipResponse>>(
+    getAdminOCRAssetSkipUrl(assetId),
+    {
+      ...options,
+      method: "POST",
     },
   );
 };

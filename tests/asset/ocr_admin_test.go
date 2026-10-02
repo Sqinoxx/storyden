@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/Southclaws/opt"
 	"github.com/rs/xid"
@@ -85,6 +86,65 @@ func TestOCR_AdminMaxFileSizeAndAssetList(t *testing.T) {
 			}
 
 			tests.AssertRequest(cl.AdminOCRAssetListWithResponse(root, nil, memberSession))(t, http.StatusForbidden)
+		}))
+	}))
+}
+
+func TestOCR_AdminTimeoutAndSkip(t *testing.T) {
+	cfg := &config.Config{
+		OCREnabled:         false,
+		OCRBackfillEnabled: false,
+		OCRMaxFileSizeMB:   10,
+		OCRTimeout:         60 * time.Second,
+	}
+
+	integration.Test(t, cfg, e2e.Setup(), fx.Invoke(func(
+		root context.Context,
+		lc fx.Lifecycle,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+
+			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			adminSession := sh.WithSession(adminCtx)
+			memberCtx, _ := e2e.WithAccount(root, aw, seed.Account_003_Baldur)
+			memberSession := sh.WithSession(memberCtx)
+
+			get := tests.AssertRequest(cl.AdminSettingsGetWithResponse(root, adminSession))(t, http.StatusOK)
+			r.Equal(60, *get.JSON200.Services.Assets.OcrTimeoutSeconds)
+
+			update := tests.AssertRequest(cl.AdminSettingsUpdateWithResponse(root, openapi.AdminSettingsUpdateJSONRequestBody{
+				Services: &openapi.AdminSettingsServiceProps{
+					Assets: &openapi.AssetServiceSettings{OcrTimeoutSeconds: opt.New(300).Ptr()},
+				},
+			}, adminSession))(t, http.StatusOK)
+			r.Equal(300, *update.JSON200.Services.Assets.OcrTimeoutSeconds)
+			r.Equal(10, *update.JSON200.Services.Assets.OcrMaxFileSizeMb, "updating the timeout must not reset the size limit")
+
+			png := []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0}
+			a := uploadTestAsset(t, root, cl, adminSession, "image/png", png)
+
+			tests.AssertRequest(cl.AdminOCRAssetSkipWithResponse(root, a.Id, memberSession))(t, http.StatusForbidden)
+
+			skip := tests.AssertRequest(cl.AdminOCRAssetSkipWithResponse(root, a.Id, adminSession))(t, http.StatusOK)
+			r.Equal("skipped", skip.JSON200.Status)
+
+			skippedStatus := openapi.AdminOCRAssetListParamsStatus("skipped")
+			list := tests.AssertRequest(cl.AdminOCRAssetListWithResponse(root, &openapi.AdminOCRAssetListParams{Status: &skippedStatus}, adminSession))(t, http.StatusOK)
+			var found bool
+			for _, item := range list.JSON200.Assets {
+				if item.Id == a.Id {
+					found = true
+					r.Equal("skipped by administrator", *item.Error)
+				}
+			}
+			r.True(found, "skipped asset should be listed")
+
+			again := tests.AssertRequest(cl.AdminOCRAssetSkipWithResponse(root, a.Id, adminSession))(t, http.StatusOK)
+			r.Equal("skipped", again.JSON200.Status)
 		}))
 	}))
 }

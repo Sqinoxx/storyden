@@ -28,4 +28,13 @@ OCR_MAX_FILE_SIZE_MB environment variable.
    * @maximum 1024
    */
   ocr_max_file_size_mb?: number;
+  /**
+   * The maximum duration, in seconds, of a single file's text
+extraction (OCR). Files that take longer are skipped. Defaults to
+the OCR_TIMEOUT environment variable.
+
+   * @minimum 5
+   * @maximum 3600
+   */
+  ocr_timeout_seconds?: number;
 }

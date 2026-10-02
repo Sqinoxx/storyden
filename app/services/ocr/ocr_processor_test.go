@@ -30,12 +30,12 @@ func TestExtractTextTimesOutOnStuckEngine(t *testing.T) {
 	t.Parallel()
 
 	p := &Processor{
-		cfg:       config.Config{OCRTimeout: 20 * time.Millisecond},
+		cfg:       config.Config{},
 		ocrClient: blockingOCRClient{},
 	}
 
 	start := time.Now()
-	_, err := p.extractText(context.Background(), nil, "image/png")
+	_, err := p.extractText(context.Background(), nil, "image/png", 20*time.Millisecond)
 	elapsed := time.Since(start)
 
 	require.ErrorIs(t, err, errOCRTimeout)
@@ -50,15 +50,33 @@ func TestExtractTextPropagatesParentCancellation(t *testing.T) {
 	t.Parallel()
 
 	p := &Processor{
-		cfg:       config.Config{OCRTimeout: time.Minute},
+		cfg:       config.Config{},
 		ocrClient: blockingOCRClient{},
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	_, err := p.extractText(ctx, nil, "image/png")
+	_, err := p.extractText(ctx, nil, "image/png", time.Minute)
 	require.Error(t, err)
+}
+
+func TestExtractTextReportsAdminCancellation(t *testing.T) {
+	t.Parallel()
+
+	p := &Processor{
+		cfg:       config.Config{},
+		ocrClient: blockingOCRClient{},
+	}
+
+	ctx, cancel := context.WithCancelCause(context.Background())
+	go func() {
+		time.Sleep(20 * time.Millisecond)
+		cancel(errOCRCancelled)
+	}()
+
+	_, err := p.extractText(ctx, nil, "image/png", time.Minute)
+	require.ErrorIs(t, err, errOCRCancelled)
 }
 
 func TestSanitiseTextStripsNULAndInvalidUTF8(t *testing.T) {

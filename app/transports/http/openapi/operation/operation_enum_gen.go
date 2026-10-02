@@ -26,6 +26,7 @@ var (
 	OperationIDAdminSettingsUpdate                    = OperationID{`AdminSettingsUpdate`}
 	OperationIDAdminOCRStats                          = OperationID{`AdminOCRStats`}
 	OperationIDAdminOCRAssetList                      = OperationID{`AdminOCRAssetList`}
+	OperationIDAdminOCRAssetSkip                      = OperationID{`AdminOCRAssetSkip`}
 	OperationIDAdminOCRReindex                        = OperationID{`AdminOCRReindex`}
 	OperationIDAdminStatistics                        = OperationID{`AdminStatistics`}
 	OperationIDAdminDriveFolderList                   = OperationID{`AdminDriveFolderList`}
@@ -336,6 +337,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAdminOCRStats, nil
 	case string(`AdminOCRAssetList`):
 		return OperationIDAdminOCRAssetList, nil
+	case string(`AdminOCRAssetSkip`):
+		return OperationIDAdminOCRAssetSkip, nil
 	case string(`AdminOCRReindex`):
 		return OperationIDAdminOCRReindex, nil
 	case string(`AdminStatistics`):

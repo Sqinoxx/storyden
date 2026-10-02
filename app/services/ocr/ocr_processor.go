@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Southclaws/fault"
@@ -20,6 +21,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/message"
 	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/internal/config"
+	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/infrastructure/object"
 	infra_ocr "github.com/Southclaws/storyden/internal/infrastructure/ocr"
 	"github.com/Southclaws/storyden/internal/infrastructure/pubsub"
@@ -50,6 +52,10 @@ type Processor struct {
 	// CPU-bound external processes) to one at a time across both the live
 	// bus handler and the backfill loop.
 	sem chan struct{}
+
+	mu            sync.Mutex
+	current       xid.ID
+	cancelCurrent context.CancelCauseFunc
 }
 
 func NewProcessor(
@@ -144,7 +150,7 @@ func (p *Processor) processPendingBatches(ctx context.Context) {
 }
 
 func (p *Processor) processPendingBatch(ctx context.Context) (int, error) {
-	pending, err := p.assetQuerier.GetPendingOCR(ctx, p.cfg.OCRBackfillBatchSize, p.cfg.OCRStuckTimeout)
+	pending, err := p.assetQuerier.GetPendingOCR(ctx, p.cfg.OCRBackfillBatchSize, p.stuckTimeout(ctx))
 	if err != nil {
 		return 0, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -164,7 +170,7 @@ func (p *Processor) processPendingBatch(ctx context.Context) (int, error) {
 // ProcessAllPending processes up to limit pending/stuck assets, returning
 // how many were processed. Used by the admin reindex endpoint.
 func (p *Processor) ProcessAllPending(ctx context.Context, limit int) (int, error) {
-	pending, err := p.assetQuerier.GetPendingOCR(ctx, limit, p.cfg.OCRStuckTimeout)
+	pending, err := p.assetQuerier.GetPendingOCR(ctx, limit, p.stuckTimeout(ctx))
 	if err != nil {
 		p.logger.Error("failed to query pending OCR assets for batch processing", slog.String("error", err.Error()))
 		return 0, err
@@ -198,6 +204,15 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 		p.logger.Error("failed to get asset for OCR processing", slog.String("id", id.String()), slog.String("error", err.Error()))
 		return fault.Wrap(err, fctx.With(ctx))
 	}
+
+	if a.OCRStatus == string(ent_asset.OcrStatusSkipped) {
+		return nil
+	}
+
+	procCtx, cancel := context.WithCancelCause(ctx)
+	defer cancel(nil)
+	p.setCurrent(id, cancel)
+	defer p.setCurrent(xid.NilID(), nil)
 
 	mimeStr := a.MIME.String()
 	if !p.isSupportedMIME(mimeStr) {
@@ -256,9 +271,10 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 	p.logger.Info("starting text extraction for asset", slog.String("id", id.String()), slog.String("filename", a.Name.String()))
 	_, _ = p.assetWriter.UpdateOCRProcessing(ctx, id)
 
-	result, err := p.extractText(ctx, data, mimeStr)
+	timeout := p.timeout(ctx)
+	result, err := p.extractText(procCtx, data, mimeStr, timeout)
 	if err != nil {
-		return p.handleExtractionError(ctx, id, err)
+		return p.handleExtractionError(ctx, id, err, timeout)
 	}
 
 	text := sanitiseText(result.Text, p.cfg.OCRMaxTextLength)
@@ -296,6 +312,63 @@ func (p *Processor) maxFileSizeMB(ctx context.Context) int {
 	return p.cfg.OCRMaxFileSizeMB
 }
 
+func (p *Processor) timeout(ctx context.Context) time.Duration {
+	if p.settings == nil {
+		return p.cfg.OCRTimeout
+	}
+	s, err := p.settings.Get(ctx)
+	if err != nil {
+		return p.cfg.OCRTimeout
+	}
+	if v, ok := s.Services.OrZero().Assets.OrZero().OCRTimeout.Get(); ok && v > 0 {
+		return v
+	}
+	return p.cfg.OCRTimeout
+}
+
+// stuckTimeout must outlast the extraction timeout, otherwise an asset that
+// is legitimately still being extracted would be picked up again as stuck.
+func (p *Processor) stuckTimeout(ctx context.Context) time.Duration {
+	return max(p.cfg.OCRStuckTimeout, p.timeout(ctx)+time.Minute)
+}
+
+func (p *Processor) setCurrent(id xid.ID, cancel context.CancelCauseFunc) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.current = id
+	p.cancelCurrent = cancel
+}
+
+const skippedByAdminReason = "skipped by administrator"
+
+// SkipAsset stops text extraction for an asset: a running extraction is
+// cancelled and anything not yet completed is marked skipped so it isn't
+// retried.
+func (p *Processor) SkipAsset(ctx context.Context, id xid.ID) (string, error) {
+	p.mu.Lock()
+	if p.current == id && p.cancelCurrent != nil {
+		p.cancelCurrent(errOCRCancelled)
+		p.mu.Unlock()
+		return string(ent_asset.OcrStatusSkipped), nil
+	}
+	p.mu.Unlock()
+
+	a, err := p.assetQuerier.GetByID(ctx, id)
+	if err != nil {
+		return "", fault.Wrap(err, fctx.With(ctx))
+	}
+
+	switch a.OCRStatus {
+	case string(ent_asset.OcrStatusCompleted), string(ent_asset.OcrStatusSkipped):
+		return a.OCRStatus, nil
+	}
+
+	if _, err := p.assetWriter.UpdateOCRSkipped(ctx, id, skippedByAdminReason); err != nil {
+		return "", fault.Wrap(err, fctx.With(ctx))
+	}
+	return string(ent_asset.OcrStatusSkipped), nil
+}
+
 // sanitiseText makes extracted text storable: Postgres rejects NUL bytes and
 // invalid UTF-8 in text columns, and PDF text layers regularly contain both.
 func sanitiseText(text string, maxLen int) string {
@@ -313,14 +386,19 @@ func sanitiseText(text string, maxLen int) string {
 // worker on every backfill pass, starving every other pending asset.
 var errOCRTimeout = errors.New("ocr extraction timed out")
 
+var errOCRCancelled = errors.New("ocr extraction cancelled by administrator")
+
 // extractText bounds a single extraction attempt so that one slow or stuck
 // engine invocation can't hold the processor's single concurrency slot (and
 // therefore every other pending asset) forever.
-func (p *Processor) extractText(ctx context.Context, data []byte, mimeStr string) (infra_ocr.Result, error) {
-	extractCtx, cancel := context.WithTimeout(ctx, p.cfg.OCRTimeout)
+func (p *Processor) extractText(ctx context.Context, data []byte, mimeStr string, timeout time.Duration) (infra_ocr.Result, error) {
+	extractCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	result, err := p.ocrClient.ExtractText(extractCtx, data, mimeStr)
+	if errors.Is(context.Cause(ctx), errOCRCancelled) {
+		return infra_ocr.Result{}, errOCRCancelled
+	}
 	if err != nil && errors.Is(extractCtx.Err(), context.DeadlineExceeded) {
 		return infra_ocr.Result{}, errOCRTimeout
 	}
@@ -332,14 +410,19 @@ func (p *Processor) extractText(ctx context.Context, data []byte, mimeStr string
 // status: a missing engine binary or an unsupported/textless document is a
 // permanent, expected condition (skipped, not retried), while anything else
 // is a transient failure (failed, retried by the backfill).
-func (p *Processor) handleExtractionError(ctx context.Context, id xid.ID, err error) error {
+func (p *Processor) handleExtractionError(ctx context.Context, id xid.ID, err error, timeout time.Duration) error {
 	switch {
+	case errors.Is(err, errOCRCancelled):
+		p.logger.Info("OCR extraction cancelled by administrator", slog.String("id", id.String()))
+		_, werr := p.assetWriter.UpdateOCRSkipped(ctx, id, skippedByAdminReason)
+		return werr
+
 	case errors.Is(err, errOCRTimeout):
 		p.logger.Warn("OCR extraction timed out, skipping asset",
 			slog.String("id", id.String()),
-			slog.Duration("timeout", p.cfg.OCRTimeout),
+			slog.Duration("timeout", timeout),
 		)
-		_, werr := p.assetWriter.UpdateOCRSkipped(ctx, id, fmt.Sprintf("text extraction exceeded the %s timeout", p.cfg.OCRTimeout))
+		_, werr := p.assetWriter.UpdateOCRSkipped(ctx, id, fmt.Sprintf("text extraction exceeded the %s timeout", timeout))
 		return werr
 
 	case errors.Is(err, infra_ocr.ErrEngineUnavailable):

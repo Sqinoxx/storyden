@@ -74,6 +74,7 @@ type ServiceSettings struct {
 type AssetServiceSettings struct {
 	MaxUploadSizeMB  opt.Optional[int]
 	OCRMaxFileSizeMB opt.Optional[int]
+	OCRTimeout       opt.Optional[time.Duration]
 }
 
 // ContentServiceSettings controls how much content is returned per page.

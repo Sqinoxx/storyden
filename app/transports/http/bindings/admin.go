@@ -48,6 +48,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/comms/mailqueue"
 	"github.com/Southclaws/storyden/app/services/moderation/action_dispatcher"
 	"github.com/Southclaws/storyden/app/services/moderation/warning_manager"
+	"github.com/Southclaws/storyden/app/services/ocr"
 	"github.com/Southclaws/storyden/app/services/system/instance_info"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
@@ -74,6 +75,7 @@ type Admin struct {
 	assetQuerier      *asset_querier.Querier
 	assetWriter       *asset_writer.Writer
 	statisticsQuerier *statistics_querier.Querier
+	ocrProcessor      *ocr.Processor
 	bus               *pubsub.Bus
 }
 
@@ -95,6 +97,7 @@ func NewAdmin(
 	assetQuerier *asset_querier.Querier,
 	assetWriter *asset_writer.Writer,
 	statisticsQuerier *statistics_querier.Querier,
+	ocrProcessor *ocr.Processor,
 	bus *pubsub.Bus,
 	router *echo.Echo,
 ) Admin {
@@ -116,6 +119,7 @@ func NewAdmin(
 		assetQuerier:      assetQuerier,
 		assetWriter:       assetWriter,
 		statisticsQuerier: statisticsQuerier,
+		ocrProcessor:      ocrProcessor,
 		bus:               bus,
 	}
 
@@ -402,6 +406,24 @@ func mapCategorySeries(points []statistics_querier.CategoryPoint) []openapi.Stat
 	return out
 }
 
+func (a *Admin) AdminOCRAssetSkip(ctx context.Context, request openapi.AdminOCRAssetSkipRequestObject) (openapi.AdminOCRAssetSkipResponseObject, error) {
+	if err := session.Authorise(ctx, nil, rbac.PermissionAdministrator); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	id, err := xid.FromString(request.AssetId)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	status, err := a.ocrProcessor.SkipAsset(ctx, id)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AdminOCRAssetSkip200JSONResponse{Status: status}, nil
+}
+
 // adminOCRReindexBatchLimit bounds how many previously-processed assets are
 // reset to pending and re-queued per reindex request, so this stays a cheap
 // admin action rather than an unbounded table scan.
@@ -591,6 +613,7 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 			assets = opt.New(settings.AssetServiceSettings{
 				MaxUploadSizeMB:  opt.NewPtr(assetsBody.MaxUploadSizeMb),
 				OCRMaxFileSizeMB: opt.NewPtr(assetsBody.OcrMaxFileSizeMb),
+				OCRTimeout:       opt.Map(opt.NewPtr(assetsBody.OcrTimeoutSeconds), secondsToDuration),
 			})
 		}
 
@@ -1334,6 +1357,7 @@ func serialiseAssetSettings(in settings.AssetServiceSettings) openapi.AssetServi
 	return openapi.AssetServiceSettings{
 		MaxUploadSizeMb:  in.MaxUploadSizeMB.Ptr(),
 		OcrMaxFileSizeMb: in.OCRMaxFileSizeMB.Ptr(),
+		OcrTimeoutSeconds: opt.Map(in.OCRTimeout, durationToSeconds).Ptr(),
 	}
 }
 
@@ -1345,7 +1369,9 @@ func serialiseSessionSettings(in settings.SessionServiceSettings) openapi.Sessio
 	}
 }
 
+func secondsToDuration(v int) time.Duration { return time.Duration(v) * time.Second }
 func minutesToDuration(v int) time.Duration { return time.Duration(v) * time.Minute }
+func durationToSeconds(d time.Duration) int { return int(d.Seconds()) }
 func daysToDuration(v int) time.Duration    { return time.Duration(v) * time.Hour * 24 }
 func durationToMinutes(d time.Duration) int { return int(d.Minutes()) }
 func durationToDays(d time.Duration) int    { return int(d.Hours() / 24) }

@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-import { useAdminOCRAssetList } from "@/api/openapi-client/admin";
+import { handle } from "@/api/client";
+import {
+  adminOCRAssetSkip,
+  useAdminOCRAssetList,
+} from "@/api/openapi-client/admin";
 import { AdminOCRAssetList200AssetsItem } from "@/api/openapi-schema";
 import { AdminOCRAssetListStatus } from "@/api/openapi-schema";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +23,7 @@ const reasonLabels: Record<string, string> = {
   "asset file not found on disk": "Datei fehlt auf dem Server",
   "ocr engine unavailable": "OCR-Engine nicht verfügbar",
   "unsupported mime type": "Dateityp nicht unterstützt",
+  "skipped by administrator": "Vom Admin übersprungen",
   "pdf has no usable text layer and no rasteriser available":
     "PDF ohne Textebene, kein Rasterizer verfügbar",
 };
@@ -82,7 +87,7 @@ export function OCRAssetList({ onRefresh }: { onRefresh?: () => void }) {
   const [filter, setFilter] = useState<Filter>("open");
   const [now, setNow] = useState(() => Date.now());
 
-  const { data, error, isLoading } = useAdminOCRAssetList(
+  const { data, error, isLoading, mutate } = useAdminOCRAssetList(
     filter === "open" ? undefined : { status: filter },
     { swr: { refreshInterval: REFRESH_MS } },
   );
@@ -113,6 +118,27 @@ export function OCRAssetList({ onRefresh }: { onRefresh?: () => void }) {
   ];
 
   const assets = sortAssets(data?.assets ?? []);
+
+  const handleSkip = async (a: AdminOCRAssetList200AssetsItem) => {
+    await handle(
+      async () => {
+        await adminOCRAssetSkip(a.id);
+      },
+      {
+        promiseToast: {
+          loading:
+            a.status === "processing"
+              ? "Breche Verarbeitung ab…"
+              : "Überspringe…",
+          success: "Übersprungen",
+        },
+        cleanup: async () => {
+          await mutate();
+          onRefresh?.();
+        },
+      },
+    );
+  };
 
   return (
     <Box
@@ -211,13 +237,24 @@ export function OCRAssetList({ onRefresh }: { onRefresh?: () => void }) {
                     .join(" · ")}
                 </styled.p>
               </Box>
-              <Badge
-                size="sm"
-                flexShrink="0"
-                colorPalette={statusColour[a.status] ?? "gray"}
-              >
-                {statusLabel[a.status] ?? a.status}
-              </Badge>
+              <HStack gap="2" flexShrink="0">
+                {skippable.has(a.status) && (
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant="outline"
+                    onClick={() => handleSkip(a)}
+                  >
+                    {a.status === "processing" ? "Abbrechen" : "Überspringen"}
+                  </Button>
+                )}
+                <Badge
+                  size="sm"
+                  colorPalette={statusColour[a.status] ?? "gray"}
+                >
+                  {statusLabel[a.status] ?? a.status}
+                </Badge>
+              </HStack>
             </styled.li>
           ))}
         </styled.ul>
@@ -225,6 +262,8 @@ export function OCRAssetList({ onRefresh }: { onRefresh?: () => void }) {
     </Box>
   );
 }
+
+const skippable = new Set(["pending", "processing", "failed"]);
 
 const statusOrder: Record<string, number> = {
   processing: 0,

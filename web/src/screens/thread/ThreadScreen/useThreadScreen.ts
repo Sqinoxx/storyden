@@ -183,6 +183,12 @@ export function useThreadScreen({
     setEmpty(isEmpty);
   }
 
+  function handleAssetUpload(asset: Asset) {
+    setAttachments((prev) =>
+      prev.some((a) => a.id === asset.id) ? prev : [...prev, asset],
+    );
+  }
+
   function handleRemoveAsset(assetToRemove: Asset) {
     setAttachments((prev) =>
       prev.filter((a) => {
@@ -452,6 +458,7 @@ export function useThreadScreen({
     handlers: {
       handleEditing,
       handleEmptyStateChange,
+      handleAssetUpload,
       handleRemoveAsset,
       handleDiscardChanges,
       handleSave,

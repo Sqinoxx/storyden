@@ -177,6 +177,7 @@ function ReplyBodyInput({
             resetKey={resetKey}
             disabled={disabled}
             value={value}
+            inlineAttachments
           />
         );
       }}

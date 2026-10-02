@@ -217,6 +217,7 @@ function ReplyBodyInput({
             onChange={handleChange}
             resetKey={resetKey}
             value={value}
+            inlineAttachments
           />
         );
       }}

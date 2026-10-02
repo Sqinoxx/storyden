@@ -5,7 +5,7 @@ import { match } from "ts-pattern";
 
 import { Unready } from "@/components/site/Unready";
 
-import { Thread, Visibility } from "@/api/openapi-schema";
+import { Asset, Thread, Visibility } from "@/api/openapi-schema";
 import { CategoryBadge } from "@/components/category/CategoryBadge";
 import { Byline } from "@/components/content/Byline";
 import { ContentComposer } from "@/components/content/ContentComposer/ContentComposer";
@@ -164,6 +164,7 @@ export function ThreadScreen(props: Props) {
             resetKey={resetKey}
             disabled={!isEditing}
             handleEmptyStateChange={handlers.handleEmptyStateChange}
+            handleAssetUpload={handlers.handleAssetUpload}
           />
 
           {((isEditing && attachments.length > 0) || (thread.assets && thread.assets.length > 0)) && (
@@ -259,6 +260,7 @@ type ThreadBodyInputProps = Omit<ControllerProps<Form, "body">, "render"> & {
   initialValue: string;
   resetKey: string;
   handleEmptyStateChange: (isEmpty: boolean) => void;
+  handleAssetUpload: (asset: Asset) => void;
 };
 
 function ThreadBodyInput({
@@ -268,6 +270,7 @@ function ThreadBodyInput({
   resetKey,
   disabled,
   handleEmptyStateChange,
+  handleAssetUpload,
 }: ThreadBodyInputProps) {
   return (
     <Controller<Form, "body">
@@ -284,6 +287,7 @@ function ThreadBodyInput({
             onChange={handleChange}
             resetKey={resetKey}
             disabled={disabled}
+            onAssetUpload={handleAssetUpload}
           />
         );
       }}

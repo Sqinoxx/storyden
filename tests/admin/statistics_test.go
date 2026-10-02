@@ -73,15 +73,34 @@ func TestAdminStatistics(t *testing.T) {
 				require.NoError(t, err)
 				r.Equal(http.StatusOK, catResp.StatusCode(), "%s", string(catResp.Body))
 
+				tagName := openapi.TagName("stats-" + xid.New().String())
 				vis := openapi.VisibilityPublished
 				createThread, err := cl.ThreadCreateWithResponse(memberCtx, openapi.ThreadInitialProps{
 					Title:      "Statistics regression thread",
 					Body:       opt.New("<p>Test content</p>").Ptr(),
 					Category:   opt.New(catResp.JSON200.Id).Ptr(),
 					Visibility: &vis,
+					Tags:       &openapi.TagNameList{tagName},
 				}, memberSession)
 				require.NoError(t, err)
 				r.Equal(http.StatusOK, createThread.StatusCode(), "%s", string(createThread.Body))
+
+				threadID := createThread.JSON200.Id
+
+				like, err := cl.LikePostAddWithResponse(adminCtx, threadID, adminSession)
+				require.NoError(t, err)
+				r.Equal(http.StatusOK, like.StatusCode(), "%s", string(like.Body))
+
+				react, err := cl.PostReactAddWithResponse(adminCtx, threadID, openapi.ReactInitialProps{Emoji: "🦷"}, adminSession)
+				require.NoError(t, err)
+				r.Equal(http.StatusOK, react.StatusCode(), "%s", string(react.Body))
+
+				reportResp, err := cl.ReportCreateWithResponse(adminCtx, openapi.ReportInitialProps{
+					TargetId:   threadID,
+					TargetKind: openapi.DatagraphItemKindThread,
+				}, adminSession)
+				require.NoError(t, err)
+				r.Equal(http.StatusOK, reportResp.StatusCode(), "%s", string(reportResp.Body))
 
 				png := onePixelPNG()
 				filename := "statistics-regression.png"
@@ -184,6 +203,43 @@ func TestAdminStatistics(t *testing.T) {
 				})
 				r.True(found, "the created category should appear in top categories")
 				a.GreaterOrEqual(topCategory.ThreadCount, 1)
+
+				a.Len(body.LikesDaily, 30)
+				a.Len(body.ReactsMonthly, 12)
+				a.GreaterOrEqual(body.LikesDaily[len(body.LikesDaily)-1].Count, 1)
+				a.GreaterOrEqual(body.ReactsDaily[len(body.ReactsDaily)-1].Count, 1)
+				a.GreaterOrEqual(body.Totals.Likes, 1)
+				a.GreaterOrEqual(body.Totals.Reacts, 1)
+				a.GreaterOrEqual(body.Totals.Tags, 1)
+
+				_, found = lo.Find(body.TopEmojis, func(e openapi.StatisticsEmojiPoint) bool {
+					return e.Emoji == "🦷"
+				})
+				a.True(found, "the reaction emoji should appear in top emojis")
+
+				likedThread, found := lo.Find(body.TopLikedThreads, func(p openapi.StatisticsThreadPoint) bool {
+					return p.Id == threadID
+				})
+				r.True(found, "the liked thread should appear in top liked threads")
+				a.Equal(1, likedThread.Count)
+				a.Equal("Statistics regression thread", likedThread.Title)
+
+				tag, found := lo.Find(body.TopTags, func(p openapi.StatisticsTagPoint) bool {
+					return p.Name == tagName
+				})
+				r.True(found, "the thread's tag should appear in top tags")
+				a.Equal(1, tag.ThreadCount)
+
+				a.GreaterOrEqual(body.Totals.ReportsSubmitted, 1)
+				a.GreaterOrEqual(body.Totals.ReportsLast30d, 1)
+
+				a.GreaterOrEqual(body.Trends.Threads.Current, 1)
+				a.GreaterOrEqual(body.Trends.Accounts.Current, 2)
+				a.GreaterOrEqual(body.Trends.Likes.Current, 1)
+				a.GreaterOrEqual(body.Trends.Reacts.Current, 1)
+				a.GreaterOrEqual(body.Trends.Logins.Current, 4)
+				a.GreaterOrEqual(body.Trends.Assets.Current, 1)
+				a.GreaterOrEqual(body.Trends.ActiveAccounts.Current, 1)
 			})
 
 			t.Run("requires_admin_permission", func(t *testing.T) {

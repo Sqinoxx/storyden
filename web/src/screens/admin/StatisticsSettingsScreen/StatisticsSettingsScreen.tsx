@@ -1,943 +1,657 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
 import {
-  Activity,
-  Clock,
-  FolderTree,
+  FileUp,
+  Heart,
   LogIn,
   MessageSquare,
   MessagesSquare,
-  ShieldOff,
-  UserCheck,
-  Users,
+  UserPlus,
 } from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  TooltipContentProps,
-  XAxis,
-  YAxis,
-} from "recharts";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 
 import { useAdminStatistics } from "@/api/openapi-client/admin";
 import type {
   AdminStatistics200,
   StatisticsContributor,
-  StatisticsSeriesPoint,
+  StatisticsThreadPoint,
 } from "@/api/openapi-schema";
-import { Button } from "@/components/ui/button";
-import * as Table from "@/components/ui/table";
 import { ProfileRoute } from "@/components/site/Navigation/Anchors/Profile";
-import { FINISHED_SEMESTER } from "@/lib/profile/academic";
+import { ReportsRoute } from "@/components/site/Navigation/Anchors/Reports";
+import { TagsRoute } from "@/components/site/Navigation/Anchors/Tags";
+import * as Table from "@/components/ui/table";
 import { formatTermKeyLabel } from "@/lib/thread/semester";
-import { Box, Flex, Grid, HStack, Stack, styled } from "@/styled-system/jsx";
+import { Box, Flex, Grid, Stack, styled } from "@/styled-system/jsx";
 
-type Granularity = "daily" | "monthly" | "yearly";
-
-const GRANULARITY_LABEL: Record<Granularity, string> = {
-  daily: "Täglich",
-  monthly: "Monatlich",
-  yearly: "Jährlich",
-};
+import { COLORS, MultiLineChart, SimpleBarChart } from "./charts";
+import {
+  Granularity,
+  buildFachsemesterInsight,
+  formatDateTime,
+  formatFachsemester,
+  formatNumber,
+  formatWeekday,
+  formatWeekdayName,
+  isEmpty,
+  mergeSeries,
+  peak,
+  sumSeries,
+  sumTrends,
+} from "./format";
+import {
+  ChartCard,
+  GranularityToggle,
+  KpiCard,
+  StatSection,
+  TotalsStrip,
+} from "./layout";
 
 export function StatisticsSettingsScreen() {
   const { data, isLoading } = useAdminStatistics();
-  const [granularity, setGranularity] = useState<Granularity>("daily");
-  const [assetsGranularity, setAssetsGranularity] =
-    useState<Granularity>("daily");
-
-  const growthData = useMemo(
-    () => buildGrowthData(data, granularity),
-    [data, granularity],
-  );
-
-  const loginInsight = useMemo(() => buildLoginInsight(data), [data]);
-
-  const assetsGrowthData = useMemo(() => {
-    const series = data
-      ? selectByGranularity(
-          assetsGranularity,
-          data.assetsDaily,
-          data.assetsMonthly,
-          data.assetsYearly,
-        )
-      : [];
-    return series.map((point) => ({
-      label: formatDate(point.date, assetsGranularity),
-      count: point.count,
-    }));
-  }, [data, assetsGranularity]);
-
-  const loginsByHourData = useMemo(
-    () =>
-      (data?.loginsByHour ?? []).map((point) => ({
-        hour: `${point.hour}`,
-        count: point.count,
-      })),
-    [data],
-  );
-
-  const loginsByWeekdayData = useMemo(
-    () =>
-      (data?.loginsByWeekday ?? []).map((point) => ({
-        weekday: formatWeekday(point.weekday),
-        count: point.count,
-      })),
-    [data],
-  );
-
-  const topCategoriesData = useMemo(
-    () =>
-      (data?.topCategories ?? []).map((point) => ({
-        name: point.name,
-        count: point.threadCount,
-      })),
-    [data],
-  );
-
-  const semesterData = useMemo(
-    () =>
-      (data?.threadsBySemester ?? []).map((point) => ({
-        term: formatTermKeyLabel(point.term),
-        count: point.count,
-      })),
-    [data],
-  );
-
-  const fachsemesterData = useMemo(
-    () =>
-      (data?.threadsByFachsemester ?? []).map((point) => ({
-        semester: formatFachsemester(point.semester),
-        count: point.count,
-      })),
-    [data],
-  );
-
-  const fachsemesterInsight = useMemo(
-    () => buildFachsemesterInsight(data?.threadsByFachsemester ?? []),
-    [data],
-  );
-
-  const assetsFachsemesterData = useMemo(
-    () =>
-      (data?.assetsByFachsemester ?? []).map((point) => ({
-        semester: formatFachsemester(point.semester),
-        count: point.count,
-      })),
-    [data],
-  );
 
   return (
-    <Stack gap="6" width="full">
+    <Stack gap="10" width="full">
       <Box borderBottomWidth="thin" borderColor="border.subtle" pb="4">
         <styled.h2 fontSize="xl" fontWeight="bold" color="fg.default">
           Nutzungsstatistiken
         </styled.h2>
         <styled.p fontSize="sm" color="fg.muted" mt="1">
-          Überblick über Wachstum und Aktivität der Community: Mitglieder,
-          Themen und Beiträge im Zeitverlauf sowie nach Semester.
+          Wachstum, Engagement und Aktivität der Community auf einen Blick.
+          Trends vergleichen die letzten 30 Tage mit den 30 Tagen davor.
         </styled.p>
       </Box>
 
-      <Grid columns={{ base: 2, md: 3, lg: 6 }} gap="4">
-        <StatCard
-          label="Mitglieder"
-          value={data?.totals.accounts}
-          loading={isLoading}
-          icon={<Users size={18} color="var(--colors-green-9)" />}
-        />
-        <StatCard
-          label="Themen"
-          value={data?.totals.threads}
-          loading={isLoading}
-          icon={<MessageSquare size={18} color="var(--colors-blue-9)" />}
-        />
-        <StatCard
-          label="Antworten"
-          value={data?.totals.replies}
-          loading={isLoading}
-          icon={<MessagesSquare size={18} color="var(--colors-green-9)" />}
-        />
-        <StatCard
-          label="Kategorien"
-          value={data?.totals.categories}
-          loading={isLoading}
-          icon={<FolderTree size={18} color="var(--colors-amber-9)" />}
-        />
-        <StatCard
-          label="Aktiv (7 Tage)"
-          value={data?.totals.activeAccounts7d}
-          loading={isLoading}
-          icon={<Activity size={18} color="var(--colors-accent-9)" />}
-        />
-        <StatCard
-          label="Aktiv (30 Tage)"
-          value={data?.totals.activeAccounts30d}
-          loading={isLoading}
-          icon={<UserCheck size={18} color="var(--colors-accent-9)" />}
-        />
-        <StatCard
-          label="Sitzungen aktiv"
-          value={data?.totals.sessionsActive}
-          loading={isLoading}
-          icon={<LogIn size={18} color="var(--colors-green-9)" />}
-        />
-        <StatCard
-          label="Sitzungen abgelaufen"
-          value={data?.totals.sessionsExpired}
-          loading={isLoading}
-          icon={<Clock size={18} color="var(--colors-amber-9)" />}
-        />
-        <StatCard
-          label="Sitzungen widerrufen"
-          value={data?.totals.sessionsRevoked}
-          loading={isLoading}
-          icon={<ShieldOff size={18} color="var(--colors-red-9)" />}
-        />
-      </Grid>
-
-      <Box
-        p="5"
-        borderRadius="lg"
-        borderWidth="thin"
-        borderColor="border.subtle"
-        bgColor="bg.default"
-      >
-        <Flex
-          justifyContent="space-between"
-          alignItems="center"
-          flexWrap="wrap"
-          gap="3"
-          mb="4"
-        >
-          <Box>
-            <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
-              Wachstum
-            </styled.h3>
-            <styled.p fontSize="sm" color="fg.muted">
-              Neue Mitglieder, neue Themen, Logins und aktive Nutzer im
-              Zeitverlauf.
-            </styled.p>
-          </Box>
-          <HStack gap="1">
-            {(Object.keys(GRANULARITY_LABEL) as Granularity[]).map((g) => (
-              <Button
-                key={g}
-                type="button"
-                size="sm"
-                variant={granularity === g ? "solid" : "ghost"}
-                onClick={() => setGranularity(g)}
-              >
-                {GRANULARITY_LABEL[g]}
-              </Button>
-            ))}
-          </HStack>
-        </Flex>
-
-        <Box height="72" width="full">
-          {isLoading ? (
-            <ChartPlaceholder />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={growthData}
-                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid
-                  stroke="var(--colors-border-subtle)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="label"
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  minTickGap={16}
-                />
-                <YAxis
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                  width={32}
-                />
-                <Tooltip content={GrowthTooltip} />
-                <Legend
-                  verticalAlign="top"
-                  height={32}
-                  iconType="circle"
-                  wrapperStyle={{ fontSize: 12 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="accounts"
-                  name="Mitglieder"
-                  stroke="var(--colors-green-9)"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="threads"
-                  name="Themen"
-                  stroke="var(--colors-blue-9)"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="logins"
-                  name="Logins"
-                  stroke="var(--colors-red-9)"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="activeAccounts"
-                  name="Aktive Nutzer"
-                  stroke="var(--colors-amber-9)"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </Box>
-
-        {loginInsight && (
-          <styled.p fontSize="sm" color="fg.default" mt="4">
-            Heute: {loginInsight.loginsToday} Logins, davon ca.{" "}
-            <styled.span fontWeight="semibold">
-              {loginInsight.returning} wiederkehrend
-            </styled.span>{" "}
-            ({loginInsight.newSignups} Neuregistrierungen).
-          </styled.p>
-        )}
-        <styled.p fontSize="xs" color="fg.muted" mt="1">
-          Logins nähern sich über neue Sitzungen an: da bei jeder
-          Registrierung ebenfalls eine Sitzung entsteht, sind Tage mit vielen
-          Neuanmeldungen entsprechend höher.
-        </styled.p>
-      </Box>
-
-      <Box
-        p="5"
-        borderRadius="lg"
-        borderWidth="thin"
-        borderColor="border.subtle"
-        bgColor="bg.default"
-      >
-        <Flex
-          justifyContent="space-between"
-          alignItems="center"
-          flexWrap="wrap"
-          gap="3"
-          mb="4"
-        >
-          <Box>
-            <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
-              Datei-Uploads
-            </styled.h3>
-            <styled.p fontSize="sm" color="fg.muted">
-              Neu hochgeladene Dateien im Zeitverlauf.
-            </styled.p>
-          </Box>
-          <HStack gap="1">
-            {(Object.keys(GRANULARITY_LABEL) as Granularity[]).map((g) => (
-              <Button
-                key={g}
-                type="button"
-                size="sm"
-                variant={assetsGranularity === g ? "solid" : "ghost"}
-                onClick={() => setAssetsGranularity(g)}
-              >
-                {GRANULARITY_LABEL[g]}
-              </Button>
-            ))}
-          </HStack>
-        </Flex>
-
-        <Box height="72" width="full">
-          {isLoading ? (
-            <ChartPlaceholder />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={assetsGrowthData}
-                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid
-                  stroke="var(--colors-border-subtle)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="label"
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  minTickGap={16}
-                />
-                <YAxis
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                  width={32}
-                />
-                <Tooltip content={FilesTooltip} />
-                <Line
-                  type="monotone"
-                  dataKey="count"
-                  name="Dateien"
-                  stroke="var(--colors-amber-9)"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </Box>
-      </Box>
-
-      <Box
-        p="5"
-        borderRadius="lg"
-        borderWidth="thin"
-        borderColor="border.subtle"
-        bgColor="bg.default"
-      >
-        <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
-          Logins nach Uhrzeit
-        </styled.h3>
-        <styled.p fontSize="sm" color="fg.muted" mb="4">
-          Zu welchen Tageszeiten (UTC) die meisten Logins stattfinden.
-        </styled.p>
-
-        <Box height="72" width="full">
-          {isLoading ? (
-            <ChartPlaceholder />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={loginsByHourData}
-                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid
-                  stroke="var(--colors-border-subtle)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="hour"
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={1}
-                />
-                <YAxis
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                  width={32}
-                />
-                <Tooltip content={LoginsTooltip} />
-                <Bar
-                  dataKey="count"
-                  name="Logins"
-                  fill="var(--colors-blue-9)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </Box>
-      </Box>
-
-      <Box
-        p="5"
-        borderRadius="lg"
-        borderWidth="thin"
-        borderColor="border.subtle"
-        bgColor="bg.default"
-      >
-        <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
-          Logins nach Wochentag
-        </styled.h3>
-        <styled.p fontSize="sm" color="fg.muted" mb="4">
-          An welchen Wochentagen die meisten Logins stattfinden.
-        </styled.p>
-
-        <Box height="72" width="full">
-          {isLoading ? (
-            <ChartPlaceholder />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={loginsByWeekdayData}
-                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid
-                  stroke="var(--colors-border-subtle)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="weekday"
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                  width={32}
-                />
-                <Tooltip content={LoginsTooltip} />
-                <Bar
-                  dataKey="count"
-                  name="Logins"
-                  fill="var(--colors-green-9)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </Box>
-      </Box>
-
-      <Box
-        p="5"
-        borderRadius="lg"
-        borderWidth="thin"
-        borderColor="border.subtle"
-        bgColor="bg.default"
-      >
-        <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
-          Neue Themen je Semester
-        </styled.h3>
-        <styled.p fontSize="sm" color="fg.muted" mb="4">
-          Anzahl neu erstellter Themen, gebündelt nach deutschem
-          Studiensemester (Winter-/Sommersemester).
-        </styled.p>
-
-        <Box height="72" width="full">
-          {isLoading ? (
-            <ChartPlaceholder />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={semesterData}
-                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid
-                  stroke="var(--colors-border-subtle)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="term"
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                  width={32}
-                />
-                <Tooltip content={SemesterTooltip} />
-                <Bar
-                  dataKey="count"
-                  name="Themen"
-                  fill="var(--colors-blue-9)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </Box>
-      </Box>
-
-      <Box
-        p="5"
-        borderRadius="lg"
-        borderWidth="thin"
-        borderColor="border.subtle"
-        bgColor="bg.default"
-      >
-        <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
-          Themen nach Fachsemester
-        </styled.h3>
-        <styled.p fontSize="sm" color="fg.muted" mb={fachsemesterInsight ? "2" : "4"}>
-          Wie viele Themen Mitglieder je nach ihrem aktuellen Fachsemester
-          erstellt haben. So lässt sich erkennen, welche Semester besonders
-          kollegial mitwirken und welche eher zurückhaltend sind.
-        </styled.p>
-        {fachsemesterInsight && (
-          <styled.p fontSize="sm" color="fg.default" mb="4">
-            Am aktivsten:{" "}
-            <styled.span fontWeight="semibold">
-              {fachsemesterInsight.mostLabel}
-            </styled.span>{" "}
-            ({fachsemesterInsight.mostCount} Themen) · Am zurückhaltendsten:{" "}
-            <styled.span fontWeight="semibold">
-              {fachsemesterInsight.leastLabel}
-            </styled.span>{" "}
-            ({fachsemesterInsight.leastCount} Themen)
-          </styled.p>
-        )}
-
-        <Box height="72" width="full">
-          {isLoading ? (
-            <ChartPlaceholder />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={fachsemesterData}
-                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid
-                  stroke="var(--colors-border-subtle)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="semester"
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                  width={32}
-                />
-                <Tooltip content={SemesterTooltip} />
-                <Bar
-                  dataKey="count"
-                  name="Themen"
-                  fill="var(--colors-green-9)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </Box>
-      </Box>
-
-      <Box
-        p="5"
-        borderRadius="lg"
-        borderWidth="thin"
-        borderColor="border.subtle"
-        bgColor="bg.default"
-      >
-        <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
-          Dateien nach Fachsemester
-        </styled.h3>
-        <styled.p fontSize="sm" color="fg.muted" mb="4">
-          Wie viele Dateien Mitglieder je nach ihrem aktuellen Fachsemester
-          hochgeladen haben.
-        </styled.p>
-
-        <Box height="72" width="full">
-          {isLoading ? (
-            <ChartPlaceholder />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={assetsFachsemesterData}
-                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid
-                  stroke="var(--colors-border-subtle)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="semester"
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                  width={32}
-                />
-                <Tooltip content={FilesTooltip} />
-                <Bar
-                  dataKey="count"
-                  name="Dateien"
-                  fill="var(--colors-amber-9)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </Box>
-      </Box>
-
-      <Box
-        p="5"
-        borderRadius="lg"
-        borderWidth="thin"
-        borderColor="border.subtle"
-        bgColor="bg.default"
-      >
-        <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
-          Aktivste Kategorien
-        </styled.h3>
-        <styled.p fontSize="sm" color="fg.muted" mb="4">
-          Die Kategorien mit den meisten neuen Themen.
-        </styled.p>
-
-        <Box height="72" width="full">
-          {isLoading ? (
-            <ChartPlaceholder />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={topCategoriesData}
-                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid
-                  stroke="var(--colors-border-subtle)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="name"
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="var(--colors-fg-muted)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                  width={32}
-                />
-                <Tooltip content={SemesterTooltip} />
-                <Bar
-                  dataKey="count"
-                  name="Themen"
-                  fill="var(--colors-accent-9)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </Box>
-      </Box>
-
-      <Box
-        p="5"
-        borderRadius="lg"
-        borderWidth="thin"
-        borderColor="border.subtle"
-        bgColor="bg.default"
-      >
-        <styled.h3 fontSize="md" fontWeight="bold" color="fg.default">
-          Aktivste Mitglieder
-        </styled.h3>
-        <styled.p fontSize="sm" color="fg.muted" mb="4">
-          Die Mitglieder mit den meisten erstellten Themen, mit Fachsemester
-          und Datum ihres letzten Themas.
-        </styled.p>
-
-        {isLoading ? (
-          <ChartPlaceholder />
-        ) : (
-          <ContributorsTable contributors={data?.topContributors ?? []} />
-        )}
-      </Box>
+      <OverviewSection data={data} loading={isLoading} />
+      <GrowthSection data={data} loading={isLoading} />
+      <EngagementSection data={data} loading={isLoading} />
+      <ActivitySection data={data} loading={isLoading} />
+      <StudySection data={data} loading={isLoading} />
+      <ContentSection data={data} loading={isLoading} />
     </Stack>
   );
 }
 
-function buildGrowthData(
-  data: AdminStatistics200 | undefined,
-  granularity: Granularity,
-) {
-  if (!data) return [];
+type SectionProps = {
+  data: AdminStatistics200 | undefined;
+  loading: boolean;
+};
 
-  const accounts = pickSeries(data, granularity, "accounts");
-  const threads = pickSeries(data, granularity, "threads");
-  const logins = pickSeries(data, granularity, "logins");
-  const activeAccounts = pickSeries(data, granularity, "activeAccounts");
+const ICON_SIZE = 16;
 
-  return accounts.map((point, i) => ({
-    label: formatDate(point.date, granularity),
-    accounts: point.count,
-    threads: threads[i]?.count ?? 0,
-    logins: logins[i]?.count ?? 0,
-    activeAccounts: activeAccounts[i]?.count ?? 0,
-  }));
-}
+function OverviewSection({ data, loading }: SectionProps) {
+  const trends = data?.trends;
+  const totals = data?.totals;
 
-function selectByGranularity<T>(
-  granularity: Granularity,
-  daily: T[],
-  monthly: T[],
-  yearly: T[],
-): T[] {
-  switch (granularity) {
-    case "daily":
-      return daily;
-    case "monthly":
-      return monthly;
-    case "yearly":
-      return yearly;
-  }
-}
+  return (
+    <StatSection title="Überblick" description="Letzte 30 Tage">
+      <Grid columns={{ base: 1, sm: 2, xl: 3 }} gap="4">
+        <KpiCard
+          label="Neue Mitglieder"
+          icon={<UserPlus size={ICON_SIZE} color={COLORS.accounts} />}
+          color={COLORS.accounts}
+          trend={trends?.accounts}
+          sparkline={data?.accountsDaily.map((p) => p.count)}
+          loading={loading}
+        />
+        <KpiCard
+          label="Neue Themen"
+          icon={<MessageSquare size={ICON_SIZE} color={COLORS.threads} />}
+          color={COLORS.threads}
+          trend={trends?.threads}
+          sparkline={data?.threadsDaily.map((p) => p.count)}
+          loading={loading}
+        />
+        <KpiCard
+          label="Antworten"
+          icon={<MessagesSquare size={ICON_SIZE} color={COLORS.replies} />}
+          color={COLORS.replies}
+          trend={trends?.replies}
+          loading={loading}
+        />
+        <KpiCard
+          label="Logins"
+          icon={<LogIn size={ICON_SIZE} color={COLORS.logins} />}
+          color={COLORS.logins}
+          trend={trends?.logins}
+          sparkline={data?.loginsDaily.map((p) => p.count)}
+          loading={loading}
+        />
+        <KpiCard
+          label="Likes & Reaktionen"
+          icon={<Heart size={ICON_SIZE} color={COLORS.likes} />}
+          color={COLORS.likes}
+          trend={trends && sumTrends(trends.likes, trends.reacts)}
+          sparkline={data && sumSeries(data.likesDaily, data.reactsDaily)}
+          loading={loading}
+        />
+        <KpiCard
+          label="Datei-Uploads"
+          icon={<FileUp size={ICON_SIZE} color={COLORS.assets} />}
+          color={COLORS.assets}
+          trend={trends?.assets}
+          sparkline={data?.assetsDaily.map((p) => p.count)}
+          loading={loading}
+        />
+      </Grid>
 
-function pickSeries(
-  data: AdminStatistics200,
-  granularity: Granularity,
-  kind: "accounts" | "threads" | "logins" | "activeAccounts",
-): StatisticsSeriesPoint[] {
-  switch (kind) {
-    case "accounts":
-      return selectByGranularity(
-        granularity,
-        data.accountsDaily,
-        data.accountsMonthly,
-        data.accountsYearly,
-      );
-    case "threads":
-      return selectByGranularity(
-        granularity,
-        data.threadsDaily,
-        data.threadsMonthly,
-        data.threadsYearly,
-      );
-    case "logins":
-      return selectByGranularity(
-        granularity,
-        data.loginsDaily,
-        data.loginsMonthly,
-        data.loginsYearly,
-      );
-    case "activeAccounts":
-      return selectByGranularity(
-        granularity,
-        data.activeAccountsDaily,
-        data.activeAccountsMonthly,
-        data.activeAccountsYearly,
-      );
-  }
-}
-
-// buildLoginInsight nets today's new-signup sessions out of today's total
-// login count, so the "raw" logins-includes-signups caveat becomes a
-// concrete, readable number rather than just a disclaimer.
-function buildLoginInsight(data: AdminStatistics200 | undefined) {
-  if (!data) return null;
-
-  const loginsToday = data.loginsDaily.at(-1)?.count ?? 0;
-  const newSignups = data.accountsDaily.at(-1)?.count ?? 0;
-
-  if (loginsToday === 0) return null;
-
-  return {
-    loginsToday,
-    newSignups,
-    returning: Math.max(0, loginsToday - newSignups),
-  };
-}
-
-function formatDate(date: string, granularity: Granularity): string {
-  const parsed = new Date(`${date}T00:00:00Z`);
-
-  switch (granularity) {
-    case "daily":
-      return parsed.toLocaleDateString("de-DE", {
-        day: "2-digit",
-        month: "2-digit",
-        timeZone: "UTC",
-      });
-    case "monthly":
-      return parsed.toLocaleDateString("de-DE", {
-        month: "short",
-        year: "2-digit",
-        timeZone: "UTC",
-      });
-    case "yearly":
-      return parsed.toLocaleDateString("de-DE", {
-        year: "numeric",
-        timeZone: "UTC",
-      });
-  }
-}
-
-function formatFachsemester(semester: number): string {
-  if (semester === 0) return "Unbekannt";
-  if (semester === FINISHED_SEMESTER) return "Fertig";
-  return `${semester}. Sem.`;
-}
-
-const WEEKDAY_LABELS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-
-// formatWeekday maps the backend's 1=Monday..7=Sunday convention to a short
-// German label.
-function formatWeekday(weekday: number): string {
-  return WEEKDAY_LABELS[weekday - 1] ?? `${weekday}`;
-}
-
-function buildFachsemesterInsight(
-  points: { semester: number; count: number }[],
-) {
-  const known = points.filter(
-    (p) => p.semester !== 0 && p.semester !== FINISHED_SEMESTER,
+      <TotalsStrip
+        loading={loading}
+        items={[
+          { label: "Mitglieder gesamt", value: totals?.accounts },
+          { label: "Themen gesamt", value: totals?.threads },
+          { label: "Antworten gesamt", value: totals?.replies },
+          { label: "Kategorien", value: totals?.categories },
+          { label: "Tags", value: totals?.tags },
+          { label: "Aktive Autoren (7 T.)", value: totals?.activeAccounts7d },
+          { label: "Aktive Autoren (30 T.)", value: totals?.activeAccounts30d },
+          { label: "Sitzungen aktiv", value: totals?.sessionsActive },
+          { label: "Sitzungen abgelaufen", value: totals?.sessionsExpired },
+          { label: "Sitzungen widerrufen", value: totals?.sessionsRevoked },
+        ]}
+      />
+    </StatSection>
   );
-  if (known.length === 0) return null;
+}
 
-  const most = known.reduce((a, b) => (b.count > a.count ? b : a));
-  const least = known.reduce((a, b) => (b.count < a.count ? b : a));
+function GrowthSection({ data, loading }: SectionProps) {
+  const [granularity, setGranularity] = useState<Granularity>("daily");
+  const [assetsGranularity, setAssetsGranularity] =
+    useState<Granularity>("daily");
 
-  if (most.count === 0 && least.count === 0) return null;
+  const growth = useMemo(
+    () =>
+      mergeSeries(
+        data,
+        ["accounts", "threads", "logins", "activeAccounts"],
+        granularity,
+      ),
+    [data, granularity],
+  );
 
-  return {
-    mostLabel: formatFachsemester(most.semester),
-    mostCount: most.count,
-    leastLabel: formatFachsemester(least.semester),
-    leastCount: least.count,
-  };
+  const assets = useMemo(
+    () => mergeSeries(data, ["assets"], assetsGranularity),
+    [data, assetsGranularity],
+  );
+
+  const loginInsight = useMemo(() => {
+    if (!data) return null;
+    const loginsToday = data.loginsDaily.at(-1)?.count ?? 0;
+    const newSignups = data.accountsDaily.at(-1)?.count ?? 0;
+    if (loginsToday === 0) return null;
+    return {
+      loginsToday,
+      newSignups,
+      returning: Math.max(0, loginsToday - newSignups),
+    };
+  }, [data]);
+
+  return (
+    <StatSection title="Wachstum">
+      <ChartCard
+        title="Community-Entwicklung"
+        description="Neue Mitglieder, neue Themen, Logins und aktive Autoren."
+        actions={
+          <GranularityToggle value={granularity} onChange={setGranularity} />
+        }
+        insight={
+          loginInsight && (
+            <>
+              Heute: {loginInsight.loginsToday} Logins, davon ca.{" "}
+              <styled.strong>
+                {loginInsight.returning} wiederkehrend
+              </styled.strong>{" "}
+              ({loginInsight.newSignups} Neuregistrierungen).
+            </>
+          )
+        }
+        footnote="Logins werden über neue Sitzungen angenähert. Da jede Registrierung ebenfalls eine Sitzung erzeugt, fallen Tage mit vielen Neuanmeldungen höher aus."
+        loading={loading}
+        height="72"
+      >
+        <MultiLineChart
+          data={growth}
+          series={[
+            { key: "accounts", name: "Mitglieder", color: COLORS.accounts },
+            { key: "threads", name: "Themen", color: COLORS.threads },
+            { key: "logins", name: "Logins", color: COLORS.logins },
+            {
+              key: "activeAccounts",
+              name: "Aktive Autoren",
+              color: COLORS.activeAccounts,
+            },
+          ]}
+        />
+      </ChartCard>
+
+      <ChartCard
+        title="Datei-Uploads"
+        description="Neu hochgeladene Dateien im Zeitverlauf."
+        actions={
+          <GranularityToggle
+            value={assetsGranularity}
+            onChange={setAssetsGranularity}
+          />
+        }
+        loading={loading}
+        empty={assets.every((r) => !r.assets)}
+      >
+        <MultiLineChart
+          data={assets}
+          series={[{ key: "assets", name: "Dateien", color: COLORS.assets }]}
+        />
+      </ChartCard>
+    </StatSection>
+  );
+}
+
+function EngagementSection({ data, loading }: SectionProps) {
+  const [granularity, setGranularity] = useState<Granularity>("daily");
+
+  const engagement = useMemo(
+    () => mergeSeries(data, ["likes", "reacts"], granularity),
+    [data, granularity],
+  );
+
+  const emojis = data?.topEmojis ?? [];
+  const totals = data?.totals;
+
+  return (
+    <StatSection
+      title="Engagement"
+      description="Wie stark Mitglieder auf Inhalte reagieren."
+    >
+      <ChartCard
+        title="Likes & Reaktionen"
+        description={
+          totals
+            ? `Insgesamt ${formatNumber(totals.likes)} Likes und ${formatNumber(totals.reacts)} Reaktionen.`
+            : undefined
+        }
+        actions={
+          <GranularityToggle value={granularity} onChange={setGranularity} />
+        }
+        loading={loading}
+        empty={engagement.every((r) => !r.likes && !r.reacts)}
+      >
+        <MultiLineChart
+          data={engagement}
+          series={[
+            { key: "likes", name: "Likes", color: COLORS.likes },
+            { key: "reacts", name: "Reaktionen", color: COLORS.reacts },
+          ]}
+        />
+      </ChartCard>
+
+      <Grid columns={{ base: 1, lg: 2 }} gap="4">
+        <ChartCard
+          title="Beliebteste Reaktionen"
+          description="Die am häufigsten verwendeten Emojis."
+          loading={loading}
+          empty={emojis.length === 0}
+        >
+          <SimpleBarChart
+            data={emojis}
+            xKey="emoji"
+            name="Reaktionen"
+            color={COLORS.reacts}
+            horizontal
+          />
+        </ChartCard>
+
+        <ChartCard
+          title="Meistgelikte Themen"
+          description="Themen, deren Eröffnungsbeitrag die meisten Likes erhielt."
+          loading={loading}
+          empty={(data?.topLikedThreads.length ?? 0) === 0}
+          height="auto"
+        >
+          <RankedThreadList threads={data?.topLikedThreads ?? []} />
+        </ChartCard>
+      </Grid>
+    </StatSection>
+  );
+}
+
+function ActivitySection({ data, loading }: SectionProps) {
+  const hours = data?.loginsByHour ?? [];
+  const weekdays = data?.loginsByWeekday ?? [];
+
+  const peakHour = peak(hours);
+  const peakWeekday = peak(weekdays);
+
+  const hourData = hours.map((p) => ({ hour: `${p.hour}`, count: p.count }));
+  const weekdayData = weekdays.map((p) => ({
+    weekday: formatWeekday(p.weekday),
+    count: p.count,
+  }));
+
+  return (
+    <StatSection
+      title="Aktivitätsmuster"
+      description="Wann sich Mitglieder anmelden (deutsche Zeit)."
+    >
+      <Grid columns={{ base: 1, lg: 2 }} gap="4">
+        <ChartCard
+          title="Logins nach Uhrzeit"
+          insight={
+            peakHour && (
+              <>
+                Spitzenzeit:{" "}
+                <styled.strong>
+                  {peakHour.hour}–{(peakHour.hour + 1) % 24} Uhr
+                </styled.strong>
+              </>
+            )
+          }
+          loading={loading}
+          empty={isEmpty(hours)}
+        >
+          <SimpleBarChart
+            data={hourData}
+            xKey="hour"
+            name="Logins"
+            color={COLORS.threads}
+            highlight={peakHour && `${peakHour.hour}`}
+          />
+        </ChartCard>
+
+        <ChartCard
+          title="Logins nach Wochentag"
+          insight={
+            peakWeekday && (
+              <>
+                Aktivster Tag:{" "}
+                <styled.strong>
+                  {formatWeekdayName(peakWeekday.weekday)}
+                </styled.strong>
+              </>
+            )
+          }
+          loading={loading}
+          empty={isEmpty(weekdays)}
+        >
+          <SimpleBarChart
+            data={weekdayData}
+            xKey="weekday"
+            name="Logins"
+            color={COLORS.accounts}
+            highlight={peakWeekday && formatWeekday(peakWeekday.weekday)}
+          />
+        </ChartCard>
+      </Grid>
+    </StatSection>
+  );
+}
+
+function StudySection({ data, loading }: SectionProps) {
+  const semesterData = (data?.threadsBySemester ?? []).map((p) => ({
+    term: formatTermKeyLabel(p.term),
+    count: p.count,
+  }));
+
+  const threadsByFachsemester = data?.threadsByFachsemester ?? [];
+  const assetsByFachsemester = data?.assetsByFachsemester ?? [];
+  const insight = buildFachsemesterInsight(threadsByFachsemester);
+
+  return (
+    <StatSection
+      title="Studium"
+      description="Aktivität nach Studiensemester und Fachsemester der Mitglieder."
+    >
+      <ChartCard
+        title="Neue Themen je Semester"
+        description="Neu erstellte Themen, gebündelt nach Winter-/Sommersemester."
+        loading={loading}
+        empty={isEmpty(data?.threadsBySemester ?? [])}
+      >
+        <SimpleBarChart
+          data={semesterData}
+          xKey="term"
+          name="Themen"
+          color={COLORS.threads}
+        />
+      </ChartCard>
+
+      <Grid columns={{ base: 1, lg: 2 }} gap="4">
+        <ChartCard
+          title="Themen nach Fachsemester"
+          description="Welche Semester besonders aktiv mitwirken."
+          insight={
+            insight && (
+              <>
+                Am aktivsten: <styled.strong>{insight.mostLabel}</styled.strong>{" "}
+                ({insight.mostCount}) · Am zurückhaltendsten:{" "}
+                <styled.strong>{insight.leastLabel}</styled.strong> (
+                {insight.leastCount})
+              </>
+            )
+          }
+          loading={loading}
+          empty={isEmpty(threadsByFachsemester)}
+        >
+          <SimpleBarChart
+            data={threadsByFachsemester.map((p) => ({
+              semester: formatFachsemester(p.semester),
+              count: p.count,
+            }))}
+            xKey="semester"
+            name="Themen"
+            color={COLORS.accounts}
+          />
+        </ChartCard>
+
+        <ChartCard
+          title="Dateien nach Fachsemester"
+          description="Welche Semester das meiste Material hochladen."
+          loading={loading}
+          empty={isEmpty(assetsByFachsemester)}
+        >
+          <SimpleBarChart
+            data={assetsByFachsemester.map((p) => ({
+              semester: formatFachsemester(p.semester),
+              count: p.count,
+            }))}
+            xKey="semester"
+            name="Dateien"
+            color={COLORS.assets}
+          />
+        </ChartCard>
+      </Grid>
+    </StatSection>
+  );
+}
+
+function ContentSection({ data, loading }: SectionProps) {
+  const categories = (data?.topCategories ?? []).map((c) => ({
+    name: c.name,
+    count: c.threadCount,
+  }));
+  const tags = (data?.topTags ?? []).map((t) => ({
+    name: t.name,
+    count: t.threadCount,
+  }));
+
+  return (
+    <StatSection
+      title="Inhalte & Moderation"
+      description="Wo diskutiert wird, wer am aktivsten ist und was gemeldet wurde."
+    >
+      <Grid columns={{ base: 1, lg: 2 }} gap="4">
+        <ChartCard
+          title="Aktivste Kategorien"
+          description="Kategorien mit den meisten neuen Themen."
+          loading={loading}
+          empty={categories.length === 0}
+          height="72"
+        >
+          <SimpleBarChart
+            data={categories}
+            xKey="name"
+            name="Themen"
+            color={COLORS.categories}
+            horizontal
+          />
+        </ChartCard>
+
+        <ChartCard
+          title="Beliebteste Tags"
+          description="Tags, die an den meisten Themen hängen."
+          actions={
+            <styled.span fontSize="sm">
+              <Link href={TagsRoute}>Alle Tags</Link>
+            </styled.span>
+          }
+          loading={loading}
+          empty={tags.length === 0}
+          height="72"
+        >
+          <SimpleBarChart
+            data={tags}
+            xKey="name"
+            name="Themen"
+            color={COLORS.tags}
+            horizontal
+          />
+        </ChartCard>
+      </Grid>
+
+      <Grid columns={{ base: 1, lg: 3 }} gap="4">
+        <ReportsCard data={data} loading={loading} />
+
+        <Box gridColumn={{ lg: "span 2" }} minW="0">
+          <ChartCard
+            title="Aktivste Mitglieder"
+            description="Meiste erstellte Themen, mit Fachsemester und letztem Thema."
+            loading={loading}
+            empty={(data?.topContributors.length ?? 0) === 0}
+            height="auto"
+          >
+            <ContributorsTable contributors={data?.topContributors ?? []} />
+          </ChartCard>
+        </Box>
+      </Grid>
+    </StatSection>
+  );
+}
+
+function ReportsCard({ data, loading }: SectionProps) {
+  const totals = data?.totals;
+
+  const rows = [
+    {
+      label: "Offen",
+      value: totals?.reportsSubmitted,
+      color: "var(--colors-red-9)",
+    },
+    {
+      label: "In Bearbeitung",
+      value: totals?.reportsAcknowledged,
+      color: "var(--colors-amber-9)",
+    },
+    {
+      label: "Erledigt",
+      value: totals?.reportsResolved,
+      color: "var(--colors-green-9)",
+    },
+  ];
+
+  return (
+    <ChartCard
+      title="Meldungen"
+      description={
+        totals
+          ? `${formatNumber(totals.reportsLast30d)} neue Meldungen in den letzten 30 Tagen.`
+          : undefined
+      }
+      loading={loading}
+      height="auto"
+    >
+      <Stack gap="3">
+        {rows.map((row) => (
+          <Flex key={row.label} alignItems="center" gap="3">
+            <styled.span
+              display="inline-block"
+              w="2.5"
+              h="2.5"
+              borderRadius="full"
+              flexShrink="0"
+              style={{ backgroundColor: row.color }}
+            />
+            <styled.span fontSize="sm" color="fg.muted" flexGrow="1">
+              {row.label}
+            </styled.span>
+            <styled.span
+              fontSize="lg"
+              fontWeight="semibold"
+              color="fg.default"
+              fontVariantNumeric="tabular-nums"
+            >
+              {formatNumber(row.value)}
+            </styled.span>
+          </Flex>
+        ))}
+        <styled.span fontSize="sm" mt="1">
+          <Link href={ReportsRoute}>Zur Meldungsübersicht →</Link>
+        </styled.span>
+      </Stack>
+    </ChartCard>
+  );
+}
+
+function RankedThreadList({ threads }: { threads: StatisticsThreadPoint[] }) {
+  return (
+    <styled.ol display="flex" flexDirection="column" gap="1">
+      {threads.map((t, i) => (
+        <styled.li key={t.id}>
+          <Link href={`/t/locate?id=${t.id}`}>
+            <Flex
+              alignItems="center"
+              gap="3"
+              px="2"
+              py="2"
+              borderRadius="md"
+              _hover={{ bgColor: "bg.subtle" }}
+            >
+              <styled.span
+                w="5"
+                flexShrink="0"
+                fontSize="sm"
+                fontWeight="semibold"
+                color="fg.muted"
+                fontVariantNumeric="tabular-nums"
+              >
+                {i + 1}.
+              </styled.span>
+              <styled.span
+                flexGrow="1"
+                minW="0"
+                fontSize="sm"
+                color="fg.default"
+                overflow="hidden"
+                textOverflow="ellipsis"
+                whiteSpace="nowrap"
+              >
+                {t.title || "Ohne Titel"}
+              </styled.span>
+              <Flex
+                alignItems="center"
+                gap="1"
+                fontSize="sm"
+                fontWeight="semibold"
+                color="fg.default"
+                fontVariantNumeric="tabular-nums"
+                flexShrink="0"
+              >
+                <Heart size={14} color={COLORS.likes} />
+                {formatNumber(t.count)}
+              </Flex>
+            </Flex>
+          </Link>
+        </styled.li>
+      ))}
+    </styled.ol>
+  );
 }
 
 function ContributorsTable({
@@ -945,29 +659,23 @@ function ContributorsTable({
 }: {
   contributors: StatisticsContributor[];
 }) {
-  if (contributors.length === 0) {
-    return (
-      <styled.p fontSize="sm" color="fg.muted">
-        Noch keine Themen erstellt.
-      </styled.p>
-    );
-  }
-
   return (
     <styled.div w="full" overflowX="auto">
       <Table.Root size="sm" variant="dense">
         <Table.Head>
           <Table.Row>
+            <Table.Header>#</Table.Header>
             <Table.Header>Mitglied</Table.Header>
             <Table.Header>Fachsemester</Table.Header>
-            <Table.Header>Themen</Table.Header>
+            <Table.Header textAlign="right">Themen</Table.Header>
             <Table.Header>Letztes Thema</Table.Header>
           </Table.Row>
         </Table.Head>
 
         <Table.Body>
-          {contributors.map((c) => (
+          {contributors.map((c, i) => (
             <Table.Row key={c.accountId}>
+              <Table.Cell color="fg.muted">{i + 1}</Table.Cell>
               <Table.Cell>
                 <Link href={ProfileRoute(c.handle)}>
                   <styled.span fontWeight="medium" color="fg.default">
@@ -977,206 +685,20 @@ function ContributorsTable({
                 </Link>
               </Table.Cell>
               <Table.Cell>{formatFachsemester(c.semester)}</Table.Cell>
-              <Table.Cell>{c.threadCount}</Table.Cell>
-              <Table.Cell>{formatDateTime(c.lastThreadAt)}</Table.Cell>
+              <Table.Cell
+                textAlign="right"
+                fontWeight="semibold"
+                fontVariantNumeric="tabular-nums"
+              >
+                {formatNumber(c.threadCount)}
+              </Table.Cell>
+              <Table.Cell color="fg.muted">
+                {formatDateTime(c.lastThreadAt)}
+              </Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>
       </Table.Root>
     </styled.div>
-  );
-}
-
-function formatDateTime(value: string): string {
-  return new Date(value).toLocaleString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function ChartPlaceholder() {
-  return (
-    <Flex
-      height="full"
-      width="full"
-      alignItems="center"
-      justifyContent="center"
-    >
-      <styled.span fontSize="sm" color="fg.muted">
-        Lade Statistiken…
-      </styled.span>
-    </Flex>
-  );
-}
-
-function GrowthTooltip({
-  active,
-  payload,
-  label,
-}: TooltipContentProps) {
-  if (!active || !payload?.length) return null;
-
-  return (
-    <ChartTooltipCard label={label}>
-      {payload.map((entry) => (
-        <TooltipRow
-          key={entry.dataKey as string}
-          color={entry.color}
-          name={entry.name as string}
-          value={entry.value as number}
-        />
-      ))}
-    </ChartTooltipCard>
-  );
-}
-
-function SemesterTooltip({
-  active,
-  payload,
-  label,
-}: TooltipContentProps) {
-  if (!active || !payload?.length) return null;
-
-  return (
-    <ChartTooltipCard label={label}>
-      {payload.map((entry) => (
-        <TooltipRow
-          key={entry.dataKey as string}
-          color={entry.color}
-          name="Themen"
-          value={entry.value as number}
-        />
-      ))}
-    </ChartTooltipCard>
-  );
-}
-
-function LoginsTooltip({ active, payload, label }: TooltipContentProps) {
-  if (!active || !payload?.length) return null;
-
-  return (
-    <ChartTooltipCard label={label}>
-      {payload.map((entry) => (
-        <TooltipRow
-          key={entry.dataKey as string}
-          color={entry.color}
-          name="Logins"
-          value={entry.value as number}
-        />
-      ))}
-    </ChartTooltipCard>
-  );
-}
-
-function FilesTooltip({ active, payload, label }: TooltipContentProps) {
-  if (!active || !payload?.length) return null;
-
-  return (
-    <ChartTooltipCard label={label}>
-      {payload.map((entry) => (
-        <TooltipRow
-          key={entry.dataKey as string}
-          color={entry.color}
-          name="Dateien"
-          value={entry.value as number}
-        />
-      ))}
-    </ChartTooltipCard>
-  );
-}
-
-function ChartTooltipCard({
-  label,
-  children,
-}: {
-  label?: string | number;
-  children: React.ReactNode;
-}) {
-  return (
-    <Box
-      bgColor="bg.default"
-      borderWidth="thin"
-      borderColor="border.subtle"
-      borderRadius="md"
-      boxShadow="md"
-      p="3"
-      fontSize="xs"
-    >
-      {label && (
-        <styled.div fontWeight="semibold" color="fg.default" mb="1">
-          {label}
-        </styled.div>
-      )}
-      <Stack gap="1">{children}</Stack>
-    </Box>
-  );
-}
-
-function TooltipRow({
-  color,
-  name,
-  value,
-}: {
-  color?: string;
-  name: string;
-  value: number;
-}) {
-  return (
-    <Flex alignItems="center" gap="2">
-      <span
-        style={{
-          display: "inline-block",
-          width: 8,
-          height: 8,
-          borderRadius: 9999,
-          backgroundColor: color,
-          flexShrink: 0,
-        }}
-      />
-      <styled.span color="fg.muted">{name}:</styled.span>
-      <styled.span fontWeight="semibold" color="fg.default">
-        {value}
-      </styled.span>
-    </Flex>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  loading,
-  icon,
-}: {
-  label: string;
-  value: number | undefined;
-  loading: boolean;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Box
-      p="4"
-      borderRadius="lg"
-      borderWidth="thin"
-      borderColor="border.subtle"
-      bgColor="bg.subtle"
-    >
-      <Flex alignItems="center" justifyContent="space-between">
-        <styled.span
-          fontSize="xs"
-          fontWeight="semibold"
-          color="fg.muted"
-          textTransform="uppercase"
-        >
-          {label}
-        </styled.span>
-        {icon}
-      </Flex>
-      <styled.div fontSize="2xl" fontWeight="bold" color="fg.default" mt="2">
-        {loading ? "…" : (value ?? 0)}
-      </styled.div>
-    </Box>
   );
 }

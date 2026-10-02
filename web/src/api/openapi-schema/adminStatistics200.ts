@@ -9,11 +9,15 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  */
 import type { StatisticsCategoryPoint } from "./statisticsCategoryPoint";
 import type { StatisticsContributor } from "./statisticsContributor";
+import type { StatisticsEmojiPoint } from "./statisticsEmojiPoint";
 import type { StatisticsFachsemesterPoint } from "./statisticsFachsemesterPoint";
 import type { StatisticsHourPoint } from "./statisticsHourPoint";
 import type { StatisticsSemesterPoint } from "./statisticsSemesterPoint";
 import type { StatisticsSeriesPoint } from "./statisticsSeriesPoint";
+import type { StatisticsTagPoint } from "./statisticsTagPoint";
+import type { StatisticsThreadPoint } from "./statisticsThreadPoint";
 import type { StatisticsTotals } from "./statisticsTotals";
+import type { StatisticsTrends } from "./statisticsTrends";
 import type { StatisticsWeekdayPoint } from "./statisticsWeekdayPoint";
 
 export type AdminStatistics200 = {
@@ -48,12 +52,20 @@ contributing the most and least material.
   assetsMonthly: StatisticsSeriesPoint[];
   /** New file uploads per year, most recent 5 years. */
   assetsYearly: StatisticsSeriesPoint[];
-  /** New sessions bucketed by hour of day (0-23, UTC), most
-recent 5 years, to reveal peak login times.
+  /** New likes per day, most recent 30 days. */
+  likesDaily: StatisticsSeriesPoint[];
+  /** New likes per month, most recent 12 months. */
+  likesMonthly: StatisticsSeriesPoint[];
+  /** New likes per year, most recent 5 years. */
+  likesYearly: StatisticsSeriesPoint[];
+  /** New sessions bucketed by hour of day (0-23, in the
+Europe/Berlin time zone), most recent 5 years, to
+reveal peak login times.
  */
   loginsByHour: StatisticsHourPoint[];
   /** New sessions bucketed by weekday (1=Monday..7=Sunday,
-UTC), most recent 5 years, to reveal peak login days.
+Europe/Berlin), most recent 5 years, to reveal peak
+login days.
  */
   loginsByWeekday: StatisticsWeekdayPoint[];
   /** New sessions per day, most recent 30 days. Approximates
@@ -69,6 +81,12 @@ loginsDaily for the signup-session caveat.
 loginsDaily for the signup-session caveat.
  */
   loginsYearly: StatisticsSeriesPoint[];
+  /** New emoji reactions per day, most recent 30 days. */
+  reactsDaily: StatisticsSeriesPoint[];
+  /** New emoji reactions per month, most recent 12 months. */
+  reactsMonthly: StatisticsSeriesPoint[];
+  /** New emoji reactions per year, most recent 5 years. */
+  reactsYearly: StatisticsSeriesPoint[];
   /** Total threads authored by members currently recorded in
 each study semester (1-11), plus a bucket for members
 with no recorded semester and a bucket for members who
@@ -92,5 +110,14 @@ most recent 5 years.
 with their study semester and most recent thread date.
  */
   topContributors: StatisticsContributor[];
+  /** The most used reaction emojis, most recent 5 years. */
+  topEmojis: StatisticsEmojiPoint[];
+  /** Threads whose opening post received the most likes,
+most recent 5 years.
+ */
+  topLikedThreads: StatisticsThreadPoint[];
+  /** The tags carried by the most threads, most recent 5 years. */
+  topTags: StatisticsTagPoint[];
   totals: StatisticsTotals;
+  trends: StatisticsTrends;
 };

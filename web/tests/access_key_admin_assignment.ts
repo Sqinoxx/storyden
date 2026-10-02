@@ -90,9 +90,9 @@ export async function createAccountWithRole(
 
 export async function login(page: Page, username: string, password: string) {
   await page.goto("/login");
-  await page.getByRole("textbox", { name: "username" }).fill(username);
-  await page.getByRole("textbox", { name: "password" }).fill(password);
-  await page.getByRole("button", { name: "login" }).click();
+  await page.locator('input[autocomplete="username"]').fill(username);
+  await page.locator('input[autocomplete="current-password"]').fill(password);
+  await page.getByRole("button", { name: /^log ?in$/i }).click();
   await expectSignedIn(page);
 }
 

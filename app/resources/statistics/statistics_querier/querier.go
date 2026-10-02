@@ -4,18 +4,24 @@ import (
 	"context"
 	"sort"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/rs/xid"
 
+	"github.com/Southclaws/storyden/app/resources/report"
 	"github.com/Southclaws/storyden/app/services/account/semester"
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_account "github.com/Southclaws/storyden/internal/ent/account"
 	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	ent_category "github.com/Southclaws/storyden/internal/ent/category"
+	ent_likepost "github.com/Southclaws/storyden/internal/ent/likepost"
 	ent_post "github.com/Southclaws/storyden/internal/ent/post"
+	ent_react "github.com/Southclaws/storyden/internal/ent/react"
+	ent_report "github.com/Southclaws/storyden/internal/ent/report"
 	ent_session "github.com/Southclaws/storyden/internal/ent/session"
+	ent_tag "github.com/Southclaws/storyden/internal/ent/tag"
 )
 
 type Querier struct {
@@ -53,14 +59,15 @@ type Contributor struct {
 	LastThreadAt time.Time
 }
 
-// HourOfDayPoint is login activity for one hour of the day (0-23, UTC).
+// HourOfDayPoint is login activity for one hour of the day (0-23, local
+// time in the community's time zone).
 type HourOfDayPoint struct {
 	Hour  int
 	Count int
 }
 
-// WeekdayPoint is login activity for one day of the week. Weekday runs 1
-// (Monday) to 7 (Sunday).
+// WeekdayPoint is login activity for one day of the week, in the
+// community's time zone. Weekday runs 1 (Monday) to 7 (Sunday).
 type WeekdayPoint struct {
 	Weekday int
 	Count   int
@@ -73,16 +80,58 @@ type CategoryPoint struct {
 	ThreadCount int
 }
 
+type EmojiPoint struct {
+	Emoji string
+	Count int
+}
+
+type ThreadPoint struct {
+	ID    xid.ID
+	Title string
+	Slug  string
+	Count int
+}
+
+type TagPoint struct {
+	Name        string
+	ThreadCount int
+}
+
+// TrendPoint compares a metric over the most recent trend window with the
+// window immediately before it.
+type TrendPoint struct {
+	Current  int
+	Previous int
+}
+
+type Trends struct {
+	Accounts       TrendPoint
+	Threads        TrendPoint
+	Replies        TrendPoint
+	Logins         TrendPoint
+	Likes          TrendPoint
+	Reacts         TrendPoint
+	Assets         TrendPoint
+	ActiveAccounts TrendPoint
+}
+
 type Totals struct {
-	Accounts          int
-	Threads           int
-	Replies           int
-	Categories        int
-	ActiveAccounts7d  int
-	ActiveAccounts30d int
-	SessionsActive    int
-	SessionsExpired   int
-	SessionsRevoked   int
+	Accounts            int
+	Threads             int
+	Replies             int
+	Categories          int
+	ActiveAccounts7d    int
+	ActiveAccounts30d   int
+	SessionsActive      int
+	SessionsExpired     int
+	SessionsRevoked     int
+	Likes               int
+	Reacts              int
+	Tags                int
+	ReportsSubmitted    int
+	ReportsAcknowledged int
+	ReportsResolved     int
+	ReportsLast30d      int
 }
 
 type Statistics struct {
@@ -109,6 +158,16 @@ type Statistics struct {
 	AssetsMonthly         []SeriesPoint
 	AssetsYearly          []SeriesPoint
 	TopCategories         []CategoryPoint
+	LikesDaily            []SeriesPoint
+	LikesMonthly          []SeriesPoint
+	LikesYearly           []SeriesPoint
+	ReactsDaily           []SeriesPoint
+	ReactsMonthly         []SeriesPoint
+	ReactsYearly          []SeriesPoint
+	TopEmojis             []EmojiPoint
+	TopLikedThreads       []ThreadPoint
+	TopTags               []TagPoint
+	Trends                Trends
 }
 
 const (
@@ -118,12 +177,27 @@ const (
 	semesterBuckets      = 8
 	topContributorsLimit = 10
 	topCategoriesLimit   = 8
+	topEmojisLimit       = 8
+	topLikedThreadsLimit = 5
+	topTagsLimit         = 10
+
+	trendWindow = 30 * 24 * time.Hour
 
 	// historyWindow bounds every timestamp query to the widest granularity
 	// (yearly), so a single indexed range scan per entity supplies the daily,
 	// monthly and yearly series without re-querying the table three times.
 	historyWindow = yearlyBuckets * 366 * 24 * time.Hour
 )
+
+var communityLocation = mustLoadLocation("Europe/Berlin")
+
+func mustLoadLocation(name string) *time.Location {
+	loc, err := time.LoadLocation(name)
+	if err != nil {
+		panic(err)
+	}
+	return loc
+}
 
 // Get computes usage statistics for the admin dashboard. Totals are plain
 // indexed counts; time series are built from a single bounded, single-column
@@ -189,6 +263,37 @@ func (q *Querier) Get(ctx context.Context) (*Statistics, error) {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	likesTotal, err := q.db.LikePost.Query().Count(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	reactsTotal, err := q.db.React.Query().Count(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	tagsTotal, err := q.db.Tag.Query().Count(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	reportCounts := make(map[string]int, 3)
+	for _, status := range []report.Status{report.StatusSubmitted, report.StatusAcknowledged, report.StatusResolved} {
+		n, err := q.db.Report.Query().Where(ent_report.StatusEQ(status.String())).Count(ctx)
+		if err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+		reportCounts[status.String()] = n
+	}
+
+	reportsLast30d, err := q.db.Report.Query().
+		Where(ent_report.CreatedAtGTE(now.Add(-trendWindow))).
+		Count(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	var accountRows []createdAtRow
 	err = q.db.Account.Query().
 		Where(ent_account.CreatedAtGTE(historyStart)).
@@ -225,23 +330,71 @@ func (q *Querier) Get(ctx context.Context) (*Statistics, error) {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	accountsDaily, accountsMonthly, accountsYearly := bucketByCalendar(rowTimes(accountRows), now)
+	var replyRows []createdAtRow
+	err = q.db.Post.Query().
+		Where(ent_post.RootPostIDNotNil(), ent_post.CreatedAtGTE(now.Add(-2*trendWindow))).
+		Select(ent_post.FieldCreatedAt).
+		Scan(ctx, &replyRows)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	var likeRows []createdAtRow
+	err = q.db.LikePost.Query().
+		Where(ent_likepost.CreatedAtGTE(historyStart)).
+		Select(ent_likepost.FieldCreatedAt).
+		Scan(ctx, &likeRows)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	var reactRows []reactRow
+	err = q.db.React.Query().
+		Where(ent_react.CreatedAtGTE(historyStart)).
+		Select(ent_react.FieldCreatedAt, ent_react.FieldEmoji).
+		Scan(ctx, &reactRows)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	accountTimes := rowTimes(accountRows)
+	accountsDaily, accountsMonthly, accountsYearly := bucketByCalendar(accountTimes, now)
 	threadTimes := rowTimes(threadRows)
 	threadsDaily, threadsMonthly, threadsYearly := bucketByCalendar(threadTimes, now)
 
 	sessionTimes := rowTimes(sessionRows)
 	loginsDaily, loginsMonthly, loginsYearly := bucketByCalendar(sessionTimes, now)
-	loginsByHour := bucketByHour(sessionTimes)
-	loginsByWeekday := bucketByWeekday(sessionTimes)
+	loginsByHour := bucketByHour(sessionTimes, communityLocation)
+	loginsByWeekday := bucketByWeekday(sessionTimes, communityLocation)
 
 	activeAccountsDaily, activeAccountsMonthly, activeAccountsYearly := bucketUniqueByCalendar(activityRows, now)
+
+	likeTimes := rowTimes(likeRows)
+	likesDaily, likesMonthly, likesYearly := bucketByCalendar(likeTimes, now)
+
+	reactTimes := make([]time.Time, len(reactRows))
+	for i, r := range reactRows {
+		reactTimes[i] = r.CreatedAt
+	}
+	reactsDaily, reactsMonthly, reactsYearly := bucketByCalendar(reactTimes, now)
 
 	threadsByFachsemester, topContributors, err := q.getAuthorActivity(ctx, historyStart, now)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	assetsByFachsemester, assetsDaily, assetsMonthly, assetsYearly, err := q.getAssetActivity(ctx, historyStart, now)
+	assetsByFachsemester, assetTimes, err := q.getAssetActivity(ctx, historyStart, now)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	assetsDaily, assetsMonthly, assetsYearly := bucketByCalendar(assetTimes, now)
+
+	topLikedThreads, err := q.getTopLikedThreads(ctx, historyStart)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	topTags, err := q.getTagActivity(ctx, historyStart)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -262,6 +415,14 @@ func (q *Querier) Get(ctx context.Context) (*Statistics, error) {
 			SessionsActive:    sessionsActive,
 			SessionsExpired:   sessionsExpired,
 			SessionsRevoked:   sessionsRevoked,
+
+			Likes:               likesTotal,
+			Reacts:              reactsTotal,
+			Tags:                tagsTotal,
+			ReportsSubmitted:    reportCounts[report.StatusSubmitted.String()],
+			ReportsAcknowledged: reportCounts[report.StatusAcknowledged.String()],
+			ReportsResolved:     reportCounts[report.StatusResolved.String()],
+			ReportsLast30d:      reportsLast30d,
 		},
 		AccountsDaily:         accountsDaily,
 		AccountsMonthly:       accountsMonthly,
@@ -285,6 +446,25 @@ func (q *Querier) Get(ctx context.Context) (*Statistics, error) {
 		AssetsMonthly:         assetsMonthly,
 		AssetsYearly:          assetsYearly,
 		TopCategories:         topCategories,
+		LikesDaily:            likesDaily,
+		LikesMonthly:          likesMonthly,
+		LikesYearly:           likesYearly,
+		ReactsDaily:           reactsDaily,
+		ReactsMonthly:         reactsMonthly,
+		ReactsYearly:          reactsYearly,
+		TopEmojis:             topEmojis(reactRows),
+		TopLikedThreads:       topLikedThreads,
+		TopTags:               topTags,
+		Trends: Trends{
+			Accounts:       windowTrend(accountTimes, now, trendWindow),
+			Threads:        windowTrend(threadTimes, now, trendWindow),
+			Replies:        windowTrend(rowTimes(replyRows), now, trendWindow),
+			Logins:         windowTrend(sessionTimes, now, trendWindow),
+			Likes:          windowTrend(likeTimes, now, trendWindow),
+			Reacts:         windowTrend(reactTimes, now, trendWindow),
+			Assets:         windowTrend(assetTimes, now, trendWindow),
+			ActiveAccounts: uniqueWindowTrend(activityRows, now, trendWindow),
+		},
 	}, nil
 }
 
@@ -361,9 +541,9 @@ func (q *Querier) getAuthorActivity(ctx context.Context, historyStart, now time.
 
 // getAssetActivity mirrors getAuthorActivity but for uploaded files, so
 // admins can see which semester cohorts are contributing the most (or least)
-// material. It also buckets the same rows into a daily/monthly/yearly upload
-// series, since the rows are already loaded here.
-func (q *Querier) getAssetActivity(ctx context.Context, historyStart, now time.Time) (fachsemester []FachsemesterPoint, daily, monthly, yearly []SeriesPoint, err error) {
+// material. It also returns the upload timestamps, since the rows are
+// already loaded here.
+func (q *Querier) getAssetActivity(ctx context.Context, historyStart, now time.Time) ([]FachsemesterPoint, []time.Time, error) {
 	assets, err := q.db.Asset.Query().
 		Where(ent_asset.CreatedAtGTE(historyStart)).
 		Select(ent_asset.FieldCreatedAt, ent_asset.FieldAccountID).
@@ -372,7 +552,7 @@ func (q *Querier) getAssetActivity(ctx context.Context, historyStart, now time.T
 		}).
 		All(ctx)
 	if err != nil {
-		return nil, nil, nil, nil, fault.Wrap(err, fctx.With(ctx))
+		return nil, nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	fachsemesterCounts := make(map[int]int)
@@ -389,9 +569,153 @@ func (q *Querier) getAssetActivity(ctx context.Context, historyStart, now time.T
 		fachsemesterCounts[currentSemester(owner.Metadata, now)]++
 	}
 
-	daily, monthly, yearly = bucketByCalendar(assetTimes, now)
+	return fachsemesterPointsFromCounts(fachsemesterCounts), assetTimes, nil
+}
 
-	return fachsemesterPointsFromCounts(fachsemesterCounts), daily, monthly, yearly, nil
+// getTopLikedThreads ranks threads by likes on their opening post within the
+// history window.
+func (q *Querier) getTopLikedThreads(ctx context.Context, historyStart time.Time) ([]ThreadPoint, error) {
+	likes, err := q.db.LikePost.Query().
+		Where(
+			ent_likepost.CreatedAtGTE(historyStart),
+			ent_likepost.HasPostWith(ent_post.RootPostIDIsNil(), ent_post.DeletedAtIsNil()),
+		).
+		Select(ent_likepost.FieldPostID).
+		WithPost(func(pq *ent.PostQuery) {
+			pq.Select(ent_post.FieldID, ent_post.FieldTitle, ent_post.FieldSlug)
+		}).
+		All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	counts := make(map[xid.ID]*ThreadPoint)
+	for _, l := range likes {
+		p := l.Edges.Post
+		if p == nil {
+			continue
+		}
+
+		tp, ok := counts[p.ID]
+		if !ok {
+			tp = &ThreadPoint{ID: p.ID, Title: p.Title, Slug: p.Slug}
+			counts[p.ID] = tp
+		}
+		tp.Count++
+	}
+
+	points := make([]ThreadPoint, 0, len(counts))
+	for _, tp := range counts {
+		points = append(points, *tp)
+	}
+	sort.Slice(points, func(i, j int) bool {
+		if points[i].Count != points[j].Count {
+			return points[i].Count > points[j].Count
+		}
+		return points[i].Title < points[j].Title
+	})
+	if len(points) > topLikedThreadsLimit {
+		points = points[:topLikedThreadsLimit]
+	}
+
+	return points, nil
+}
+
+// getTagActivity ranks tags by how many threads created within the history
+// window carry them.
+func (q *Querier) getTagActivity(ctx context.Context, historyStart time.Time) ([]TagPoint, error) {
+	tags, err := q.db.Tag.Query().
+		Select(ent_tag.FieldID, ent_tag.FieldName).
+		WithPosts(func(pq *ent.PostQuery) {
+			pq.Where(ent_post.RootPostIDIsNil(), ent_post.DeletedAtIsNil(), ent_post.CreatedAtGTE(historyStart)).
+				Select(ent_post.FieldID)
+		}).
+		All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	points := make([]TagPoint, 0, len(tags))
+	for _, t := range tags {
+		if n := len(t.Edges.Posts); n > 0 {
+			points = append(points, TagPoint{Name: t.Name, ThreadCount: n})
+		}
+	}
+	sort.Slice(points, func(i, j int) bool {
+		if points[i].ThreadCount != points[j].ThreadCount {
+			return points[i].ThreadCount > points[j].ThreadCount
+		}
+		return points[i].Name < points[j].Name
+	})
+	if len(points) > topTagsLimit {
+		points = points[:topTagsLimit]
+	}
+
+	return points, nil
+}
+
+func topEmojis(rows []reactRow) []EmojiPoint {
+	counts := make(map[string]int)
+	for _, r := range rows {
+		counts[r.Emoji]++
+	}
+
+	points := make([]EmojiPoint, 0, len(counts))
+	for emoji, n := range counts {
+		points = append(points, EmojiPoint{Emoji: emoji, Count: n})
+	}
+	sort.Slice(points, func(i, j int) bool {
+		if points[i].Count != points[j].Count {
+			return points[i].Count > points[j].Count
+		}
+		return points[i].Emoji < points[j].Emoji
+	})
+	if len(points) > topEmojisLimit {
+		points = points[:topEmojisLimit]
+	}
+
+	return points
+}
+
+// windowTrend counts timestamps in [now-window, now] and in the equally long
+// window immediately before it.
+func windowTrend(times []time.Time, now time.Time, window time.Duration) TrendPoint {
+	currentStart := now.Add(-window)
+	previousStart := currentStart.Add(-window)
+
+	var tp TrendPoint
+	for _, t := range times {
+		switch {
+		case t.After(now):
+		case !t.Before(currentStart):
+			tp.Current++
+		case !t.Before(previousStart):
+			tp.Previous++
+		}
+	}
+
+	return tp
+}
+
+// uniqueWindowTrend is windowTrend counting each distinct account once per
+// window.
+func uniqueWindowTrend(rows []accountActivityRow, now time.Time, window time.Duration) TrendPoint {
+	currentStart := now.Add(-window)
+	previousStart := currentStart.Add(-window)
+
+	current := make(map[xid.ID]bool)
+	previous := make(map[xid.ID]bool)
+	for _, r := range rows {
+		switch {
+		case r.CreatedAt.After(now):
+		case !r.CreatedAt.Before(currentStart):
+			current[r.AccountPosts] = true
+		case !r.CreatedAt.Before(previousStart):
+			previous[r.AccountPosts] = true
+		}
+	}
+
+	return TrendPoint{Current: len(current), Previous: len(previous)}
 }
 
 // getCategoryActivity ranks forum categories by how many threads were
@@ -482,6 +806,11 @@ func rowTimes(rows []createdAtRow) []time.Time {
 	return times
 }
 
+type reactRow struct {
+	CreatedAt time.Time `json:"created_at"`
+	Emoji     string    `json:"emoji"`
+}
+
 type accountActivityRow struct {
 	AccountPosts xid.ID    `json:"account_posts"`
 	CreatedAt    time.Time `json:"created_at"`
@@ -532,11 +861,11 @@ func bucketUniqueByCalendar(rows []accountActivityRow, now time.Time) (daily, mo
 	return daily, monthly, yearly
 }
 
-// bucketByHour groups timestamps by hour of day (0-23, UTC), zero-filled.
-func bucketByHour(times []time.Time) []HourOfDayPoint {
+// bucketByHour groups timestamps by hour of day (0-23) in loc, zero-filled.
+func bucketByHour(times []time.Time, loc *time.Location) []HourOfDayPoint {
 	counts := make(map[int]int)
 	for _, t := range times {
-		counts[t.UTC().Hour()]++
+		counts[t.In(loc).Hour()]++
 	}
 
 	points := make([]HourOfDayPoint, 24)
@@ -554,12 +883,12 @@ var weekdayOrder = [7]time.Weekday{
 	time.Friday, time.Saturday, time.Sunday,
 }
 
-// bucketByWeekday groups timestamps by weekday (1=Monday..7=Sunday, UTC),
+// bucketByWeekday groups timestamps by weekday (1=Monday..7=Sunday) in loc,
 // zero-filled.
-func bucketByWeekday(times []time.Time) []WeekdayPoint {
+func bucketByWeekday(times []time.Time, loc *time.Location) []WeekdayPoint {
 	counts := make(map[time.Weekday]int)
 	for _, t := range times {
-		counts[t.UTC().Weekday()]++
+		counts[t.In(loc).Weekday()]++
 	}
 
 	points := make([]WeekdayPoint, 7)

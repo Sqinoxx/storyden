@@ -6,7 +6,7 @@ import { categoryColourCSS } from "@/lib/category/colours";
 import { Badge, BadgeProps } from "../ui/badge";
 
 type Props = {
-  category: CategoryReference;
+  category: Pick<CategoryReference, "name" | "slug" | "colour">;
   asLink?: boolean;
 };
 

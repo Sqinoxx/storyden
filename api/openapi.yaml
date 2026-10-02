@@ -11320,7 +11320,30 @@ components:
         cover_image:
           $ref: "#/components/schemas/Asset"
         children: { $ref: "#/components/schemas/CategoryList" }
+        related: { $ref: "#/components/schemas/CategoryRelatedList" }
         meta: { $ref: "#/components/schemas/Metadata" }
+
+    CategoryRelated:
+      type: object
+      description: A lightweight reference to a category linked as "see also".
+      required: [id, name, slug, description, colour]
+      properties:
+        id: { $ref: "#/components/schemas/Identifier" }
+        name: { $ref: "#/components/schemas/CategoryName" }
+        slug: { $ref: "#/components/schemas/CategorySlug" }
+        description:
+          type: string
+        colour:
+          type: string
+
+    CategoryRelatedList:
+      type: array
+      items: { $ref: "#/components/schemas/CategoryRelated" }
+
+    CategoryRelatedIDs:
+      description: Identifiers of categories linked as "see also". Replaces the full list.
+      type: array
+      items: { $ref: "#/components/schemas/Identifier" }
 
     CategoryInitialProps:
       type: object
@@ -11356,6 +11379,7 @@ components:
             - $ref: "#/components/schemas/NullableIdentifier"
           nullable: true
           description: Optional cover image asset identifier for the category.
+        related: { $ref: "#/components/schemas/CategoryRelatedIDs" }
         meta: { $ref: "#/components/schemas/Metadata" }
 
     CategoryDeleteProps:

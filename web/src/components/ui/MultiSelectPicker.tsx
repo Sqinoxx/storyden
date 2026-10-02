@@ -37,6 +37,7 @@ type Props = {
   inputPlaceholder?: string;
   autoColour?: boolean;
   queryError?: string | null;
+  resultsLabel?: string;
 
   // styling
   size?: ButtonVariantProps["size"] & MenuVariantProps["size"];
@@ -54,6 +55,7 @@ export function MultiSelectPicker({
   inputPlaceholder,
   autoColour,
   queryError,
+  resultsLabel,
 
   size,
   triggerProps,
@@ -328,7 +330,9 @@ export function MultiSelectPicker({
                       <HStack gap="1.5" alignItems="center">
                         <TagIcon size={12} />
                         <span>
-                          {queryInput.trim() ? "Suchergebnisse" : "Vorhandene Tags"}
+                          {queryInput.trim()
+                            ? "Suchergebnisse"
+                            : (resultsLabel ?? "Vorhandene Tags")}
                         </span>
                       </HStack>
                     </Menu.ItemGroupLabel>

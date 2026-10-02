@@ -1,5 +1,6 @@
 "use client";
 
+import { Portal } from "@ark-ui/react";
 import { Editor } from "@tiptap/react";
 import { useState } from "react";
 
@@ -101,46 +102,48 @@ export function LinkButton({ editor }: LinkButtonProps) {
         </Button>
       </Popover.Trigger>
 
-      <Popover.Positioner>
-        <Popover.Content>
-          <HStack gap="1" alignItems="stretch">
-            <Input
-              borderColor={isInvalid ? "border.error" : undefined}
-              size="xs"
-              value={url}
-              onChange={handleChangeURL}
-              placeholder={t.link.enterOrPasteUrl}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleSetLink();
-                }
-                if (e.key === "Escape") {
-                  setOpen(false);
-                }
-              }}
-              autoFocus
-              aria-label={t.link.linkUrl}
-            />
-            <HStack gap="2" justifyContent="flex-end">
-              {isActive && (
-                <Button
-                  type="button"
-                  size="xs"
-                  variant="ghost"
-                  onClick={handleRemoveLink}
-                  title={t.link.removeLink}
-                >
-                  <DeleteIcon />
+      <Portal>
+        <Popover.Positioner>
+          <Popover.Content>
+            <HStack gap="1" alignItems="stretch">
+              <Input
+                borderColor={isInvalid ? "border.error" : undefined}
+                size="xs"
+                value={url}
+                onChange={handleChangeURL}
+                placeholder={t.link.enterOrPasteUrl}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSetLink();
+                  }
+                  if (e.key === "Escape") {
+                    setOpen(false);
+                  }
+                }}
+                autoFocus
+                aria-label={t.link.linkUrl}
+              />
+              <HStack gap="2" justifyContent="flex-end">
+                {isActive && (
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant="ghost"
+                    onClick={handleRemoveLink}
+                    title={t.link.removeLink}
+                  >
+                    <DeleteIcon />
+                  </Button>
+                )}
+                <Button type="button" size="xs" onClick={handleSetLink}>
+                  {isActive ? t.link.update : t.link.add}
                 </Button>
-              )}
-              <Button type="button" size="xs" onClick={handleSetLink}>
-                {isActive ? t.link.update : t.link.add}
-              </Button>
+              </HStack>
             </HStack>
-          </HStack>
-        </Popover.Content>
-      </Popover.Positioner>
+          </Popover.Content>
+        </Popover.Positioner>
+      </Portal>
     </Popover.Root>
   );
 }

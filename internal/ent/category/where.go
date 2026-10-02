@@ -758,6 +758,52 @@ func HasCoverImageWith(preds ...predicate.Asset) predicate.Category {
 	})
 }
 
+// HasRelatedBy applies the HasEdge predicate on the "related_by" edge.
+func HasRelatedBy() predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, RelatedByTable, RelatedByPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRelatedByWith applies the HasEdge predicate on the "related_by" edge with a given conditions (other predicates).
+func HasRelatedByWith(preds ...predicate.Category) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		step := newRelatedByStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRelated applies the HasEdge predicate on the "related" edge.
+func HasRelated() predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, RelatedTable, RelatedPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRelatedWith applies the HasEdge predicate on the "related" edge with a given conditions (other predicates).
+func HasRelatedWith(preds ...predicate.Category) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		step := newRelatedStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Category) predicate.Category {
 	return predicate.Category(sql.AndPredicates(predicates...))

@@ -9592,6 +9592,12 @@ type CategoryMutation struct {
 	clearedchildren    bool
 	cover_image        *xid.ID
 	clearedcover_image bool
+	related_by         map[xid.ID]struct{}
+	removedrelated_by  map[xid.ID]struct{}
+	clearedrelated_by  bool
+	related            map[xid.ID]struct{}
+	removedrelated     map[xid.ID]struct{}
+	clearedrelated     bool
 	done               bool
 	oldValue           func(context.Context) (*Category, error)
 	predicates         []predicate.Category
@@ -10344,6 +10350,114 @@ func (m *CategoryMutation) ResetCoverImage() {
 	m.clearedcover_image = false
 }
 
+// AddRelatedByIDs adds the "related_by" edge to the Category entity by ids.
+func (m *CategoryMutation) AddRelatedByIDs(ids ...xid.ID) {
+	if m.related_by == nil {
+		m.related_by = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.related_by[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRelatedBy clears the "related_by" edge to the Category entity.
+func (m *CategoryMutation) ClearRelatedBy() {
+	m.clearedrelated_by = true
+}
+
+// RelatedByCleared reports if the "related_by" edge to the Category entity was cleared.
+func (m *CategoryMutation) RelatedByCleared() bool {
+	return m.clearedrelated_by
+}
+
+// RemoveRelatedByIDs removes the "related_by" edge to the Category entity by IDs.
+func (m *CategoryMutation) RemoveRelatedByIDs(ids ...xid.ID) {
+	if m.removedrelated_by == nil {
+		m.removedrelated_by = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.related_by, ids[i])
+		m.removedrelated_by[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRelatedBy returns the removed IDs of the "related_by" edge to the Category entity.
+func (m *CategoryMutation) RemovedRelatedByIDs() (ids []xid.ID) {
+	for id := range m.removedrelated_by {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RelatedByIDs returns the "related_by" edge IDs in the mutation.
+func (m *CategoryMutation) RelatedByIDs() (ids []xid.ID) {
+	for id := range m.related_by {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRelatedBy resets all changes to the "related_by" edge.
+func (m *CategoryMutation) ResetRelatedBy() {
+	m.related_by = nil
+	m.clearedrelated_by = false
+	m.removedrelated_by = nil
+}
+
+// AddRelatedIDs adds the "related" edge to the Category entity by ids.
+func (m *CategoryMutation) AddRelatedIDs(ids ...xid.ID) {
+	if m.related == nil {
+		m.related = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.related[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRelated clears the "related" edge to the Category entity.
+func (m *CategoryMutation) ClearRelated() {
+	m.clearedrelated = true
+}
+
+// RelatedCleared reports if the "related" edge to the Category entity was cleared.
+func (m *CategoryMutation) RelatedCleared() bool {
+	return m.clearedrelated
+}
+
+// RemoveRelatedIDs removes the "related" edge to the Category entity by IDs.
+func (m *CategoryMutation) RemoveRelatedIDs(ids ...xid.ID) {
+	if m.removedrelated == nil {
+		m.removedrelated = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.related, ids[i])
+		m.removedrelated[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRelated returns the removed IDs of the "related" edge to the Category entity.
+func (m *CategoryMutation) RemovedRelatedIDs() (ids []xid.ID) {
+	for id := range m.removedrelated {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RelatedIDs returns the "related" edge IDs in the mutation.
+func (m *CategoryMutation) RelatedIDs() (ids []xid.ID) {
+	for id := range m.related {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRelated resets all changes to the "related" edge.
+func (m *CategoryMutation) ResetRelated() {
+	m.related = nil
+	m.clearedrelated = false
+	m.removedrelated = nil
+}
+
 // Where appends a list predicates to the CategoryMutation builder.
 func (m *CategoryMutation) Where(ps ...predicate.Category) {
 	m.predicates = append(m.predicates, ps...)
@@ -10683,7 +10797,7 @@ func (m *CategoryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CategoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 6)
 	if m.posts != nil {
 		edges = append(edges, category.EdgePosts)
 	}
@@ -10695,6 +10809,12 @@ func (m *CategoryMutation) AddedEdges() []string {
 	}
 	if m.cover_image != nil {
 		edges = append(edges, category.EdgeCoverImage)
+	}
+	if m.related_by != nil {
+		edges = append(edges, category.EdgeRelatedBy)
+	}
+	if m.related != nil {
+		edges = append(edges, category.EdgeRelated)
 	}
 	return edges
 }
@@ -10723,18 +10843,36 @@ func (m *CategoryMutation) AddedIDs(name string) []ent.Value {
 		if id := m.cover_image; id != nil {
 			return []ent.Value{*id}
 		}
+	case category.EdgeRelatedBy:
+		ids := make([]ent.Value, 0, len(m.related_by))
+		for id := range m.related_by {
+			ids = append(ids, id)
+		}
+		return ids
+	case category.EdgeRelated:
+		ids := make([]ent.Value, 0, len(m.related))
+		for id := range m.related {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CategoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 6)
 	if m.removedposts != nil {
 		edges = append(edges, category.EdgePosts)
 	}
 	if m.removedchildren != nil {
 		edges = append(edges, category.EdgeChildren)
+	}
+	if m.removedrelated_by != nil {
+		edges = append(edges, category.EdgeRelatedBy)
+	}
+	if m.removedrelated != nil {
+		edges = append(edges, category.EdgeRelated)
 	}
 	return edges
 }
@@ -10755,13 +10893,25 @@ func (m *CategoryMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case category.EdgeRelatedBy:
+		ids := make([]ent.Value, 0, len(m.removedrelated_by))
+		for id := range m.removedrelated_by {
+			ids = append(ids, id)
+		}
+		return ids
+	case category.EdgeRelated:
+		ids := make([]ent.Value, 0, len(m.removedrelated))
+		for id := range m.removedrelated {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CategoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 6)
 	if m.clearedposts {
 		edges = append(edges, category.EdgePosts)
 	}
@@ -10773,6 +10923,12 @@ func (m *CategoryMutation) ClearedEdges() []string {
 	}
 	if m.clearedcover_image {
 		edges = append(edges, category.EdgeCoverImage)
+	}
+	if m.clearedrelated_by {
+		edges = append(edges, category.EdgeRelatedBy)
+	}
+	if m.clearedrelated {
+		edges = append(edges, category.EdgeRelated)
 	}
 	return edges
 }
@@ -10789,6 +10945,10 @@ func (m *CategoryMutation) EdgeCleared(name string) bool {
 		return m.clearedchildren
 	case category.EdgeCoverImage:
 		return m.clearedcover_image
+	case category.EdgeRelatedBy:
+		return m.clearedrelated_by
+	case category.EdgeRelated:
+		return m.clearedrelated
 	}
 	return false
 }
@@ -10822,6 +10982,12 @@ func (m *CategoryMutation) ResetEdge(name string) error {
 		return nil
 	case category.EdgeCoverImage:
 		m.ResetCoverImage()
+		return nil
+	case category.EdgeRelatedBy:
+		m.ResetRelatedBy()
+		return nil
+	case category.EdgeRelated:
+		m.ResetRelated()
 		return nil
 	}
 	return fmt.Errorf("unknown Category edge %s", name)

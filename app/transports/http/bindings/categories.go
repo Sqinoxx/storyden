@@ -132,12 +132,19 @@ func (c Categories) CategoryUpdate(ctx context.Context, request openapi.Category
 		return &xidValue
 	})
 
+	related := opt.Map(opt.NewPtr(request.Body.Related), func(ids openapi.CategoryRelatedIDs) []category.CategoryID {
+		return dt.Map(ids, func(id openapi.Identifier) category.CategoryID {
+			return category.CategoryID(deserialiseID(id))
+		})
+	})
+
 	cat, err := c.category_svc.Update(ctx, request.CategorySlug, category_svc.Partial{
 		Name:              opt.NewPtr(request.Body.Name),
 		Slug:              opt.NewPtr(request.Body.Slug),
 		Description:       opt.NewPtr(request.Body.Description),
 		Colour:            opt.NewPtr(request.Body.Colour),
 		CoverImageAssetID: coverImageAssetID,
+		Related:           related,
 		Meta:              opt.NewPtr((*map[string]any)(request.Body.Meta)),
 	})
 	if err != nil {
@@ -182,6 +189,7 @@ func serialiseCategory(c *category.Category) openapi.Category {
 		Parent:      parentID,
 		CoverImage:  opt.Map(c.CoverImage, serialiseAsset).Ptr(),
 		Children:    children,
+		Related:     serialiseCategoryRelatedList(c.Related),
 		Meta:        (*openapi.Metadata)(&c.Metadata),
 	}
 }
@@ -205,6 +213,20 @@ func serialiseCategoryReference(c category.Category) openapi.CategoryReference {
 		Parent:      parentID,
 		CoverImage:  opt.Map(c.CoverImage, serialiseAsset).Ptr(),
 		Children:    children,
+		Related:     serialiseCategoryRelatedList(c.Related),
 		Meta:        (*openapi.Metadata)(&c.Metadata),
 	}
+}
+
+func serialiseCategoryRelatedList(in []*category.Category) *openapi.CategoryRelatedList {
+	list := dt.Map(in, func(c *category.Category) openapi.CategoryRelated {
+		return openapi.CategoryRelated{
+			Id:          *openapi.IdentifierFrom(xid.ID(c.ID)),
+			Name:        c.Name,
+			Slug:        c.Slug,
+			Colour:      c.Colour,
+			Description: c.Description,
+		}
+	})
+	return &list
 }

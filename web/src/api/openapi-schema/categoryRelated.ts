@@ -7,24 +7,17 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { Asset } from "./asset";
-import type { CategoryList } from "./categoryList";
 import type { CategoryName } from "./categoryName";
-import type { CategoryRelatedList } from "./categoryRelatedList";
 import type { CategorySlug } from "./categorySlug";
 import type { Identifier } from "./identifier";
-import type { Metadata } from "./metadata";
 
-export interface CategoryCommonProps {
-  children: CategoryList;
+/**
+ * A lightweight reference to a category linked as "see also".
+ */
+export interface CategoryRelated {
   colour: string;
-  cover_image?: Asset;
   description: string;
-  meta?: Metadata;
+  id: Identifier;
   name: CategoryName;
-  /** Parent category identifier. Unset indicates a root-level category. */
-  parent?: Identifier;
-  related?: CategoryRelatedList;
   slug: CategorySlug;
-  sort: number;
 }

@@ -45,6 +45,10 @@ const (
 	EdgeChildren = "children"
 	// EdgeCoverImage holds the string denoting the cover_image edge name in mutations.
 	EdgeCoverImage = "cover_image"
+	// EdgeRelatedBy holds the string denoting the related_by edge name in mutations.
+	EdgeRelatedBy = "related_by"
+	// EdgeRelated holds the string denoting the related edge name in mutations.
+	EdgeRelated = "related"
 	// Table holds the table name of the category in the database.
 	Table = "categories"
 	// PostsTable is the table that holds the posts relation/edge.
@@ -69,6 +73,10 @@ const (
 	CoverImageInverseTable = "assets"
 	// CoverImageColumn is the table column denoting the cover_image relation/edge.
 	CoverImageColumn = "cover_image_asset_id"
+	// RelatedByTable is the table that holds the related_by relation/edge. The primary key declared below.
+	RelatedByTable = "category_related"
+	// RelatedTable is the table that holds the related relation/edge. The primary key declared below.
+	RelatedTable = "category_related"
 )
 
 // Columns holds all SQL columns for category fields.
@@ -86,6 +94,15 @@ var Columns = []string{
 	FieldCoverImageAssetID,
 	FieldMetadata,
 }
+
+var (
+	// RelatedByPrimaryKey and RelatedByColumn2 are the table columns denoting the
+	// primary key for the related_by relation (M2M).
+	RelatedByPrimaryKey = []string{"category_id", "related_by_id"}
+	// RelatedPrimaryKey and RelatedColumn2 are the table columns denoting the
+	// primary key for the related relation (M2M).
+	RelatedPrimaryKey = []string{"category_id", "related_by_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -217,6 +234,34 @@ func ByCoverImageField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCoverImageStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByRelatedByCount orders the results by related_by count.
+func ByRelatedByCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRelatedByStep(), opts...)
+	}
+}
+
+// ByRelatedBy orders the results by related_by terms.
+func ByRelatedBy(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRelatedByStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRelatedCount orders the results by related count.
+func ByRelatedCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRelatedStep(), opts...)
+	}
+}
+
+// ByRelated orders the results by related terms.
+func ByRelated(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRelatedStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPostsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -243,5 +288,19 @@ func newCoverImageStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CoverImageInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, CoverImageTable, CoverImageColumn),
+	)
+}
+func newRelatedByStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, RelatedByTable, RelatedByPrimaryKey...),
+	)
+}
+func newRelatedStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, RelatedTable, RelatedPrimaryKey...),
 	)
 }

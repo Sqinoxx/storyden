@@ -36,6 +36,7 @@ type Partial struct {
 	Colour            opt.Optional[string]
 	Parent            opt.Optional[category.CategoryID]
 	CoverImageAssetID deletable.Value[*xid.ID]
+	Related           opt.Optional[[]category.CategoryID]
 	Meta              opt.Optional[map[string]any]
 }
 
@@ -168,6 +169,18 @@ func (s *service) Update(ctx context.Context, slug string, partial Partial) (*ca
 		opts = append(opts, category.WithCoverImageAssetID(nil))
 	} else if v, ok := coverImageOpt.Get(); ok {
 		opts = append(opts, category.WithCoverImageAssetID(v))
+	}
+	if v, ok := partial.Related.Get(); ok {
+		for _, id := range v {
+			if _, err := s.category_repo.GetSlug(ctx, id); err != nil {
+				if ftag.Get(err) == ftag.NotFound {
+					return nil, fault.New("related category not found", fctx.With(ctx), ftag.With(ftag.InvalidArgument),
+						fmsg.WithDesc("related category not found", "One of the linked categories does not exist."))
+				}
+				return nil, fault.Wrap(err, fctx.With(ctx))
+			}
+		}
+		opts = append(opts, category.WithRelated(v))
 	}
 	if v, ok := partial.Meta.Get(); ok {
 		opts = append(opts, category.WithMeta(v))

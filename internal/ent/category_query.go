@@ -30,6 +30,8 @@ type CategoryQuery struct {
 	withParent     *CategoryQuery
 	withChildren   *CategoryQuery
 	withCoverImage *AssetQuery
+	withRelatedBy  *CategoryQuery
+	withRelated    *CategoryQuery
 	modifiers      []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -148,6 +150,50 @@ func (_q *CategoryQuery) QueryCoverImage() *AssetQuery {
 			sqlgraph.From(category.Table, category.FieldID, selector),
 			sqlgraph.To(asset.Table, asset.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, category.CoverImageTable, category.CoverImageColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRelatedBy chains the current query on the "related_by" edge.
+func (_q *CategoryQuery) QueryRelatedBy() *CategoryQuery {
+	query := (&CategoryClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(category.Table, category.FieldID, selector),
+			sqlgraph.To(category.Table, category.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, category.RelatedByTable, category.RelatedByPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRelated chains the current query on the "related" edge.
+func (_q *CategoryQuery) QueryRelated() *CategoryQuery {
+	query := (&CategoryClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(category.Table, category.FieldID, selector),
+			sqlgraph.To(category.Table, category.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, category.RelatedTable, category.RelatedPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -351,6 +397,8 @@ func (_q *CategoryQuery) Clone() *CategoryQuery {
 		withParent:     _q.withParent.Clone(),
 		withChildren:   _q.withChildren.Clone(),
 		withCoverImage: _q.withCoverImage.Clone(),
+		withRelatedBy:  _q.withRelatedBy.Clone(),
+		withRelated:    _q.withRelated.Clone(),
 		// clone intermediate query.
 		sql:       _q.sql.Clone(),
 		path:      _q.path,
@@ -399,6 +447,28 @@ func (_q *CategoryQuery) WithCoverImage(opts ...func(*AssetQuery)) *CategoryQuer
 		opt(query)
 	}
 	_q.withCoverImage = query
+	return _q
+}
+
+// WithRelatedBy tells the query-builder to eager-load the nodes that are connected to
+// the "related_by" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CategoryQuery) WithRelatedBy(opts ...func(*CategoryQuery)) *CategoryQuery {
+	query := (&CategoryClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRelatedBy = query
+	return _q
+}
+
+// WithRelated tells the query-builder to eager-load the nodes that are connected to
+// the "related" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CategoryQuery) WithRelated(opts ...func(*CategoryQuery)) *CategoryQuery {
+	query := (&CategoryClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRelated = query
 	return _q
 }
 
@@ -480,11 +550,13 @@ func (_q *CategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cat
 	var (
 		nodes       = []*Category{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [6]bool{
 			_q.withPosts != nil,
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withCoverImage != nil,
+			_q.withRelatedBy != nil,
+			_q.withRelated != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -531,6 +603,20 @@ func (_q *CategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cat
 	if query := _q.withCoverImage; query != nil {
 		if err := _q.loadCoverImage(ctx, query, nodes, nil,
 			func(n *Category, e *Asset) { n.Edges.CoverImage = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRelatedBy; query != nil {
+		if err := _q.loadRelatedBy(ctx, query, nodes,
+			func(n *Category) { n.Edges.RelatedBy = []*Category{} },
+			func(n *Category, e *Category) { n.Edges.RelatedBy = append(n.Edges.RelatedBy, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRelated; query != nil {
+		if err := _q.loadRelated(ctx, query, nodes,
+			func(n *Category) { n.Edges.Related = []*Category{} },
+			func(n *Category, e *Category) { n.Edges.Related = append(n.Edges.Related, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -654,6 +740,128 @@ func (_q *CategoryQuery) loadCoverImage(ctx context.Context, query *AssetQuery, 
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *CategoryQuery) loadRelatedBy(ctx context.Context, query *CategoryQuery, nodes []*Category, init func(*Category), assign func(*Category, *Category)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[xid.ID]*Category)
+	nids := make(map[xid.ID]map[*Category]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(category.RelatedByTable)
+		s.Join(joinT).On(s.C(category.FieldID), joinT.C(category.RelatedByPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(category.RelatedByPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(category.RelatedByPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(xid.ID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*xid.ID)
+				inValue := *values[1].(*xid.ID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Category]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Category](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "related_by" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *CategoryQuery) loadRelated(ctx context.Context, query *CategoryQuery, nodes []*Category, init func(*Category), assign func(*Category, *Category)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[xid.ID]*Category)
+	nids := make(map[xid.ID]map[*Category]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(category.RelatedTable)
+		s.Join(joinT).On(s.C(category.FieldID), joinT.C(category.RelatedPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(category.RelatedPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(category.RelatedPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(xid.ID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*xid.ID)
+				inValue := *values[1].(*xid.ID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Category]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Category](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "related" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
 		}
 	}
 	return nil

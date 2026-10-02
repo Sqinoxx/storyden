@@ -53,12 +53,14 @@ export function useCategoryMutations() {
     const mutator: MutatorCallback<CategoryListOKResponse> = (data) => {
       if (!data) return;
 
+      const { related: _related, ...optimistic } = updated;
+
       const newData = {
         categories: data.categories.map((category) => {
           if (category.slug === slug) {
             return {
               ...category,
-              ...updated,
+              ...optimistic,
             };
           }
 

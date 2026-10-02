@@ -40,6 +40,7 @@ type Category struct {
 	ParentID    *CategoryID
 	CoverImage  opt.Optional[asset.Asset]
 	Children    []*Category
+	Related     []*Category
 	Depth       int
 	Recent      []PostMeta
 	PostCount   int
@@ -83,6 +84,8 @@ func FromModel(c *ent.Category) *Category {
 
 	children := dt.Map(c.Edges.Children, FromModel)
 
+	related := dt.Map(c.Edges.Related, FromModel)
+
 	return &Category{
 		ID:          CategoryID(c.ID),
 		Name:        c.Name,
@@ -94,6 +97,7 @@ func FromModel(c *ent.Category) *Category {
 		ParentID:    parentID,
 		CoverImage:  coverImage,
 		Children:    children,
+		Related:     related,
 		Recent:      recent,
 		Metadata:    c.Metadata,
 		UpdatedAt:   c.UpdatedAt,

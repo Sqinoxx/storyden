@@ -1864,6 +1864,31 @@ var (
 			},
 		},
 	}
+	// CategoryRelatedColumns holds the columns for the "category_related" table.
+	CategoryRelatedColumns = []*schema.Column{
+		{Name: "category_id", Type: field.TypeString, Size: 20},
+		{Name: "related_by_id", Type: field.TypeString, Size: 20},
+	}
+	// CategoryRelatedTable holds the schema information for the "category_related" table.
+	CategoryRelatedTable = &schema.Table{
+		Name:       "category_related",
+		Columns:    CategoryRelatedColumns,
+		PrimaryKey: []*schema.Column{CategoryRelatedColumns[0], CategoryRelatedColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "category_related_category_id",
+				Columns:    []*schema.Column{CategoryRelatedColumns[0]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "category_related_related_by_id",
+				Columns:    []*schema.Column{CategoryRelatedColumns[1]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// LinkPostContentReferencesColumns holds the columns for the "link_post_content_references" table.
 	LinkPostContentReferencesColumns = []*schema.Column{
 		{Name: "link_id", Type: field.TypeString, Size: 20},
@@ -2094,6 +2119,7 @@ var (
 		TagsTable,
 		WarningsTable,
 		AccountTagsTable,
+		CategoryRelatedTable,
 		LinkPostContentReferencesTable,
 		LinkNodeContentReferencesTable,
 		LinkAssetsTable,
@@ -2193,6 +2219,8 @@ func init() {
 	WarningsTable.ForeignKeys[1].RefTable = AccountsTable
 	AccountTagsTable.ForeignKeys[0].RefTable = AccountsTable
 	AccountTagsTable.ForeignKeys[1].RefTable = TagsTable
+	CategoryRelatedTable.ForeignKeys[0].RefTable = CategoriesTable
+	CategoryRelatedTable.ForeignKeys[1].RefTable = CategoriesTable
 	LinkPostContentReferencesTable.ForeignKeys[0].RefTable = LinksTable
 	LinkPostContentReferencesTable.ForeignKeys[1].RefTable = PostsTable
 	LinkNodeContentReferencesTable.ForeignKeys[0].RefTable = LinksTable

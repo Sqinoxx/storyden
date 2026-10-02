@@ -142,6 +142,7 @@ export const de: Translations = {
   },
   category: {
     subcategoriesHeading: "Unterkategorien",
+    relatedHeading: "Siehe auch",
     createTitle: "Kategorie erstellen",
     deleteTitle: "Kategorie löschen",
     editTitle: "Kategorie bearbeiten",
@@ -158,6 +159,10 @@ export const de: Translations = {
     parentHelper: "Wähle eine übergeordnete Kategorie, um eine Unterkategorie zu erstellen, oder lass das Feld für eine Hauptkategorie leer.",
     colour: "Farbe",
     colourHelper: "Die Farbe der Kategorie.",
+    relatedCategories: "Verknüpfte Kategorien",
+    relatedHelper: "Diese Kategorien werden auf der Kategorieseite unter „Siehe auch“ verlinkt.",
+    relatedPlaceholder: "Kategorien auswählen...",
+    relatedResults: "Kategorien",
     updating: "Kategorie wird aktualisiert...",
     updated: "Kategorie aktualisiert.",
     deleteWarningLabel: "Achtung:",

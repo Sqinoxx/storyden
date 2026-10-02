@@ -93,6 +93,17 @@ func WithParent(id *CategoryID) Option {
 	}
 }
 
+func WithRelated(ids []CategoryID) Option {
+	return func(cm *ent.CategoryMutation) {
+		self, _ := cm.ID()
+
+		cm.ClearRelated()
+		cm.AddRelatedIDs(lo.FilterMap(lo.Uniq(ids), func(id CategoryID, _ int) (xid.ID, bool) {
+			return xid.ID(id), xid.ID(id) != self
+		})...)
+	}
+}
+
 type MoveOptions struct {
 	ParentProvided bool
 	ParentID       *CategoryID
@@ -185,6 +196,7 @@ func (d *Repository) GetCategories(ctx context.Context, admin bool) ([]*Category
 		WithCoverImage(func(aq *ent.AssetQuery) {
 			aq.WithParent()
 		}).
+		WithRelated().
 		Order(ent.Asc(category.FieldSort)).
 		All(ctx)
 	if err != nil {
@@ -223,6 +235,7 @@ func (d *Repository) assembleTree(ctx context.Context) (*categoryTree, error) {
 		WithCoverImage(func(aq *ent.AssetQuery) {
 			aq.WithParent()
 		}).
+		WithRelated().
 		Order(ent.Asc(category.FieldSort), ent.Asc(category.FieldCreatedAt)).
 		All(ctx)
 	if err != nil {
@@ -250,6 +263,19 @@ func (d *Repository) assembleTree(ctx context.Context) (*categoryTree, error) {
 		}
 
 		parent.Children = append(parent.Children, byID[row.ID])
+	}
+
+	for _, row := range rows {
+		linked := lo.SliceToMap(row.Edges.Related, func(r *ent.Category) (xid.ID, struct{}) { return r.ID, struct{}{} })
+
+		related := []*Category{}
+		for _, candidate := range rows {
+			if _, ok := linked[candidate.ID]; ok {
+				related = append(related, byID[candidate.ID])
+			}
+		}
+
+		byID[row.ID].Related = related
 	}
 
 	for _, row := range rows {

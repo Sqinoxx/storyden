@@ -140,6 +140,7 @@ export const en = {
   },
   category: {
     subcategoriesHeading: "Subcategories",
+    relatedHeading: "See also",
     createTitle: "Create category",
     deleteTitle: "Delete category",
     editTitle: "Edit category",
@@ -156,6 +157,10 @@ export const en = {
     parentHelper: "Choose a parent category to create a subcategory, or leave as root category.",
     colour: "Colour",
     colourHelper: "The colour for the category.",
+    relatedCategories: "Related categories",
+    relatedHelper: "Categories linked as \"See also\" on this category's page.",
+    relatedPlaceholder: "Select categories...",
+    relatedResults: "Categories",
     updating: "Updating category...",
     updated: "Category updated.",
     deleteWarningLabel: "Warning:",

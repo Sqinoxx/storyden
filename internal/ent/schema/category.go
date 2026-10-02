@@ -50,5 +50,7 @@ func (Category) Edges() []ent.Edge {
 		edge.To("cover_image", Asset.Type).
 			Field("cover_image_asset_id").
 			Unique(),
+		edge.To("related", Category.Type).
+			From("related_by"),
 	}
 }

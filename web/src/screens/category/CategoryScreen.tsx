@@ -7,16 +7,17 @@ import {
   ThreadListOKResponse,
 } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
+import { CategoryBadge } from "@/components/category/CategoryBadge";
 import { CategoryLayout } from "@/components/category/CategoryIndex/CategoryCardLayout";
 import { CategoryMenu } from "@/components/category/CategoryMenu/CategoryMenu";
 import { UnreadyBanner } from "@/components/site/Unready";
 import { Heading } from "@/components/ui/heading";
-import { Box, LStack, WStack, styled } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
+import { Box, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { getAssetURL } from "@/utils/asset";
 import { hasPermission } from "@/utils/permissions";
 
 import { ThreadFeedScreen } from "../feed/ThreadFeedScreen/ThreadFeedScreen";
-import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   initialCategory: CategoryGetOKResponse;
@@ -46,8 +47,7 @@ export function useCategoryScreen({ initialCategory, slug }: Props) {
 
   // MANAGE_CATEGORIES no longer implies POST_IN_ANY_CATEGORY — the two are
   // granted independently, so normal users may only post in leaf categories.
-  const isLeafCategory =
-    !data.children || data.children.length === 0;
+  const isLeafCategory = !data.children || data.children.length === 0;
 
   const showQuickShare = canPostAnywhere || isLeafCategory;
 
@@ -110,6 +110,24 @@ export function CategoryScreen(props: ScreenProps) {
             {t.category.subcategoriesHeading}
           </Heading>
           <CategoryLayout layout="grid" categories={category.children} />
+        </LStack>
+      )}
+
+      {category.related && category.related.length > 0 && (
+        <LStack gap="1">
+          <Heading size="sm" color="fg.muted">
+            {t.category.relatedHeading}
+          </Heading>
+          <HStack gap="2" flexWrap="wrap">
+            {category.related.map((related) => (
+              <CategoryBadge
+                key={related.id}
+                category={related}
+                size="md"
+                title={related.description}
+              />
+            ))}
+          </HStack>
         </LStack>
       )}
 

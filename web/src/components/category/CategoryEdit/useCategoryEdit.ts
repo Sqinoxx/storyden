@@ -4,13 +4,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Asset, Category } from "@/api/openapi-schema";
-import { UseDisclosureProps } from "@/utils/useDisclosure";
-
 import { handle } from "@/api/client";
+import { Asset, Category } from "@/api/openapi-schema";
 import { useCategoryMutations } from "@/lib/category/mutation";
-import { isSlug } from "@/utils/slugify";
 import { useTranslation } from "@/lib/i18n";
+import { isSlug } from "@/utils/slugify";
+import { UseDisclosureProps } from "@/utils/useDisclosure";
 
 export type Props = {
   category: Category;
@@ -21,10 +20,14 @@ export const FormSchema = z.object({
   slug: z
     .string()
     .min(1)
-    .refine(isSlug, "The slug must only contain letters, numbers, hyphens and underscores."),
+    .refine(
+      isSlug,
+      "The slug must only contain letters, numbers, hyphens and underscores.",
+    ),
   description: z.string().min(1),
   colour: z.string().default("#fff"),
   cover_image: z.custom<Asset>().nullable().optional(),
+  related: z.array(z.string()).default([]),
 });
 export type Form = z.infer<typeof FormSchema>;
 
@@ -38,6 +41,7 @@ export function useCategoryEdit(props: Props) {
       description: props.category.description,
       colour: props.category.colour,
       cover_image: props.category.cover_image || null,
+      related: props.category.related?.map((c) => c.id) ?? [],
     },
   });
   const pathname = usePathname();

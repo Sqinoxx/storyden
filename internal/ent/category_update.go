@@ -249,6 +249,36 @@ func (_u *CategoryUpdate) SetCoverImage(v *Asset) *CategoryUpdate {
 	return _u.SetCoverImageID(v.ID)
 }
 
+// AddRelatedByIDs adds the "related_by" edge to the Category entity by IDs.
+func (_u *CategoryUpdate) AddRelatedByIDs(ids ...xid.ID) *CategoryUpdate {
+	_u.mutation.AddRelatedByIDs(ids...)
+	return _u
+}
+
+// AddRelatedBy adds the "related_by" edges to the Category entity.
+func (_u *CategoryUpdate) AddRelatedBy(v ...*Category) *CategoryUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRelatedByIDs(ids...)
+}
+
+// AddRelatedIDs adds the "related" edge to the Category entity by IDs.
+func (_u *CategoryUpdate) AddRelatedIDs(ids ...xid.ID) *CategoryUpdate {
+	_u.mutation.AddRelatedIDs(ids...)
+	return _u
+}
+
+// AddRelated adds the "related" edges to the Category entity.
+func (_u *CategoryUpdate) AddRelated(v ...*Category) *CategoryUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRelatedIDs(ids...)
+}
+
 // Mutation returns the CategoryMutation object of the builder.
 func (_u *CategoryUpdate) Mutation() *CategoryMutation {
 	return _u.mutation
@@ -306,6 +336,48 @@ func (_u *CategoryUpdate) RemoveChildren(v ...*Category) *CategoryUpdate {
 func (_u *CategoryUpdate) ClearCoverImage() *CategoryUpdate {
 	_u.mutation.ClearCoverImage()
 	return _u
+}
+
+// ClearRelatedBy clears all "related_by" edges to the Category entity.
+func (_u *CategoryUpdate) ClearRelatedBy() *CategoryUpdate {
+	_u.mutation.ClearRelatedBy()
+	return _u
+}
+
+// RemoveRelatedByIDs removes the "related_by" edge to Category entities by IDs.
+func (_u *CategoryUpdate) RemoveRelatedByIDs(ids ...xid.ID) *CategoryUpdate {
+	_u.mutation.RemoveRelatedByIDs(ids...)
+	return _u
+}
+
+// RemoveRelatedBy removes "related_by" edges to Category entities.
+func (_u *CategoryUpdate) RemoveRelatedBy(v ...*Category) *CategoryUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRelatedByIDs(ids...)
+}
+
+// ClearRelated clears all "related" edges to the Category entity.
+func (_u *CategoryUpdate) ClearRelated() *CategoryUpdate {
+	_u.mutation.ClearRelated()
+	return _u
+}
+
+// RemoveRelatedIDs removes the "related" edge to Category entities by IDs.
+func (_u *CategoryUpdate) RemoveRelatedIDs(ids ...xid.ID) *CategoryUpdate {
+	_u.mutation.RemoveRelatedIDs(ids...)
+	return _u
+}
+
+// RemoveRelated removes "related" edges to Category entities.
+func (_u *CategoryUpdate) RemoveRelated(v ...*Category) *CategoryUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRelatedIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -530,6 +602,96 @@ func (_u *CategoryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(asset.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RelatedByCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.RelatedByTable,
+			Columns: category.RelatedByPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRelatedByIDs(); len(nodes) > 0 && !_u.mutation.RelatedByCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.RelatedByTable,
+			Columns: category.RelatedByPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RelatedByIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.RelatedByTable,
+			Columns: category.RelatedByPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RelatedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.RelatedTable,
+			Columns: category.RelatedPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRelatedIDs(); len(nodes) > 0 && !_u.mutation.RelatedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.RelatedTable,
+			Columns: category.RelatedPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RelatedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.RelatedTable,
+			Columns: category.RelatedPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -776,6 +938,36 @@ func (_u *CategoryUpdateOne) SetCoverImage(v *Asset) *CategoryUpdateOne {
 	return _u.SetCoverImageID(v.ID)
 }
 
+// AddRelatedByIDs adds the "related_by" edge to the Category entity by IDs.
+func (_u *CategoryUpdateOne) AddRelatedByIDs(ids ...xid.ID) *CategoryUpdateOne {
+	_u.mutation.AddRelatedByIDs(ids...)
+	return _u
+}
+
+// AddRelatedBy adds the "related_by" edges to the Category entity.
+func (_u *CategoryUpdateOne) AddRelatedBy(v ...*Category) *CategoryUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRelatedByIDs(ids...)
+}
+
+// AddRelatedIDs adds the "related" edge to the Category entity by IDs.
+func (_u *CategoryUpdateOne) AddRelatedIDs(ids ...xid.ID) *CategoryUpdateOne {
+	_u.mutation.AddRelatedIDs(ids...)
+	return _u
+}
+
+// AddRelated adds the "related" edges to the Category entity.
+func (_u *CategoryUpdateOne) AddRelated(v ...*Category) *CategoryUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRelatedIDs(ids...)
+}
+
 // Mutation returns the CategoryMutation object of the builder.
 func (_u *CategoryUpdateOne) Mutation() *CategoryMutation {
 	return _u.mutation
@@ -833,6 +1025,48 @@ func (_u *CategoryUpdateOne) RemoveChildren(v ...*Category) *CategoryUpdateOne {
 func (_u *CategoryUpdateOne) ClearCoverImage() *CategoryUpdateOne {
 	_u.mutation.ClearCoverImage()
 	return _u
+}
+
+// ClearRelatedBy clears all "related_by" edges to the Category entity.
+func (_u *CategoryUpdateOne) ClearRelatedBy() *CategoryUpdateOne {
+	_u.mutation.ClearRelatedBy()
+	return _u
+}
+
+// RemoveRelatedByIDs removes the "related_by" edge to Category entities by IDs.
+func (_u *CategoryUpdateOne) RemoveRelatedByIDs(ids ...xid.ID) *CategoryUpdateOne {
+	_u.mutation.RemoveRelatedByIDs(ids...)
+	return _u
+}
+
+// RemoveRelatedBy removes "related_by" edges to Category entities.
+func (_u *CategoryUpdateOne) RemoveRelatedBy(v ...*Category) *CategoryUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRelatedByIDs(ids...)
+}
+
+// ClearRelated clears all "related" edges to the Category entity.
+func (_u *CategoryUpdateOne) ClearRelated() *CategoryUpdateOne {
+	_u.mutation.ClearRelated()
+	return _u
+}
+
+// RemoveRelatedIDs removes the "related" edge to Category entities by IDs.
+func (_u *CategoryUpdateOne) RemoveRelatedIDs(ids ...xid.ID) *CategoryUpdateOne {
+	_u.mutation.RemoveRelatedIDs(ids...)
+	return _u
+}
+
+// RemoveRelated removes "related" edges to Category entities.
+func (_u *CategoryUpdateOne) RemoveRelated(v ...*Category) *CategoryUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRelatedIDs(ids...)
 }
 
 // Where appends a list predicates to the CategoryUpdate builder.
@@ -1087,6 +1321,96 @@ func (_u *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(asset.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RelatedByCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.RelatedByTable,
+			Columns: category.RelatedByPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRelatedByIDs(); len(nodes) > 0 && !_u.mutation.RelatedByCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.RelatedByTable,
+			Columns: category.RelatedByPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RelatedByIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.RelatedByTable,
+			Columns: category.RelatedByPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RelatedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.RelatedTable,
+			Columns: category.RelatedPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRelatedIDs(); len(nodes) > 0 && !_u.mutation.RelatedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.RelatedTable,
+			Columns: category.RelatedPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RelatedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.RelatedTable,
+			Columns: category.RelatedPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

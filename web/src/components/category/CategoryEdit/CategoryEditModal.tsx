@@ -1,6 +1,5 @@
-import { ModalDrawer } from "@/components/site/Modaldrawer/Modaldrawer";
-
 import { AssetUploadEditor } from "@/components/asset/AssetUploadEditor/AssetUploadEditor";
+import { ModalDrawer } from "@/components/site/Modaldrawer/Modaldrawer";
 import { ColourPickerField } from "@/components/ui/ColourPickerField";
 import { Button } from "@/components/ui/button";
 import { FormControl } from "@/components/ui/form/FormControl";
@@ -12,10 +11,11 @@ import {
   CATEGORY_COVER_HEIGHT,
   CATEGORY_COVER_WIDTH,
 } from "@/lib/category/cover";
+import { useTranslation } from "@/lib/i18n";
 import { HStack, VStack, styled } from "@/styled-system/jsx";
 
+import { RelatedCategoriesField } from "./RelatedCategoriesField";
 import { Props, useCategoryEdit } from "./useCategoryEdit";
-import { useTranslation } from "@/lib/i18n";
 
 export function CategoryEditModal(props: Props) {
   const t = useTranslation();
@@ -107,6 +107,18 @@ export function CategoryEditModal(props: Props) {
             <ColourPickerField control={form.control} name="colour" />
             <FormFeedback error={form.formState.errors["colour"]?.message}>
               {t.category.colourHelper}
+            </FormFeedback>
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>{t.category.relatedCategories}</FormLabel>
+            <RelatedCategoriesField
+              control={form.control}
+              name="related"
+              excludeID={props.category.id}
+            />
+            <FormFeedback error={form.formState.errors["related"]?.message}>
+              {t.category.relatedHelper}
             </FormFeedback>
           </FormControl>
         </VStack>

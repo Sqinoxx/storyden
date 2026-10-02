@@ -58,9 +58,13 @@ type CategoryEdges struct {
 	Children []*Category `json:"children,omitempty"`
 	// CoverImage holds the value of the cover_image edge.
 	CoverImage *Asset `json:"cover_image,omitempty"`
+	// RelatedBy holds the value of the related_by edge.
+	RelatedBy []*Category `json:"related_by,omitempty"`
+	// Related holds the value of the related edge.
+	Related []*Category `json:"related,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [6]bool
 }
 
 // PostsOrErr returns the Posts value or an error if the edge
@@ -101,6 +105,24 @@ func (e CategoryEdges) CoverImageOrErr() (*Asset, error) {
 		return nil, &NotFoundError{label: asset.Label}
 	}
 	return nil, &NotLoadedError{edge: "cover_image"}
+}
+
+// RelatedByOrErr returns the RelatedBy value or an error if the edge
+// was not loaded in eager-loading.
+func (e CategoryEdges) RelatedByOrErr() ([]*Category, error) {
+	if e.loadedTypes[4] {
+		return e.RelatedBy, nil
+	}
+	return nil, &NotLoadedError{edge: "related_by"}
+}
+
+// RelatedOrErr returns the Related value or an error if the edge
+// was not loaded in eager-loading.
+func (e CategoryEdges) RelatedOrErr() ([]*Category, error) {
+	if e.loadedTypes[5] {
+		return e.Related, nil
+	}
+	return nil, &NotLoadedError{edge: "related"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -243,6 +265,16 @@ func (_m *Category) QueryChildren() *CategoryQuery {
 // QueryCoverImage queries the "cover_image" edge of the Category entity.
 func (_m *Category) QueryCoverImage() *AssetQuery {
 	return NewCategoryClient(_m.config).QueryCoverImage(_m)
+}
+
+// QueryRelatedBy queries the "related_by" edge of the Category entity.
+func (_m *Category) QueryRelatedBy() *CategoryQuery {
+	return NewCategoryClient(_m.config).QueryRelatedBy(_m)
+}
+
+// QueryRelated queries the "related" edge of the Category entity.
+func (_m *Category) QueryRelated() *CategoryQuery {
+	return NewCategoryClient(_m.config).QueryRelated(_m)
 }
 
 // Update returns a builder for updating this Category.

@@ -238,6 +238,36 @@ func (_c *CategoryCreate) SetCoverImage(v *Asset) *CategoryCreate {
 	return _c.SetCoverImageID(v.ID)
 }
 
+// AddRelatedByIDs adds the "related_by" edge to the Category entity by IDs.
+func (_c *CategoryCreate) AddRelatedByIDs(ids ...xid.ID) *CategoryCreate {
+	_c.mutation.AddRelatedByIDs(ids...)
+	return _c
+}
+
+// AddRelatedBy adds the "related_by" edges to the Category entity.
+func (_c *CategoryCreate) AddRelatedBy(v ...*Category) *CategoryCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRelatedByIDs(ids...)
+}
+
+// AddRelatedIDs adds the "related" edge to the Category entity by IDs.
+func (_c *CategoryCreate) AddRelatedIDs(ids ...xid.ID) *CategoryCreate {
+	_c.mutation.AddRelatedIDs(ids...)
+	return _c
+}
+
+// AddRelated adds the "related" edges to the Category entity.
+func (_c *CategoryCreate) AddRelated(v ...*Category) *CategoryCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRelatedIDs(ids...)
+}
+
 // Mutation returns the CategoryMutation object of the builder.
 func (_c *CategoryCreate) Mutation() *CategoryMutation {
 	return _c.mutation
@@ -470,6 +500,38 @@ func (_c *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CoverImageAssetID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RelatedByIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.RelatedByTable,
+			Columns: category.RelatedByPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RelatedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.RelatedTable,
+			Columns: category.RelatedPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

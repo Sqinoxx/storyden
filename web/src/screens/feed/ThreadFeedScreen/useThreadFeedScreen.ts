@@ -1,6 +1,7 @@
 "use client";
 
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { useEffect, useState } from "react";
 
 import { useThreadList } from "@/api/openapi-client/threads";
 import {
@@ -31,6 +32,12 @@ export type ThreadFeedView = ThreadSortOrder | typeof SEMESTER_VIEW;
 
 const DEFAULT_SORT: ThreadSortOrder = "newest";
 
+const STORED_VIEW_KEY = "thread_feed_view";
+
+function defaultViewFor(semesterEnabled: boolean): ThreadFeedView {
+  return semesterEnabled ? SEMESTER_VIEW : DEFAULT_SORT;
+}
+
 // "asc"/"desc" were the pre-API sort values and may still be in shared links.
 function parseFeedView(value: string, semesterEnabled: boolean): ThreadFeedView {
   switch (value) {
@@ -39,10 +46,13 @@ function parseFeedView(value: string, semesterEnabled: boolean): ThreadFeedView 
       return "oldest";
     case "activity":
       return "activity";
+    case "newest":
+    case "desc":
+      return "newest";
     case SEMESTER_VIEW:
       return semesterEnabled ? SEMESTER_VIEW : DEFAULT_SORT;
     default:
-      return DEFAULT_SORT;
+      return defaultViewFor(semesterEnabled);
   }
 }
 
@@ -57,11 +67,29 @@ export function useThreadFeedScreen(props: Props) {
     ...parseAsInteger,
     defaultValue: props.initialPage ?? 1,
   });
-  const [sortParam, setSortParam] = useQueryState(
-    "sort",
-    parseAsString.withDefault(DEFAULT_SORT),
+  const [sortParam, setSortParam] = useQueryState("sort", parseAsString);
+  const [storedView, setStoredView] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setStoredView(localStorage.getItem(STORED_VIEW_KEY));
+    } catch {}
+  }, []);
+
+  const semesterEnabled = props.enableSemesterGrouping ?? false;
+  const defaultView = defaultViewFor(semesterEnabled);
+  const view = parseFeedView(
+    sortParam ?? storedView ?? defaultView,
+    semesterEnabled,
   );
-  const view = parseFeedView(sortParam, props.enableSemesterGrouping ?? false);
+
+  function handleSetView(next: ThreadFeedView) {
+    try {
+      localStorage.setItem(STORED_VIEW_KEY, next);
+    } catch {}
+    setStoredView(next);
+    setSortParam(next === defaultView ? null : next);
+  }
 
   function handlePageChange(page: number) {
     setPage(page);
@@ -95,7 +123,6 @@ export function useThreadFeedScreen(props: Props) {
     view,
     isGrouped: view === SEMESTER_VIEW,
     handlePageChange,
-    handleSetView: (next: ThreadFeedView) =>
-      setSortParam(next === DEFAULT_SORT ? null : next),
+    handleSetView,
   };
 }

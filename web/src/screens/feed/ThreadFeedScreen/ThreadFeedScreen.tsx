@@ -132,11 +132,6 @@ export function ThreadFeed(props: Props & { hideCategoryBadge?: boolean }) {
                       value={option}
                       onClick={() => handleSetView(option)}
                       aria-label={label}
-                      display={
-                        option === SEMESTER_VIEW
-                          ? { base: "none", md: "flex" }
-                          : undefined
-                      }
                     >
                       <HStack gap="2" justifyContent="space-between" w="full">
                         <HStack gap="2">

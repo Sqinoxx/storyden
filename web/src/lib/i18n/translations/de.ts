@@ -210,6 +210,8 @@ export const de: Translations = {
     commandPlaceholder: "Fragen, suchen oder befehlen...",
     searchDiscussions: "Diskussionen durchsuchen",
     searchButton: "Suchen",
+    filters: "Filter",
+    emptyHint: "Gib einen Suchbegriff ein und grenze die Ergebnisse mit Filtern ein.",
   },
   link: {
     editLink: "Link bearbeiten",

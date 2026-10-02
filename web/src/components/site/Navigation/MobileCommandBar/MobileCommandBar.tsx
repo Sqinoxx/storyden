@@ -11,7 +11,6 @@ import { CloseAction } from "../../Action/Close";
 import { AccountMenu } from "../AccountMenu/AccountMenu";
 import { ComposeAnchor } from "../Anchors/Compose";
 import { HomeAnchor } from "../Anchors/Home";
-import { LibraryAnchor } from "../Anchors/Library";
 import { LoginAnchor } from "../Anchors/Login";
 import { SearchAnchor } from "../Anchors/Search";
 import { ContentNavigationList } from "../ContentNavigationList/ContentNavigationList";
@@ -59,7 +58,13 @@ export function MobileCommandBar({ canRegister }: Props) {
             ) : (
               <SiteIcon borderRadius="md" w="8" h="8" />
             )}
-            {account && <LibraryAnchor hideLabel size="sm" />}
+            <HomeAnchor hideLabel size="sm" />
+            {account ? (
+              <ComposeAnchor hideLabel size="sm" />
+            ) : (
+              <LoginAnchor />
+            )}
+            <SearchAnchor hideLabel size="sm" />
             <CloseAction onClick={onClose} size="sm" />
           </>
         ) : (

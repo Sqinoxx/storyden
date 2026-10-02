@@ -4,8 +4,10 @@ import * as assert from "uvu/assert";
 import type { ThreadReference } from "@/api/openapi-schema";
 
 import {
+  formatSelectableTermLabel,
   formatTermLabel,
   groupThreadsBySemester,
+  oldestSelectableTerm,
   parseTermKey,
   parseThreadSemesterMeta,
   selectableTerms,
@@ -153,6 +155,41 @@ test("groupThreadsBySemester hoists pinned threads into their own group", () => 
     ["pinned", "2026-SS"],
   );
   assert.is(groups[0]!.term, null);
+});
+
+test("groupThreadsBySemester folds terms at or before the cutoff into one legacy group", () => {
+  const cutoff = { year: 2019, winter: false };
+  const groups = groupThreadsBySemester(
+    [
+      thread({ id: "a", createdAt: "2026-05-02T00:00:00Z" }),
+      thread({ id: "b", createdAt: "2019-05-02T00:00:00Z" }),
+      thread({ id: "c", createdAt: "2017-11-02T00:00:00Z" }),
+    ],
+    cutoff,
+  );
+
+  assert.equal(
+    groups.map((g) => g.key),
+    ["2026-SS", "legacy"],
+  );
+  assert.equal(
+    groups[1]!.threads.map((t) => t.id),
+    ["b", "c"],
+  );
+  assert.is(groups[1]!.legacy, true);
+});
+
+test("formatSelectableTermLabel renames only the oldest selectable term", () => {
+  const now = new Date("2026-10-02T12:00:00Z");
+  const oldest = oldestSelectableTerm(now);
+
+  assert.equal(oldest, { year: 2018, winter: true });
+  assert.is(formatSelectableTermLabel(oldest, now, "Älter"), "Älter");
+  assert.is(formatSelectableTermLabel(oldest, now, "  "), "WS18/19");
+  assert.is(
+    formatSelectableTermLabel({ year: 2019, winter: false }, now, "Älter"),
+    "SS19",
+  );
 });
 
 test.run();

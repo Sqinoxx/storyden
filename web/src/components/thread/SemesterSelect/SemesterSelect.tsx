@@ -9,8 +9,9 @@ import {
   SelectFieldProps,
 } from "@/components/ui/form/SelectField";
 import { useTranslation } from "@/lib/i18n";
+import { useSettings } from "@/lib/settings/settings-client";
 import {
-  formatTermLabel,
+  formatSelectableTermLabel,
   selectableTerms,
   termKey,
 } from "@/lib/thread/semester";
@@ -20,16 +21,21 @@ export function SemesterSelect<T extends FieldValues>(
 ) {
   const t = useTranslation();
 
-  const collection = useMemo(
-    () =>
-      createListCollection({
-        items: selectableTerms(new Date()).map((term) => ({
-          value: termKey(term),
-          label: formatTermLabel(term),
-        })),
-      }),
-    [],
-  );
+  const settingsResult = useSettings();
+  const legacyLabel = settingsResult.ready
+    ? settingsResult.settings.metadata.semester.legacyLabel
+    : "";
+
+  const collection = useMemo(() => {
+    const now = new Date();
+
+    return createListCollection({
+      items: selectableTerms(now).map((term) => ({
+        value: termKey(term),
+        label: formatSelectableTermLabel(term, now, legacyLabel),
+      })),
+    });
+  }, [legacyLabel]);
 
   return (
     <SelectField

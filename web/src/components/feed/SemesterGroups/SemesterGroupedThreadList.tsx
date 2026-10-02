@@ -3,7 +3,12 @@
 import { ThreadReference } from "@/api/openapi-schema";
 import { ThreadReferenceCard } from "@/components/post/ThreadCard";
 import { useTranslation } from "@/lib/i18n";
-import { formatTermLabel, groupThreadsBySemester } from "@/lib/thread/semester";
+import { useSettings } from "@/lib/settings/settings-client";
+import {
+  formatTermLabel,
+  groupThreadsBySemester,
+  oldestSelectableTerm,
+} from "@/lib/thread/semester";
 import { HStack, LStack, styled } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
@@ -47,14 +52,23 @@ export function SemesterGroupedThreadList({
   hideCategoryBadge,
 }: Props) {
   const t = useTranslation();
-  const groups = groupThreadsBySemester(threads);
+  const settingsResult = useSettings();
+  const legacyLabel = settingsResult.ready
+    ? settingsResult.settings.metadata.semester.legacyLabel.trim()
+    : "";
+  const groups = groupThreadsBySemester(
+    threads,
+    legacyLabel ? oldestSelectableTerm(new Date()) : undefined,
+  );
 
   return (
     <LStack gap="4">
       {groups.map((group) => {
-        const label = group.term
-          ? formatTermLabel(group.term)
-          : t.thread.pinnedGroup;
+        const label = group.legacy
+          ? legacyLabel
+          : group.term
+            ? formatTermLabel(group.term)
+            : t.thread.pinnedGroup;
 
         return (
           <styled.section

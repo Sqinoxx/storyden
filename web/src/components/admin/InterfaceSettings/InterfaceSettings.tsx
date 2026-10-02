@@ -7,6 +7,7 @@ import { FormHelperText } from "@/components/ui/form/FormHelperText";
 import { FormLabel } from "@/components/ui/form/FormLabel";
 import { NumberInputField } from "@/components/ui/form/NumberInputField";
 import { RadioGroupField } from "@/components/ui/form/RadioGroupField";
+import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
 import { CardBox, WStack, styled } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
@@ -14,7 +15,7 @@ import { lstack } from "@/styled-system/patterns";
 import { Props, useInterfaceSettings } from "./useInterfaceSettings";
 
 export function InterfaceSettingsForm(props: Props) {
-  const { control, signaturesEnabled, formState, onSubmit } =
+  const { control, register, signaturesEnabled, formState, onSubmit } =
     useInterfaceSettings(props);
 
   return (
@@ -134,6 +135,19 @@ export function InterfaceSettingsForm(props: Props) {
           <FormHelperText>
             When enabled, each post&apos;s tags are shown next to its title in
             post lists on desktop.
+          </FormHelperText>
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>Oldest semester label</FormLabel>
+          <Input
+            {...register("semesterLegacyLabel")}
+            maxLength={32}
+            placeholder="e.g. Older"
+          />
+          <FormHelperText>
+            Renames the oldest selectable semester and groups all older threads
+            under it. Leave empty to show the regular semester name.
           </FormHelperText>
         </FormControl>
       </CardBox>

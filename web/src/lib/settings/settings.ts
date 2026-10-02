@@ -42,6 +42,9 @@ export const DefaultFrontendConfig = {
   postList: {
     showTags: true,
   },
+  semester: {
+    legacyLabel: "",
+  },
 } as const;
 
 export const DefaultSettings = {
@@ -76,6 +79,11 @@ export const FrontendConfigurationSchema = z
         showTags: z.boolean().default(true),
       })
       .default({ showTags: true }),
+    semester: z
+      .object({
+        legacyLabel: z.string().max(32).default(""),
+      })
+      .default({ legacyLabel: "" }),
   })
   .default(DefaultFrontendConfig);
 export type FrontendConfiguration = z.infer<typeof FrontendConfigurationSchema>;

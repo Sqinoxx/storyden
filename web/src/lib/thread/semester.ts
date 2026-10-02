@@ -122,8 +122,28 @@ export function threadTerm(
 export type SemesterGroup = {
   key: string;
   term: Term | null;
+  legacy?: boolean;
   threads: ThreadReference[];
 };
+
+export const LEGACY_GROUP_KEY = "legacy";
+
+export function oldestSelectableTerm(now: Date): Term {
+  return shiftTerm(termFor(now), -SELECTABLE_TERMS_BACK);
+}
+
+export function formatSelectableTermLabel(
+  term: Term,
+  now: Date,
+  legacyLabel: string,
+): string {
+  const label = legacyLabel.trim();
+  const oldest = oldestSelectableTerm(now);
+
+  return label && termOrdinal(term) === termOrdinal(oldest)
+    ? label
+    : formatTermLabel(term);
+}
 
 export const PINNED_GROUP_KEY = "pinned";
 
@@ -132,6 +152,7 @@ export const PINNED_GROUP_KEY = "pinned";
 // second header for a term that already appeared further up the page.
 export function groupThreadsBySemester(
   threads: ThreadReference[],
+  legacyCutoff?: Term,
 ): SemesterGroup[] {
   const pinned = threads.filter((t) => t.pinned);
   const rest = threads.filter((t) => !t.pinned);
@@ -139,14 +160,18 @@ export function groupThreadsBySemester(
   const buckets = new Map<string, SemesterGroup>();
 
   for (const thread of rest) {
-    const term = threadTerm(thread);
-    const key = termKey(term);
+    const actual = threadTerm(thread);
+    const legacy =
+      legacyCutoff !== undefined &&
+      termOrdinal(actual) <= termOrdinal(legacyCutoff);
+    const term = legacy ? legacyCutoff : actual;
+    const key = legacy ? LEGACY_GROUP_KEY : termKey(term);
 
     const existing = buckets.get(key);
     if (existing) {
       existing.threads.push(thread);
     } else {
-      buckets.set(key, { key, term, threads: [thread] });
+      buckets.set(key, { key, term, legacy, threads: [thread] });
     }
   }
 

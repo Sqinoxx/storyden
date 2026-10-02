@@ -53,7 +53,7 @@ export function SelectField<
               </Select.Trigger>
             </Select.Control>
             <Select.Positioner>
-              <Select.Content>
+              <Select.Content maxH="72" overflowY="auto">
                 {collection.items.map((item) => (
                   <Select.Item key={item.value} item={item}>
                     <Select.ItemText mr="2">

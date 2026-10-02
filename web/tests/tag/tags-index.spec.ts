@@ -58,6 +58,87 @@ test.describe("Tags index", () => {
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
   });
 
+  test("members can search, filter and sort a tag's items", async ({
+    page,
+  }) => {
+    const seed = unique("tf");
+    const tag = `filter-${seed}`.toLowerCase();
+    const alpha = `Alpha ${seed}`;
+    const beta = `Beta ${seed}`;
+    const betaCategory = `Beta Category ${seed}`;
+
+    await withAdminAccessKey(async ({ categoryCreate, threadCreate }) => {
+      const first = await categoryCreate({
+        colour: "#3b82f6",
+        description: `Alpha ${seed}`,
+        name: `Alpha Category ${seed}`,
+        slug: `alpha-category-${seed}`,
+      });
+      const second = await categoryCreate({
+        colour: "#22c55e",
+        description: `Beta ${seed}`,
+        name: betaCategory,
+        slug: `beta-category-${seed}`,
+      });
+
+      for (const [title, category] of [
+        [alpha, first.id],
+        [beta, second.id],
+      ]) {
+        await threadCreate({
+          title,
+          body: `<p>${title}</p>`,
+          category,
+          visibility: "published",
+          tags: [tag],
+        });
+      }
+    });
+
+    await registerUser(page, unique("tag-filter"));
+    await page.goto(`/tags/${tag}`);
+
+    const titles = page.getByRole("heading", { name: seed });
+    const alphaHeading = page.getByRole("heading", { name: alpha });
+    const betaHeading = page.getByRole("heading", { name: beta });
+
+    await expect(betaHeading).toBeVisible();
+    await expect(titles.first()).toHaveText(beta);
+
+    await page.getByRole("combobox", { name: "Sort by" }).click();
+    await page.getByRole("option", { name: "A–Z" }).click();
+    await expect(titles.first()).toHaveText(alpha);
+    await expect(page).toHaveURL(/sort=alphabetical/);
+
+    await page
+      .getByPlaceholder("Search threads and pages...")
+      .fill("beta");
+    await expect(betaHeading).toBeVisible();
+    await expect(alphaHeading).toHaveCount(0);
+    await expect(page.getByText("1 of 2 items")).toBeVisible();
+    await expect(page).toHaveURL(/q=beta/);
+
+    await page.reload();
+    await expect(
+      page.getByPlaceholder("Search threads and pages..."),
+    ).toHaveValue("beta");
+    await expect(alphaHeading).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Reset filters" }).click();
+    await expect(alphaHeading).toBeVisible();
+
+    await page.getByRole("combobox", { name: "Category" }).click();
+    await page.getByRole("option", { name: betaCategory }).click();
+    await expect(betaHeading).toBeVisible();
+    await expect(alphaHeading).toHaveCount(0);
+
+    await page.getByRole("combobox", { name: "Content type" }).click();
+    await page.getByRole("option", { name: "Library pages" }).click();
+    await expect(
+      page.getByText("No items match your filters."),
+    ).toBeVisible();
+  });
+
   test("members reach tags from the mobile menu", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await registerUser(page, unique("tag-mobile"));

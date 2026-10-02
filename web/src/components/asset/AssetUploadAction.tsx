@@ -20,6 +20,7 @@ type AssetUploadActionProps = {
   parentAssetID?: AssetID;
   operation: "add" | "update";
   onFinish: (a: Asset) => Promise<void>;
+  onUploadingChange?: (uploading: boolean) => void;
   hideLabel?: boolean;
 };
 
@@ -30,6 +31,7 @@ export function AssetUploadAction({
   parentAssetID,
   operation,
   onFinish,
+  onUploadingChange,
   hideLabel,
   ...props
 }: PropsWithChildren<Props>) {
@@ -40,32 +42,41 @@ export function AssetUploadAction({
   const maxUploadSizeBytes = useMaxUploadSizeBytes();
 
   async function handleFile({ files }: FileUploadFileAcceptDetails) {
-    await handle(async () => {
-      // NOTE: For some reason (Zag bug?) this is called for rejected files too.
-      const file = files[0];
-      if (!file) {
-        return;
-      }
+    // NOTE: For some reason (Zag bug?) this is called for rejected files too.
+    const file = files[0];
+    if (!file) {
+      return;
+    }
 
-      if (file.size > maxUploadSizeBytes) {
-        throw new Error(
-          t.upload.tooLarge.replace(
-            "{size}",
-            String(Math.floor(maxUploadSizeBytes / 1024 / 1024)),
-          ),
-        );
-      }
+    onUploadingChange?.(true);
 
-      const asset = await assetUpload(file, {
-        filename: file.name,
-        parent_asset_id: parentAssetID,
-      });
+    await handle(
+      async () => {
+        if (file.size > maxUploadSizeBytes) {
+          throw new Error(
+            t.upload.tooLarge.replace(
+              "{size}",
+              String(Math.floor(maxUploadSizeBytes / 1024 / 1024)),
+            ),
+          );
+        }
 
-      // Awaited so a failure in the caller's follow-up work (a draft save, a
-      // revalidation) is reported by the enclosing handle instead of escaping
-      // as an unhandled rejection.
-      await onFinish({ ...asset, filename: file.name });
-    });
+        const asset = await assetUpload(file, {
+          filename: file.name,
+          parent_asset_id: parentAssetID,
+        });
+
+        // Awaited so a failure in the caller's follow-up work (a draft save, a
+        // revalidation) is reported by the enclosing handle instead of escaping
+        // as an unhandled rejection.
+        await onFinish({ ...asset, filename: file.name });
+      },
+      {
+        cleanup: async () => {
+          onUploadingChange?.(false);
+        },
+      },
+    );
   }
 
   async function handleFileReject({ files }: FileUploadFileRejectDetails) {

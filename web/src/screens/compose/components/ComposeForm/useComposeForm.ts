@@ -51,6 +51,8 @@ export function useComposeForm({ initialDraft, editing }: Props) {
 
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [pendingUploads, setPendingUploads] = useState(0);
+  const isUploading = pendingUploads > 0;
   const [attachments, setAttachmentsState] = useState<Asset[]>(
     initialDraft?.assets ?? [],
   );
@@ -295,6 +297,10 @@ export function useComposeForm({ initialDraft, editing }: Props) {
     await handleAssetUpload(next);
   };
 
+  const handleUploadingChange = (uploading: boolean) => {
+    setPendingUploads((n) => Math.max(0, n + (uploading ? 1 : -1)));
+  };
+
   function handleBack() {
     router.back();
   }
@@ -304,6 +310,7 @@ export function useComposeForm({ initialDraft, editing }: Props) {
     state: {
       isPublishing,
       isSavingDraft,
+      isUploading,
       attachments,
     },
     handlers: {
@@ -312,6 +319,7 @@ export function useComposeForm({ initialDraft, editing }: Props) {
       handleAssetUpload,
       handleAttach,
       handleDetach,
+      handleUploadingChange,
       handleBack,
     },
   };

@@ -2,16 +2,15 @@
 
 import { useRef, useState } from "react";
 
-import { Asset } from "@/api/openapi-schema";
-
 import { handle } from "@/api/client";
+import { Asset } from "@/api/openapi-schema";
 import {
   hasAssetFile,
   isSupportedAsset,
   useImageUpload,
 } from "@/components/content/useImageUpload";
-import { useMaxUploadSizeBytes } from "@/lib/settings/uploads";
 import { useTranslation } from "@/lib/i18n";
+import { useMaxUploadSizeBytes } from "@/lib/settings/uploads";
 
 // Drop target for the whole compose card (title, body and footer). Distinct
 // from the rich/markdown editors' own drag handling, which additionally
@@ -19,7 +18,10 @@ import { useTranslation } from "@/lib/i18n";
 // this one always just attaches, matching the "Datei anhängen" button. Those
 // inner handlers stop propagation on drag events precisely so a drop over the
 // editor doesn't also get picked up here and uploaded twice.
-export function useCardDragDrop(onAttach: (asset: Asset) => Promise<void>) {
+export function useCardDragDrop(
+  onAttach: (asset: Asset) => Promise<void>,
+  onUploadingChange: (uploading: boolean) => void,
+) {
   const t = useTranslation();
   const { upload } = useImageUpload();
   const maxUploadSizeBytes = useMaxUploadSizeBytes();
@@ -95,14 +97,27 @@ export function useCardDragDrop(onAttach: (asset: Asset) => Promise<void>) {
       isSupportedAsset(file.type),
     );
 
+    if (files.length === 0) {
+      return;
+    }
+
+    onUploadingChange(true);
+    try {
+      await uploadAll(files);
+    } finally {
+      onUploadingChange(false);
+    }
+  }
+
+  async function uploadAll(files: File[]) {
     for (const file of files) {
       await handle(async () => {
         if (file.size > maxUploadSizeBytes) {
           throw new Error(
             t.upload.tooLarge.replace(
-            "{size}",
-            String(Math.floor(maxUploadSizeBytes / 1024 / 1024)),
-          ),
+              "{size}",
+              String(Math.floor(maxUploadSizeBytes / 1024 / 1024)),
+            ),
           );
         }
 

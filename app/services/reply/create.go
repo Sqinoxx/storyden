@@ -33,6 +33,11 @@ func (s *Mutator) Create(
 		partial.Content = opt.New(stable.Content)
 	}
 
+	partial, err := s.resolveExplicitAssets(ctx, partial)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	opts := partial.Opts()
 	opts = append(opts, reply_writer.WithVisibility(visibility.VisibilityPublished))
 	opts = s.appendDerivedAssetOpts(ctx, opts, partial)

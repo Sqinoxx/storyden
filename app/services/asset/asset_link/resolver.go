@@ -11,6 +11,7 @@ import (
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
+	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/app/resources/asset/asset_ref"
@@ -30,9 +31,25 @@ func New(db *ent.Client) *Resolver {
 // Resolve extracts asset references from the given content and returns the
 // subset that actually exist, preserving document order.
 func (r *Resolver) Resolve(ctx context.Context, c datagraph.Content) ([]asset.AssetID, error) {
-	candidates := asset_ref.ExtractAssetIDs(c)
+	return r.Existing(ctx, asset_ref.ExtractAssetIDs(c))
+}
+
+// Existing returns the unique, non-nil subset of ids that exist, preserving
+// order. Explicit asset_ids from clients are as untrusted as IDs parsed out of
+// HTML: an unparseable identifier becomes a nil ID and fails the edge insert.
+func (r *Resolver) Existing(ctx context.Context, ids []asset.AssetID) ([]asset.AssetID, error) {
+	seen := make(map[asset.AssetID]bool, len(ids))
+	candidates := make([]asset.AssetID, 0, len(ids))
+	for _, id := range ids {
+		if xid.ID(id).IsNil() || seen[id] {
+			continue
+		}
+		seen[id] = true
+		candidates = append(candidates, id)
+	}
+
 	if len(candidates) == 0 {
-		return nil, nil
+		return []asset.AssetID{}, nil
 	}
 
 	existing, err := r.db.Asset.Query().
@@ -47,12 +64,12 @@ func (r *Resolver) Resolve(ctx context.Context, c datagraph.Content) ([]asset.As
 		exists[id] = true
 	}
 
-	ids := make([]asset.AssetID, 0, len(candidates))
+	result := make([]asset.AssetID, 0, len(candidates))
 	for _, id := range candidates {
 		if exists[id] {
-			ids = append(ids, id)
+			result = append(result, id)
 		}
 	}
 
-	return ids, nil
+	return result, nil
 }

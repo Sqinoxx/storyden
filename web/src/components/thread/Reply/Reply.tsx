@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useState } from "react";
 import { Controller, ControllerProps } from "react-hook-form";
 
 import { Reply as ReplyType, Thread } from "@/api/openapi-schema";
@@ -8,6 +9,7 @@ import { CancelAction } from "@/components/site/Action/Cancel";
 import { SaveAction } from "@/components/site/Action/Save";
 import { Timestamp } from "@/components/site/Timestamp";
 import { ReplyIcon } from "@/components/ui/icons/Reply";
+import { useTranslation } from "@/lib/i18n";
 import { CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
 import { hstack } from "@/styled-system/patterns";
 
@@ -20,7 +22,6 @@ import { Signature } from "../Signature";
 import { ReplyToButton } from "./ReplyToButton";
 import { useFragmentScroll } from "./useFragmentScroll";
 import { Form, Props, useReply } from "./useReply";
-import { useTranslation } from "@/lib/i18n";
 
 export function Reply(props: Props) {
   const t = useTranslation();
@@ -35,14 +36,10 @@ export function Reply(props: Props) {
     handlers,
   } = useReply(props);
   const isTargeted = useFragmentScroll(props.reply.id);
+  const [isUploading, setUploading] = useState(false);
 
-  const {
-    initialSession,
-    thread,
-    reply,
-    currentPage,
-    initialSignatureConfig,
-  } = props;
+  const { initialSession, thread, reply, currentPage, initialSignatureConfig } =
+    props;
 
   const isInReview = reply.visibility === "review";
 
@@ -87,7 +84,7 @@ export function Reply(props: Props) {
                 >
                   {t.common.discard}
                 </CancelAction>
-                <SaveAction type="submit" disabled={isEmpty}>
+                <SaveAction type="submit" disabled={isEmpty || isUploading}>
                   {isEditingInReview ? t.common.accept : t.common.save}
                 </SaveAction>
               </>
@@ -114,6 +111,7 @@ export function Reply(props: Props) {
           resetKey={resetKey}
           disabled={!isEditing}
           handleEmptyStateChange={handlers.handleEmptyStateChange}
+          handleUploadingChange={setUploading}
         />
 
         {initialSignatureConfig.enabled && (
@@ -152,6 +150,7 @@ type ReplyBodyInputProps = Omit<ControllerProps<Form>, "render"> & {
   initialValue: string;
   resetKey: string;
   handleEmptyStateChange: (isEmpty: boolean) => void;
+  handleUploadingChange: (uploading: boolean) => void;
 };
 
 function ReplyBodyInput({
@@ -161,6 +160,7 @@ function ReplyBodyInput({
   resetKey,
   disabled,
   handleEmptyStateChange,
+  handleUploadingChange,
 }: ReplyBodyInputProps) {
   return (
     <Controller<Form>
@@ -178,6 +178,7 @@ function ReplyBodyInput({
             disabled={disabled}
             value={value}
             inlineAttachments
+            onUploadingChange={handleUploadingChange}
           />
         );
       }}

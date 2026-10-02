@@ -1,26 +1,25 @@
-import { useId } from "react";
-
-import { match } from "ts-pattern";
 import { X } from "lucide-react";
+import { useId, useState } from "react";
+import { match } from "ts-pattern";
 
 import { LinkReference } from "@/api/openapi-schema";
-import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
 import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/CategoryTreeSelect";
+import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
+import { FileAttachmentBadge } from "@/components/post/FileAttachmentList";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { DEFAULT_NEW_THREAD_TAGS } from "@/components/thread/useAutoTagDetection";
-import { FileAttachmentBadge } from "@/components/post/FileAttachmentList";
 import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/button";
 import { ComposeField } from "@/components/ui/form/ComposeField";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
-import { Input } from "@/components/ui/input";
 import { SendIcon } from "@/components/ui/icons/Send";
+import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/rich-card";
-import { Box, CardBox, HStack, styled } from "@/styled-system/jsx";
-import { button } from "@/styled-system/recipes";
-import { lstack } from "@/styled-system/patterns";
 import { useTranslation } from "@/lib/i18n";
+import { Box, CardBox, HStack, styled } from "@/styled-system/jsx";
+import { lstack } from "@/styled-system/patterns";
+import { button } from "@/styled-system/recipes";
 import { getAssetURL } from "@/utils/asset";
 
 import { Props, useQuickShare } from "./useQuickShare";
@@ -28,6 +27,7 @@ import { Props, useQuickShare } from "./useQuickShare";
 export function QuickShare(props: Props) {
   const fileInputId = useId();
   const { isUploading, upload } = useAttachmentUpload();
+  const [isComposerUploading, setComposerUploading] = useState(false);
 
   const {
     form,
@@ -96,6 +96,7 @@ export function QuickShare(props: Props) {
             resetKey={resetKey}
             inlineAttachments
             onAssetUpload={handlers.handleComposerAssetUpload}
+            onUploadingChange={setComposerUploading}
           />
         </Box>
 
@@ -125,7 +126,12 @@ export function QuickShare(props: Props) {
               <SemesterSelect control={form.control} name="semester" />
             </Box>
 
-            <HStack gap="2" flexShrink="0" order={{ md: 3 }} ml={{ md: "auto" }}>
+            <HStack
+              gap="2"
+              flexShrink="0"
+              order={{ md: 3 }}
+              ml={{ md: "auto" }}
+            >
               <styled.label
                 className={button({ size: "sm", variant: "ghost" })}
                 htmlFor={fileInputId}
@@ -178,6 +184,7 @@ export function QuickShare(props: Props) {
                 type="submit"
                 size="sm"
                 variant="subtle"
+                disabled={isUploading || isComposerUploading}
                 loading={form.formState.isSubmitting}
               >
                 {t.feed.share}

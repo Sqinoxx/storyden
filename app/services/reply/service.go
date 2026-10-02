@@ -5,6 +5,8 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/Southclaws/fault"
+	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/opt"
 	"go.uber.org/fx"
 
@@ -85,6 +87,21 @@ func New(
 		systemReporter: systemReporter,
 		assetLink:      assetLink,
 	}
+}
+
+func (s *Mutator) resolveExplicitAssets(ctx context.Context, partial Partial) (Partial, error) {
+	ids, ok := partial.Assets.Get()
+	if !ok {
+		return partial, nil
+	}
+
+	existing, err := s.assetLink.Existing(ctx, ids)
+	if err != nil {
+		return partial, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	partial.Assets = opt.New(existing)
+	return partial, nil
 }
 
 // appendDerivedAssetOpts appends an additive asset-linking option derived

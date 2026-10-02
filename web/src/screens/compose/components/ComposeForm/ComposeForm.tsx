@@ -2,27 +2,29 @@
 
 import { FormProvider } from "react-hook-form";
 
+import { AssetUploadAction } from "@/components/asset/AssetUploadAction";
 import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/CategoryTreeSelect";
 import { ContentDragOverlay } from "@/components/content/ContentDragOverlay";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { DEFAULT_NEW_THREAD_TAGS } from "@/components/thread/useAutoTagDetection";
 import { Button } from "@/components/ui/button";
-import { Box, CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
 import { useTranslation } from "@/lib/i18n";
+import { Box, CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
 import { getCleanFilename } from "@/utils/asset";
 
 import { BodyInput } from "../BodyInput/BodyInput";
 import { TitleInput } from "../TitleInput/TitleInput";
 
-import { Props, useComposeForm } from "./useComposeForm";
 import { useCardDragDrop } from "./useCardDragDrop";
-
-import { AssetUploadAction } from "@/components/asset/AssetUploadAction";
+import { Props, useComposeForm } from "./useComposeForm";
 
 export function ComposeForm(props: Props) {
   const { form, state, handlers } = useComposeForm(props);
-  const cardDragDrop = useCardDragDrop(handlers.handleAttach);
+  const cardDragDrop = useCardDragDrop(
+    handlers.handleAttach,
+    handlers.handleUploadingChange,
+  );
   const t = useTranslation();
 
   return (
@@ -95,11 +97,20 @@ export function ComposeForm(props: Props) {
                 </HStack>
               </HStack>
 
-              <HStack flexShrink={0} gap="2" justifyContent={{ base: "flex-end", md: "flex-start" }} width={{ base: "full", md: "auto" }}>
+              <HStack
+                flexShrink={0}
+                gap="2"
+                justifyContent={{ base: "flex-end", md: "flex-start" }}
+                width={{ base: "full", md: "auto" }}
+              >
                 <Button
                   variant="ghost"
                   size="xs"
-                  disabled={!form.formState.isValid || state.isSavingDraft}
+                  disabled={
+                    !form.formState.isValid ||
+                    state.isSavingDraft ||
+                    state.isUploading
+                  }
                   onClick={handlers.handleSaveDraft}
                   loading={state.isSavingDraft}
                 >
@@ -110,7 +121,11 @@ export function ComposeForm(props: Props) {
                   variant="subtle"
                   size="xs"
                   type="submit"
-                  disabled={!form.formState.isValid || state.isPublishing}
+                  disabled={
+                    !form.formState.isValid ||
+                    state.isPublishing ||
+                    state.isUploading
+                  }
                   loading={state.isPublishing}
                 >
                   {t.editor.post}
@@ -138,12 +153,20 @@ export function ComposeForm(props: Props) {
             onDragLeave={cardDragDrop.handlers.handleDragLeave}
             onDrop={cardDragDrop.handlers.handleDrop}
           >
-            <Box w="full" pb="3" borderBottomWidth="thin" borderColor="border.subtle">
+            <Box
+              w="full"
+              pb="3"
+              borderBottomWidth="thin"
+              borderColor="border.subtle"
+            >
               <TitleInput />
             </Box>
 
             <Box w="full" flex="1">
-              <BodyInput onAssetUpload={handlers.handleAttach} />
+              <BodyInput
+                onAssetUpload={handlers.handleAttach}
+                onUploadingChange={handlers.handleUploadingChange}
+              />
             </Box>
 
             {/* Footer row inside Box 2: Attachments & Bottom-Right "Datei anhängen" button */}
@@ -184,17 +207,23 @@ export function ComposeForm(props: Props) {
                 ))}
               </HStack>
 
-              <Box ml="auto">
+              <HStack ml="auto" gap="2">
+                {state.isUploading && (
+                  <styled.span fontSize="xs" color="fg.muted">
+                    {t.toasts.uploading}
+                  </styled.span>
+                )}
                 <AssetUploadAction
                   title="Datei anhängen"
                   operation="add"
                   onFinish={handlers.handleAttach}
+                  onUploadingChange={handlers.handleUploadingChange}
                 >
                   <Button type="button" variant="outline" size="xs">
                     Datei anhängen
                   </Button>
                 </AssetUploadAction>
-              </Box>
+              </HStack>
             </WStack>
 
             {cardDragDrop.isDragging && (

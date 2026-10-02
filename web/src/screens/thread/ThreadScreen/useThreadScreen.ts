@@ -76,6 +76,7 @@ export function useThreadScreen({
   const [isEmpty, setEmpty] = useState(
     !thread.body || thread.body.trim().length === 0,
   );
+  const [isUploading, setUploading] = useState(false);
   const [attachments, setAttachments] = useState<Asset[]>(() =>
     extractDocumentAssetsFromThread(thread),
   );
@@ -446,6 +447,7 @@ export function useThreadScreen({
     ready: true as const,
     isEditing: editing,
     isEmpty,
+    isUploading,
     resetKey,
     attachments,
     form,
@@ -459,6 +461,7 @@ export function useThreadScreen({
       handleEditing,
       handleEmptyStateChange,
       handleAssetUpload,
+      handleUploadingChange: setUploading,
       handleRemoveAsset,
       handleDiscardChanges,
       handleSave,

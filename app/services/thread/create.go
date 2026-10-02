@@ -46,6 +46,11 @@ func (s *service) Create(ctx context.Context,
 		partial.Content = opt.New(stable.Content)
 	}
 
+	partial, err := s.resolveExplicitAssets(ctx, partial)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	opts := partial.Opts()
 	opts = append(opts,
 		thread_writer.WithMeta(meta),

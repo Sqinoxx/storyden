@@ -50,6 +50,7 @@ export function ThreadScreen(props: Props) {
     form,
     isEditing,
     isEmpty,
+    isUploading,
     resetKey,
     attachments,
     isModerator,
@@ -92,7 +93,7 @@ export function ThreadScreen(props: Props) {
                   >
                     {t.common.discard}
                   </CancelAction>
-                  <SaveAction type="submit" disabled={isEmpty}>
+                  <SaveAction type="submit" disabled={isEmpty || isUploading}>
                     {t.common.save}
                   </SaveAction>
                 </>
@@ -165,6 +166,7 @@ export function ThreadScreen(props: Props) {
             disabled={!isEditing}
             handleEmptyStateChange={handlers.handleEmptyStateChange}
             handleAssetUpload={handlers.handleAssetUpload}
+            handleUploadingChange={handlers.handleUploadingChange}
           />
 
           {((isEditing && attachments.length > 0) || (thread.assets && thread.assets.length > 0)) && (
@@ -261,6 +263,7 @@ type ThreadBodyInputProps = Omit<ControllerProps<Form, "body">, "render"> & {
   resetKey: string;
   handleEmptyStateChange: (isEmpty: boolean) => void;
   handleAssetUpload: (asset: Asset) => void;
+  handleUploadingChange: (uploading: boolean) => void;
 };
 
 function ThreadBodyInput({
@@ -271,6 +274,7 @@ function ThreadBodyInput({
   disabled,
   handleEmptyStateChange,
   handleAssetUpload,
+  handleUploadingChange,
 }: ThreadBodyInputProps) {
   return (
     <Controller<Form, "body">
@@ -288,6 +292,7 @@ function ThreadBodyInput({
             resetKey={resetKey}
             disabled={disabled}
             onAssetUpload={handleAssetUpload}
+            onUploadingChange={handleUploadingChange}
           />
         );
       }}

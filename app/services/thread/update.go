@@ -79,6 +79,11 @@ func (s *service) Update(ctx context.Context, threadID post.ID, partial Partial)
 		partial.Meta = opt.New(merged)
 	}
 
+	partial, err = s.resolveExplicitAssets(ctx, partial)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	oldVisibility := thr.Visibility
 	opts := partial.Opts()
 	opts = s.appendDerivedAssetOpts(ctx, opts, partial)

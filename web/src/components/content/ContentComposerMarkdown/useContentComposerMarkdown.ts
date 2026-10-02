@@ -31,6 +31,13 @@ export function useContentComposerMarkdown(props: ContentComposerProps) {
   const dragCounterRef = useRef(0);
   const uniqueID = useId();
 
+  const onUploadingChangeRef = useRef(props.onUploadingChange);
+  onUploadingChangeRef.current = props.onUploadingChange;
+  const isUploading = uploadingCount > 0;
+  useEffect(() => {
+    onUploadingChangeRef.current?.(isUploading);
+  }, [isUploading]);
+
   useEffect(() => {
     if (props.resetKey) {
       setValue("");

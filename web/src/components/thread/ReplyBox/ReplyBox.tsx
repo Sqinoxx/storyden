@@ -1,13 +1,13 @@
 "use client";
 
-import { useId } from "react";
 import Link from "next/link";
+import { useId, useState } from "react";
 import { Controller, ControllerProps } from "react-hook-form";
 
-import { Anchor } from "@/components/site/Anchor";
-import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
 import { ContentComposer } from "@/components/content/ContentComposer/ContentComposer";
+import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
 import { MemberIdent } from "@/components/member/MemberBadge/MemberIdent";
+import { Anchor } from "@/components/site/Anchor";
 import { Admonition } from "@/components/ui/admonition";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
@@ -16,7 +16,14 @@ import { DiscussionIcon } from "@/components/ui/icons/Discussion";
 import { useLanguage, useTranslation } from "@/lib/i18n";
 import { usePublicRegistration } from "@/lib/settings/registration";
 import { css } from "@/styled-system/css";
-import { Box, HStack, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
+import {
+  Box,
+  HStack,
+  LStack,
+  VStack,
+  WStack,
+  styled,
+} from "@/styled-system/jsx";
 import { CardBox } from "@/styled-system/patterns";
 import { button } from "@/styled-system/recipes";
 import { getAssetURL } from "@/utils/asset";
@@ -32,6 +39,7 @@ export function ReplyBox(props: Props) {
   const t = useTranslation();
   const { language } = useLanguage();
   const { isUploading, upload } = useAttachmentUpload();
+  const [isComposerUploading, setComposerUploading] = useState(false);
   const {
     isLoggedIn,
     isEmpty,
@@ -89,7 +97,13 @@ export function ReplyBox(props: Props) {
         onSubmit={handlers.handleSubmit}
       >
         {replyTo && (
-          <WStack py="1.5" px="3" borderRadius="md" bgColor="bg.muted" justifyContent="space-between">
+          <WStack
+            py="1.5"
+            px="3"
+            borderRadius="md"
+            bgColor="bg.muted"
+            justifyContent="space-between"
+          >
             <HStack gap="1" fontSize="sm" color="fg.muted">
               <styled.span>{t.thread.replyingTo}</styled.span>
               <MemberIdent
@@ -128,16 +142,12 @@ export function ReplyBox(props: Props) {
             name="body"
             control={form.control}
             handleEmptyStateChange={handlers.handleEmptyStateChange}
+            handleUploadingChange={setComposerUploading}
             resetKey={resetKey}
           />
         </Box>
 
-        <WStack
-          w="full"
-          pt="2"
-          justifyContent="flex-end"
-          alignItems="center"
-        >
+        <WStack w="full" pt="2" justifyContent="flex-end" alignItems="center">
           <HStack gap="2">
             <styled.label
               className={button({ size: "sm", variant: "ghost" })}
@@ -174,6 +184,10 @@ export function ReplyBox(props: Props) {
                     shouldDirty: true,
                   });
                 }
+
+                if (uploaded.length > 0) {
+                  handlers.handleEmptyStateChange(false);
+                }
               }}
             />
 
@@ -181,7 +195,9 @@ export function ReplyBox(props: Props) {
               type="submit"
               size="sm"
               variant="subtle"
-              disabled={isLoading || isEmpty}
+              disabled={
+                isLoading || isEmpty || isUploading || isComposerUploading
+              }
               loading={isLoading}
             >
               {t.thread.replyPost}
@@ -195,6 +211,7 @@ export function ReplyBox(props: Props) {
 
 type ReplyBodyInputProps = Omit<ControllerProps<Form>, "render"> & {
   handleEmptyStateChange: (isEmpty: boolean) => void;
+  handleUploadingChange: (uploading: boolean) => void;
   resetKey: string;
 };
 
@@ -202,6 +219,7 @@ function ReplyBodyInput({
   control,
   name,
   handleEmptyStateChange,
+  handleUploadingChange,
   resetKey,
 }: ReplyBodyInputProps) {
   return (
@@ -218,6 +236,7 @@ function ReplyBodyInput({
             resetKey={resetKey}
             value={value}
             inlineAttachments
+            onUploadingChange={handleUploadingChange}
           />
         );
       }}

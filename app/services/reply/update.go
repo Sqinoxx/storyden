@@ -64,6 +64,11 @@ func (s *Mutator) Update(ctx context.Context, replyID post.ID, partial Partial) 
 		}
 	}
 
+	partial, err = s.resolveExplicitAssets(ctx, partial)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	oldVisibility := p.Visibility
 	opts := partial.Opts()
 	opts = s.appendDerivedAssetOpts(ctx, opts, partial)

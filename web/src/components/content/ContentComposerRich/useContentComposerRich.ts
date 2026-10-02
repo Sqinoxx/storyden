@@ -9,6 +9,7 @@ import { EditorView } from "@tiptap/pm/view";
 import { Extension, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { ChangeEvent, useEffect, useId, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { Asset } from "@/api/openapi-schema";
 
@@ -31,6 +32,7 @@ import {
 import { LinkPasteMenuPlugin } from "./plugins/LinkPasteMenuPlugin";
 import { LinkPreview } from "./plugins/LinkPreviewPlugin";
 import { useTranslation } from "@/lib/i18n";
+import { useMaxUploadSizeBytes } from "@/lib/settings/uploads";
 
 
 /**
@@ -60,6 +62,8 @@ export function useContentComposer(props: ContentComposerProps) {
   // Reading callbacks through this ref keeps them pointed at the latest props.
   const propsRef = useRef(props);
   propsRef.current = props;
+  const maxUploadSizeBytesRef = useRef(0);
+  maxUploadSizeBytesRef.current = useMaxUploadSizeBytes();
   const [uploadingCount, setUploadingCount] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isDragError, setIsDragError] = useState(false);
@@ -249,6 +253,11 @@ export function useContentComposer(props: ContentComposerProps) {
 
     editor.setEditable(!props.disabled, false);
   }, [editor, props.disabled]);
+
+  const isUploading = uploadingCount > 0;
+  useEffect(() => {
+    propsRef.current.onUploadingChange?.(isUploading);
+  }, [isUploading]);
 
   // Navigating away mid-upload otherwise leaves the XHRs running against a
   // composer that no longer exists, and leaks every placeholder's object URL for
@@ -480,6 +489,17 @@ export function useContentComposer(props: ContentComposerProps) {
     }
 
     const assets: Asset[] = [];
+
+    const maxBytes = maxUploadSizeBytesRef.current;
+    const oversized = files.filter((f) => f.size > maxBytes);
+    if (oversized.length > 0) {
+      const limit = t.upload.tooLarge.replace(
+        "{size}",
+        String(Math.floor(maxBytes / 1024 / 1024)),
+      );
+      oversized.forEach((f) => toast.error(`${f.name}: ${limit}`));
+      files = files.filter((f) => f.size <= maxBytes);
+    }
 
     // Advances past each placeholder as it is inserted. Reusing the original
     // offset for every file would stack them all at the same point, so a

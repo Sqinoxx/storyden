@@ -10,9 +10,13 @@ import { useBodyInput } from "./useBodyInput";
 
 type Props = {
   onAssetUpload: (asset: Asset) => void;
+  onUploadingChange: (uploading: boolean) => void;
 };
 
-export function BodyInput({ onAssetUpload }: PropsWithChildren<Props>) {
+export function BodyInput({
+  onAssetUpload,
+  onUploadingChange,
+}: PropsWithChildren<Props>) {
   const { control } = useBodyInput();
 
   return (
@@ -22,6 +26,7 @@ export function BodyInput({ onAssetUpload }: PropsWithChildren<Props>) {
           <ContentComposer
             onChange={field.onChange}
             onAssetUpload={onAssetUpload}
+            onUploadingChange={onUploadingChange}
             initialValue={formState.defaultValues?.["body"]}
             value={field.value}
             fillHeight

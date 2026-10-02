@@ -105,7 +105,7 @@ export function ContentComposerMarkdown(props: ContentComposerProps) {
         <label
           className={button({ size: "xs", variant: "ghost" })}
           htmlFor={`md-filepicker-${uniqueID}`}
-          title={t.editor.uploadFile}
+          title={t.editor.uploadFileHint}
         >
           📎 {t.editor.uploadFile}
         </label>

@@ -497,6 +497,7 @@ export const de: Translations = {
     saveDraft: "Entwurf speichern",
     post: "Veröffentlichen",
     uploadFile: "Datei hochladen",
+    uploadFileHint: "Datei hochladen – zu große Dateien bitte auf Google Drive hochladen und den Link teilen",
   },
   feed: {
     empty: "*Grille* es gibt hier noch keine Beiträge...",
@@ -856,7 +857,7 @@ export const de: Translations = {
     dropOneFile: "1 Datei zum Hochladen ablegen",
     dropFiles: "{count} Dateien zum Hochladen ablegen",
     unsupportedType: "Dateityp wird nicht unterstützt",
-    tooLarge: "Die Datei überschreitet das Upload-Limit von {size} MB.",
+    tooLarge: "Die Datei überschreitet das Upload-Limit von {size} MB. Bitte lade große Dateien auf Google Drive hoch und teile den Link.",
     invalidFile: "Ungültige Datei.",
     invalidType: "Erlaubte Dateitypen: {types}",
     tooSmall: "Die Datei ist zu klein.",

@@ -495,6 +495,7 @@ export const en = {
     saveDraft: "Save draft",
     post: "Post",
     uploadFile: "Upload file",
+    uploadFileHint: "Upload file – please upload large files to Google Drive and share the link",
   },
   feed: {
     empty: "*tumbleweed* there are no posts...",
@@ -853,7 +854,7 @@ export const en = {
     dropOneFile: "Drop 1 file to upload",
     dropFiles: "Drop {count} files to upload",
     unsupportedType: "File type not supported",
-    tooLarge: "File is larger than the {size}MB upload limit.",
+    tooLarge: "File is larger than the {size}MB upload limit. Please upload large files to Google Drive and share the link.",
     invalidFile: "Invalid file.",
     invalidType: "File must be of type {types}",
     tooSmall: "File is too small.",

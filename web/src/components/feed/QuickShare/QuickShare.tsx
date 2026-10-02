@@ -135,7 +135,7 @@ export function QuickShare(props: Props) {
               <styled.label
                 className={button({ size: "sm", variant: "ghost" })}
                 htmlFor={fileInputId}
-                title={t.editor.uploadFile}
+                title={t.editor.uploadFileHint}
                 aria-disabled={isUploading}
                 opacity={isUploading ? "5" : "full"}
                 pointerEvents={isUploading ? "none" : "auto"}

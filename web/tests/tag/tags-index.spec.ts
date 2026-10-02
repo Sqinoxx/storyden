@@ -84,7 +84,7 @@ test.describe("Tags index", () => {
       for (const [title, category] of [
         [alpha, first.id],
         [beta, second.id],
-      ]) {
+      ] as const) {
         await threadCreate({
           title,
           body: `<p>${title}</p>`,

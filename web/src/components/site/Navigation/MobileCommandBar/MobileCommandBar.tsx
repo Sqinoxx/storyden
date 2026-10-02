@@ -7,13 +7,13 @@ import { MenuIcon } from "@/components/ui/icons/Menu";
 import { SiteIcon } from "@/components/ui/icons/Site";
 import { WStack } from "@/styled-system/jsx";
 
-import { Search } from "../../../search/Search/Search";
 import { CloseAction } from "../../Action/Close";
 import { AccountMenu } from "../AccountMenu/AccountMenu";
 import { ComposeAnchor } from "../Anchors/Compose";
 import { HomeAnchor } from "../Anchors/Home";
 import { LibraryAnchor } from "../Anchors/Library";
 import { LoginAnchor } from "../Anchors/Login";
+import { SearchAnchor } from "../Anchors/Search";
 import { ContentNavigationList } from "../ContentNavigationList/ContentNavigationList";
 
 import { useMobileCommandBar } from "./useMobileCommandBar";
@@ -59,7 +59,7 @@ export function MobileCommandBar({ canRegister }: Props) {
             ) : (
               <SiteIcon borderRadius="md" w="8" h="8" />
             )}
-            {account && <Search />}
+            {account && <LibraryAnchor hideLabel size="sm" />}
             <CloseAction onClick={onClose} size="sm" />
           </>
         ) : (
@@ -81,7 +81,7 @@ export function MobileCommandBar({ canRegister }: Props) {
             ) : (
               <LoginAnchor />
             )}
-            <LibraryAnchor hideLabel size="sm" />
+            <SearchAnchor hideLabel size="sm" />
             {account && <ExpandTrigger onClick={onExpand} />}
           </>
         )}

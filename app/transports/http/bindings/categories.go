@@ -11,9 +11,7 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/cachecontrol"
 	"github.com/Southclaws/storyden/app/resources/post/category"
-	"github.com/Southclaws/storyden/app/resources/post/category_cache"
 	category_svc "github.com/Southclaws/storyden/app/services/category"
-	"github.com/Southclaws/storyden/app/services/reqinfo"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 	"github.com/Southclaws/storyden/internal/deletable"
 )
@@ -21,15 +19,13 @@ import (
 type Categories struct {
 	category_repo  *category.Repository
 	category_svc   category_svc.Service
-	category_cache *category_cache.Cache
 }
 
 func NewCategories(
 	category_repo *category.Repository,
 	category_svc category_svc.Service,
-	category_cache *category_cache.Cache,
 ) Categories {
-	return Categories{category_repo, category_svc, category_cache}
+	return Categories{category_repo, category_svc}
 }
 
 func (c Categories) CategoryCreate(ctx context.Context, request openapi.CategoryCreateRequestObject) (openapi.CategoryCreateResponseObject, error) {
@@ -75,30 +71,12 @@ func (c Categories) CategoryList(ctx context.Context, request openapi.CategoryLi
 	}, nil
 }
 
-const categoryGetCacheControl = "public, no-cache"
+const categoryGetCacheControl = "no-store"
 
 func (c Categories) CategoryGet(ctx context.Context, request openapi.CategoryGetRequestObject) (openapi.CategoryGetResponseObject, error) {
-	slug := string(request.CategorySlug)
-
-	etag, notModified := c.category_cache.Check(ctx, reqinfo.GetCacheQuery(ctx), slug)
-	if notModified {
-		return openapi.CategoryGet304Response{
-			Headers: openapi.NotModifiedResponseHeaders{
-				CacheControl: categoryGetCacheControl,
-				LastModified: cachecontrol.HTTPDate(etag.Time),
-				ETag:         etag.String(),
-			},
-		}, nil
-	}
-
 	cat, err := c.category_repo.Get(ctx, request.CategorySlug)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
-	}
-
-	if etag == nil {
-		c.category_cache.Store(ctx, slug, cat.UpdatedAt)
-		etag = cachecontrol.NewETag(cat.UpdatedAt)
 	}
 
 	return openapi.CategoryGet200JSONResponse{
@@ -106,8 +84,7 @@ func (c Categories) CategoryGet(ctx context.Context, request openapi.CategoryGet
 			Body: serialiseCategory(cat),
 			Headers: openapi.CategoryGetOKResponseHeaders{
 				CacheControl: categoryGetCacheControl,
-				LastModified: cachecontrol.HTTPDate(etag.Time),
-				ETag:         etag.String(),
+				LastModified: cachecontrol.HTTPDate(cat.UpdatedAt),
 			},
 		},
 	}, nil

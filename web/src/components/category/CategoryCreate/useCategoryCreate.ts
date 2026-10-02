@@ -1,16 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { mutate } from "swr";
 import { z } from "zod";
 
-import {
-  categoryCreate,
-  getCategoryListKey,
-} from "@/api/openapi-client/categories";
+import { categoryCreate } from "@/api/openapi-client/categories";
 import { Asset } from "@/api/openapi-schema";
 import { UseDisclosureProps } from "@/utils/useDisclosure";
 
 import { handle } from "@/api/client";
+import { useCategoryMutations } from "@/lib/category/mutation";
 import { isSlug } from "@/utils/slugify";
 
 export const FormSchema = z.object({
@@ -31,6 +28,7 @@ export interface CategoryCreateProps extends UseDisclosureProps {
 }
 
 export function useCategoryCreate(props: CategoryCreateProps) {
+  const { revalidateList } = useCategoryMutations();
   const { register, handleSubmit, control, setValue, formState } = useForm<Form>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -43,7 +41,7 @@ export function useCategoryCreate(props: CategoryCreateProps) {
     await handle(async () => {
       await categoryCreate(data);
       props.onClose?.();
-      mutate(getCategoryListKey());
+      await revalidateList();
     });
   });
 

@@ -26,6 +26,8 @@ export function AssetUploadEditor(props: AssetUploadEditorProps) {
     onPositionChange,
     onFileChange,
     onSave,
+    onRemove,
+    canRemove,
     saving,
     file,
   } = useAssetUploadEditor(props);
@@ -98,13 +100,26 @@ export function AssetUploadEditor(props: AssetUploadEditorProps) {
           >
             {t.common.edit}
           </styled.label>
+          {canRemove && (
+            <Button
+              type="button"
+              flexGrow="1"
+              variant="ghost"
+              borderRadius="none"
+              onClick={onRemove}
+              disabled={saving}
+            >
+              {t.common.remove}
+            </Button>
+          )}
           <Button
+            type="button"
             flexGrow="1"
             borderLeftRadius="none"
             borderTopRadius="none"
             borderRadius="xl"
             onClick={onSave}
-            disabled={saving}
+            disabled={saving || !file}
           >
             {t.common.save}
           </Button>

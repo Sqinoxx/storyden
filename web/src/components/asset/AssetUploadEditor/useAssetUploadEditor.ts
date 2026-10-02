@@ -11,6 +11,7 @@ import { getAssetURL } from "@/utils/asset";
 export type Props = {
   value?: Asset;
   onUpload: (asset: Asset) => void;
+  onRemove?: () => void;
 };
 
 export function useAssetUploadEditor(props: Props) {
@@ -86,8 +87,13 @@ export function useAssetUploadEditor(props: Props) {
     setTempFile(file);
   }
 
+  function onRemove() {
+    setTempFile(null);
+    props.onRemove?.();
+  }
+
   function onSave() {
-    if (!ref || !ref.current) {
+    if (!file || !ref || !ref.current) {
       return;
     }
 
@@ -128,6 +134,8 @@ export function useAssetUploadEditor(props: Props) {
     onPositionChange,
     onFileChange,
     onSave,
+    onRemove,
+    canRemove: Boolean(props.onRemove && file),
     saving,
     file,
   };

@@ -85,12 +85,17 @@ export function useCategoryEdit(props: Props) {
     form.setValue("cover_image", asset);
   }
 
+  function handleImageRemove() {
+    form.setValue("cover_image", null);
+  }
+
   return {
     form,
     handlers: {
       handleSubmit,
       handleCancel,
       handleImageUpload,
+      handleImageRemove,
     },
   };
 }

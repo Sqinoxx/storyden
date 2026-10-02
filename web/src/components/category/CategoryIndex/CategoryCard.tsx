@@ -46,10 +46,14 @@ export function CategoryCard({ category, showChildren }: CategoryCardProps) {
       overflow="hidden"
     >
       {coverImageURL && (
-        <img
+        <styled.img
           src={coverImageURL}
           alt="" // No alt image, decorative
           aria-hidden="true"
+          w="full"
+          aspectRatio="[4/1]"
+          objectFit="cover"
+          flexShrink="0"
         />
       )}
 

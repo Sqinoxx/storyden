@@ -47,6 +47,7 @@ export function CategoryEditModal(props: Props) {
               height={CATEGORY_COVER_HEIGHT}
               value={form.watch("cover_image") || undefined}
               onUpload={handlers.handleImageUpload}
+              onRemove={handlers.handleImageRemove}
             />
             <FormFeedback error={form.formState.errors["cover_image"]?.message}>
               {t.category.coverImageHelper}

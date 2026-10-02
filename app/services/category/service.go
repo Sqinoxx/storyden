@@ -188,6 +188,11 @@ func (s *service) Move(ctx context.Context, slug string, move Move) ([]*category
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	existing, err := s.category_repo.Get(ctx, slug)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	parentOpt, deleteParent := move.Parent.Get()
 	parentProvided := deleteParent
 	var parentID *category.CategoryID
@@ -222,6 +227,16 @@ func (s *service) Move(ctx context.Context, slug string, move Move) ([]*category
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	affectedParents := []*category.CategoryID{existing.ParentID, parentID}
+	for _, pid := range affectedParents {
+		if pid == nil {
+			continue
+		}
+		if err := s.invalidateByID(ctx, *pid); err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+	}
+
 	s.bus.Publish(ctx, &rpc.EventCategoryUpdated{Slug: slug})
 
 	return cats, nil
@@ -233,7 +248,26 @@ func (s *service) Delete(ctx context.Context, slug string, moveToID category.Cat
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if cat.ParentID != nil {
+		if err := s.invalidateByID(ctx, *cat.ParentID); err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+	}
+
+	if err := s.invalidateByID(ctx, moveToID); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	s.bus.Publish(ctx, &rpc.EventCategoryDeleted{Slug: slug})
 
 	return cat, nil
+}
+
+func (s *service) invalidateByID(ctx context.Context, id category.CategoryID) error {
+	slug, err := s.category_repo.GetSlug(ctx, id)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return s.cache.Invalidate(ctx, slug)
 }

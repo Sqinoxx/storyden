@@ -45,6 +45,9 @@ func Test(t *testing.T, cfg *config.Config, o ...fx.Option) {
 		RateLimitBucket:  time.Minute,
 		EmailProvider:    "mock",
 		PluginDataPath:   makePerTestPluginDataPath(t.Name()),
+
+		LoginMaxAttempts:     5,
+		LoginLockoutDuration: 15 * time.Minute,
 	}
 
 	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {

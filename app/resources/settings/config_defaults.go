@@ -52,30 +52,8 @@ func (d *SettingsRepository) hydrateClientIPDefaults(settings *Settings) {
 }
 
 func (d *SettingsRepository) hydrateRateLimitDefaults(settings *Settings) {
-	services, ok := settings.Services.Get()
-	if !ok {
-		settings.Services = opt.New(ServiceSettings{
-			RateLimit: opt.New(RateLimitServiceSettings{
-				RateLimit:          opt.New(d.config.RateLimit),
-				RateLimitPeriod:    opt.New(d.config.RateLimitPeriod),
-				RateLimitBucket:    opt.New(d.config.RateLimitBucket),
-				RateLimitGuestCost: opt.New(d.config.RateLimitGuestCost),
-			}),
-		})
-		return
-	}
-
-	rateLimit, ok := services.RateLimit.Get()
-	if !ok {
-		services.RateLimit = opt.New(RateLimitServiceSettings{
-			RateLimit:          opt.New(d.config.RateLimit),
-			RateLimitPeriod:    opt.New(d.config.RateLimitPeriod),
-			RateLimitBucket:    opt.New(d.config.RateLimitBucket),
-			RateLimitGuestCost: opt.New(d.config.RateLimitGuestCost),
-		})
-		settings.Services = opt.New(services)
-		return
-	}
+	services := settings.Services.OrZero()
+	rateLimit := services.RateLimit.OrZero()
 
 	if !rateLimit.RateLimit.Ok() {
 		rateLimit.RateLimit = opt.New(d.config.RateLimit)
@@ -91,6 +69,14 @@ func (d *SettingsRepository) hydrateRateLimitDefaults(settings *Settings) {
 
 	if !rateLimit.RateLimitGuestCost.Ok() {
 		rateLimit.RateLimitGuestCost = opt.New(d.config.RateLimitGuestCost)
+	}
+
+	if !rateLimit.LoginMaxAttempts.Ok() {
+		rateLimit.LoginMaxAttempts = opt.New(d.config.LoginMaxAttempts)
+	}
+
+	if !rateLimit.LoginLockoutDuration.Ok() {
+		rateLimit.LoginLockoutDuration = opt.New(d.config.LoginLockoutDuration)
 	}
 
 	services.RateLimit = opt.New(rateLimit)

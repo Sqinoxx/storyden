@@ -16,6 +16,8 @@ export const DEFAULT_RATE_LIMIT = 5000;
 export const DEFAULT_RATE_LIMIT_PERIOD = 3600;
 export const DEFAULT_RATE_LIMIT_BUCKET = 60;
 export const DEFAULT_RATE_LIMIT_GUEST_COST = 1;
+export const DEFAULT_LOGIN_MAX_ATTEMPTS = 5;
+export const DEFAULT_LOGIN_LOCKOUT_DURATION = 900;
 export const DEFAULT_CLIENT_IP_MODE = "remote_addr";
 export const DEFAULT_CLIENT_IP_HEADER = "X-Real-IP";
 
@@ -32,6 +34,11 @@ export const FormSchema = z.object({
   rate_limit_bucket: z.number().default(DEFAULT_RATE_LIMIT_BUCKET),
   rate_limit_guest_cost: z.number().default(DEFAULT_RATE_LIMIT_GUEST_COST),
   cost_overrides: z.record(z.string(), z.number()).default({}),
+  login_max_attempts: z.number().min(1).default(DEFAULT_LOGIN_MAX_ATTEMPTS),
+  login_lockout_duration: z
+    .number()
+    .min(60)
+    .default(DEFAULT_LOGIN_LOCKOUT_DURATION),
   client_ip_mode: z
     .enum(["remote_addr", "single_header", "xff_trusted_proxies"])
     .default("remote_addr"),
@@ -87,6 +94,12 @@ export function useSystemSettings({ settings }: Props) {
         settings.services?.rate_limiting?.rate_limit_guest_cost ??
         DEFAULT_RATE_LIMIT_GUEST_COST,
       cost_overrides: settings.services?.rate_limiting?.cost_overrides ?? {},
+      login_max_attempts:
+        settings.services?.rate_limiting?.login_max_attempts ??
+        DEFAULT_LOGIN_MAX_ATTEMPTS,
+      login_lockout_duration:
+        settings.services?.rate_limiting?.login_lockout_duration ??
+        DEFAULT_LOGIN_LOCKOUT_DURATION,
       client_ip_mode:
         settings.services?.client_ip?.client_ip_mode ?? DEFAULT_CLIENT_IP_MODE,
       client_ip_header:
@@ -113,6 +126,8 @@ export function useSystemSettings({ settings }: Props) {
               rate_limit_period: data.rate_limit_period,
               rate_limit_guest_cost: data.rate_limit_guest_cost,
               cost_overrides: data.cost_overrides,
+              login_max_attempts: data.login_max_attempts,
+              login_lockout_duration: data.login_lockout_duration,
             },
             client_ip: clientIP,
           },

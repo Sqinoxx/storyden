@@ -8320,6 +8320,25 @@ components:
             type: integer
             description: The cost value for the corresponding action.
 
+        login_max_attempts:
+          type: integer
+          minimum: 1
+          description: |
+            Number of failed password logins against the same email address or
+            handle before that credential is locked out. This is independent of
+            the per-IP rate limit, so it also slows down attempts spread across
+            many IP addresses.
+
+        login_lockout_duration:
+          type: integer
+          minimum: 1
+          description: |
+            How long a credential stays locked out after its last failed login
+            once `login_max_attempts` is reached, in seconds. Failed attempts
+            are also forgotten after this long without a new one.
+
+            For example: 900 = 15 minutes, 3600 = 1 hour.
+
     ModerationServiceSettings:
       type: object
       properties:

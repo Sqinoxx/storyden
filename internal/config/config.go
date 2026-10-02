@@ -166,6 +166,21 @@ type Config struct {
 	   budget, effectively allowing guests ~1/5th the throughput of authenticated users.
 	*/
 	RateLimitGuestCost int `default:"1" envconfig:"RATE_LIMIT_GUEST_COST"`
+	/*
+	   Number of failed password logins against the same email address or handle before
+	   that credential is locked out, independent of the per-IP `RATE_LIMIT`.
+
+	   Can also be changed at runtime in the System Settings screen.
+	*/
+	LoginMaxAttempts int `default:"5" envconfig:"LOGIN_MAX_ATTEMPTS"`
+	/*
+	   How long a credential stays locked out after its last failed login once
+	   `LOGIN_MAX_ATTEMPTS` is reached. Failed attempts are also forgotten after this long
+	   without a new one.
+
+	   Can also be changed at runtime in the System Settings screen.
+	*/
+	LoginLockoutDuration time.Duration `default:"15m" envconfig:"LOGIN_LOCKOUT_DURATION"`
 
 	// -
 	// Telemetry and monitoring

@@ -13,7 +13,7 @@ import { DriveAnchor, useHasDriveFolders } from "../Anchors/Drive";
 import { LinksAnchor } from "../Anchors/Link";
 import { MembersAnchor } from "../Anchors/Members";
 import { RolesAnchor } from "../Anchors/Roles";
-import { TagsAnchor } from "../Anchors/Tags";
+import { TagManagementAnchor, TagsAnchor } from "../Anchors/Tags";
 import { DraftsSidebarSection } from "../DraftsSidebarSection/DraftsSidebarSection";
 import { LibraryNavigationTree } from "../LibraryNavigationTree/LibraryNavigationTree";
 import { useNavigation } from "../useNavigation";
@@ -76,13 +76,14 @@ export function ContentNavigationList(props: Props) {
 
       <LStack gap="1">
         <CollectionsAnchor />
+        {session && <TagsAnchor />}
         {hasDriveFolders && <DriveAnchor />}
         {isAdmin && <LinksAnchor />}
         {isStaff && (
           <>
             <MembersAnchor />
             <RolesAnchor />
-            <TagsAnchor />
+            <TagManagementAnchor />
           </>
         )}
       </LStack>

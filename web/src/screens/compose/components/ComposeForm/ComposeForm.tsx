@@ -6,6 +6,7 @@ import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/Cat
 import { ContentDragOverlay } from "@/components/content/ContentDragOverlay";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
+import { DEFAULT_NEW_THREAD_TAGS } from "@/components/thread/useAutoTagDetection";
 import { Button } from "@/components/ui/button";
 import { Box, CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
 import { useTranslation } from "@/lib/i18n";
@@ -85,6 +86,9 @@ export function ComposeForm(props: Props) {
                       control={form.control}
                       initialTags={props.initialDraft?.tags}
                       attachments={state.attachments}
+                      defaultTags={
+                        props.editing ? undefined : DEFAULT_NEW_THREAD_TAGS
+                      }
                       triggerProps={{ w: "full", minW: "0", maxW: "full" }}
                     />
                   </Box>

@@ -139,7 +139,6 @@ function Component(props: NodeViewProps) {
 }
 
 export const ImageExtended = Image.extend<ImageOptions & Options>({
-  content: "inline*",
   addOptions() {
     return {
       ...this.parent?.(),
@@ -221,7 +220,7 @@ export const ImageExtended = Image.extend<ImageOptions & Options>({
     ];
   },
   renderHTML({ HTMLAttributes }) {
-    return [COMPONENT_NAME, mergeAttributes(HTMLAttributes), 0];
+    return [COMPONENT_NAME, mergeAttributes(HTMLAttributes)];
   },
   addProseMirrorPlugins() {
     const handleFiles = this.options.handleFiles;

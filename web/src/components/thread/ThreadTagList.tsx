@@ -98,6 +98,9 @@ type TagListFieldProps<T extends FieldValues> = Omit<
   triggerProps?: ButtonProps;
   autoDetect?: boolean;
   attachments?: AttachmentItem[];
+  defaultTags?: string[];
+  categoryHint?: string;
+  resetKey?: string;
 };
 
 export function TagListField<T extends FieldValues>({
@@ -107,6 +110,9 @@ export function TagListField<T extends FieldValues>({
   triggerProps,
   autoDetect = true,
   attachments,
+  defaultTags,
+  categoryHint,
+  resetKey,
 }: TagListFieldProps<T>) {
   return (
     <Controller<T>
@@ -127,6 +133,9 @@ export function TagListField<T extends FieldValues>({
             triggerProps={triggerProps}
             autoDetect={autoDetect}
             attachments={attachments}
+            defaultTags={defaultTags}
+            categoryHint={categoryHint}
+            resetKey={resetKey}
           />
         );
       }}
@@ -144,6 +153,9 @@ function TagListFieldInternal<T extends FieldValues>({
   triggerProps,
   autoDetect = true,
   attachments,
+  defaultTags,
+  categoryHint,
+  resetKey,
 }: {
   control?: Control<T>;
   fieldValue: string[];
@@ -152,6 +164,9 @@ function TagListFieldInternal<T extends FieldValues>({
   triggerProps?: ButtonProps;
   autoDetect?: boolean;
   attachments?: AttachmentItem[];
+  defaultTags?: string[];
+  categoryHint?: string;
+  resetKey?: string;
 }) {
   useAutoTagDetection({
     control,
@@ -161,6 +176,9 @@ function TagListFieldInternal<T extends FieldValues>({
     },
     enabled: autoDetect,
     attachments,
+    defaultTags,
+    categoryHint,
+    resetKey,
   });
 
   return (

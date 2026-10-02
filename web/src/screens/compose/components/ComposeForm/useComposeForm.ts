@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -51,9 +51,21 @@ export function useComposeForm({ initialDraft, editing }: Props) {
 
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
-  const [attachments, setAttachments] = useState<Asset[]>(
-  initialDraft?.assets ?? [],
-);
+  const [attachments, setAttachmentsState] = useState<Asset[]>(
+    initialDraft?.assets ?? [],
+  );
+
+  // The rich editor calls back into handleAttach from long-lived closures and
+  // several uploads can finish back to back, so the list is read from a ref
+  // rather than whichever render's state the caller happened to capture.
+  const attachmentsRef = useRef(attachments);
+  const setAttachments = (next: Asset[]) => {
+    attachmentsRef.current = next;
+    setAttachmentsState(next);
+  };
+
+  const draftIdRef = useRef(editing);
+  const saveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
 
   const form = useForm<FormShape>({
     resolver: zodResolver(FormShapeSchema),
@@ -75,8 +87,21 @@ export function useComposeForm({ initialDraft, editing }: Props) {
     return term ? writeThreadSemesterMeta(initialDraft?.meta, term) : undefined;
   };
 
-  const saveDraft = async (data: FormShape, overrideAttachments?: Asset[]) => {
-    const activeAttachments = overrideAttachments ?? attachments;
+  // Serialised so concurrent uploads on a brand new post don't each create
+  // their own draft thread.
+  const saveDraft = (data: FormShape, overrideAttachments?: Asset[]) => {
+    const run = saveQueueRef.current.then(() =>
+      saveDraftNow(data, overrideAttachments),
+    );
+    saveQueueRef.current = run.catch(() => {});
+    return run;
+  };
+
+  const saveDraftNow = async (
+    data: FormShape,
+    overrideAttachments?: Asset[],
+  ) => {
+    const activeAttachments = overrideAttachments ?? attachmentsRef.current;
     const { semester, ...rest } = data;
     const payload: ThreadInitialProps = {
       ...rest,
@@ -95,11 +120,15 @@ export function useComposeForm({ initialDraft, editing }: Props) {
       visibility: Visibility.draft,
     };
 
-    if (editing) {
-      await threadUpdate(editing, payload);
+    if (draftIdRef.current) {
+      await threadUpdate(draftIdRef.current, payload);
     } else {
       const { id } = await threadCreate(payload);
-      router.push(`/new?id=${id}`);
+      draftIdRef.current = id;
+
+      // Not router.push: that remounts the composer, which aborts any upload
+      // still in flight.
+      window.history.replaceState(null, "", `/new?id=${id}`);
     }
   };
 
@@ -125,15 +154,18 @@ export function useComposeForm({ initialDraft, editing }: Props) {
       return;
     }
 
-    if (editing) {
-      const { slug } = await threadUpdate(editing, {
+    await saveQueueRef.current;
+
+    const draftId = draftIdRef.current;
+    if (draftId) {
+      const { slug } = await threadUpdate(draftId, {
         title,
         body,
         category: category === NO_CATEGORY_VALUE ? undefined : category,
         visibility: Visibility.published,
         tags,
         url,
-        asset_ids: attachments.map((a) => a.id),
+        asset_ids: attachmentsRef.current.map((a) => a.id),
         meta: semesterMeta(semester),
       });
       router.push(`/t/${slug}`);
@@ -145,7 +177,7 @@ export function useComposeForm({ initialDraft, editing }: Props) {
         visibility: Visibility.published,
         tags,
         url,
-        asset_ids: attachments.map((a) => a.id),
+        asset_ids: attachmentsRef.current.map((a) => a.id),
         meta: semesterMeta(semester),
       });
       router.push(`/t/${slug}`);
@@ -209,7 +241,7 @@ export function useComposeForm({ initialDraft, editing }: Props) {
 
   const handleAttach = async (a: Asset) => {
     const normNewPath = normalizeAssetPath(a.path ?? a.id);
-    const isAlreadyAttached = attachments.some((existing) => {
+    const isAlreadyAttached = attachmentsRef.current.some((existing) => {
       if (existing.id && a.id && existing.id === a.id) return true;
       const existingNormPath = normalizeAssetPath(
         existing.path ?? existing.id
@@ -219,13 +251,13 @@ export function useComposeForm({ initialDraft, editing }: Props) {
       );
     });
     if (isAlreadyAttached) return;
-    const next = [...attachments, a];
+    const next = [...attachmentsRef.current, a];
     setAttachments(next);
     await handleAssetUpload(next);
   };
 
   const handleDetach = async (a: Asset) => {
-    const next = attachments.filter((x) => x.id !== a.id);
+    const next = attachmentsRef.current.filter((x) => x.id !== a.id);
     setAttachments(next);
 
     const currentBody = form.getValues("body") || "";

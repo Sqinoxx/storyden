@@ -54,6 +54,12 @@ export type Block = "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 export function useContentComposer(props: ContentComposerProps) {
   const t = useTranslation();
   const { uploadWithProgress } = useImageUpload();
+
+  // Tiptap bakes extension options in when the editor is created, so the upload
+  // handlers below are the first render's closures for the editor's lifetime.
+  // Reading callbacks through this ref keeps them pointed at the latest props.
+  const propsRef = useRef(props);
+  propsRef.current = props;
   const [uploadingCount, setUploadingCount] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isDragError, setIsDragError] = useState(false);
@@ -411,7 +417,7 @@ export function useContentComposer(props: ContentComposerProps) {
           trackedUpload.status = "completed";
         }
 
-        props.onAssetUpload?.(asset);
+        propsRef.current.onAssetUpload?.(asset);
       },
       {
         onError: async () => {
@@ -485,7 +491,7 @@ export function useContentComposer(props: ContentComposerProps) {
       const uploadId = `upload-${Date.now()}-${uploadCounterRef.current}`;
       const isAttachment = !f.type.startsWith("image/");
 
-      if (isAttachment && !props.inlineAttachments) {
+      if (isAttachment && !propsRef.current.inlineAttachments) {
         // Non-image files (PDFs, docs, ZIPs) are attached at the bottom only, not inserted into the editor content.
         const abortController = new AbortController();
         setUploadingCount((prev) => prev + 1);
@@ -500,7 +506,7 @@ export function useContentComposer(props: ContentComposerProps) {
             );
             const assetWithFilename = { ...asset, filename: f.name };
             assets.push(assetWithFilename);
-            props.onAssetUpload?.(assetWithFilename);
+            propsRef.current.onAssetUpload?.(assetWithFilename);
           },
           {
             onError: async (err) => {
@@ -617,7 +623,7 @@ export function useContentComposer(props: ContentComposerProps) {
 
             const assetWithFilename = { ...asset, filename: f.name };
             assets.push(assetWithFilename);
-            props.onAssetUpload?.(assetWithFilename);
+            propsRef.current.onAssetUpload?.(assetWithFilename);
           }
         },
         {

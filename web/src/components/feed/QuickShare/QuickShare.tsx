@@ -8,6 +8,7 @@ import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
 import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/CategoryTreeSelect";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
+import { DEFAULT_NEW_THREAD_TAGS } from "@/components/thread/useAutoTagDetection";
 import { FileAttachmentBadge } from "@/components/post/FileAttachmentList";
 import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/button";
@@ -165,6 +166,9 @@ export function QuickShare(props: Props) {
                 name="tags"
                 control={form.control}
                 attachments={uploadedAssets}
+                defaultTags={DEFAULT_NEW_THREAD_TAGS}
+                categoryHint={props.initialCategory?.id}
+                resetKey={resetKey}
                 triggerProps={{ w: "full", minW: "0", maxW: "full" }}
               />
             </Box>

@@ -7,11 +7,13 @@ import {
   ThreadListOKResponse,
 } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
-import { CategoryBadge } from "@/components/category/CategoryBadge";
+import Link from "next/link";
+
 import { CategoryLayout } from "@/components/category/CategoryIndex/CategoryCardLayout";
 import { CategoryMenu } from "@/components/category/CategoryMenu/CategoryMenu";
 import { UnreadyBanner } from "@/components/site/Unready";
 import { Heading } from "@/components/ui/heading";
+import { LinkIcon } from "@/components/ui/icons/Link";
 import { useTranslation } from "@/lib/i18n";
 import { Box, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { getAssetURL } from "@/utils/asset";
@@ -120,12 +122,31 @@ export function CategoryScreen(props: ScreenProps) {
           </Heading>
           <HStack gap="2" flexWrap="wrap">
             {category.related.map((related) => (
-              <CategoryBadge
+              <Link
                 key={related.id}
-                category={related}
-                size="md"
+                href={`/d/${related.slug}`}
                 title={related.description}
-              />
+              >
+                <HStack
+                  gap="2"
+                  px="3"
+                  py="2"
+                  borderWidth="thin"
+                  borderColor="border.default"
+                  borderRadius="md"
+                  bg="bg.subtle"
+                  color="fg.default"
+                  fontWeight="medium"
+                  transition="all"
+                  _hover={{
+                    bg: "bg.muted",
+                    borderColor: "border.accent",
+                  }}
+                >
+                  <LinkIcon w="4" h="4" />
+                  {related.name}
+                </HStack>
+              </Link>
             ))}
           </HStack>
         </LStack>

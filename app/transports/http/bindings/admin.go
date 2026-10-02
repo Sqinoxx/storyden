@@ -179,6 +179,14 @@ func (a *Admin) AdminStatistics(ctx context.Context, request openapi.AdminStatis
 			SessionsActive:    stats.Totals.SessionsActive,
 			SessionsExpired:   stats.Totals.SessionsExpired,
 			SessionsRevoked:   stats.Totals.SessionsRevoked,
+
+			Likes:               stats.Totals.Likes,
+			Reacts:              stats.Totals.Reacts,
+			Tags:                stats.Totals.Tags,
+			ReportsSubmitted:    stats.Totals.ReportsSubmitted,
+			ReportsAcknowledged: stats.Totals.ReportsAcknowledged,
+			ReportsResolved:     stats.Totals.ReportsResolved,
+			ReportsLast30d:      stats.Totals.ReportsLast30d,
 		},
 		AccountsDaily:         mapSeries(stats.AccountsDaily),
 		AccountsMonthly:       mapSeries(stats.AccountsMonthly),
@@ -202,7 +210,65 @@ func (a *Admin) AdminStatistics(ctx context.Context, request openapi.AdminStatis
 		AssetsMonthly:         mapSeries(stats.AssetsMonthly),
 		AssetsYearly:          mapSeries(stats.AssetsYearly),
 		TopCategories:         mapCategorySeries(stats.TopCategories),
+		LikesDaily:            mapSeries(stats.LikesDaily),
+		LikesMonthly:          mapSeries(stats.LikesMonthly),
+		LikesYearly:           mapSeries(stats.LikesYearly),
+		ReactsDaily:           mapSeries(stats.ReactsDaily),
+		ReactsMonthly:         mapSeries(stats.ReactsMonthly),
+		ReactsYearly:          mapSeries(stats.ReactsYearly),
+		TopEmojis:             mapEmojiSeries(stats.TopEmojis),
+		TopLikedThreads:       mapThreadSeries(stats.TopLikedThreads),
+		TopTags:               mapTagSeries(stats.TopTags),
+		Trends: openapi.StatisticsTrends{
+			Accounts:       mapTrend(stats.Trends.Accounts),
+			Threads:        mapTrend(stats.Trends.Threads),
+			Replies:        mapTrend(stats.Trends.Replies),
+			Logins:         mapTrend(stats.Trends.Logins),
+			Likes:          mapTrend(stats.Trends.Likes),
+			Reacts:         mapTrend(stats.Trends.Reacts),
+			Assets:         mapTrend(stats.Trends.Assets),
+			ActiveAccounts: mapTrend(stats.Trends.ActiveAccounts),
+		},
 	}, nil
+}
+
+func mapTrend(t statistics_querier.TrendPoint) openapi.StatisticsTrend {
+	return openapi.StatisticsTrend{Current: t.Current, Previous: t.Previous}
+}
+
+func mapEmojiSeries(points []statistics_querier.EmojiPoint) []openapi.StatisticsEmojiPoint {
+	out := make([]openapi.StatisticsEmojiPoint, len(points))
+	for i, p := range points {
+		out[i] = openapi.StatisticsEmojiPoint{
+			Emoji: p.Emoji,
+			Count: p.Count,
+		}
+	}
+	return out
+}
+
+func mapThreadSeries(points []statistics_querier.ThreadPoint) []openapi.StatisticsThreadPoint {
+	out := make([]openapi.StatisticsThreadPoint, len(points))
+	for i, p := range points {
+		out[i] = openapi.StatisticsThreadPoint{
+			Id:    openapi.Identifier(p.ID.String()),
+			Title: p.Title,
+			Slug:  p.Slug,
+			Count: p.Count,
+		}
+	}
+	return out
+}
+
+func mapTagSeries(points []statistics_querier.TagPoint) []openapi.StatisticsTagPoint {
+	out := make([]openapi.StatisticsTagPoint, len(points))
+	for i, p := range points {
+		out[i] = openapi.StatisticsTagPoint{
+			Name:        p.Name,
+			ThreadCount: p.ThreadCount,
+		}
+	}
+	return out
 }
 
 func mapSeries(points []statistics_querier.SeriesPoint) []openapi.StatisticsSeriesPoint {

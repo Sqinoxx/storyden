@@ -17,14 +17,28 @@ export interface StatisticsTotals {
   activeAccounts7d: number;
   /** Total number of categories. */
   categories: number;
+  /** Total number of post likes. */
+  likes: number;
+  /** Total number of emoji reactions. */
+  reacts: number;
   /** Total number of replies (non-root posts). */
   replies: number;
+  /** Reports acknowledged by a moderator but not yet resolved. */
+  reportsAcknowledged: number;
+  /** Reports submitted in the last 30 days. */
+  reportsLast30d: number;
+  /** Reports that have been resolved. */
+  reportsResolved: number;
+  /** Reports awaiting moderation. */
+  reportsSubmitted: number;
   /** Sessions that are not revoked and not yet expired. */
   sessionsActive: number;
   /** Sessions that are not revoked but have passed their expiry. */
   sessionsExpired: number;
   /** Sessions that were explicitly revoked (e.g. by sign-out). */
   sessionsRevoked: number;
+  /** Total number of tags. */
+  tags: number;
   /** Total number of threads (root posts). */
   threads: number;
 }

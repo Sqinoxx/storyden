@@ -414,6 +414,16 @@ paths:
                   - assetsMonthly
                   - assetsYearly
                   - topCategories
+                  - likesDaily
+                  - likesMonthly
+                  - likesYearly
+                  - reactsDaily
+                  - reactsMonthly
+                  - reactsYearly
+                  - topEmojis
+                  - topLikedThreads
+                  - topTags
+                  - trends
                 properties:
                   totals: { $ref: "#/components/schemas/StatisticsTotals" }
                   accountsDaily:
@@ -489,14 +499,16 @@ paths:
                     items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
                   loginsByHour:
                     description: |
-                      New sessions bucketed by hour of day (0-23, UTC), most
-                      recent 5 years, to reveal peak login times.
+                      New sessions bucketed by hour of day (0-23, in the
+                      Europe/Berlin time zone), most recent 5 years, to
+                      reveal peak login times.
                     type: array
                     items: { $ref: "#/components/schemas/StatisticsHourPoint" }
                   loginsByWeekday:
                     description: |
                       New sessions bucketed by weekday (1=Monday..7=Sunday,
-                      UTC), most recent 5 years, to reveal peak login days.
+                      Europe/Berlin), most recent 5 years, to reveal peak
+                      login days.
                     type: array
                     items: { $ref: "#/components/schemas/StatisticsWeekdayPoint" }
                   activeAccountsDaily:
@@ -535,6 +547,45 @@ paths:
                       most recent 5 years.
                     type: array
                     items: { $ref: "#/components/schemas/StatisticsCategoryPoint" }
+                  likesDaily:
+                    description: New likes per day, most recent 30 days.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  likesMonthly:
+                    description: New likes per month, most recent 12 months.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  likesYearly:
+                    description: New likes per year, most recent 5 years.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  reactsDaily:
+                    description: New emoji reactions per day, most recent 30 days.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  reactsMonthly:
+                    description: New emoji reactions per month, most recent 12 months.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  reactsYearly:
+                    description: New emoji reactions per year, most recent 5 years.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsSeriesPoint" }
+                  topEmojis:
+                    description: The most used reaction emojis, most recent 5 years.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsEmojiPoint" }
+                  topLikedThreads:
+                    description: |
+                      Threads whose opening post received the most likes,
+                      most recent 5 years.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsThreadPoint" }
+                  topTags:
+                    description: The tags carried by the most threads, most recent 5 years.
+                    type: array
+                    items: { $ref: "#/components/schemas/StatisticsTagPoint" }
+                  trends: { $ref: "#/components/schemas/StatisticsTrends" }
 
   /admin/drive/folders:
     get:
@@ -8135,6 +8186,69 @@ components:
           type: integer
           description: Total threads created in this category in the window.
 
+    StatisticsEmojiPoint:
+      type: object
+      required: [emoji, count]
+      properties:
+        emoji:
+          type: string
+        count:
+          type: integer
+
+    StatisticsThreadPoint:
+      type: object
+      required: [id, title, slug, count]
+      properties:
+        id: { $ref: "#/components/schemas/Identifier" }
+        title:
+          type: string
+        slug:
+          type: string
+        count:
+          type: integer
+          description: Likes on the thread's opening post.
+
+    StatisticsTagPoint:
+      type: object
+      required: [name, threadCount]
+      properties:
+        name:
+          type: string
+        threadCount:
+          type: integer
+
+    StatisticsTrend:
+      type: object
+      description: |
+        A metric over the last 30 days compared with the 30 days before.
+      required: [current, previous]
+      properties:
+        current:
+          type: integer
+        previous:
+          type: integer
+
+    StatisticsTrends:
+      type: object
+      required:
+        - accounts
+        - threads
+        - replies
+        - logins
+        - likes
+        - reacts
+        - assets
+        - activeAccounts
+      properties:
+        accounts: { $ref: "#/components/schemas/StatisticsTrend" }
+        threads: { $ref: "#/components/schemas/StatisticsTrend" }
+        replies: { $ref: "#/components/schemas/StatisticsTrend" }
+        logins: { $ref: "#/components/schemas/StatisticsTrend" }
+        likes: { $ref: "#/components/schemas/StatisticsTrend" }
+        reacts: { $ref: "#/components/schemas/StatisticsTrend" }
+        assets: { $ref: "#/components/schemas/StatisticsTrend" }
+        activeAccounts: { $ref: "#/components/schemas/StatisticsTrend" }
+
     StatisticsTotals:
       type: object
       required:
@@ -8147,6 +8261,13 @@ components:
         - sessionsActive
         - sessionsExpired
         - sessionsRevoked
+        - likes
+        - reacts
+        - tags
+        - reportsSubmitted
+        - reportsAcknowledged
+        - reportsResolved
+        - reportsLast30d
       properties:
         accounts:
           type: integer
@@ -8175,6 +8296,27 @@ components:
         sessionsRevoked:
           type: integer
           description: Sessions that were explicitly revoked (e.g. by sign-out).
+        likes:
+          type: integer
+          description: Total number of post likes.
+        reacts:
+          type: integer
+          description: Total number of emoji reactions.
+        tags:
+          type: integer
+          description: Total number of tags.
+        reportsSubmitted:
+          type: integer
+          description: Reports awaiting moderation.
+        reportsAcknowledged:
+          type: integer
+          description: Reports acknowledged by a moderator but not yet resolved.
+        reportsResolved:
+          type: integer
+          description: Reports that have been resolved.
+        reportsLast30d:
+          type: integer
+          description: Reports submitted in the last 30 days.
 
     ContentServiceSettings:
       type: object

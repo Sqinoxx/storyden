@@ -13,6 +13,7 @@ type OperationPermissions interface {
 	BannerGet() (bool, *rbac.Permission)
 	BannerUpload() (bool, *rbac.Permission)
 	SendBeacon() (bool, *rbac.Permission)
+	PresenceHeartbeat() (bool, *rbac.Permission)
 	AdminSettingsGet() (bool, *rbac.Permission)
 	AdminSettingsUpdate() (bool, *rbac.Permission)
 	AdminOCRStats() (bool, *rbac.Permission)
@@ -285,6 +286,8 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.BannerUpload()
 	case "SendBeacon":
 		return optable.SendBeacon()
+	case "PresenceHeartbeat":
+		return optable.PresenceHeartbeat()
 	case "AdminSettingsGet":
 		return optable.AdminSettingsGet()
 	case "AdminSettingsUpdate":

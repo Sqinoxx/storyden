@@ -21,6 +21,8 @@ import type {
   GetSessionOKResponse,
   GetSpec200,
   InternalServerErrorResponse,
+  PresenceHeartbeatBody,
+  PresenceHeartbeatOKResponse,
   UnauthorisedResponse,
 } from "../openapi-schema";
 
@@ -470,6 +472,64 @@ export const useSendBeacon = <TError = InternalServerErrorResponse>(options?: {
 
   const swrKey = swrOptions?.swrKey ?? getSendBeaconMutationKey();
   const swrFn = getSendBeaconMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Marks the authenticated member as currently online, optionally within
+a category they are viewing, and returns how many members are online
+overall and how many others are currently viewing the same category.
+Clients are expected to call this periodically while the page is open.
+
+ */
+export const presenceHeartbeat = (
+  presenceHeartbeatBody: PresenceHeartbeatBody,
+) => {
+  return fetcher<PresenceHeartbeatOKResponse>({
+    url: `/presence`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: presenceHeartbeatBody,
+  });
+};
+
+export const getPresenceHeartbeatMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: PresenceHeartbeatBody },
+  ): Promise<PresenceHeartbeatOKResponse> => {
+    return presenceHeartbeat(arg);
+  };
+};
+export const getPresenceHeartbeatMutationKey = () => [`/presence`] as const;
+
+export type PresenceHeartbeatMutationResult = NonNullable<
+  Awaited<ReturnType<typeof presenceHeartbeat>>
+>;
+export type PresenceHeartbeatMutationError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const usePresenceHeartbeat = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof presenceHeartbeat>>,
+    TError,
+    Key,
+    PresenceHeartbeatBody,
+    Awaited<ReturnType<typeof presenceHeartbeat>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getPresenceHeartbeatMutationKey();
+  const swrFn = getPresenceHeartbeatMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

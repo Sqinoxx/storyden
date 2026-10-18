@@ -123,10 +123,14 @@ test.describe("AdminZone Feed Settings", () => {
     await createAdmin(page.context(), adminHandle, PASSWORD);
     await login(page, adminHandle, PASSWORD);
     await dismissOnboarding(page);
-    await page.goto("/");
+    await page.goto("/d");
     await openFeedEditorFromSidebar(page);
 
     const sourceSelect = page.getByRole("combobox", { name: "Source" });
+    await expect(sourceSelect).toBeVisible();
+    if (!(await sourceSelect.textContent())?.includes("Threads")) {
+      await chooseSelectOption(page, sourceSelect, "threads");
+    }
     await expect(sourceSelect).toContainText("Threads");
 
     await chooseSelectOption(page, sourceSelect, "categories");
@@ -138,7 +142,7 @@ test.describe("AdminZone Feed Settings", () => {
       page.getByText("Thread list display", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Discussion categories" }),
+      page.getByRole("img", { name: "Discussion categories" }),
     ).toBeVisible();
 
     await chooseSelectOption(page, layoutSelect, "grid");

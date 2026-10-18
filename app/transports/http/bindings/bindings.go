@@ -65,6 +65,7 @@ type Bindings struct {
 	Spec
 	Info
 	Beacon
+	Presence
 	Admin
 	Plugins
 	Roles
@@ -103,6 +104,7 @@ func bindingsProviders() fx.Option {
 		NewSpec,
 		NewInfo,
 		NewBeacon,
+		NewPresence,
 		NewAdmin,
 		NewPlugins,
 		NewRoles,

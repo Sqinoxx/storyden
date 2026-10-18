@@ -143,7 +143,7 @@ test("members without POST_IN_ANY_CATEGORY cannot QuickShare on the uncategorise
 
   await registerUser(page, unique("uncatuser").replace(/-/g, ""));
 
-  await page.goto("/d");
+  await page.goto("/");
   await dismissOnboarding(page);
 
   await expect(
@@ -202,7 +202,7 @@ test("a user allowed to post in any category can QuickShare into the category be
   await form.getByPlaceholder("Thread title...").fill(`QuickShare into branch ${seed}`);
   await form.locator(".ProseMirror").first().fill("posted straight into the viewed category");
 
-  await categoryPicker(page).click();
+  await page.getByRole("button", { name: names.branch, exact: true }).click();
 
   // The category being viewed is itself selectable directly - no need to
   // drill into its subcategory to find something postable. Selecting it

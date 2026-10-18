@@ -14,12 +14,14 @@ type Props = {
   initialData: InitialData;
   initialSettings?: Settings;
   initialSession?: Account;
+  paginationBasePath?: string;
 };
 
 export function FeedScreenContent({
   initialData,
   initialSettings,
   initialSession,
+  paginationBasePath = "/",
 }: Props) {
   const feed = useFeedConfig(initialSettings, true);
 
@@ -32,7 +34,7 @@ export function FeedScreenContent({
           initialSession={initialSession}
           initialSettings={initialSettings}
           category={undefined}
-          paginationBasePath="/"
+          paginationBasePath={paginationBasePath}
           showCategorySelect={true}
           showQuickShare={feed.source.quickShare === "enabled"}
         />
@@ -58,7 +60,7 @@ export function FeedScreenContent({
           layout={feed.layout.type}
           threadListMode={feed.source.threadListMode}
           showQuickShare={feed.source.quickShare === "enabled"}
-          paginationBasePath="/"
+          paginationBasePath={paginationBasePath}
         />
       );
   }

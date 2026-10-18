@@ -43,7 +43,7 @@ export function useAuthProvider() {
       push(canRegister ? "/register" : "/login");
     }
     if (loggedIn && (pathname === "/register" || pathname === "/login")) {
-      push("/d");
+      push("/");
     }
   }, [
     canRegister,

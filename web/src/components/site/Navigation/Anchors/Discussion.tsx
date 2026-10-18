@@ -7,7 +7,7 @@ import { Anchor, AnchorProps, MenuItem } from "./Anchor";
 import { useTranslation } from "@/lib/i18n";
 
 export const DiscussionID = "discussion";
-export const DiscussionRoute = "/d";
+export const DiscussionRoute = "/";
 export const DiscussionLabel = "Discussion";
 
 export function DiscussionAnchor(props: AnchorProps & LinkButtonStyleProps) {

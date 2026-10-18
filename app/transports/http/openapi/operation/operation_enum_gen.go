@@ -22,6 +22,7 @@ var (
 	OperationIDBannerGet                              = OperationID{`BannerGet`}
 	OperationIDBannerUpload                           = OperationID{`BannerUpload`}
 	OperationIDSendBeacon                             = OperationID{`SendBeacon`}
+	OperationIDPresenceHeartbeat                      = OperationID{`PresenceHeartbeat`}
 	OperationIDAdminSettingsGet                       = OperationID{`AdminSettingsGet`}
 	OperationIDAdminSettingsUpdate                    = OperationID{`AdminSettingsUpdate`}
 	OperationIDAdminOCRStats                          = OperationID{`AdminOCRStats`}
@@ -329,6 +330,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDBannerUpload, nil
 	case string(`SendBeacon`):
 		return OperationIDSendBeacon, nil
+	case string(`PresenceHeartbeat`):
+		return OperationIDPresenceHeartbeat, nil
 	case string(`AdminSettingsGet`):
 		return OperationIDAdminSettingsGet, nil
 	case string(`AdminSettingsUpdate`):

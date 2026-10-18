@@ -8,6 +8,7 @@ import {
 
 import { Account } from "@/api/openapi-schema";
 import { NotificationsMenu } from "@/components/notifications/NotificationsMenu";
+import { PresenceIndicator } from "@/components/site/PresenceIndicator/PresenceIndicator";
 import { HStack } from "@/styled-system/jsx";
 
 import { AccountMenu } from "./AccountMenu/AccountMenu";
@@ -26,6 +27,7 @@ export function MemberActions({ session, canRegister }: Props) {
     <HStack w="full" gap="2" alignItems="center" justify="end" pr="1">
       {account ? (
         <>
+          <PresenceIndicator />
           <ComposeAnchor>{t.nav.post}</ComposeAnchor>
           <NotificationsMenu status="unread" />
           <AccountMenu account={account} />

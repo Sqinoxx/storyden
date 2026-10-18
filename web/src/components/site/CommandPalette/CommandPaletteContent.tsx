@@ -12,6 +12,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { AdminIcon } from "@/components/ui/icons/Admin";
 import { CloseIcon } from "@/components/ui/icons/Close";
 import { DiscussionIcon } from "@/components/ui/icons/Discussion";
+import { LatestIcon } from "@/components/ui/icons/Latest";
 import { HomeIcon } from "@/components/ui/icons/Home";
 import { RobotIcon } from "@/components/ui/icons/Robot";
 import { SettingsIcon } from "@/components/ui/icons/Settings";
@@ -191,11 +192,21 @@ function CommandPaletteContentCommands() {
             <Command.Item
               value="/home"
               keywords={["home"]}
-              onSelect={() => handleNavigate("/d")}
+              onSelect={() => handleNavigate("/")}
             >
               <HStack gap="2">
                 <HomeIcon />
                 {t.nav.home}
+              </HStack>
+            </Command.Item>
+            <Command.Item
+              value="/latest"
+              keywords={["latest", "neueste", "beiträge"]}
+              onSelect={() => handleNavigate("/d")}
+            >
+              <HStack gap="2">
+                <LatestIcon />
+                {t.nav.latest}
               </HStack>
             </Command.Item>
             <Command.Item

@@ -76,7 +76,7 @@ export function EmailVerificationScreen(props: Props) {
 
         // Hard redirect: forces a full page reload so the server renders the
         // now-verified state immediately, instead of a stale cached session.
-        window.location.href = props.returnURL ?? "/d";
+        window.location.href = props.returnURL ?? "/";
       },
       {
         errorToast: false,

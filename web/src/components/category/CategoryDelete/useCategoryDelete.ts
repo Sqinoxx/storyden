@@ -45,7 +45,7 @@ export function useCategoryDelete(props: CategoryDeleteProps) {
       // TODO: It would be nice to redirect to the move_to category page. But
       // we don't currently have a way to fetch a category by its ID.
 
-      router.push("/d");
+      router.push("/");
     });
   });
 

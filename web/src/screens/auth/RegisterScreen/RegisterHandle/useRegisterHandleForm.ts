@@ -44,7 +44,7 @@ export function useRegisterHandleForm({ invitationID }: Props) {
     resolver: zodResolver(FormSchema),
   });
   const searchParams = useSearchParams();
-  const returnURL = searchParams.get("return_url") ?? "/d";
+  const returnURL = searchParams.get("return_url") ?? "/";
 
   const isWebauthnEnabled = isWebauthnAvailable();
 

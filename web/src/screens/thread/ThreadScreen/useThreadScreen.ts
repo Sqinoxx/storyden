@@ -18,6 +18,7 @@ import { useSession } from "@/auth";
 import { useConfirmation } from "@/components/site/useConfirmation";
 import { extractDocumentAssetsFromThread } from "@/components/post/ThreadCard";
 import { useBeacon } from "@/lib/beacon/useBeacon";
+import { usePresenceCategory } from "@/lib/presence/presence-category";
 import { useReportContext } from "@/lib/report/useReportContext";
 import type { Settings, SignatureConfig } from "@/lib/settings/settings";
 import { useThreadMutations } from "@/lib/thread/mutation";
@@ -170,6 +171,7 @@ export function useThreadScreen({
   }, [currentBody, editing, thread.body]);
 
   useBeacon(DatagraphItemKind.thread, data?.id);
+  usePresenceCategory(data?.category);
 
   const isModerator = hasPermission(
     session,

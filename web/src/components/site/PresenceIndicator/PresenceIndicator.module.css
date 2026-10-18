@@ -1,0 +1,36 @@
+.dot {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: var(--sizes-2);
+  height: var(--sizes-2);
+  border-radius: var(--radii-full);
+  background: var(--colors-fg-success);
+}
+
+.dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: presence-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes presence-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  75%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot::after {
+    animation: none;
+  }
+}

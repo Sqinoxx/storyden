@@ -38,6 +38,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/ocr"
 	"github.com/Southclaws/storyden/app/services/onboarding"
 	"github.com/Southclaws/storyden/app/services/plugin"
+	"github.com/Southclaws/storyden/app/services/presence"
 	"github.com/Southclaws/storyden/app/services/profile/following"
 	"github.com/Southclaws/storyden/app/services/react_manager"
 	"github.com/Southclaws/storyden/app/services/reply"
@@ -84,6 +85,7 @@ func Build() fx.Option {
 		notification.Build(),
 		mention_job.Build(),
 		beacon_listener.Build(),
+		presence.Build(),
 		generative.Build(),
 		robot.Build(),
 		semdexer.Build(),

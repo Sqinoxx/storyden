@@ -11,6 +11,9 @@ test.describe("Login", () => {
     await page.goto("/register");
     await page.getByRole("textbox", { name: "username" }).fill(username);
     await page.getByRole("textbox", { name: "password" }).fill(password);
+    await page
+      .getByRole("combobox", { name: "Fachsemester" })
+      .selectOption("3");
     await page.getByRole("button", { name: "Register" }).click();
 
     await expect(page).toHaveURL("/", { timeout: 10000 });
@@ -19,9 +22,11 @@ test.describe("Login", () => {
     await page.getByRole("menuitem", { name: "Logout" }).click();
 
     await page.getByRole("link", { name: "Login" }).click();
-    await page.getByRole("textbox", { name: "username" }).fill(username);
-    await page.getByRole("textbox", { name: "password" }).fill(password);
-    await page.getByRole("button", { name: "Login" }).click();
+    await page.locator('input[autocomplete="username"]').fill(username);
+    await page
+      .locator('input[autocomplete="current-password"]')
+      .fill(password);
+    await page.getByRole("button", { name: /^log ?in$/i }).click();
 
     await expect(page).toHaveURL("/", { timeout: 10000 });
     await expect(
@@ -38,6 +43,9 @@ test.describe("Login", () => {
     await page.goto("/register");
     await page.getByRole("textbox", { name: "username" }).fill(username);
     await page.getByRole("textbox", { name: "password" }).fill(password);
+    await page
+      .getByRole("combobox", { name: "Fachsemester" })
+      .selectOption("3");
     await page.getByRole("button", { name: "Register" }).click();
 
     await expect(page).toHaveURL("/", { timeout: 10000 });
@@ -46,9 +54,11 @@ test.describe("Login", () => {
     await page.getByRole("menuitem", { name: "Logout" }).click();
 
     await page.getByRole("link", { name: "Login" }).click();
-    await page.getByRole("textbox", { name: "username" }).fill(username);
-    await page.getByRole("textbox", { name: "password" }).fill(wrongPassword);
-    await page.getByRole("button", { name: "Login" }).click();
+    await page.locator('input[autocomplete="username"]').fill(username);
+    await page
+      .locator('input[autocomplete="current-password"]')
+      .fill(wrongPassword);
+    await page.getByRole("button", { name: /^log ?in$/i }).click();
 
     await expect(page).not.toHaveURL("/", { timeout: 5000 });
   });

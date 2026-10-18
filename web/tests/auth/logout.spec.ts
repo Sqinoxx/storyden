@@ -16,7 +16,8 @@ test.describe("Logout", () => {
     await page.getByRole("button", { name: "Account menu" }).click();
     await page.getByRole("menuitem", { name: "Logout" }).click();
 
-    await expect(page.getByRole("link", { name: "Register" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Login" })).toBeVisible();
+    await expect(page).toHaveURL("/login", { timeout: 10000 });
+    await expect(page.getByRole("textbox", { name: "username" })).toBeVisible();
+    await expect(page.getByText("An unexpected error occurred")).toHaveCount(0);
   });
 });

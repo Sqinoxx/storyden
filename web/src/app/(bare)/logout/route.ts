@@ -12,7 +12,7 @@ export async function GET() {
   revalidateTag("accounts", { expire: 0 });
   revalidatePath("/", "layout");
 
-  return NextResponse.redirect(WEB_ADDRESS, {
+  return NextResponse.redirect(new URL("/login", WEB_ADDRESS), {
     status: 303,
     headers: {
       "Clear-Site-Data": `"*"`,

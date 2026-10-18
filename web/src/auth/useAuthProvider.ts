@@ -1,5 +1,5 @@
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import { RequestError } from "@/api/common";
 import { useAccountGet } from "@/api/openapi-client/accounts";
@@ -8,8 +8,19 @@ import { usePublicRegistration } from "@/lib/settings/registration";
 
 const PRIVATE_PAGES = ["/settings", "/new", "/admin"];
 
-function privatePage(pathName: string): boolean {
-  return PRIVATE_PAGES.some(
+const PUBLIC_PAGES = [
+  "/login",
+  "/register",
+  "/password-reset",
+  "/auth",
+  "/invitation",
+  "/oauth",
+  "/logout",
+  "/impressum",
+];
+
+function matchesPage(pages: string[], pathName: string): boolean {
+  return pages.some(
     (page) => pathName === page || pathName.startsWith(`${page}/`),
   );
 }
@@ -23,18 +34,15 @@ export function useAuthProvider() {
   const { push, replace } = useRouter();
   const pathname = usePathname();
   const canRegister = usePublicRegistration();
-  const wasLoggedIn = useRef(false);
 
   const loggedIn = Boolean(data) && !error;
-  const isPrivate = pathname && privatePage(pathname);
+  const isPrivate = pathname && matchesPage(PRIVATE_PAGES, pathname);
+  const isPublic = pathname && matchesPage(PUBLIC_PAGES, pathname);
 
   useEffect(() => {
     if (isLoading) return;
 
-    if (loggedIn) {
-      wasLoggedIn.current = true;
-    } else if (wasLoggedIn.current && isUnauthenticatedError(error)) {
-      wasLoggedIn.current = false;
+    if (isUnauthenticatedError(error) && !isPublic) {
       replace("/login");
       return;
     }
@@ -51,6 +59,7 @@ export function useAuthProvider() {
     loggedIn,
     error,
     isPrivate,
+    isPublic,
     pathname,
     push,
     replace,

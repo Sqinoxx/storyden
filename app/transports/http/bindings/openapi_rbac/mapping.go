@@ -455,7 +455,7 @@ func (m *Mapping) OAuthClientDelete() (bool, *rbac.Permission) {
 }
 
 func (m *Mapping) AuthProviderLogout() (bool, *rbac.Permission) {
-	return true, nil
+	return false, nil
 }
 
 func (m *Mapping) AccountGet() (bool, *rbac.Permission) {

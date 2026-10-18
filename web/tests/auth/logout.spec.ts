@@ -23,4 +23,20 @@ test.describe("Logout", () => {
     await expect(page.getByRole("button", { name: "Log In" })).toBeVisible();
     await expect(page.getByText("An unexpected error occurred")).toHaveCount(0);
   });
+
+  test("should redirect to login when the session has expired", async ({
+    page,
+    context,
+    baseURL,
+  }) => {
+    await context.addCookies([
+      { name: "storyden-session", value: "expired", url: baseURL! },
+    ]);
+
+    await page.goto("/");
+
+    await expect(page).toHaveURL("/login", { timeout: 10000 });
+    await expect(page.getByRole("button", { name: "Log In" })).toBeVisible();
+    await expect(page.getByText("Fehler")).toHaveCount(0);
+  });
 });

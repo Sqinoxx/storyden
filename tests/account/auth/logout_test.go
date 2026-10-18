@@ -3,6 +3,7 @@ package auth_test
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/rs/xid"
@@ -24,6 +25,7 @@ func TestLogout(t *testing.T) {
 	integration.Test(t, nil, e2e.Setup(), fx.Invoke(func(
 		lc fx.Lifecycle,
 		root context.Context,
+		ts *httptest.Server,
 		cl *openapi.ClientWithResponses,
 		sh *e2e.SessionHelper,
 		accountQuery *account_querier.Querier,
@@ -82,7 +84,47 @@ func TestLogout(t *testing.T) {
 				r.NoError(err)
 				r.NotNil(get2)
 				a.Equal(http.StatusUnauthorized, get2.StatusCode())
+
+				// Logging out again with the revoked session must still succeed.
+				res := postLogout(t, ts, signin.HTTPResponse.Cookies()...)
+				a.Equal(http.StatusFound, res.StatusCode)
+			})
+
+			t.Run("logout_without_session_redirects", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				res := postLogout(t, ts)
+
+				r.Equal(http.StatusFound, res.StatusCode)
+				a.Contains(res.Header.Get("Location"), "/logout")
+
+				cookie, err := http.ParseSetCookie(res.Header.Get("Set-Cookie"))
+				r.NoError(err)
+				a.Empty(cookie.Value)
 			})
 		}))
 	}))
+}
+
+func postLogout(t *testing.T, ts *httptest.Server, cookies ...*http.Cookie) *http.Response {
+	t.Helper()
+
+	req, err := http.NewRequest(http.MethodPost, ts.URL+"/api/auth/logout?redirect=%2Flogout", nil)
+	require.NoError(t, err)
+	for _, c := range cookies {
+		req.AddCookie(c)
+	}
+
+	client := &http.Client{
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	res, err := client.Do(req)
+	require.NoError(t, err)
+	t.Cleanup(func() { res.Body.Close() })
+
+	return res
 }

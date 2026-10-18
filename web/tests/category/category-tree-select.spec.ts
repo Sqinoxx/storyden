@@ -202,7 +202,7 @@ test("a user allowed to post in any category can QuickShare into the category be
   await form.getByPlaceholder("Thread title...").fill(`QuickShare into branch ${seed}`);
   await form.locator(".ProseMirror").first().fill("posted straight into the viewed category");
 
-  await categoryPicker(page).click();
+  await page.getByRole("button", { name: names.branch, exact: true }).click();
 
   // The category being viewed is itself selectable directly - no need to
   // drill into its subcategory to find something postable. Selecting it

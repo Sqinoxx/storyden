@@ -11,6 +11,9 @@ test.describe("Login", () => {
     await page.goto("/register");
     await page.getByRole("textbox", { name: "username" }).fill(username);
     await page.getByRole("textbox", { name: "password" }).fill(password);
+    await page
+      .getByRole("combobox", { name: "Fachsemester" })
+      .selectOption("3");
     await page.getByRole("button", { name: "Register" }).click();
 
     await expect(page).toHaveURL("/", { timeout: 10000 });
@@ -38,6 +41,9 @@ test.describe("Login", () => {
     await page.goto("/register");
     await page.getByRole("textbox", { name: "username" }).fill(username);
     await page.getByRole("textbox", { name: "password" }).fill(password);
+    await page
+      .getByRole("combobox", { name: "Fachsemester" })
+      .selectOption("3");
     await page.getByRole("button", { name: "Register" }).click();
 
     await expect(page).toHaveURL("/", { timeout: 10000 });

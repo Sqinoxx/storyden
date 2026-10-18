@@ -10,6 +10,7 @@ import styles from "./ContentNavigationList.module.css";
 
 import { CollectionsAnchor } from "../Anchors/Collections";
 import { DriveAnchor, useHasDriveFolders } from "../Anchors/Drive";
+import { LatestAnchor } from "../Anchors/Latest";
 import { LinksAnchor } from "../Anchors/Link";
 import { MembersAnchor } from "../Anchors/Members";
 import { RolesAnchor } from "../Anchors/Roles";
@@ -75,6 +76,7 @@ export function ContentNavigationList(props: Props) {
       </LStack>
 
       <LStack gap="1">
+        <LatestAnchor />
         <CollectionsAnchor />
         {session && <TagsAnchor />}
         {hasDriveFolders && <DriveAnchor />}

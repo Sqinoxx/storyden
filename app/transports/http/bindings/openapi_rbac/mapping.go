@@ -46,6 +46,10 @@ func (m *Mapping) SendBeacon() (bool, *rbac.Permission) {
 	return false, nil // Public
 }
 
+func (m *Mapping) PresenceHeartbeat() (bool, *rbac.Permission) {
+	return true, nil
+}
+
 func (m *Mapping) AdminSettingsGet() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageSettings
 }

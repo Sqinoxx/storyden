@@ -44,7 +44,7 @@ export function useLoginHandleForm() {
     defaultValues: { remember_me: false },
   });
   const searchParams = useSearchParams();
-  const returnURL = searchParams.get("return_url") ?? "/d";
+  const returnURL = searchParams.get("return_url") ?? "/";
 
   const isWebauthnEnabled = isWebauthnAvailable();
 

@@ -40,7 +40,7 @@ export function usePasswordResetVerifyScreen({ token }: Props) {
           token,
           new: payload.password,
         });
-        router.push("/d");
+        router.push("/");
       },
       {
         promiseToast: {

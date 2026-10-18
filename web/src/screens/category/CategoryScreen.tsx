@@ -15,6 +15,7 @@ import { UnreadyBanner } from "@/components/site/Unready";
 import { Heading } from "@/components/ui/heading";
 import { LinkIcon } from "@/components/ui/icons/Link";
 import { useTranslation } from "@/lib/i18n";
+import { usePresenceCategory } from "@/lib/presence/presence-category";
 import { Box, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { getAssetURL } from "@/utils/asset";
 import { hasPermission } from "@/utils/permissions";
@@ -70,6 +71,7 @@ type ScreenProps = {
 export function CategoryScreen(props: ScreenProps) {
   const t = useTranslation();
   const { ready, data, error } = useCategoryScreen(props);
+  usePresenceCategory(ready ? data.category : undefined);
   if (!ready) {
     return <UnreadyBanner error={error} />;
   }

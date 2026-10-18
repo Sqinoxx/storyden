@@ -24,7 +24,7 @@ type Form = z.infer<typeof FormSchema>;
 
 export function useLoginEmailForm() {
   const searchParams = useSearchParams();
-  const returnURL = searchParams.get("return_url") ?? "/d";
+  const returnURL = searchParams.get("return_url") ?? "/";
 
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),

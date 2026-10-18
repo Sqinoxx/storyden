@@ -26,7 +26,7 @@ type Props = {
 
 export function useRegisterEmailForm({ invitationID }: Props) {
   const searchParams = useSearchParams();
-  const returnURL = searchParams.get("return_url") ?? "/d";
+  const returnURL = searchParams.get("return_url") ?? "/";
 
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),

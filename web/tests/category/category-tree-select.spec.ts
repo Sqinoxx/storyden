@@ -143,7 +143,7 @@ test("members without POST_IN_ANY_CATEGORY cannot QuickShare on the uncategorise
 
   await registerUser(page, unique("uncatuser").replace(/-/g, ""));
 
-  await page.goto("/d");
+  await page.goto("/");
   await dismissOnboarding(page);
 
   await expect(

@@ -13,13 +13,14 @@ import { InitialData } from "./types";
 
 export type Props = {
   page: number;
+  paginationBasePath?: string;
 };
 
 // NOTE: The FeedScreen (index page) is server hydrated on first load, but the
 // admin may configure different sources/layouts which is post-hydration and
 // client side. In this case, there is no server side hydrated data available.
 // Not a problem just worth pointing out here.
-export async function FeedScreen({ page }: Props) {
+export async function FeedScreen({ page, paginationBasePath = "/" }: Props) {
   const initialSession = await getServerSession();
   const initialSettings = await getSettings();
 
@@ -32,6 +33,7 @@ export async function FeedScreen({ page }: Props) {
         initialData={initialData}
         initialSettings={initialSettings}
         initialSession={initialSession}
+        paginationBasePath={paginationBasePath}
       />
     </VStack>
   );

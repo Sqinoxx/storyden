@@ -279,6 +279,21 @@ paths:
         "202":
           description: Accepted
 
+  /presence:
+    post:
+      operationId: PresenceHeartbeat
+      description: |
+        Marks the authenticated member as currently online, optionally within
+        a category they are viewing, and returns how many members are online
+        overall and how many others are currently viewing the same category.
+        Clients are expected to call this periodically while the page is open.
+      tags: [misc]
+      requestBody: { $ref: "#/components/requestBodies/PresenceHeartbeat" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/PresenceHeartbeatOK" }
+
   #
   #               888               d8b
   #               888               Y8P
@@ -5691,6 +5706,11 @@ components:
   #
 
   requestBodies:
+    PresenceHeartbeat:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/PresenceHeartbeatProps" }
+
     Beacon:
       content:
         text/plain:
@@ -6236,6 +6256,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/APIError"
+
+    PresenceHeartbeatOK:
+      description: OK
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/PresenceCounts" }
 
     GetInfoOK:
       description: OK
@@ -8006,6 +8032,25 @@ components:
         For recommendations and other uses, only available when a Semdex is
         configured for content indexing and contextual relativity scoring.
       type: number
+
+    PresenceHeartbeatProps:
+      type: object
+      properties:
+        category_id:
+          $ref: "#/components/schemas/Identifier"
+
+    PresenceCounts:
+      type: object
+      required: [online]
+      properties:
+        online:
+          type: integer
+          description: Number of distinct members currently online.
+        in_category:
+          type: integer
+          description: |
+            Number of other members currently viewing the same category, only
+            present when a category was specified in the heartbeat.
 
     BeaconProps:
       x-go-type: string

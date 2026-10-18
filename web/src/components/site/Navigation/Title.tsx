@@ -12,7 +12,7 @@ export function Title({ children }: PropsWithChildren) {
       overflow="hidden"
       textOverflow="ellipsis"
     >
-      <Link href="/d">{children}</Link>
+      <Link href="/">{children}</Link>
     </styled.h1>
   );
 }

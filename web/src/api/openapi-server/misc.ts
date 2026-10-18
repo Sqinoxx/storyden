@@ -14,6 +14,8 @@ import type {
   GetInfoOKResponse,
   GetSessionOKResponse,
   GetSpec200,
+  PresenceHeartbeatBody,
+  PresenceHeartbeatOKResponse,
 } from "../openapi-schema";
 import { fetcher } from "../server";
 
@@ -269,4 +271,35 @@ export const sendBeacon = async (
     headers: { "Content-Type": "text/plain", ...options?.headers },
     body: JSON.stringify(beaconBody),
   });
+};
+
+/**
+ * Marks the authenticated member as currently online, optionally within
+a category they are viewing, and returns how many members are online
+overall and how many others are currently viewing the same category.
+Clients are expected to call this periodically while the page is open.
+
+ */
+export type presenceHeartbeatResponse = {
+  data: PresenceHeartbeatOKResponse;
+  status: number;
+};
+
+export const getPresenceHeartbeatUrl = () => {
+  return `/presence`;
+};
+
+export const presenceHeartbeat = async (
+  presenceHeartbeatBody: PresenceHeartbeatBody,
+  options?: RequestInit,
+): Promise<presenceHeartbeatResponse> => {
+  return fetcher<Promise<presenceHeartbeatResponse>>(
+    getPresenceHeartbeatUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(presenceHeartbeatBody),
+    },
+  );
 };

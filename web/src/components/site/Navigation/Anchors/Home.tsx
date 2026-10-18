@@ -7,7 +7,7 @@ import { Anchor, AnchorProps, MenuItem } from "./Anchor";
 import { useTranslation } from "@/lib/i18n";
 
 export const HomeID = "home";
-export const HomeRoute = "/d";
+export const HomeRoute = "/";
 export const HomeLabel = "Home";
 
 export function HomeAnchor(props: AnchorProps & LinkButtonStyleProps) {

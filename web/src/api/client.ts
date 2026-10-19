@@ -29,13 +29,23 @@ export const fetcher = async <T>(opts: Options): Promise<T> => {
   const isAccountCheck =
     opts.url === ACCOUNT_URL && (opts.method ?? "GET") === "GET";
   if (response.status === 401 && !isAccountCheck) {
-    void mutate([ACCOUNT_URL]);
+    recheckSession();
   }
 
   return buildResult<T>(response);
 };
 
 const ACCOUNT_URL = "/accounts";
+
+let sessionRecheck: Promise<unknown> | undefined;
+
+function recheckSession() {
+  if (sessionRecheck) return;
+
+  sessionRecheck = mutate([ACCOUNT_URL]).finally(() => {
+    sessionRecheck = undefined;
+  });
+}
 
 const SESSION_EXPIRED_MESSAGE =
   "Deine Sitzung ist abgelaufen. Du wirst zur Anmeldung weitergeleitet.";

@@ -24,12 +24,12 @@ export function useAuthProvider() {
   const isPublic = pathname && isPublicPage(pathname);
 
   useEffect(() => {
-    if (isLoading) return;
-
     if (isUnauthenticatedError(error) && !isPublic) {
       replace("/login");
       return;
     }
+
+    if (isLoading) return;
 
     if (!loggedIn && isPrivate) {
       push(canRegister ? "/register" : "/login");

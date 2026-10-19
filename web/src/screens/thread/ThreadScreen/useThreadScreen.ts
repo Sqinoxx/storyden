@@ -118,21 +118,27 @@ export function useThreadScreen({
     },
   );
 
-  // Sync form and attachments when SWR data changes or when entering edit mode
   useEffect(() => {
-    if (data) {
-      if (!editing) {
-        setAttachments(extractDocumentAssetsFromThread(data));
-      } else {
-        form.reset({
+    if (data && !editing) {
+      setAttachments(extractDocumentAssetsFromThread(data));
+    }
+  }, [data, editing]);
+
+  // keepFieldsRef: a plain reset unregisters mounted controllers, which then
+  // silently drop the next onChange (e.g. the semester select).
+  useEffect(() => {
+    if (data && editing) {
+      form.reset(
+        {
           title: data.title,
           body: data.body,
           tags: data.tags?.map((t) => t.name) ?? [],
           semester: termKey(threadTerm(data)),
-        });
-      }
+        },
+        { keepFieldsRef: true },
+      );
     }
-  }, [data, editing]);
+  }, [editing]);
 
   const currentBody = form.watch("body");
 

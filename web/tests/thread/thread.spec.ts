@@ -8,7 +8,9 @@ import {
   navigateToThread,
   postReply,
   registerUser,
+  unique,
 } from "../helpers";
+import { withAdminAccessKey } from "../access_key_admin_assignment";
 
 test.describe("Thread Creation", () => {
   test("should create a thread with title and body", async ({ page }) => {
@@ -246,6 +248,55 @@ test.describe("Thread Editing", () => {
     await expect(
       page.locator("main").getByText("Original content that should remain."),
     ).toBeVisible();
+  });
+
+  test("should change the thread semester", async ({ page }) => {
+    const seed = unique("edit-semester");
+    const category = `Semester Edit ${seed}`;
+    await withAdminAccessKey(({ categoryCreate }) =>
+      categoryCreate({
+        colour: "#3b82f6",
+        description: category,
+        name: category,
+        slug: seed,
+      }),
+    );
+
+    await registerUser(page, seed);
+    await page.goto("/new");
+    await dismissOnboarding(page);
+    await page.getByPlaceholder("Thread title...").fill(`Semester ${seed}`);
+    await page.locator(".ProseMirror").first().fill("Semester should change.");
+    await page.getByRole("button", { name: "Select category" }).click();
+    await page
+      .getByTestId("category-tree-panel")
+      .locator('[data-part="branch-text"]')
+      .filter({ hasText: category })
+      .click();
+    await page.getByRole("button", { name: "Post", exact: true }).click();
+    await expect(page).toHaveURL(/\/t\//, { timeout: 10000 });
+    const threadUrl = page.url();
+
+    await page.goto(threadUrl + "?edit=true");
+    await dismissOnboarding(page);
+
+    const semester = page.locator("main").getByRole("combobox").first();
+    await expect(semester).toBeVisible({ timeout: 5000 });
+    await semester.click();
+    await page.getByRole("option", { name: "SS25", exact: true }).click();
+    await expect(semester).toHaveText(/SS25/);
+
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(page.getByRole("button", { name: "Save" })).toHaveCount(0, {
+      timeout: 10000,
+    });
+
+    await page.goto(threadUrl + "?edit=true");
+    await dismissOnboarding(page);
+
+    await expect(
+      page.locator("main").getByRole("combobox").first(),
+    ).toHaveText(/SS25/, { timeout: 10000 });
   });
 });
 

@@ -24,6 +24,7 @@ import { lstack } from "@/styled-system/patterns";
 
 import { BannerEditor } from "./BannerEditor/BannerEditor";
 import { IconEditor } from "./IconEditor/IconEditor";
+import { LogoEditor } from "./LogoEditor/LogoEditor";
 import { Form, Props, useBrandSettings } from "./useBrandSettings";
 
 const MOTD_TYPE_COLLECTION = createListCollection({
@@ -90,6 +91,16 @@ export function BrandSettingsForm(props: Props) {
             Your icon will be automatically resized and optimised for various
             devices. It is used for the website favicon and a PWA app icon for
             iOS and Android devices.
+          </FormHelperText>
+        </FormControl>
+
+        <FormControl display="flex" flexDirection="column">
+          <FormLabel>Logo</FormLabel>
+
+          <LogoEditor />
+          <FormHelperText>
+            Shown at the top of the home page. Upload separate images for light
+            and dark mode. If only one is set, it is used for both.
           </FormHelperText>
         </FormControl>
 

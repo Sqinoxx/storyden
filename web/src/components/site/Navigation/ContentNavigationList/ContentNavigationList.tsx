@@ -65,11 +65,13 @@ export function ContentNavigationList(props: Props) {
               my="1.5"
               style={{ borderTop: "1px solid", opacity: 0.15 }}
             />
-            <LibraryNavigationTree
-              initialNodeList={props.initialNodeList}
-              currentNode={nodeSlug}
-              visibility={["draft", "review", "unlisted", "published"]}
-            />
+            {isAdmin && (
+              <LibraryNavigationTree
+                initialNodeList={props.initialNodeList}
+                currentNode={nodeSlug}
+                visibility={["draft", "review", "unlisted", "published"]}
+              />
+            )}
             <DraftsSidebarSection />
           </LStack>
         </styled.div>

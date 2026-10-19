@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { useAccountGet } from "@/api/openapi-client/accounts";
-import { isUnauthenticatedError } from "@/auth/useAuthProvider";
+import { isUnauthenticatedError } from "@/auth/unauthenticated";
 
 import { Unready } from "@/components/site/Unready";
 import { GenericError } from "@/screens/errors/GenericError";

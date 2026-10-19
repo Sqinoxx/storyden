@@ -41,6 +41,9 @@ var DefaultSettings = Settings{
 			RepliesPerPage: opt.New(DefaultRepliesPerPage),
 			ThreadsPerPage: opt.New(DefaultThreadsPerPage),
 		}),
+		Market: opt.New(MarketServiceSettings{
+			ListingDurationDays: opt.New(DefaultListingDurationDays),
+		}),
 		Session: opt.New(SessionServiceSettings{
 			IdleTimeout:       opt.New(DefaultSessionIdleTimeout),
 			RememberMeDefault: opt.New(DefaultRememberMeDuration),
@@ -52,6 +55,9 @@ var DefaultSettings = Settings{
 const (
 	DefaultRepliesPerPage = 15
 	DefaultThreadsPerPage = 50
+
+	DefaultListingDurationDays = 90
+	MaxListingDurationDays     = 365
 
 	DefaultSessionIdleTimeout = time.Hour
 	DefaultRememberMeDuration = time.Hour * 24 * 30
@@ -90,6 +96,12 @@ func (s *Settings) RememberMeDuration(requested opt.Optional[time.Duration]) tim
 	}
 
 	return duration
+}
+
+// ListingDuration resolves how long a Flohmarkt listing stays visible.
+func (s *Settings) ListingDuration() time.Duration {
+	days := clampPageSize(s.Services.OrZero().Market.OrZero().ListingDurationDays, DefaultListingDurationDays, MaxListingDurationDays)
+	return time.Duration(days) * 24 * time.Hour
 }
 
 func contentSettings(s *Settings) ContentServiceSettings {

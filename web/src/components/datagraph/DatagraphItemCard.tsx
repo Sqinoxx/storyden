@@ -249,6 +249,8 @@ export function getDatagraphKindLabel(
       return t.datagraph.profile;
     case DatagraphItemKind.event:
       return t.datagraph.event;
+    case DatagraphItemKind.listing:
+      return t.datagraph.listing;
   }
 }
 
@@ -267,6 +269,8 @@ export function getDatagraphKindColour(kind: DatagraphItemKind): ColorPalette {
     case DatagraphItemKind.profile:
       return "red";
     case DatagraphItemKind.event:
+      return "amber";
+    case DatagraphItemKind.listing:
       return "amber";
   }
 }

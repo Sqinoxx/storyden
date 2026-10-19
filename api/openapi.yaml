@@ -106,6 +106,11 @@ tags:
     description: Content graph (posts, nodes, links) APIs.
   - name: events
     description: Event scheduling, invites and management.
+  - name: listings
+    description: |
+      Flohmarkt classifieds. Members post listings with photos and a price,
+      buyers make offers and contact sellers via the phone number revealed
+      after an offer has been made.
   - name: robots
     description: Robots (AI Agents)
   - name: drive
@@ -2607,6 +2612,37 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorised" }
         "200": { description: OK }
 
+  /accounts/self/phone:
+    get:
+      operationId: AccountPhoneGet
+      description: |
+        Get the private phone number of the authenticated account. The phone
+        number is never shown publicly, it is only revealed to members who
+        make an offer on one of the account's Flohmarkt listings.
+      tags: [accounts]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/AccountPhoneOK" }
+    put:
+      operationId: AccountPhoneSet
+      description: Set the private phone number of the authenticated account.
+      tags: [accounts]
+      requestBody: { $ref: "#/components/requestBodies/AccountPhoneSet" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/AccountPhoneOK" }
+    delete:
+      operationId: AccountPhoneRemove
+      description: Remove the private phone number of the authenticated account.
+      tags: [accounts]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/AccountPhoneOK" }
+
   /accounts/self/avatar:
     post:
       operationId: AccountSetAvatar
@@ -4358,6 +4394,161 @@ paths:
         "501": { $ref: "#/components/responses/NotImplemented" }
         "200": { description: OK }
 
+  /listings:
+    get:
+      operationId: ListingList
+      description: |
+        Search Flohmarkt listings. Expired listings are hidden unless the
+        `mine` filter is used, so sellers can still renew their own listings.
+      tags: [listings]
+      parameters:
+        - $ref: "#/components/parameters/SearchQuery"
+        - $ref: "#/components/parameters/PaginationQuery"
+        - $ref: "#/components/parameters/ListingCategoryQuery"
+        - $ref: "#/components/parameters/ListingConditionQuery"
+        - $ref: "#/components/parameters/ListingPriceTypeQuery"
+        - $ref: "#/components/parameters/ListingPriceMinQuery"
+        - $ref: "#/components/parameters/ListingPriceMaxQuery"
+        - $ref: "#/components/parameters/ListingSortQuery"
+        - $ref: "#/components/parameters/ListingScopeQuery"
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ListingListOK" }
+    post:
+      operationId: ListingCreate
+      description: |
+        Create a new listing. The account must have a phone number set. The
+        listing is visible for the number of days configured by the admin.
+      tags: [listings]
+      requestBody: { $ref: "#/components/requestBodies/ListingCreate" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ListingGetOK" }
+
+  /listings/{listing_mark}:
+    get:
+      operationId: ListingGet
+      description: Get a listing by its ID or slug.
+      tags: [listings]
+      parameters: [$ref: "#/components/parameters/ListingMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ListingGetOK" }
+    patch:
+      operationId: ListingUpdate
+      description: Update a listing. Only the owner or a moderator may do this.
+      tags: [listings]
+      parameters: [$ref: "#/components/parameters/ListingMarkParam"]
+      requestBody: { $ref: "#/components/requestBodies/ListingUpdate" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ListingGetOK" }
+    delete:
+      operationId: ListingDelete
+      description: Delete a listing. Only the owner or a moderator may do this.
+      tags: [listings]
+      parameters: [$ref: "#/components/parameters/ListingMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { description: OK }
+
+  /listings/{listing_mark}/renew:
+    post:
+      operationId: ListingRenew
+      description: |
+        Extend the visibility of a listing by the configured duration starting
+        from now. Only the owner may renew a listing.
+      tags: [listings]
+      parameters: [$ref: "#/components/parameters/ListingMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ListingGetOK" }
+
+  /listings/{listing_mark}/offer:
+    put:
+      operationId: ListingOfferSubmit
+      description: |
+        Make or update an offer on a listing. The buyer must have a phone
+        number set. After making an offer, the buyer can see the seller's
+        phone number and the seller can see the buyer's phone number.
+      tags: [listings]
+      parameters: [$ref: "#/components/parameters/ListingMarkParam"]
+      requestBody: { $ref: "#/components/requestBodies/ListingOfferSubmit" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ListingOfferOK" }
+
+  /listings/{listing_mark}/contact:
+    get:
+      operationId: ListingContactGet
+      description: |
+        Get the seller's contact details. Only available after the requesting
+        account has made an offer on the listing.
+      tags: [listings]
+      parameters: [$ref: "#/components/parameters/ListingMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ListingContactOK" }
+
+  /listings/{listing_mark}/offers:
+    get:
+      operationId: ListingOfferList
+      description: |
+        List all offers made on a listing including the buyers' phone numbers.
+        Only the owner of the listing may see this.
+      tags: [listings]
+      parameters: [$ref: "#/components/parameters/ListingMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ListingOfferListOK" }
+
+  /listings/{listing_mark}/favourite:
+    put:
+      operationId: ListingFavouriteAdd
+      description: Add a listing to the authenticated account's watch list.
+      tags: [listings]
+      parameters: [$ref: "#/components/parameters/ListingMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { description: OK }
+    delete:
+      operationId: ListingFavouriteRemove
+      description: Remove a listing from the authenticated account's watch list.
+      tags: [listings]
+      parameters: [$ref: "#/components/parameters/ListingMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { description: OK }
+
   #
   #                 888               888
   #                 888               888
@@ -5633,6 +5824,77 @@ components:
         type: string
         enum: [tree, flat]
 
+    ListingMarkParam:
+      description: |
+        Either:
+        - The unique listing ID.
+        - The unique listing slug.
+        - A string of the form <id>-<slug>
+      name: listing_mark
+      in: path
+      required: true
+      schema:
+        type: string
+
+    ListingCategoryQuery:
+      description: Filter listings by category.
+      name: category
+      in: query
+      required: false
+      schema: { $ref: "#/components/schemas/ListingCategory" }
+
+    ListingConditionQuery:
+      description: Filter listings by condition.
+      name: condition
+      in: query
+      required: false
+      schema: { $ref: "#/components/schemas/ListingCondition" }
+
+    ListingPriceTypeQuery:
+      description: Filter listings by price type.
+      name: price_type
+      in: query
+      required: false
+      schema: { $ref: "#/components/schemas/ListingPriceType" }
+
+    ListingPriceMinQuery:
+      description: |
+        Minimum price in cents. A string due to a bug in oapi-codegen, the
+        same as the page parameter.
+      name: price_min
+      in: query
+      required: false
+      schema: { type: string, pattern: "^[0-9]+$" }
+
+    ListingPriceMaxQuery:
+      description: |
+        Maximum price in cents. A string due to a bug in oapi-codegen, the
+        same as the page parameter.
+      name: price_max
+      in: query
+      required: false
+      schema: { type: string, pattern: "^[0-9]+$" }
+
+    ListingSortQuery:
+      description: Sort order of the listing results.
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [newest, price_asc, price_desc]
+
+    ListingScopeQuery:
+      description: |
+        Restrict the results to the authenticated account's own listings
+        (including expired ones) or to its watch list.
+      name: scope
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [all, mine, favourites]
+
     EventMarkParam:
       description: |
         Either:
@@ -6145,6 +6407,26 @@ components:
       content:
         application/json:
           schema: { $ref: "#/components/schemas/VisibilityMutationProps" }
+
+    AccountPhoneSet:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AccountPhoneSetProps" }
+
+    ListingCreate:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ListingInitialProps" }
+
+    ListingUpdate:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ListingMutableProps" }
+
+    ListingOfferSubmit:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ListingOfferProps" }
 
     EventCreate:
       content:
@@ -7299,6 +7581,42 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/DatagraphMatchResult" }
 
+    AccountPhoneOK:
+      description: The private phone number of the authenticated account.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AccountPhone" }
+
+    ListingListOK:
+      description: Listing search results.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ListingListResult" }
+
+    ListingGetOK:
+      description: A single listing.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Listing" }
+
+    ListingOfferOK:
+      description: The offer made by the authenticated account.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ListingOffer" }
+
+    ListingContactOK:
+      description: The seller's contact details.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ListingContact" }
+
+    ListingOfferListOK:
+      description: All offers on a listing.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ListingOfferListResult" }
+
     EventListOK:
       description: Event list.
       content:
@@ -8196,6 +8514,8 @@ components:
           $ref: "#/components/schemas/SessionServiceSettings"
         assets:
           $ref: "#/components/schemas/AssetServiceSettings"
+        market:
+          $ref: "#/components/schemas/MarketServiceSettings"
 
     StatisticsSeriesPoint:
       type: object
@@ -8430,6 +8750,17 @@ components:
         reportsLast30d:
           type: integer
           description: Reports submitted in the last 30 days.
+
+    MarketServiceSettings:
+      type: object
+      properties:
+        listing_duration_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          description: |
+            How many days a Flohmarkt listing stays visible after it was
+            created or renewed.
 
     ContentServiceSettings:
       type: object
@@ -9478,6 +9809,8 @@ components:
         - "UPLOAD_ASSET"
         # Events
         - "MANAGE_EVENTS"
+        # Flohmarkt (Listings)
+        - "MANAGE_LISTINGS"
         # Profiles (listing and viewing member profiles)
         - "LIST_PROFILES"
         - "READ_PROFILE"
@@ -11184,6 +11517,8 @@ components:
         - node_version_created
         - node_version_applied
         - node_version_deleted
+        - listing_offer_received
+        - listing_expiring
 
     NotificationStatus:
       type: string
@@ -12924,7 +13259,7 @@ components:
 
     DatagraphItemKind:
       type: string
-      enum: [post, thread, reply, node, collection, profile, event]
+      enum: [post, thread, reply, node, collection, profile, event, listing]
 
     DatagraphRecommendations:
       required: [recomentations]
@@ -12967,6 +13302,227 @@ components:
     EventList:
       type: array
       items: { $ref: "#/components/schemas/EventReference" }
+
+    AccountPhone:
+      type: object
+      properties:
+        phone:
+          type: string
+          description: The phone number in E.164 format, e.g. +436641234567.
+
+    AccountPhoneSetProps:
+      type: object
+      required: [phone]
+      properties:
+        phone:
+          type: string
+          minLength: 4
+          maxLength: 32
+          description: |
+            A phone number. Numbers without a country code are assumed to be
+            Austrian. The number is stored normalised in E.164 format.
+
+    ListingCategory:
+      type: string
+      enum:
+        [books, instruments, electronics, clothing, furniture, tickets, other]
+      x-enum-varnames:
+        - ListingCategoryBooks
+        - ListingCategoryInstruments
+        - ListingCategoryElectronics
+        - ListingCategoryClothing
+        - ListingCategoryFurniture
+        - ListingCategoryTickets
+        - ListingCategoryOther
+
+    ListingCondition:
+      type: string
+      enum: [new, like_new, used, defective]
+      x-enum-varnames:
+        - ListingConditionNew
+        - ListingConditionLikeNew
+        - ListingConditionUsed
+        - ListingConditionDefective
+
+    ListingPriceType:
+      type: string
+      description: |
+        - fixed: Festpreis
+        - negotiable: Verhandlungsbasis (VB)
+        - free: Zu verschenken
+      enum: [fixed, negotiable, free]
+      x-enum-varnames:
+        - ListingPriceTypeFixed
+        - ListingPriceTypeNegotiable
+        - ListingPriceTypeFree
+
+    ListingStatus:
+      type: string
+      enum: [active, reserved, sold]
+      x-enum-varnames:
+        - ListingStatusActive
+        - ListingStatusReserved
+        - ListingStatusSold
+
+    ListingTitle:
+      type: string
+      minLength: 3
+      maxLength: 100
+
+    ListingDescription:
+      type: string
+      maxLength: 5000
+
+    ListingPrice:
+      type: integer
+      minimum: 0
+      maximum: 100000000
+      description: The price in cents.
+
+    ListingLocation:
+      type: string
+      maxLength: 100
+
+    ListingAssetIDs:
+      type: array
+      maxItems: 10
+      description: Ordered list of image asset IDs, the first is the cover.
+      items: { $ref: "#/components/schemas/AssetID" }
+
+    ListingInitialProps:
+      type: object
+      required: [title, price, price_type, category, condition]
+      properties:
+        title: { $ref: "#/components/schemas/ListingTitle" }
+        description: { $ref: "#/components/schemas/ListingDescription" }
+        price: { $ref: "#/components/schemas/ListingPrice" }
+        price_type: { $ref: "#/components/schemas/ListingPriceType" }
+        category: { $ref: "#/components/schemas/ListingCategory" }
+        condition: { $ref: "#/components/schemas/ListingCondition" }
+        location: { $ref: "#/components/schemas/ListingLocation" }
+        asset_ids: { $ref: "#/components/schemas/ListingAssetIDs" }
+
+    ListingMutableProps:
+      type: object
+      properties:
+        title: { $ref: "#/components/schemas/ListingTitle" }
+        description: { $ref: "#/components/schemas/ListingDescription" }
+        price: { $ref: "#/components/schemas/ListingPrice" }
+        price_type: { $ref: "#/components/schemas/ListingPriceType" }
+        category: { $ref: "#/components/schemas/ListingCategory" }
+        condition: { $ref: "#/components/schemas/ListingCondition" }
+        location: { $ref: "#/components/schemas/ListingLocation" }
+        status: { $ref: "#/components/schemas/ListingStatus" }
+        asset_ids: { $ref: "#/components/schemas/ListingAssetIDs" }
+
+    Listing:
+      type: object
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - expires_at
+        - title
+        - slug
+        - description
+        - price
+        - price_type
+        - category
+        - condition
+        - status
+        - assets
+        - owner
+        - is_own
+        - is_expired
+        - has_offered
+        - is_favourite
+      properties:
+        id: { $ref: "#/components/schemas/Identifier" }
+        createdAt: { $ref: "#/components/schemas/CreatedAt" }
+        updatedAt: { $ref: "#/components/schemas/UpdatedAt" }
+        expires_at:
+          type: string
+          format: date-time
+          description: When the listing stops being visible on the Flohmarkt.
+        title: { $ref: "#/components/schemas/ListingTitle" }
+        slug: { type: string }
+        description: { $ref: "#/components/schemas/ListingDescription" }
+        price: { $ref: "#/components/schemas/ListingPrice" }
+        price_type: { $ref: "#/components/schemas/ListingPriceType" }
+        category: { $ref: "#/components/schemas/ListingCategory" }
+        condition: { $ref: "#/components/schemas/ListingCondition" }
+        status: { $ref: "#/components/schemas/ListingStatus" }
+        location: { $ref: "#/components/schemas/ListingLocation" }
+        assets: { $ref: "#/components/schemas/AssetList" }
+        owner: { $ref: "#/components/schemas/ProfileReference" }
+        is_own:
+          type: boolean
+          description: Whether the authenticated account owns this listing.
+        is_expired:
+          type: boolean
+        has_offered:
+          type: boolean
+          description: Whether the authenticated account has made an offer.
+        is_favourite:
+          type: boolean
+          description: Whether the listing is on the account's watch list.
+        offer_count:
+          type: integer
+          description: Number of offers, only present for the owner.
+
+    ListingList:
+      type: array
+      items: { $ref: "#/components/schemas/Listing" }
+
+    ListingListResult:
+      allOf:
+        - { $ref: "#/components/schemas/PaginatedResult" }
+        - type: object
+          required: [listings]
+          properties:
+            listings: { $ref: "#/components/schemas/ListingList" }
+
+    ListingOfferProps:
+      type: object
+      required: [amount]
+      properties:
+        amount: { $ref: "#/components/schemas/ListingPrice" }
+        message:
+          type: string
+          maxLength: 1000
+
+    ListingOffer:
+      type: object
+      required: [id, createdAt, updatedAt, amount, message, buyer]
+      properties:
+        id: { $ref: "#/components/schemas/Identifier" }
+        createdAt: { $ref: "#/components/schemas/CreatedAt" }
+        updatedAt: { $ref: "#/components/schemas/UpdatedAt" }
+        amount: { $ref: "#/components/schemas/ListingPrice" }
+        message: { type: string }
+        buyer: { $ref: "#/components/schemas/ProfileReference" }
+        buyer_phone:
+          type: string
+          description: The buyer's phone number, only visible to the seller.
+
+    ListingOfferList:
+      type: array
+      items: { $ref: "#/components/schemas/ListingOffer" }
+
+    ListingOfferListResult:
+      type: object
+      required: [offers]
+      properties:
+        offers: { $ref: "#/components/schemas/ListingOfferList" }
+
+    ListingContact:
+      type: object
+      required: [phone, seller]
+      properties:
+        phone:
+          type: string
+          description: The seller's phone number in E.164 format.
+        seller: { $ref: "#/components/schemas/ProfileReference" }
 
     EventListResult:
       allOf:

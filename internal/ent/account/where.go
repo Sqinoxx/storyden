@@ -101,6 +101,11 @@ func Admin(v bool) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldAdmin, v))
 }
 
+// Phone applies equality check predicate on the "phone" field. It's identical to PhoneEQ.
+func Phone(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldPhone, v))
+}
+
 // InvitedByID applies equality check predicate on the "invited_by_id" field. It's identical to InvitedByIDEQ.
 func InvitedByID(v xid.ID) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldInvitedByID, v))
@@ -634,6 +639,81 @@ func MetadataIsNil() predicate.Account {
 // MetadataNotNil applies the NotNil predicate on the "metadata" field.
 func MetadataNotNil() predicate.Account {
 	return predicate.Account(sql.FieldNotNull(FieldMetadata))
+}
+
+// PhoneEQ applies the EQ predicate on the "phone" field.
+func PhoneEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldPhone, v))
+}
+
+// PhoneNEQ applies the NEQ predicate on the "phone" field.
+func PhoneNEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldPhone, v))
+}
+
+// PhoneIn applies the In predicate on the "phone" field.
+func PhoneIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldPhone, vs...))
+}
+
+// PhoneNotIn applies the NotIn predicate on the "phone" field.
+func PhoneNotIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldPhone, vs...))
+}
+
+// PhoneGT applies the GT predicate on the "phone" field.
+func PhoneGT(v string) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldPhone, v))
+}
+
+// PhoneGTE applies the GTE predicate on the "phone" field.
+func PhoneGTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldPhone, v))
+}
+
+// PhoneLT applies the LT predicate on the "phone" field.
+func PhoneLT(v string) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldPhone, v))
+}
+
+// PhoneLTE applies the LTE predicate on the "phone" field.
+func PhoneLTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldPhone, v))
+}
+
+// PhoneContains applies the Contains predicate on the "phone" field.
+func PhoneContains(v string) predicate.Account {
+	return predicate.Account(sql.FieldContains(FieldPhone, v))
+}
+
+// PhoneHasPrefix applies the HasPrefix predicate on the "phone" field.
+func PhoneHasPrefix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasPrefix(FieldPhone, v))
+}
+
+// PhoneHasSuffix applies the HasSuffix predicate on the "phone" field.
+func PhoneHasSuffix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasSuffix(FieldPhone, v))
+}
+
+// PhoneIsNil applies the IsNil predicate on the "phone" field.
+func PhoneIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldPhone))
+}
+
+// PhoneNotNil applies the NotNil predicate on the "phone" field.
+func PhoneNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldPhone))
+}
+
+// PhoneEqualFold applies the EqualFold predicate on the "phone" field.
+func PhoneEqualFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldEqualFold(FieldPhone, v))
+}
+
+// PhoneContainsFold applies the ContainsFold predicate on the "phone" field.
+func PhoneContainsFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldContainsFold(FieldPhone, v))
 }
 
 // InvitedByIDEQ applies the EQ predicate on the "invited_by_id" field.
@@ -1720,6 +1800,75 @@ func HasRobotMessages() predicate.Account {
 func HasRobotMessagesWith(preds ...predicate.RobotSessionMessage) predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
 		step := newRobotMessagesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasListings applies the HasEdge predicate on the "listings" edge.
+func HasListings() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ListingsTable, ListingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasListingsWith applies the HasEdge predicate on the "listings" edge with a given conditions (other predicates).
+func HasListingsWith(preds ...predicate.Listing) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newListingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasListingOffers applies the HasEdge predicate on the "listing_offers" edge.
+func HasListingOffers() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ListingOffersTable, ListingOffersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasListingOffersWith applies the HasEdge predicate on the "listing_offers" edge with a given conditions (other predicates).
+func HasListingOffersWith(preds ...predicate.ListingOffer) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newListingOffersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasListingFavourites applies the HasEdge predicate on the "listing_favourites" edge.
+func HasListingFavourites() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ListingFavouritesTable, ListingFavouritesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasListingFavouritesWith applies the HasEdge predicate on the "listing_favourites" edge with a given conditions (other predicates).
+func HasListingFavouritesWith(preds ...predicate.ListingFavourite) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newListingFavouritesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

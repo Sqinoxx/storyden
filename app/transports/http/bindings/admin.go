@@ -617,7 +617,14 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 			})
 		}
 
-		if clientIP.Ok() || rateLimit.Ok() || moderation.Ok() || robots.Ok() || content.Ok() || sessionSettings.Ok() || assets.Ok() {
+		var market opt.Optional[settings.MarketServiceSettings]
+		if request.Body.Services.Market != nil {
+			market = opt.New(settings.MarketServiceSettings{
+				ListingDurationDays: opt.NewPtr(request.Body.Services.Market.ListingDurationDays),
+			})
+		}
+
+		if clientIP.Ok() || rateLimit.Ok() || moderation.Ok() || robots.Ok() || content.Ok() || sessionSettings.Ok() || assets.Ok() || market.Ok() {
 			services = opt.New(settings.ServiceSettings{
 				ClientIP:   clientIP,
 				RateLimit:  rateLimit,
@@ -626,6 +633,7 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 				Content:    content,
 				Session:    sessionSettings,
 				Assets:     assets,
+				Market:     market,
 			})
 		}
 	}
@@ -1343,6 +1351,13 @@ func serialiseServiceSettings(in settings.ServiceSettings) openapi.AdminSettings
 		Content:      opt.Map(in.Content, serialiseContentSettings).Ptr(),
 		Session:      opt.Map(in.Session, serialiseSessionSettings).Ptr(),
 		Assets:       opt.Map(in.Assets, serialiseAssetSettings).Ptr(),
+		Market:       opt.Map(in.Market, serialiseMarketSettings).Ptr(),
+	}
+}
+
+func serialiseMarketSettings(in settings.MarketServiceSettings) openapi.MarketServiceSettings {
+	return openapi.MarketServiceSettings{
+		ListingDurationDays: in.ListingDurationDays.Ptr(),
 	}
 }
 

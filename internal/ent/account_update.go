@@ -24,6 +24,9 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/eventparticipant"
 	"github.com/Southclaws/storyden/internal/ent/invitation"
 	"github.com/Southclaws/storyden/internal/ent/likepost"
+	"github.com/Southclaws/storyden/internal/ent/listing"
+	"github.com/Southclaws/storyden/internal/ent/listingfavourite"
+	"github.com/Southclaws/storyden/internal/ent/listingoffer"
 	"github.com/Southclaws/storyden/internal/ent/mentionprofile"
 	"github.com/Southclaws/storyden/internal/ent/moderationnote"
 	"github.com/Southclaws/storyden/internal/ent/node"
@@ -253,6 +256,26 @@ func (_u *AccountUpdate) SetMetadata(v map[string]interface{}) *AccountUpdate {
 // ClearMetadata clears the value of the "metadata" field.
 func (_u *AccountUpdate) ClearMetadata() *AccountUpdate {
 	_u.mutation.ClearMetadata()
+	return _u
+}
+
+// SetPhone sets the "phone" field.
+func (_u *AccountUpdate) SetPhone(v string) *AccountUpdate {
+	_u.mutation.SetPhone(v)
+	return _u
+}
+
+// SetNillablePhone sets the "phone" field if the given value is not nil.
+func (_u *AccountUpdate) SetNillablePhone(v *string) *AccountUpdate {
+	if v != nil {
+		_u.SetPhone(*v)
+	}
+	return _u
+}
+
+// ClearPhone clears the value of the "phone" field.
+func (_u *AccountUpdate) ClearPhone() *AccountUpdate {
+	_u.mutation.ClearPhone()
 	return _u
 }
 
@@ -924,6 +947,51 @@ func (_u *AccountUpdate) AddRobotMessages(v ...*RobotSessionMessage) *AccountUpd
 		ids[i] = v[i].ID
 	}
 	return _u.AddRobotMessageIDs(ids...)
+}
+
+// AddListingIDs adds the "listings" edge to the Listing entity by IDs.
+func (_u *AccountUpdate) AddListingIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.AddListingIDs(ids...)
+	return _u
+}
+
+// AddListings adds the "listings" edges to the Listing entity.
+func (_u *AccountUpdate) AddListings(v ...*Listing) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddListingIDs(ids...)
+}
+
+// AddListingOfferIDs adds the "listing_offers" edge to the ListingOffer entity by IDs.
+func (_u *AccountUpdate) AddListingOfferIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.AddListingOfferIDs(ids...)
+	return _u
+}
+
+// AddListingOffers adds the "listing_offers" edges to the ListingOffer entity.
+func (_u *AccountUpdate) AddListingOffers(v ...*ListingOffer) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddListingOfferIDs(ids...)
+}
+
+// AddListingFavouriteIDs adds the "listing_favourites" edge to the ListingFavourite entity by IDs.
+func (_u *AccountUpdate) AddListingFavouriteIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.AddListingFavouriteIDs(ids...)
+	return _u
+}
+
+// AddListingFavourites adds the "listing_favourites" edges to the ListingFavourite entity.
+func (_u *AccountUpdate) AddListingFavourites(v ...*ListingFavourite) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddListingFavouriteIDs(ids...)
 }
 
 // AddAccountRoleIDs adds the "account_roles" edge to the AccountRoles entity by IDs.
@@ -1855,6 +1923,69 @@ func (_u *AccountUpdate) RemoveRobotMessages(v ...*RobotSessionMessage) *Account
 	return _u.RemoveRobotMessageIDs(ids...)
 }
 
+// ClearListings clears all "listings" edges to the Listing entity.
+func (_u *AccountUpdate) ClearListings() *AccountUpdate {
+	_u.mutation.ClearListings()
+	return _u
+}
+
+// RemoveListingIDs removes the "listings" edge to Listing entities by IDs.
+func (_u *AccountUpdate) RemoveListingIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.RemoveListingIDs(ids...)
+	return _u
+}
+
+// RemoveListings removes "listings" edges to Listing entities.
+func (_u *AccountUpdate) RemoveListings(v ...*Listing) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveListingIDs(ids...)
+}
+
+// ClearListingOffers clears all "listing_offers" edges to the ListingOffer entity.
+func (_u *AccountUpdate) ClearListingOffers() *AccountUpdate {
+	_u.mutation.ClearListingOffers()
+	return _u
+}
+
+// RemoveListingOfferIDs removes the "listing_offers" edge to ListingOffer entities by IDs.
+func (_u *AccountUpdate) RemoveListingOfferIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.RemoveListingOfferIDs(ids...)
+	return _u
+}
+
+// RemoveListingOffers removes "listing_offers" edges to ListingOffer entities.
+func (_u *AccountUpdate) RemoveListingOffers(v ...*ListingOffer) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveListingOfferIDs(ids...)
+}
+
+// ClearListingFavourites clears all "listing_favourites" edges to the ListingFavourite entity.
+func (_u *AccountUpdate) ClearListingFavourites() *AccountUpdate {
+	_u.mutation.ClearListingFavourites()
+	return _u
+}
+
+// RemoveListingFavouriteIDs removes the "listing_favourites" edge to ListingFavourite entities by IDs.
+func (_u *AccountUpdate) RemoveListingFavouriteIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.RemoveListingFavouriteIDs(ids...)
+	return _u
+}
+
+// RemoveListingFavourites removes "listing_favourites" edges to ListingFavourite entities.
+func (_u *AccountUpdate) RemoveListingFavourites(v ...*ListingFavourite) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveListingFavouriteIDs(ids...)
+}
+
 // ClearAccountRoles clears all "account_roles" edges to the AccountRoles entity.
 func (_u *AccountUpdate) ClearAccountRoles() *AccountUpdate {
 	_u.mutation.ClearAccountRoles()
@@ -2013,6 +2144,12 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.MetadataCleared() {
 		_spec.ClearField(account.FieldMetadata, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Phone(); ok {
+		_spec.SetField(account.FieldPhone, field.TypeString, value)
+	}
+	if _u.mutation.PhoneCleared() {
+		_spec.ClearField(account.FieldPhone, field.TypeString)
 	}
 	if _u.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -3999,6 +4136,141 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ListingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingsTable,
+			Columns: []string{account.ListingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedListingsIDs(); len(nodes) > 0 && !_u.mutation.ListingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingsTable,
+			Columns: []string{account.ListingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ListingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingsTable,
+			Columns: []string{account.ListingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ListingOffersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingOffersTable,
+			Columns: []string{account.ListingOffersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingoffer.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedListingOffersIDs(); len(nodes) > 0 && !_u.mutation.ListingOffersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingOffersTable,
+			Columns: []string{account.ListingOffersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingoffer.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ListingOffersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingOffersTable,
+			Columns: []string{account.ListingOffersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingoffer.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ListingFavouritesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingFavouritesTable,
+			Columns: []string{account.ListingFavouritesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingfavourite.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedListingFavouritesIDs(); len(nodes) > 0 && !_u.mutation.ListingFavouritesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingFavouritesTable,
+			Columns: []string{account.ListingFavouritesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingfavourite.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ListingFavouritesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingFavouritesTable,
+			Columns: []string{account.ListingFavouritesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingfavourite.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.AccountRolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -4249,6 +4521,26 @@ func (_u *AccountUpdateOne) SetMetadata(v map[string]interface{}) *AccountUpdate
 // ClearMetadata clears the value of the "metadata" field.
 func (_u *AccountUpdateOne) ClearMetadata() *AccountUpdateOne {
 	_u.mutation.ClearMetadata()
+	return _u
+}
+
+// SetPhone sets the "phone" field.
+func (_u *AccountUpdateOne) SetPhone(v string) *AccountUpdateOne {
+	_u.mutation.SetPhone(v)
+	return _u
+}
+
+// SetNillablePhone sets the "phone" field if the given value is not nil.
+func (_u *AccountUpdateOne) SetNillablePhone(v *string) *AccountUpdateOne {
+	if v != nil {
+		_u.SetPhone(*v)
+	}
+	return _u
+}
+
+// ClearPhone clears the value of the "phone" field.
+func (_u *AccountUpdateOne) ClearPhone() *AccountUpdateOne {
+	_u.mutation.ClearPhone()
 	return _u
 }
 
@@ -4920,6 +5212,51 @@ func (_u *AccountUpdateOne) AddRobotMessages(v ...*RobotSessionMessage) *Account
 		ids[i] = v[i].ID
 	}
 	return _u.AddRobotMessageIDs(ids...)
+}
+
+// AddListingIDs adds the "listings" edge to the Listing entity by IDs.
+func (_u *AccountUpdateOne) AddListingIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.AddListingIDs(ids...)
+	return _u
+}
+
+// AddListings adds the "listings" edges to the Listing entity.
+func (_u *AccountUpdateOne) AddListings(v ...*Listing) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddListingIDs(ids...)
+}
+
+// AddListingOfferIDs adds the "listing_offers" edge to the ListingOffer entity by IDs.
+func (_u *AccountUpdateOne) AddListingOfferIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.AddListingOfferIDs(ids...)
+	return _u
+}
+
+// AddListingOffers adds the "listing_offers" edges to the ListingOffer entity.
+func (_u *AccountUpdateOne) AddListingOffers(v ...*ListingOffer) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddListingOfferIDs(ids...)
+}
+
+// AddListingFavouriteIDs adds the "listing_favourites" edge to the ListingFavourite entity by IDs.
+func (_u *AccountUpdateOne) AddListingFavouriteIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.AddListingFavouriteIDs(ids...)
+	return _u
+}
+
+// AddListingFavourites adds the "listing_favourites" edges to the ListingFavourite entity.
+func (_u *AccountUpdateOne) AddListingFavourites(v ...*ListingFavourite) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddListingFavouriteIDs(ids...)
 }
 
 // AddAccountRoleIDs adds the "account_roles" edge to the AccountRoles entity by IDs.
@@ -5851,6 +6188,69 @@ func (_u *AccountUpdateOne) RemoveRobotMessages(v ...*RobotSessionMessage) *Acco
 	return _u.RemoveRobotMessageIDs(ids...)
 }
 
+// ClearListings clears all "listings" edges to the Listing entity.
+func (_u *AccountUpdateOne) ClearListings() *AccountUpdateOne {
+	_u.mutation.ClearListings()
+	return _u
+}
+
+// RemoveListingIDs removes the "listings" edge to Listing entities by IDs.
+func (_u *AccountUpdateOne) RemoveListingIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.RemoveListingIDs(ids...)
+	return _u
+}
+
+// RemoveListings removes "listings" edges to Listing entities.
+func (_u *AccountUpdateOne) RemoveListings(v ...*Listing) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveListingIDs(ids...)
+}
+
+// ClearListingOffers clears all "listing_offers" edges to the ListingOffer entity.
+func (_u *AccountUpdateOne) ClearListingOffers() *AccountUpdateOne {
+	_u.mutation.ClearListingOffers()
+	return _u
+}
+
+// RemoveListingOfferIDs removes the "listing_offers" edge to ListingOffer entities by IDs.
+func (_u *AccountUpdateOne) RemoveListingOfferIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.RemoveListingOfferIDs(ids...)
+	return _u
+}
+
+// RemoveListingOffers removes "listing_offers" edges to ListingOffer entities.
+func (_u *AccountUpdateOne) RemoveListingOffers(v ...*ListingOffer) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveListingOfferIDs(ids...)
+}
+
+// ClearListingFavourites clears all "listing_favourites" edges to the ListingFavourite entity.
+func (_u *AccountUpdateOne) ClearListingFavourites() *AccountUpdateOne {
+	_u.mutation.ClearListingFavourites()
+	return _u
+}
+
+// RemoveListingFavouriteIDs removes the "listing_favourites" edge to ListingFavourite entities by IDs.
+func (_u *AccountUpdateOne) RemoveListingFavouriteIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.RemoveListingFavouriteIDs(ids...)
+	return _u
+}
+
+// RemoveListingFavourites removes "listing_favourites" edges to ListingFavourite entities.
+func (_u *AccountUpdateOne) RemoveListingFavourites(v ...*ListingFavourite) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveListingFavouriteIDs(ids...)
+}
+
 // ClearAccountRoles clears all "account_roles" edges to the AccountRoles entity.
 func (_u *AccountUpdateOne) ClearAccountRoles() *AccountUpdateOne {
 	_u.mutation.ClearAccountRoles()
@@ -6039,6 +6439,12 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 	}
 	if _u.mutation.MetadataCleared() {
 		_spec.ClearField(account.FieldMetadata, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Phone(); ok {
+		_spec.SetField(account.FieldPhone, field.TypeString, value)
+	}
+	if _u.mutation.PhoneCleared() {
+		_spec.ClearField(account.FieldPhone, field.TypeString)
 	}
 	if _u.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -8018,6 +8424,141 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(robotsessionmessage.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ListingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingsTable,
+			Columns: []string{account.ListingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedListingsIDs(); len(nodes) > 0 && !_u.mutation.ListingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingsTable,
+			Columns: []string{account.ListingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ListingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingsTable,
+			Columns: []string{account.ListingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ListingOffersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingOffersTable,
+			Columns: []string{account.ListingOffersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingoffer.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedListingOffersIDs(); len(nodes) > 0 && !_u.mutation.ListingOffersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingOffersTable,
+			Columns: []string{account.ListingOffersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingoffer.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ListingOffersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingOffersTable,
+			Columns: []string{account.ListingOffersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingoffer.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ListingFavouritesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingFavouritesTable,
+			Columns: []string{account.ListingFavouritesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingfavourite.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedListingFavouritesIDs(); len(nodes) > 0 && !_u.mutation.ListingFavouritesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingFavouritesTable,
+			Columns: []string{account.ListingFavouritesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingfavourite.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ListingFavouritesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingFavouritesTable,
+			Columns: []string{account.ListingFavouritesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingfavourite.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

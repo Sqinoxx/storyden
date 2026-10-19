@@ -26,6 +26,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/drive/drive_credentials"
 	"github.com/Southclaws/storyden/app/services/drive/drive_manage"
 	"github.com/Southclaws/storyden/app/services/event"
+	"github.com/Southclaws/storyden/app/services/listing"
 	"github.com/Southclaws/storyden/app/services/generative"
 	"github.com/Southclaws/storyden/app/services/library"
 	"github.com/Southclaws/storyden/app/services/like/post_liker"
@@ -90,6 +91,7 @@ func Build() fx.Option {
 		robot.Build(),
 		semdexer.Build(),
 		event.Build(),
+		listing.Build(),
 		moderation.Build(),
 		action_dispatcher.Build(),
 		warning_manager.Build(),

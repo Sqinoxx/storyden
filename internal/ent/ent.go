@@ -30,6 +30,9 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/invitation"
 	"github.com/Southclaws/storyden/internal/ent/likepost"
 	"github.com/Southclaws/storyden/internal/ent/link"
+	"github.com/Southclaws/storyden/internal/ent/listing"
+	"github.com/Southclaws/storyden/internal/ent/listingfavourite"
+	"github.com/Southclaws/storyden/internal/ent/listingoffer"
 	"github.com/Southclaws/storyden/internal/ent/mentionprofile"
 	"github.com/Southclaws/storyden/internal/ent/moderationnote"
 	"github.com/Southclaws/storyden/internal/ent/node"
@@ -142,6 +145,9 @@ func checkColumn(t, c string) error {
 			invitation.Table:                   invitation.ValidColumn,
 			likepost.Table:                     likepost.ValidColumn,
 			link.Table:                         link.ValidColumn,
+			listing.Table:                      listing.ValidColumn,
+			listingfavourite.Table:             listingfavourite.ValidColumn,
+			listingoffer.Table:                 listingoffer.ValidColumn,
 			mentionprofile.Table:               mentionprofile.ValidColumn,
 			moderationnote.Table:               moderationnote.ValidColumn,
 			node.Table:                         node.ValidColumn,

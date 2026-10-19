@@ -182,5 +182,15 @@ function getNotificationContent(t: Translations, n: Notification) {
         description: d.nodeVersionDeleted,
         url: p?.slug ? `/l/${p.slug}` : "#",
       };
+    case "listing_offer_received":
+      return {
+        description: d.listingOfferReceived,
+        url: "/flohmarkt?scope=mine",
+      };
+    case "listing_expiring":
+      return {
+        description: d.listingExpiring,
+        url: "/flohmarkt?scope=mine",
+      };
   }
 }

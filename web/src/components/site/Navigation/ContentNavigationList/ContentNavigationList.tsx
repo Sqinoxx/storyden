@@ -12,6 +12,7 @@ import { CollectionsAnchor } from "../Anchors/Collections";
 import { DriveAnchor, useHasDriveFolders } from "../Anchors/Drive";
 import { LatestAnchor } from "../Anchors/Latest";
 import { LinksAnchor } from "../Anchors/Link";
+import { MarketplaceAnchor } from "../Anchors/Marketplace";
 import { MembersAnchor } from "../Anchors/Members";
 import { RolesAnchor } from "../Anchors/Roles";
 import { TagManagementAnchor, TagsAnchor } from "../Anchors/Tags";
@@ -78,6 +79,7 @@ export function ContentNavigationList(props: Props) {
       </LStack>
 
       <LStack gap="1">
+        {session && <MarketplaceAnchor />}
         <LatestAnchor />
         <CollectionsAnchor />
         {session && <TagsAnchor />}

@@ -3,6 +3,7 @@ package resources
 import (
 	"go.uber.org/fx"
 
+	"github.com/Southclaws/storyden/app/resources/account/account_phone"
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/account/account_repo"
 	"github.com/Southclaws/storyden/app/resources/account/account_search"
@@ -53,6 +54,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/like/like_writer"
 	"github.com/Southclaws/storyden/app/resources/link/link_querier"
 	"github.com/Southclaws/storyden/app/resources/link/link_writer"
+	"github.com/Southclaws/storyden/app/resources/listing/listing_repo"
 	"github.com/Southclaws/storyden/app/resources/oauth/oauth_querier"
 	"github.com/Southclaws/storyden/app/resources/oauth/oauth_writer"
 	oauth_remote "github.com/Southclaws/storyden/app/resources/oauth/remote"
@@ -175,6 +177,8 @@ func Build() fx.Option {
 			plugin_reader.New,
 			plugin_writer.New,
 			llm_provider.New,
+			account_phone.New,
+			listing_repo.New,
 		),
 		token.Build(),
 		password_reset_token.Build(),

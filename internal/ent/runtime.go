@@ -24,6 +24,9 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/invitation"
 	"github.com/Southclaws/storyden/internal/ent/likepost"
 	"github.com/Southclaws/storyden/internal/ent/link"
+	"github.com/Southclaws/storyden/internal/ent/listing"
+	"github.com/Southclaws/storyden/internal/ent/listingfavourite"
+	"github.com/Southclaws/storyden/internal/ent/listingoffer"
 	"github.com/Southclaws/storyden/internal/ent/mentionprofile"
 	"github.com/Southclaws/storyden/internal/ent/moderationnote"
 	"github.com/Southclaws/storyden/internal/ent/node"
@@ -823,6 +826,119 @@ func init() {
 	// link.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	link.IDValidator = func() func(string) error {
 		validators := linkDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	listingMixin := schema.Listing{}.Mixin()
+	listingMixinFields0 := listingMixin[0].Fields()
+	_ = listingMixinFields0
+	listingMixinFields1 := listingMixin[1].Fields()
+	_ = listingMixinFields1
+	listingMixinFields2 := listingMixin[2].Fields()
+	_ = listingMixinFields2
+	listingFields := schema.Listing{}.Fields()
+	_ = listingFields
+	// listingDescCreatedAt is the schema descriptor for created_at field.
+	listingDescCreatedAt := listingMixinFields1[0].Descriptor()
+	// listing.DefaultCreatedAt holds the default value on creation for the created_at field.
+	listing.DefaultCreatedAt = listingDescCreatedAt.Default.(func() time.Time)
+	// listingDescUpdatedAt is the schema descriptor for updated_at field.
+	listingDescUpdatedAt := listingMixinFields2[0].Descriptor()
+	// listing.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	listing.DefaultUpdatedAt = listingDescUpdatedAt.Default.(func() time.Time)
+	// listing.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	listing.UpdateDefaultUpdatedAt = listingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// listingDescPriceCents is the schema descriptor for price_cents field.
+	listingDescPriceCents := listingFields[3].Descriptor()
+	// listing.DefaultPriceCents holds the default value on creation for the price_cents field.
+	listing.DefaultPriceCents = listingDescPriceCents.Default.(int)
+	// listingDescID is the schema descriptor for id field.
+	listingDescID := listingMixinFields0[0].Descriptor()
+	// listing.DefaultID holds the default value on creation for the id field.
+	listing.DefaultID = listingDescID.Default.(func() xid.ID)
+	// listing.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	listing.IDValidator = func() func(string) error {
+		validators := listingDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	listingfavouriteMixin := schema.ListingFavourite{}.Mixin()
+	listingfavouriteMixinFields0 := listingfavouriteMixin[0].Fields()
+	_ = listingfavouriteMixinFields0
+	listingfavouriteMixinFields1 := listingfavouriteMixin[1].Fields()
+	_ = listingfavouriteMixinFields1
+	listingfavouriteFields := schema.ListingFavourite{}.Fields()
+	_ = listingfavouriteFields
+	// listingfavouriteDescCreatedAt is the schema descriptor for created_at field.
+	listingfavouriteDescCreatedAt := listingfavouriteMixinFields1[0].Descriptor()
+	// listingfavourite.DefaultCreatedAt holds the default value on creation for the created_at field.
+	listingfavourite.DefaultCreatedAt = listingfavouriteDescCreatedAt.Default.(func() time.Time)
+	// listingfavouriteDescID is the schema descriptor for id field.
+	listingfavouriteDescID := listingfavouriteMixinFields0[0].Descriptor()
+	// listingfavourite.DefaultID holds the default value on creation for the id field.
+	listingfavourite.DefaultID = listingfavouriteDescID.Default.(func() xid.ID)
+	// listingfavourite.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	listingfavourite.IDValidator = func() func(string) error {
+		validators := listingfavouriteDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	listingofferMixin := schema.ListingOffer{}.Mixin()
+	listingofferMixinFields0 := listingofferMixin[0].Fields()
+	_ = listingofferMixinFields0
+	listingofferMixinFields1 := listingofferMixin[1].Fields()
+	_ = listingofferMixinFields1
+	listingofferMixinFields2 := listingofferMixin[2].Fields()
+	_ = listingofferMixinFields2
+	listingofferFields := schema.ListingOffer{}.Fields()
+	_ = listingofferFields
+	// listingofferDescCreatedAt is the schema descriptor for created_at field.
+	listingofferDescCreatedAt := listingofferMixinFields1[0].Descriptor()
+	// listingoffer.DefaultCreatedAt holds the default value on creation for the created_at field.
+	listingoffer.DefaultCreatedAt = listingofferDescCreatedAt.Default.(func() time.Time)
+	// listingofferDescUpdatedAt is the schema descriptor for updated_at field.
+	listingofferDescUpdatedAt := listingofferMixinFields2[0].Descriptor()
+	// listingoffer.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	listingoffer.DefaultUpdatedAt = listingofferDescUpdatedAt.Default.(func() time.Time)
+	// listingoffer.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	listingoffer.UpdateDefaultUpdatedAt = listingofferDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// listingofferDescID is the schema descriptor for id field.
+	listingofferDescID := listingofferMixinFields0[0].Descriptor()
+	// listingoffer.DefaultID holds the default value on creation for the id field.
+	listingoffer.DefaultID = listingofferDescID.Default.(func() xid.ID)
+	// listingoffer.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	listingoffer.IDValidator = func() func(string) error {
+		validators := listingofferDescID.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),

@@ -68,6 +68,12 @@ type ServiceSettings struct {
 	Content    opt.Optional[ContentServiceSettings]
 	Session    opt.Optional[SessionServiceSettings]
 	Assets     opt.Optional[AssetServiceSettings]
+	Market     opt.Optional[MarketServiceSettings]
+}
+
+// MarketServiceSettings controls the Flohmarkt classifieds feature.
+type MarketServiceSettings struct {
+	ListingDurationDays opt.Optional[int]
 }
 
 // AssetServiceSettings controls limits applied to file/asset uploads.

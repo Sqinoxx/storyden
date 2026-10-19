@@ -144,6 +144,9 @@ var (
 	OperationIDAccountAuthMethodDelete                = OperationID{`AccountAuthMethodDelete`}
 	OperationIDAccountEmailAdd                        = OperationID{`AccountEmailAdd`}
 	OperationIDAccountEmailRemove                     = OperationID{`AccountEmailRemove`}
+	OperationIDAccountPhoneGet                        = OperationID{`AccountPhoneGet`}
+	OperationIDAccountPhoneSet                        = OperationID{`AccountPhoneSet`}
+	OperationIDAccountPhoneRemove                     = OperationID{`AccountPhoneRemove`}
 	OperationIDAccountSetAvatar                       = OperationID{`AccountSetAvatar`}
 	OperationIDAccountGetAvatar                       = OperationID{`AccountGetAvatar`}
 	OperationIDAccountAddRole                         = OperationID{`AccountAddRole`}
@@ -242,6 +245,17 @@ var (
 	OperationIDEventDelete                            = OperationID{`EventDelete`}
 	OperationIDEventParticipantUpdate                 = OperationID{`EventParticipantUpdate`}
 	OperationIDEventParticipantRemove                 = OperationID{`EventParticipantRemove`}
+	OperationIDListingList                            = OperationID{`ListingList`}
+	OperationIDListingCreate                          = OperationID{`ListingCreate`}
+	OperationIDListingGet                             = OperationID{`ListingGet`}
+	OperationIDListingUpdate                          = OperationID{`ListingUpdate`}
+	OperationIDListingDelete                          = OperationID{`ListingDelete`}
+	OperationIDListingRenew                           = OperationID{`ListingRenew`}
+	OperationIDListingOfferSubmit                     = OperationID{`ListingOfferSubmit`}
+	OperationIDListingContactGet                      = OperationID{`ListingContactGet`}
+	OperationIDListingOfferList                       = OperationID{`ListingOfferList`}
+	OperationIDListingFavouriteAdd                    = OperationID{`ListingFavouriteAdd`}
+	OperationIDListingFavouriteRemove                 = OperationID{`ListingFavouriteRemove`}
 	OperationIDRobotsList                             = OperationID{`RobotsList`}
 	OperationIDRobotCreate                            = OperationID{`RobotCreate`}
 	OperationIDRobotToolsList                         = OperationID{`RobotToolsList`}
@@ -574,6 +588,12 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAccountEmailAdd, nil
 	case string(`AccountEmailRemove`):
 		return OperationIDAccountEmailRemove, nil
+	case string(`AccountPhoneGet`):
+		return OperationIDAccountPhoneGet, nil
+	case string(`AccountPhoneSet`):
+		return OperationIDAccountPhoneSet, nil
+	case string(`AccountPhoneRemove`):
+		return OperationIDAccountPhoneRemove, nil
 	case string(`AccountSetAvatar`):
 		return OperationIDAccountSetAvatar, nil
 	case string(`AccountGetAvatar`):
@@ -770,6 +790,28 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDEventParticipantUpdate, nil
 	case string(`EventParticipantRemove`):
 		return OperationIDEventParticipantRemove, nil
+	case string(`ListingList`):
+		return OperationIDListingList, nil
+	case string(`ListingCreate`):
+		return OperationIDListingCreate, nil
+	case string(`ListingGet`):
+		return OperationIDListingGet, nil
+	case string(`ListingUpdate`):
+		return OperationIDListingUpdate, nil
+	case string(`ListingDelete`):
+		return OperationIDListingDelete, nil
+	case string(`ListingRenew`):
+		return OperationIDListingRenew, nil
+	case string(`ListingOfferSubmit`):
+		return OperationIDListingOfferSubmit, nil
+	case string(`ListingContactGet`):
+		return OperationIDListingContactGet, nil
+	case string(`ListingOfferList`):
+		return OperationIDListingOfferList, nil
+	case string(`ListingFavouriteAdd`):
+		return OperationIDListingFavouriteAdd, nil
+	case string(`ListingFavouriteRemove`):
+		return OperationIDListingFavouriteRemove, nil
 	case string(`RobotsList`):
 		return OperationIDRobotsList, nil
 	case string(`RobotCreate`):

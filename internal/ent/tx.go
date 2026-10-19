@@ -50,6 +50,12 @@ type Tx struct {
 	LikePost *LikePostClient
 	// Link is the client for interacting with the Link builders.
 	Link *LinkClient
+	// Listing is the client for interacting with the Listing builders.
+	Listing *ListingClient
+	// ListingFavourite is the client for interacting with the ListingFavourite builders.
+	ListingFavourite *ListingFavouriteClient
+	// ListingOffer is the client for interacting with the ListingOffer builders.
+	ListingOffer *ListingOfferClient
 	// MentionProfile is the client for interacting with the MentionProfile builders.
 	MentionProfile *MentionProfileClient
 	// ModerationNote is the client for interacting with the ModerationNote builders.
@@ -267,6 +273,9 @@ func (tx *Tx) init() {
 	tx.Invitation = NewInvitationClient(tx.config)
 	tx.LikePost = NewLikePostClient(tx.config)
 	tx.Link = NewLinkClient(tx.config)
+	tx.Listing = NewListingClient(tx.config)
+	tx.ListingFavourite = NewListingFavouriteClient(tx.config)
+	tx.ListingOffer = NewListingOfferClient(tx.config)
 	tx.MentionProfile = NewMentionProfileClient(tx.config)
 	tx.ModerationNote = NewModerationNoteClient(tx.config)
 	tx.Node = NewNodeClient(tx.config)

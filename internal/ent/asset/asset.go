@@ -46,6 +46,8 @@ const (
 	EdgeNodes = "nodes"
 	// EdgeLinks holds the string denoting the links edge name in mutations.
 	EdgeLinks = "links"
+	// EdgeListings holds the string denoting the listings edge name in mutations.
+	EdgeListings = "listings"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
@@ -71,6 +73,11 @@ const (
 	// LinksInverseTable is the table name for the Link entity.
 	// It exists in this package in order to avoid circular dependency with the "link" package.
 	LinksInverseTable = "links"
+	// ListingsTable is the table that holds the listings relation/edge. The primary key declared below.
+	ListingsTable = "listing_assets"
+	// ListingsInverseTable is the table name for the Listing entity.
+	// It exists in this package in order to avoid circular dependency with the "listing" package.
+	ListingsInverseTable = "listings"
 	// OwnerTable is the table that holds the owner relation/edge.
 	OwnerTable = "assets"
 	// OwnerInverseTable is the table name for the Account entity.
@@ -122,6 +129,9 @@ var (
 	// LinksPrimaryKey and LinksColumn2 are the table columns denoting the
 	// primary key for the links relation (M2M).
 	LinksPrimaryKey = []string{"link_id", "asset_id"}
+	// ListingsPrimaryKey and ListingsColumn2 are the table columns denoting the
+	// primary key for the listings relation (M2M).
+	ListingsPrimaryKey = []string{"listing_id", "asset_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -281,6 +291,20 @@ func ByLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByListingsCount orders the results by listings count.
+func ByListingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newListingsStep(), opts...)
+	}
+}
+
+// ByListings orders the results by listings terms.
+func ByListings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newListingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOwnerField orders the results by owner field.
 func ByOwnerField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -341,6 +365,13 @@ func newLinksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LinksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, LinksTable, LinksPrimaryKey...),
+	)
+}
+func newListingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ListingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, ListingsTable, ListingsPrimaryKey...),
 	)
 }
 func newOwnerStep() *sqlgraph.Step {

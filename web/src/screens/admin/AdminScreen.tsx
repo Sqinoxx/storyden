@@ -19,6 +19,7 @@ import { ContentSettingsScreen } from "./ContentSettingsScreen";
 import { DriveSettingsScreen } from "./DriveSettingsScreen";
 import { EmailLogSettingsScreen } from "./EmailLogSettingsScreen/EmailLogSettingsScreen";
 import { InterfaceSettingsScreen } from "./InterfaceSettingsScreen";
+import { MarketSettingsScreen } from "./MarketSettingsScreen";
 import { ModerationSettingsScreen } from "./ModerationSettingsScreen";
 import { OAuthSettingsScreen } from "./OAuthSettingsScreen";
 import { OCRSettingsScreen } from "./OCRSettingsScreen/OCRSettingsScreen";
@@ -107,6 +108,7 @@ export function AdminScreen() {
         <Tabs.Trigger value="brand">Brand</Tabs.Trigger>
         <Tabs.Trigger value="content">Content</Tabs.Trigger>
         <Tabs.Trigger value="uploads">Uploads</Tabs.Trigger>
+        <Tabs.Trigger value="market">Flohmarkt</Tabs.Trigger>
         <Tabs.Trigger value="moderation">Moderation</Tabs.Trigger>
         <Tabs.Trigger value="system">System</Tabs.Trigger>
         <Tabs.Trigger value="ocr">OCR & Bildtext</Tabs.Trigger>
@@ -136,6 +138,10 @@ export function AdminScreen() {
 
       <Tabs.Content value="uploads">
         {tab === "uploads" && <AssetSettingsScreen />}
+      </Tabs.Content>
+
+      <Tabs.Content value="market">
+        {tab === "market" && <MarketSettingsScreen />}
       </Tabs.Content>
 
       <Tabs.Content value="moderation">

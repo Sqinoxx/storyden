@@ -15,6 +15,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/ent/event"
 	"github.com/Southclaws/storyden/internal/ent/link"
+	"github.com/Southclaws/storyden/internal/ent/listing"
 	"github.com/Southclaws/storyden/internal/ent/node"
 	"github.com/Southclaws/storyden/internal/ent/post"
 	"github.com/Southclaws/storyden/internal/ent/predicate"
@@ -255,6 +256,21 @@ func (_u *AssetUpdate) AddLinks(v ...*Link) *AssetUpdate {
 	return _u.AddLinkIDs(ids...)
 }
 
+// AddListingIDs adds the "listings" edge to the Listing entity by IDs.
+func (_u *AssetUpdate) AddListingIDs(ids ...xid.ID) *AssetUpdate {
+	_u.mutation.AddListingIDs(ids...)
+	return _u
+}
+
+// AddListings adds the "listings" edges to the Listing entity.
+func (_u *AssetUpdate) AddListings(v ...*Listing) *AssetUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddListingIDs(ids...)
+}
+
 // SetOwnerID sets the "owner" edge to the Account entity by ID.
 func (_u *AssetUpdate) SetOwnerID(id xid.ID) *AssetUpdate {
 	_u.mutation.SetOwnerID(id)
@@ -381,6 +397,27 @@ func (_u *AssetUpdate) RemoveLinks(v ...*Link) *AssetUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveLinkIDs(ids...)
+}
+
+// ClearListings clears all "listings" edges to the Listing entity.
+func (_u *AssetUpdate) ClearListings() *AssetUpdate {
+	_u.mutation.ClearListings()
+	return _u
+}
+
+// RemoveListingIDs removes the "listings" edge to Listing entities by IDs.
+func (_u *AssetUpdate) RemoveListingIDs(ids ...xid.ID) *AssetUpdate {
+	_u.mutation.RemoveListingIDs(ids...)
+	return _u
+}
+
+// RemoveListings removes "listings" edges to Listing entities.
+func (_u *AssetUpdate) RemoveListings(v ...*Listing) *AssetUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveListingIDs(ids...)
 }
 
 // ClearOwner clears the "owner" edge to the Account entity.
@@ -674,6 +711,51 @@ func (_u *AssetUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(link.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ListingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   asset.ListingsTable,
+			Columns: asset.ListingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedListingsIDs(); len(nodes) > 0 && !_u.mutation.ListingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   asset.ListingsTable,
+			Columns: asset.ListingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ListingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   asset.ListingsTable,
+			Columns: asset.ListingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -1071,6 +1153,21 @@ func (_u *AssetUpdateOne) AddLinks(v ...*Link) *AssetUpdateOne {
 	return _u.AddLinkIDs(ids...)
 }
 
+// AddListingIDs adds the "listings" edge to the Listing entity by IDs.
+func (_u *AssetUpdateOne) AddListingIDs(ids ...xid.ID) *AssetUpdateOne {
+	_u.mutation.AddListingIDs(ids...)
+	return _u
+}
+
+// AddListings adds the "listings" edges to the Listing entity.
+func (_u *AssetUpdateOne) AddListings(v ...*Listing) *AssetUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddListingIDs(ids...)
+}
+
 // SetOwnerID sets the "owner" edge to the Account entity by ID.
 func (_u *AssetUpdateOne) SetOwnerID(id xid.ID) *AssetUpdateOne {
 	_u.mutation.SetOwnerID(id)
@@ -1197,6 +1294,27 @@ func (_u *AssetUpdateOne) RemoveLinks(v ...*Link) *AssetUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveLinkIDs(ids...)
+}
+
+// ClearListings clears all "listings" edges to the Listing entity.
+func (_u *AssetUpdateOne) ClearListings() *AssetUpdateOne {
+	_u.mutation.ClearListings()
+	return _u
+}
+
+// RemoveListingIDs removes the "listings" edge to Listing entities by IDs.
+func (_u *AssetUpdateOne) RemoveListingIDs(ids ...xid.ID) *AssetUpdateOne {
+	_u.mutation.RemoveListingIDs(ids...)
+	return _u
+}
+
+// RemoveListings removes "listings" edges to Listing entities.
+func (_u *AssetUpdateOne) RemoveListings(v ...*Listing) *AssetUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveListingIDs(ids...)
 }
 
 // ClearOwner clears the "owner" edge to the Account entity.
@@ -1520,6 +1638,51 @@ func (_u *AssetUpdateOne) sqlSave(ctx context.Context) (_node *Asset, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(link.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ListingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   asset.ListingsTable,
+			Columns: asset.ListingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedListingsIDs(); len(nodes) > 0 && !_u.mutation.ListingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   asset.ListingsTable,
+			Columns: asset.ListingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ListingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   asset.ListingsTable,
+			Columns: asset.ListingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

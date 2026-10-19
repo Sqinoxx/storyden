@@ -90,6 +90,8 @@ type Bindings struct {
 	Links
 	Datagraph
 	Events
+	Listings
+	AccountPhone
 	OAuth
 	Robots
 	Drive
@@ -129,6 +131,8 @@ func bindingsProviders() fx.Option {
 		NewLinks,
 		NewDatagraph,
 		NewEvents,
+		NewListings,
+		NewAccountPhone,
 		NewOAuth,
 		NewRobots,
 		NewDrive,

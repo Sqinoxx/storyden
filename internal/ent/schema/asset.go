@@ -58,6 +58,9 @@ func (Asset) Edges() []ent.Edge {
 		edge.From("links", Link.Type).
 			Ref("assets"),
 
+		edge.From("listings", Listing.Type).
+			Ref("assets"),
+
 		edge.From("owner", Account.Type).
 			Field("account_id").
 			Ref("assets").

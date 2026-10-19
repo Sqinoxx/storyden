@@ -29,6 +29,8 @@ import type {
   AccountModerationNoteCreateOKResponse,
   AccountModerationNoteListOKResponse,
   AccountPasswordResetTokenGetOKResponse,
+  AccountPhoneOKResponse,
+  AccountPhoneSetBody,
   AccountSetAvatarBody,
   AccountUpdateBody,
   AccountUpdateOKResponse,
@@ -1363,6 +1365,159 @@ export const useAccountEmailRemove = <
   const swrKey =
     swrOptions?.swrKey ?? getAccountEmailRemoveMutationKey(emailAddressId);
   const swrFn = getAccountEmailRemoveMutationFetcher(emailAddressId);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Get the private phone number of the authenticated account. The phone
+number is never shown publicly, it is only revealed to members who
+make an offer on one of the account's Flohmarkt listings.
+
+ */
+export const accountPhoneGet = () => {
+  return fetcher<AccountPhoneOKResponse>({
+    url: `/accounts/self/phone`,
+    method: "GET",
+  });
+};
+
+export const getAccountPhoneGetKey = () => [`/accounts/self/phone`] as const;
+
+export type AccountPhoneGetQueryResult = NonNullable<
+  Awaited<ReturnType<typeof accountPhoneGet>>
+>;
+export type AccountPhoneGetQueryError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAccountPhoneGet = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRConfiguration<
+    Awaited<ReturnType<typeof accountPhoneGet>>,
+    TError
+  > & { swrKey?: Key; enabled?: boolean };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey =
+    swrOptions?.swrKey ?? (() => (isEnabled ? getAccountPhoneGetKey() : null));
+  const swrFn = () => accountPhoneGet();
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Set the private phone number of the authenticated account.
+ */
+export const accountPhoneSet = (accountPhoneSetBody: AccountPhoneSetBody) => {
+  return fetcher<AccountPhoneOKResponse>({
+    url: `/accounts/self/phone`,
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    data: accountPhoneSetBody,
+  });
+};
+
+export const getAccountPhoneSetMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: AccountPhoneSetBody },
+  ): Promise<AccountPhoneOKResponse> => {
+    return accountPhoneSet(arg);
+  };
+};
+export const getAccountPhoneSetMutationKey = () =>
+  [`/accounts/self/phone`] as const;
+
+export type AccountPhoneSetMutationResult = NonNullable<
+  Awaited<ReturnType<typeof accountPhoneSet>>
+>;
+export type AccountPhoneSetMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAccountPhoneSet = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof accountPhoneSet>>,
+    TError,
+    Key,
+    AccountPhoneSetBody,
+    Awaited<ReturnType<typeof accountPhoneSet>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAccountPhoneSetMutationKey();
+  const swrFn = getAccountPhoneSetMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Remove the private phone number of the authenticated account.
+ */
+export const accountPhoneRemove = () => {
+  return fetcher<AccountPhoneOKResponse>({
+    url: `/accounts/self/phone`,
+    method: "DELETE",
+  });
+};
+
+export const getAccountPhoneRemoveMutationFetcher = () => {
+  return (_: Key, __: { arg: Arguments }): Promise<AccountPhoneOKResponse> => {
+    return accountPhoneRemove();
+  };
+};
+export const getAccountPhoneRemoveMutationKey = () =>
+  [`/accounts/self/phone`] as const;
+
+export type AccountPhoneRemoveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof accountPhoneRemove>>
+>;
+export type AccountPhoneRemoveMutationError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAccountPhoneRemove = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof accountPhoneRemove>>,
+    TError,
+    Key,
+    Arguments,
+    Awaited<ReturnType<typeof accountPhoneRemove>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAccountPhoneRemoveMutationKey();
+  const swrFn = getAccountPhoneRemoveMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

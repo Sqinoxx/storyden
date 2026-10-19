@@ -11,6 +11,7 @@ import { FALLBACK_COLOUR } from "@/utils/colour";
 
 import { EditorSettingsSchema } from "./editor";
 import { DefaultFeedConfig, FeedConfigSchema } from "./feed";
+import { DefaultLogoSettings, LogoSettingsSchema } from "./logo";
 import { DefaultSidebarSettings, SidebarSettingsSchema } from "./sidebar";
 
 export const DefaultEditorSettings = {
@@ -44,6 +45,10 @@ export const DefaultFrontendConfig = {
   },
   semester: {
     legacyLabel: "",
+  },
+  logo: {
+    light: "",
+    dark: "",
   },
 } as const;
 
@@ -84,6 +89,7 @@ export const FrontendConfigurationSchema = z
         legacyLabel: z.string().max(32).default(""),
       })
       .default({ legacyLabel: "" }),
+    logo: LogoSettingsSchema.default(DefaultLogoSettings),
   })
   .default(DefaultFrontendConfig);
 export type FrontendConfiguration = z.infer<typeof FrontendConfigurationSchema>;

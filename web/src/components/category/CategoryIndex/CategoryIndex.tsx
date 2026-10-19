@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
-
 import { Account, ThreadListResult } from "@/api/openapi-schema";
 import { ComposeAnchor } from "@/components/site/Navigation/Anchors/Compose";
+import { SiteLogo } from "@/components/site/SiteLogo/SiteLogo";
 import { Heading } from "@/components/ui/heading";
 import { CategoryTree } from "@/lib/category/tree";
 import { Settings } from "@/lib/settings/settings";
@@ -57,14 +56,14 @@ export function CategoryIndex({
     <LStack gap="8">
       <LStack>
         <WStack alignItems="center">
-          <Image
-            src="/Unidentists-transparent.png"
+          <SiteLogo
+            initialSettings={initialSettings}
             alt={t.category.discussionCategories}
-            width={1200}
-            height={510}
             className={css({
               h: { base: "16", md: "12" },
               w: "auto",
+              maxW: "full",
+              objectFit: "contain",
             })}
           />
 

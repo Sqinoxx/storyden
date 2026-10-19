@@ -58,7 +58,7 @@ export function CategoryIndex({
       <LStack>
         <WStack alignItems="center">
           <Image
-            src="/StuDent-transparent.png"
+            src="/Unidentists-transparent.png"
             alt={t.category.discussionCategories}
             width={1200}
             height={510}

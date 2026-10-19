@@ -68,7 +68,7 @@ export const de: Translations = {
     register: "Registrieren",
     rememberMe: "Anmeldedaten merken",
     identifierLabel: "Benutzername oder E-Mail-Adresse",
-    identifierPlaceholder: "StuDent",
+    identifierPlaceholder: "Unidentists",
     usernamePlaceholder: "Benutzername",
     passwordLabel: "Passwort",
     passwordPlaceholder: "••••••••",

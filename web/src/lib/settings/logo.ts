@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { getAssetURL } from "@/utils/asset";
 
-export const FALLBACK_LOGO_URL = "/StuDent-transparent.png";
+export const FALLBACK_LOGO_URL = "/Unidentists-transparent.png";
 
 export const LogoSettingsSchema = z.object({
   light: z.string().default(""),

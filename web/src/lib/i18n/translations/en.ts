@@ -66,7 +66,7 @@ export const en = {
     register: "Register",
     rememberMe: "Remember me",
     identifierLabel: "Username or email address",
-    identifierPlaceholder: "StuDent",
+    identifierPlaceholder: "Unidentists",
     usernamePlaceholder: "Username",
     passwordLabel: "Password",
     passwordPlaceholder: "••••••••",

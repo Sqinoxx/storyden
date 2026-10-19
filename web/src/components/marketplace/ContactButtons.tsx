@@ -18,7 +18,6 @@ export function ContactButtons({ phone, message }: Props) {
         href={whatsappURL(phone, message)}
         size="sm"
         colorPalette="green"
-        data-testid="whatsapp-link"
       >
         <WhatsAppIcon />
         {t.marketplace.contact.whatsapp}

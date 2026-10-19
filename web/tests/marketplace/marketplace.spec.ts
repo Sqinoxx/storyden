@@ -1,25 +1,33 @@
 import { Page, expect, test } from "@playwright/test";
 
-import { ONE_PIXEL_PNG, login, logout, registerUser, unique } from "../helpers";
+import { ONE_PIXEL_PNG, registerUser, unique } from "../helpers";
 
 async function setPhone(page: Page, phone: string) {
   await page.goto("/settings?tab=account");
   const input = page.locator('form#phone input[name="phone"]');
   await input.fill(phone);
-  await page.locator("form#phone").getByRole("button", { name: "Save" }).click();
+  await page
+    .locator("form#phone")
+    .getByRole("button", { name: "Save" })
+    .click();
   await expect(page.getByText("Phone number saved")).toBeVisible({
     timeout: 10000,
   });
 }
 
 test.describe("Flea market", () => {
-  test("listing, offer and WhatsApp contact", async ({ page }) => {
+  test("listing, offer and WhatsApp contact", async ({ browser }) => {
+    const sellerContext = await browser.newContext();
+    const buyerContext = await browser.newContext();
+    let page = await sellerContext.newPage();
+
     const seller = unique("seller");
     const buyer = unique("buyer");
     const title = unique("Stethoskop Littmann");
 
     await registerUser(page, seller);
 
+    await page.getByRole("button", { name: "Open navigation sidebar" }).click();
     await page.getByRole("link", { name: "Flea market" }).first().click();
     await expect(page).toHaveURL(/\/flohmarkt/);
 
@@ -53,7 +61,8 @@ test.describe("Flea market", () => {
     await expect(page.getByTestId("listing-price")).toContainText("45");
     await expect(page.getByTestId("listing-price")).toContainText("VB");
 
-    await logout(page);
+    const sellerPage = page;
+    page = await buyerContext.newPage();
 
     await registerUser(page, buyer);
     await setPhone(page, "+49 151 99887766");
@@ -63,10 +72,12 @@ test.describe("Flea market", () => {
     await page.getByRole("button", { name: "Search" }).click();
     const card = page.getByTestId("listing-card").filter({ hasText: title });
     await expect(card).toBeVisible({ timeout: 10000 });
-    await card.getByRole("link", { name: title }).click();
+    await card.getByRole("link", { name: title }).last().click();
     await expect(page).toHaveURL(listingURL);
 
-    await expect(page.getByTestId("whatsapp-link")).toHaveCount(0);
+    await expect(
+      page.getByRole("link", { name: "Chat on WhatsApp" }),
+    ).toHaveCount(0);
 
     await page.locator('input[name="amount"]').fill("40");
     await page.locator('input[name="message"]').fill("Abholung am Freitag?");
@@ -74,7 +85,7 @@ test.describe("Flea market", () => {
 
     const whatsapp = page
       .getByTestId("listing-contact")
-      .getByTestId("whatsapp-link");
+      .getByRole("link", { name: "Chat on WhatsApp" });
     await expect(whatsapp).toBeVisible({ timeout: 10000 });
     await expect(whatsapp).toHaveAttribute(
       "href",
@@ -82,17 +93,17 @@ test.describe("Flea market", () => {
     );
     await expect(page.getByTestId("contact-phone")).toHaveText("+436641112233");
 
-    await logout(page);
-
-    await login(page, seller);
+    page = sellerPage;
     await page.goto(listingURL);
     const offers = page.getByTestId("listing-offers");
     await expect(offers).toContainText("Abholung am Freitag?", {
       timeout: 10000,
     });
-    await expect(offers.getByTestId("whatsapp-link")).toHaveAttribute(
-      "href",
-      /^https:\/\/wa\.me\/4915199887766\?text=/,
-    );
+    await expect(
+      offers.getByRole("link", { name: "Chat on WhatsApp" }),
+    ).toHaveAttribute("href", /^https:\/\/wa\.me\/4915199887766\?text=/);
+
+    await sellerContext.close();
+    await buyerContext.close();
   });
 });

@@ -7910,6 +7910,11 @@ components:
           $ref: "#/components/schemas/RegistrationMode"
         capabilities:
           $ref: "#/components/schemas/InstanceCapabilityList"
+        marketplace_enabled:
+          type: boolean
+          description: |
+            Whether the Flohmarkt is open to all members. When false, only
+            admins and listing moderators can access it.
         web_address:
           type: string
           format: uri
@@ -8754,6 +8759,11 @@ components:
     MarketServiceSettings:
       type: object
       properties:
+        enabled:
+          type: boolean
+          description: |
+            Whether the Flohmarkt is visible to all members. While false (the
+            default, beta) only admins and listing moderators can use it.
         listing_duration_days:
           type: integer
           minimum: 1

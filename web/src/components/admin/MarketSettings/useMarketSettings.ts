@@ -14,6 +14,7 @@ export type Props = {
 export const DEFAULT_LISTING_DURATION_DAYS = 90;
 
 export const FormSchema = z.object({
+  enabled: z.boolean(),
   listingDurationDays: z.number().int().min(1).max(365),
 });
 export type Form = z.infer<typeof FormSchema>;
@@ -24,6 +25,7 @@ export function useMarketSettings({ settings }: Props) {
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
+      enabled: settings.services?.market?.enabled ?? false,
       listingDurationDays:
         settings.services?.market?.listing_duration_days ??
         DEFAULT_LISTING_DURATION_DAYS,
@@ -36,6 +38,7 @@ export function useMarketSettings({ settings }: Props) {
         await updateSettings({
           services: {
             market: {
+              enabled: data.enabled,
               listing_duration_days: data.listingDurationDays,
             },
           },

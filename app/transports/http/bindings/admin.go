@@ -620,6 +620,7 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 		var market opt.Optional[settings.MarketServiceSettings]
 		if request.Body.Services.Market != nil {
 			market = opt.New(settings.MarketServiceSettings{
+				Enabled:             opt.NewPtr(request.Body.Services.Market.Enabled),
 				ListingDurationDays: opt.NewPtr(request.Body.Services.Market.ListingDurationDays),
 			})
 		}
@@ -1357,6 +1358,7 @@ func serialiseServiceSettings(in settings.ServiceSettings) openapi.AdminSettings
 
 func serialiseMarketSettings(in settings.MarketServiceSettings) openapi.MarketServiceSettings {
 	return openapi.MarketServiceSettings{
+		Enabled:             in.Enabled.Ptr(),
 		ListingDurationDays: in.ListingDurationDays.Ptr(),
 	}
 }

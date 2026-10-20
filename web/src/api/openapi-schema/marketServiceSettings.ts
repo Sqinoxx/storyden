@@ -9,6 +9,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  */
 
 export interface MarketServiceSettings {
+  /** Whether the Flohmarkt is visible to all members. While false (the
+default, beta) only admins and listing moderators can use it.
+ */
+  enabled?: boolean;
   /**
    * How many days a Flohmarkt listing stays visible after it was
 created or renewed.

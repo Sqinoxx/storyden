@@ -1,9 +1,33 @@
 import { Page, expect, test } from "@playwright/test";
 
+import { withAdminAccessKey } from "../access_key_admin_assignment";
 import { ONE_PIXEL_PNG, registerUser, unique } from "../helpers";
+
+async function setMarketplaceEnabled(enabled: boolean) {
+  await withAdminAccessKey(async ({ adminSettingsUpdate }) => {
+    await adminSettingsUpdate({ services: { market: { enabled } } });
+  });
+}
+
+// A fresh instance shows the onboarding checklist over the page content and it
+// appears only once the client has loaded, so wait for that before dismissing.
+async function clearOverlays(page: Page) {
+  await page.waitForLoadState("networkidle");
+  for (const name of [
+    "Skip",
+    "Hide this message",
+    "Close navigation sidebar",
+  ]) {
+    const button = page.getByRole("button", { name });
+    if (await button.isVisible({ timeout: 1500 }).catch(() => false)) {
+      await button.click();
+    }
+  }
+}
 
 async function setPhone(page: Page, phone: string) {
   await page.goto("/settings?tab=account");
+  await clearOverlays(page);
   const input = page.locator('form#phone input[name="phone"]');
   await input.fill(phone);
   await page
@@ -16,7 +40,27 @@ async function setPhone(page: Page, phone: string) {
 }
 
 test.describe("Flea market", () => {
+  test.describe.configure({ mode: "serial" });
+
+  test("hidden from members while in beta", async ({ page }) => {
+    await setMarketplaceEnabled(false);
+
+    await registerUser(page, unique("member"));
+    await page.getByRole("button", { name: "Open navigation sidebar" }).click();
+    await expect(
+      page.getByRole("link", { name: "Latest posts" }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /Flea market/ })).toHaveCount(
+      0,
+    );
+
+    const response = await page.goto("/flohmarkt");
+    expect(response?.status()).toBe(404);
+  });
+
   test("listing, offer and WhatsApp contact", async ({ browser }) => {
+    await setMarketplaceEnabled(true);
+
     const sellerContext = await browser.newContext();
     const buyerContext = await browser.newContext();
     let page = await sellerContext.newPage();
@@ -30,6 +74,7 @@ test.describe("Flea market", () => {
     await page.getByRole("button", { name: "Open navigation sidebar" }).click();
     await page.getByRole("link", { name: "Flea market" }).first().click();
     await expect(page).toHaveURL(/\/flohmarkt/);
+    await clearOverlays(page);
 
     await page.getByRole("link", { name: "New listing" }).click();
     await expect(page).toHaveURL("/flohmarkt/new");
@@ -38,6 +83,8 @@ test.describe("Flea market", () => {
     await setPhone(page, "0664 1112233");
 
     await page.goto("/flohmarkt/new");
+
+    await clearOverlays(page);
     await page.getByTestId("listing-image-input").setInputFiles({
       name: "stethoskop.png",
       mimeType: "image/png",
@@ -68,6 +115,8 @@ test.describe("Flea market", () => {
     await setPhone(page, "+49 151 99887766");
 
     await page.goto("/flohmarkt");
+
+    await clearOverlays(page);
     await page.getByRole("searchbox").fill(title);
     await page.getByRole("button", { name: "Search" }).click();
     const card = page.getByTestId("listing-card").filter({ hasText: title });
@@ -95,6 +144,7 @@ test.describe("Flea market", () => {
 
     page = sellerPage;
     await page.goto(listingURL);
+    await clearOverlays(page);
     const offers = page.getByTestId("listing-offers");
     await expect(offers).toContainText("Abholung am Freitag?", {
       timeout: 10000,

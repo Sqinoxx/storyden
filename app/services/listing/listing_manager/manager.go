@@ -36,6 +36,7 @@ var (
 	ErrNoOffer       = fault.New("no offer made", ftag.With(ftag.PermissionDenied))
 	ErrTooEarly      = fault.New("listing cannot be renewed yet", ftag.With(ftag.InvalidArgument))
 	ErrTooManyAssets = fault.New("too many images", ftag.With(ftag.InvalidArgument))
+	ErrDisabled      = fault.New("flohmarkt is not enabled", ftag.With(ftag.NotFound))
 )
 
 type Manager struct {
@@ -106,6 +107,15 @@ func (m *Manager) viewer(ctx context.Context) (*account.AccountWithEdges, error)
 	acc, err := m.accountQuery.GetByID(ctx, accountID)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	s, err := m.settings.Get(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if !s.MarketEnabled() && !isModerator(acc) {
+		return nil, fault.Wrap(ErrDisabled, fctx.With(ctx))
 	}
 
 	return acc, nil

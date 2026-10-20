@@ -73,6 +73,7 @@ type ServiceSettings struct {
 
 // MarketServiceSettings controls the Flohmarkt classifieds feature.
 type MarketServiceSettings struct {
+	Enabled             opt.Optional[bool]
 	ListingDurationDays opt.Optional[int]
 }
 

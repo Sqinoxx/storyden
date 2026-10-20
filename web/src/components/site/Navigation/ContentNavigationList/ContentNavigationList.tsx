@@ -4,6 +4,8 @@ import { CategoryListOKResponse, NodeListResult, Permission } from "@/api/openap
 import { useSession } from "@/auth";
 import { CategoryList } from "@/components/category/CategoryList/CategoryList";
 import { LStack, styled } from "@/styled-system/jsx";
+import { canSeeMarketplace } from "@/lib/marketplace/visibility";
+import { useSettings } from "@/lib/settings/settings-client";
 import { hasPermission, isModeratorOrAdmin } from "@/utils/permissions";
 
 import styles from "./ContentNavigationList.module.css";
@@ -31,6 +33,10 @@ export function ContentNavigationList(props: Props) {
   const isStaff = isModeratorOrAdmin(session);
   const isAdmin = hasPermission(session, Permission.ADMINISTRATOR);
   const hasDriveFolders = useHasDriveFolders();
+  const settings = useSettings(undefined, true);
+  const marketplaceVisible =
+    settings.ready &&
+    canSeeMarketplace(settings.settings.marketplace_enabled, session);
 
   return (
     <styled.nav
@@ -79,7 +85,7 @@ export function ContentNavigationList(props: Props) {
       </LStack>
 
       <LStack gap="1">
-        {session && <MarketplaceAnchor />}
+        {session && marketplaceVisible && <MarketplaceAnchor />}
         <LatestAnchor />
         <CollectionsAnchor />
         {session && <TagsAnchor />}

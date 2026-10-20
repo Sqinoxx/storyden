@@ -1153,6 +1153,9 @@ export const en = {
   marketSettings: {
     title: "Flea market",
     description: "Configure the classifieds section.",
+    enabledLabel: "Visible to all members",
+    enabledHelp: "While switched off the flea market is in beta: only admins can see and use it. Members see neither the tab nor the pages.",
+    betaBadge: "Beta",
     durationLabel: "Listing duration (days)",
     durationHelp:
       "How long a listing stays visible after it was created or renewed. Changes apply to new and renewed listings.",

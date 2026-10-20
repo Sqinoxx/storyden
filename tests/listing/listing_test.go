@@ -50,6 +50,12 @@ func TestListings(t *testing.T) {
 			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
 			adminSession := sh.WithSession(adminCtx)
 
+			tests.AssertRequest(cl.AdminSettingsUpdateWithResponse(root, openapi.AdminSettingsUpdateJSONRequestBody{
+				Services: &openapi.AdminSettingsServiceProps{
+					Market: &openapi.MarketServiceSettings{Enabled: opt.New(true).Ptr()},
+				},
+			}, adminSession))(t, http.StatusOK)
+
 			guitar := openapi.ListingInitialProps{
 				Title:       "Akustikgitarre Yamaha",
 				Description: opt.New("Kaum gespielt, mit Tasche.").Ptr(),
@@ -304,6 +310,73 @@ func TestListings(t *testing.T) {
 				gone, err := cl.ListingGetWithResponse(root, created.Slug, sellerSession)
 				tests.Status(t, err, gone, http.StatusNotFound)
 			})
+		}))
+	}))
+}
+
+func TestListingsBetaVisibility(t *testing.T) {
+	t.Parallel()
+
+	integration.Test(t, nil, e2e.Setup(), fx.Invoke(func(
+		lc fx.Lifecycle,
+		root context.Context,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+			a := assert.New(t)
+
+			memberCtx, _ := e2e.WithAccount(root, aw, seed.Account_003_Baldur)
+			memberSession := sh.WithSession(memberCtx)
+			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			adminSession := sh.WithSession(adminCtx)
+
+			info := tests.AssertRequest(cl.GetInfoWithResponse(root))(t, http.StatusOK)
+			r.NotNil(info.JSON200.MarketplaceEnabled)
+			a.False(*info.JSON200.MarketplaceEnabled)
+
+			list, err := cl.ListingListWithResponse(root, &openapi.ListingListParams{}, memberSession)
+			tests.Status(t, err, list, http.StatusNotFound)
+
+			tests.AssertRequest(cl.AccountPhoneSetWithResponse(root, openapi.AccountPhoneSetProps{Phone: "+436641234567"}, adminSession))(t, http.StatusOK)
+			created := tests.AssertRequest(cl.ListingCreateWithResponse(root, openapi.ListingInitialProps{
+				Title:     "Beta Testinserat",
+				Price:     100,
+				PriceType: openapi.ListingPriceTypeFixed,
+				Category:  openapi.ListingCategoryOther,
+				Condition: openapi.ListingConditionNew,
+			}, adminSession))(t, http.StatusOK)
+
+			get, err := cl.ListingGetWithResponse(root, created.JSON200.Slug, memberSession)
+			tests.Status(t, err, get, http.StatusNotFound)
+
+			tests.AssertRequest(cl.AdminSettingsUpdateWithResponse(root, openapi.AdminSettingsUpdateJSONRequestBody{
+				Services: &openapi.AdminSettingsServiceProps{
+					Market: &openapi.MarketServiceSettings{Enabled: opt.New(true).Ptr()},
+				},
+			}, adminSession))(t, http.StatusOK)
+
+			info = tests.AssertRequest(cl.GetInfoWithResponse(root))(t, http.StatusOK)
+			a.True(*info.JSON200.MarketplaceEnabled)
+
+			tests.AssertRequest(cl.ListingGetWithResponse(root, created.JSON200.Slug, memberSession))(t, http.StatusOK)
+
+			for _, enabled := range []bool{false, true} {
+				tests.AssertRequest(cl.AdminSettingsUpdateWithResponse(root, openapi.AdminSettingsUpdateJSONRequestBody{
+					Services: &openapi.AdminSettingsServiceProps{
+						Market: &openapi.MarketServiceSettings{Enabled: opt.New(enabled).Ptr()},
+					},
+				}, adminSession))(t, http.StatusOK)
+
+				info = tests.AssertRequest(cl.GetInfoWithResponse(root))(t, http.StatusOK)
+				a.Equal(enabled, *info.JSON200.MarketplaceEnabled)
+			}
+
+			settings := tests.AssertRequest(cl.AdminSettingsGetWithResponse(root, adminSession))(t, http.StatusOK)
+			a.True(*settings.JSON200.Services.Market.Enabled)
+			a.Equal(90, *settings.JSON200.Services.Market.ListingDurationDays)
 		}))
 	}))
 }

@@ -27,6 +27,10 @@ export interface Info {
   capabilities: InstanceCapabilityList;
   content: PostContent;
   description: string;
+  /** Whether the Flohmarkt is open to all members. When false, only
+admins and listing moderators can access it.
+ */
+  marketplace_enabled?: boolean;
   /** The maximum size, in megabytes, of a single file upload accepted by
 this instance. Clients should use this to reject oversized files
 before spending bandwidth uploading them.

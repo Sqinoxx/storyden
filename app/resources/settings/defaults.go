@@ -98,6 +98,12 @@ func (s *Settings) RememberMeDuration(requested opt.Optional[time.Duration]) tim
 	return duration
 }
 
+// MarketEnabled reports whether the Flohmarkt is open to all members. While it
+// is in beta (unset or false) only admins and listing moderators can use it.
+func (s *Settings) MarketEnabled() bool {
+	return s.Services.OrZero().Market.OrZero().Enabled.OrZero()
+}
+
 // ListingDuration resolves how long a Flohmarkt listing stays visible.
 func (s *Settings) ListingDuration() time.Duration {
 	days := clampPageSize(s.Services.OrZero().Market.OrZero().ListingDurationDays, DefaultListingDurationDays, MaxListingDurationDays)

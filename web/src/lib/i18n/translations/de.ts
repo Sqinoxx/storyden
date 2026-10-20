@@ -1155,6 +1155,9 @@ export const de: Translations = {
   marketSettings: {
     title: "Flohmarkt",
     description: "Einstellungen für den Kleinanzeigen-Bereich.",
+    enabledLabel: "Für alle Mitglieder sichtbar",
+    enabledHelp: "Solange ausgeschaltet, ist der Flohmarkt in der Beta: nur Admins können ihn sehen und nutzen. Mitglieder sehen weder den Reiter noch die Seiten.",
+    betaBadge: "Beta",
     durationLabel: "Laufzeit eines Inserats (Tage)",
     durationHelp:
       "Wie lange ein Inserat nach dem Erstellen oder Verlängern sichtbar bleibt. Gilt für neue und verlängerte Inserate.",

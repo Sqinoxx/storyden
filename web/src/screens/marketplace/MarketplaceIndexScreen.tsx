@@ -445,15 +445,9 @@ export function MarketplaceIndexScreen() {
               {t.marketplace.resetFilters}
             </Button>
           ) : (
-            <>
-              <styled.p fontSize="sm" color="fg.muted">
-                {t.marketplace.emptyHint}
-              </styled.p>
-              <LinkButton href="/flohmarkt/new" size="sm">
-                <AddIcon />
-                {t.marketplace.newListing}
-              </LinkButton>
-            </>
+            <styled.p fontSize="sm" color="fg.muted">
+              {t.marketplace.emptyHint}
+            </styled.p>
           )}
         </LStack>
       ) : (

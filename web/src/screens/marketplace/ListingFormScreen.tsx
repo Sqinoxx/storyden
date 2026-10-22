@@ -1,5 +1,7 @@
 "use client";
 
+import { PropsWithChildren } from "react";
+
 import { useAccountPhoneGet } from "@/api/openapi-client/accounts";
 import { ListingPriceType } from "@/api/openapi-schema";
 import {
@@ -21,12 +23,23 @@ import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { FormHelperText } from "@/components/ui/form/FormHelperText";
 import { FormLabel } from "@/components/ui/form/FormLabel";
 import { Heading } from "@/components/ui/heading";
-import { Input } from "@/components/ui/input";
+import { Input, InputPrefix } from "@/components/ui/input";
 import { useTranslation } from "@/lib/i18n";
-import { CardBox, Grid, LStack, WStack, styled } from "@/styled-system/jsx";
-import { lstack } from "@/styled-system/patterns";
+import {
+  CardBox,
+  Grid,
+  HStack,
+  LStack,
+  WStack,
+  styled,
+} from "@/styled-system/jsx";
 
 import { Props, useListingForm } from "./useListingForm";
+
+const twoColumns = {
+  base: "minmax(0, 1fr)",
+  md: "repeat(2, minmax(0, 1fr))",
+};
 
 export function ListingFormScreen(props: Props) {
   const t = useTranslation();
@@ -51,7 +64,7 @@ export function ListingFormScreen(props: Props) {
     : t.marketplace.form.createTitle;
 
   return (
-    <LStack gap="4">
+    <LStack gap="4" maxW="breakpoint-md" mx="auto" w="full">
       <Breadcrumbs
         index={{ href: "/flohmarkt", label: t.nav.marketplace }}
         crumbs={[
@@ -70,12 +83,17 @@ export function ListingFormScreen(props: Props) {
       {!phone.data.phone && !props.listing ? (
         <PhoneRequiredNotice />
       ) : (
-        <styled.form w="full" onSubmit={onSubmit}>
-          <CardBox className={lstack()} gap="6">
-            <Heading size="md">{title}</Heading>
+        <styled.form
+          w="full"
+          display="flex"
+          flexDir="column"
+          gap="4"
+          onSubmit={onSubmit}
+        >
+          <Heading size="xl">{title}</Heading>
 
+          <Section title={t.marketplace.form.sectionPhotos}>
             <FormControl>
-              <FormLabel>{t.marketplace.form.images}</FormLabel>
               <ListingImagesField
                 value={assets}
                 onChange={setAssets}
@@ -88,7 +106,9 @@ export function ListingFormScreen(props: Props) {
                 )}
               </FormHelperText>
             </FormControl>
+          </Section>
 
+          <Section title={t.marketplace.form.sectionWhat}>
             <FormControl>
               <FormLabel>{t.marketplace.form.title}</FormLabel>
               <Input
@@ -98,36 +118,7 @@ export function ListingFormScreen(props: Props) {
               <FormErrorText>{errors.title?.message}</FormErrorText>
             </FormControl>
 
-            <Grid
-              w="full"
-              gap="4"
-              gridTemplateColumns={{
-                base: "repeat(1, 1fr)",
-                md: "repeat(2, 1fr)",
-              }}
-            >
-              <FormControl>
-                <FormLabel>{t.marketplace.form.priceType}</FormLabel>
-                <NativeSelect
-                  options={priceTypeOptions(t)}
-                  {...form.register("price_type")}
-                />
-              </FormControl>
-
-              {priceType !== ListingPriceType.free && (
-                <FormControl>
-                  <FormLabel>{t.marketplace.form.price}</FormLabel>
-                  <Input
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    step="0.01"
-                    {...form.register("price")}
-                  />
-                  <FormErrorText>{errors.price?.message}</FormErrorText>
-                </FormControl>
-              )}
-
+            <Grid w="full" gap="4" gridTemplateColumns={twoColumns}>
               <FormControl>
                 <FormLabel>{t.marketplace.form.category}</FormLabel>
                 <NativeSelect
@@ -144,7 +135,41 @@ export function ListingFormScreen(props: Props) {
                 />
               </FormControl>
             </Grid>
+          </Section>
 
+          <Section title={t.marketplace.form.sectionPrice}>
+            <Grid w="full" gap="4" gridTemplateColumns={twoColumns}>
+              <FormControl>
+                <FormLabel>{t.marketplace.form.priceType}</FormLabel>
+                <NativeSelect
+                  options={priceTypeOptions(t)}
+                  {...form.register("price_type")}
+                />
+              </FormControl>
+
+              {priceType !== ListingPriceType.free && (
+                <FormControl>
+                  <FormLabel>{t.marketplace.form.price}</FormLabel>
+                  <HStack gap="0" alignItems="stretch" w="full">
+                    <InputPrefix>€</InputPrefix>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      step="0.01"
+                      flex="1"
+                      borderTopLeftRadius="none"
+                      borderBottomLeftRadius="none"
+                      {...form.register("price")}
+                    />
+                  </HStack>
+                  <FormErrorText>{errors.price?.message}</FormErrorText>
+                </FormControl>
+              )}
+            </Grid>
+          </Section>
+
+          <Section title={t.marketplace.form.sectionDetails}>
             <FormControl>
               <FormLabel>{t.marketplace.form.location}</FormLabel>
               <Input
@@ -170,21 +195,32 @@ export function ListingFormScreen(props: Props) {
               />
               <FormErrorText>{errors.description?.message}</FormErrorText>
             </FormControl>
+          </Section>
 
-            <WStack justifyContent="flex-end">
-              <Button
-                type="submit"
-                loading={form.formState.isSubmitting}
-                disabled={uploading}
-              >
-                {props.listing
-                  ? t.marketplace.form.submitEdit
-                  : t.marketplace.form.submitCreate}
-              </Button>
-            </WStack>
-          </CardBox>
+          <WStack justifyContent="flex-end">
+            <Button
+              type="submit"
+              size="lg"
+              w={{ base: "full", sm: "auto" }}
+              loading={form.formState.isSubmitting}
+              disabled={uploading}
+            >
+              {props.listing
+                ? t.marketplace.form.submitEdit
+                : t.marketplace.form.submitCreate}
+            </Button>
+          </WStack>
         </styled.form>
       )}
     </LStack>
+  );
+}
+
+function Section({ title, children }: PropsWithChildren<{ title: string }>) {
+  return (
+    <CardBox w="full" display="flex" flexDir="column" gap="4">
+      <Heading size="md">{title}</Heading>
+      {children}
+    </CardBox>
   );
 }

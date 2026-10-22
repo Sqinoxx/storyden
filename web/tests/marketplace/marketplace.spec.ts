@@ -156,4 +156,35 @@ test.describe("Flea market", () => {
     await sellerContext.close();
     await buyerContext.close();
   });
+
+  test("mobile layout", async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+    });
+    const page = await context.newPage();
+
+    await registerUser(page, unique("mobile"));
+    await page.goto("/flohmarkt");
+    await clearOverlays(page);
+
+    const conditionFilter = page.getByRole("combobox", { name: "Condition" });
+    await expect(conditionFilter).toBeHidden();
+    await page.getByRole("button", { name: "Filters" }).click();
+    await expect(conditionFilter).toBeVisible();
+
+    await page
+      .getByRole("button", { name: "Instruments & equipment" })
+      .click();
+    await expect(page).toHaveURL(/category=instruments/);
+
+    const card = page.getByTestId("listing-card").first();
+    await expect(card).toBeVisible({ timeout: 10000 });
+    await card.getByRole("link").click();
+    await expect(page).toHaveURL(/\/flohmarkt\/[a-z0-9]+-/);
+
+    await page.getByRole("link", { name: "Make an offer" }).click();
+    await expect(page.locator("#offer")).toBeInViewport();
+
+    await context.close();
+  });
 });

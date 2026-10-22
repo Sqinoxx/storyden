@@ -1,7 +1,9 @@
 "use client";
 
+import { ReactNode } from "react";
+
 import { useListingGet } from "@/api/openapi-client/listings";
-import { Listing, Permission } from "@/api/openapi-schema";
+import { Listing, ListingStatus, Permission } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { ListingFavouriteButton } from "@/components/marketplace/ListingFavouriteButton";
 import { ListingGallery } from "@/components/marketplace/ListingGallery";
@@ -14,10 +16,13 @@ import { UnreadyBanner } from "@/components/site/Unready";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
+import { LocationIcon } from "@/components/ui/icons/Location";
 import { ReportIcon } from "@/components/ui/icons/Report";
+import { LinkButton } from "@/components/ui/link-button";
 import { useTranslation } from "@/lib/i18n";
 import { formatDate, formatListingPrice } from "@/lib/marketplace/marketplace";
 import {
+  Box,
   CardBox,
   Grid,
   HStack,
@@ -47,20 +52,8 @@ export function ListingScreen({ slug, initialListing }: Props) {
 
   const listing = data;
   const isModerator = hasPermission(session, Permission.MANAGE_LISTINGS);
-
-  const facts = [
-    {
-      label: t.marketplace.detail.category,
-      value: t.marketplace.categories[listing.category],
-    },
-    {
-      label: t.marketplace.detail.condition,
-      value: t.marketplace.conditions[listing.condition],
-    },
-    ...(listing.location
-      ? [{ label: t.marketplace.detail.location, value: listing.location }]
-      : []),
-  ];
+  const available =
+    !listing.is_expired && listing.status !== ListingStatus.sold;
 
   return (
     <LStack gap="4">
@@ -77,16 +70,19 @@ export function ListingScreen({ slug, initialListing }: Props) {
 
       <Grid
         w="full"
-        gap="6"
-        gridTemplateColumns={{ base: "repeat(1, 1fr)", lg: "3fr 2fr" }}
+        gap={{ base: "5", lg: "8" }}
+        gridTemplateColumns={{
+          base: "minmax(0, 1fr)",
+          lg: "minmax(0, 3fr) minmax(0, 2fr)",
+        }}
         alignItems="start"
       >
-        <LStack gap="4" minW="0">
+        <LStack gap="5" minW="0">
           <ListingGallery assets={listing.assets} title={listing.title} />
 
-          <LStack gap="2" w="full">
-            <WStack alignItems="start">
-              <Heading size="lg" wordBreak="break-word">
+          <LStack gap="3" w="full">
+            <WStack alignItems="start" gap="3">
+              <Heading size="xl" wordBreak="break-word">
                 {listing.title}
               </Heading>
               <ListingFavouriteButton
@@ -94,52 +90,75 @@ export function ListingScreen({ slug, initialListing }: Props) {
                 onChange={() => mutate()}
               />
             </WStack>
-            <HStack gap="2">
+
+            <HStack gap="3" flexWrap="wrap">
               <styled.span
-                fontSize="2xl"
+                fontSize="3xl"
                 fontWeight="bold"
+                lineHeight="tight"
                 data-testid="listing-price"
               >
                 {formatListingPrice(t, listing)}
               </styled.span>
               <ListingStatusBadge status={listing.status} />
             </HStack>
-            <styled.span fontSize="xs" color="fg.muted">
-              {t.marketplace.postedOn.replace(
-                "{date}",
-                formatDate(listing.createdAt),
+
+            <HStack gap="2" flexWrap="wrap">
+              <Fact label={t.marketplace.detail.category}>
+                {t.marketplace.categories[listing.category]}
+              </Fact>
+              <Fact label={t.marketplace.detail.condition}>
+                {t.marketplace.conditions[listing.condition]}
+              </Fact>
+              {listing.location && (
+                <Fact label={t.marketplace.detail.location}>
+                  <LocationIcon w="3.5" h="3.5" />
+                  {listing.location}
+                </Fact>
               )}
-              {" · "}
-              {(listing.is_expired
-                ? t.marketplace.expiredOn
-                : t.marketplace.expiresOn
-              ).replace("{date}", formatDate(listing.expires_at))}
-            </styled.span>
+            </HStack>
+
+            {!listing.is_own && available && (
+              <LinkButton href="#offer" w="full" hideFrom="lg">
+                {t.marketplace.offer.title}
+              </LinkButton>
+            )}
           </LStack>
 
-          <styled.dl
-            display="grid"
-            gridTemplateColumns="auto 1fr"
-            columnGap="4"
-            rowGap="1"
-            fontSize="sm"
-          >
-            {facts.map((f) => (
-              <styled.div key={f.label} display="contents">
-                <styled.dt color="fg.muted">{f.label}</styled.dt>
-                <styled.dd>{f.value}</styled.dd>
-              </styled.div>
-            ))}
-          </styled.dl>
-
           {listing.description && (
-            <styled.p whiteSpace="pre-wrap" wordBreak="break-word">
-              {listing.description}
-            </styled.p>
+            <LStack
+              gap="2"
+              w="full"
+              pt="5"
+              borderTopWidth="thin"
+              borderTopStyle="solid"
+              borderColor="border.subtle"
+            >
+              <Heading size="md">{t.marketplace.detail.description}</Heading>
+              <styled.p
+                whiteSpace="pre-wrap"
+                wordBreak="break-word"
+                lineHeight="relaxed"
+              >
+                {listing.description}
+              </styled.p>
+            </LStack>
           )}
+
+          <styled.span fontSize="xs" color="fg.muted">
+            {t.marketplace.postedOn.replace(
+              "{date}",
+              formatDate(listing.createdAt),
+            )}
+            {" · "}
+            {(listing.is_expired
+              ? t.marketplace.expiredOn
+              : t.marketplace.expiresOn
+            ).replace("{date}", formatDate(listing.expires_at))}
+          </styled.span>
         </LStack>
 
-        <LStack gap="4" w="full">
+        <LStack gap="4" w="full" position={{ lg: "sticky" }} top={{ lg: "4" }}>
           <CardBox w="full">
             <LStack gap="2">
               <styled.span fontSize="xs" color="fg.muted">
@@ -154,7 +173,9 @@ export function ListingScreen({ slug, initialListing }: Props) {
           </CardBox>
 
           {!listing.is_own && (
-            <ListingOfferPanel listing={listing} onOffered={() => mutate()} />
+            <Box id="offer" w="full" scrollMarginTop="4">
+              <ListingOfferPanel listing={listing} onOffered={() => mutate()} />
+            </Box>
           )}
 
           {(listing.is_own || isModerator) && (
@@ -167,6 +188,7 @@ export function ListingScreen({ slug, initialListing }: Props) {
               size="xs"
               variant="ghost"
               alignSelf="start"
+              color="fg.muted"
               onClick={report.onOpen}
             >
               <ReportIcon />
@@ -178,5 +200,22 @@ export function ListingScreen({ slug, initialListing }: Props) {
 
       <ReportListingModal listing={listing} {...report} />
     </LStack>
+  );
+}
+
+function Fact({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <HStack
+      gap="1"
+      px="2.5"
+      py="1"
+      fontSize="sm"
+      borderRadius="full"
+      bg="bg.muted"
+      title={label}
+    >
+      <styled.span srOnly>{label}:</styled.span>
+      {children}
+    </HStack>
   );
 }

@@ -1031,6 +1031,14 @@ export const de: Translations = {
     offers: "{count} Angebote",
     negotiableShort: "VB",
     free: "Zu verschenken",
+    all: "Alle",
+    filters: "Filter",
+    resetFilters: "Filter zurücksetzen",
+    sort: "Sortierung",
+    price: "Preis",
+    results: "{count} Inserate",
+    emptyFiltered: "Keine Inserate passen zu deinen Filtern.",
+    emptyHint: "Du hast etwas, das du nicht mehr brauchst? Biete es hier an.",
     categories: {
       books: "Bücher & Skripten",
       instruments: "Instrumente & Ausrüstung",
@@ -1057,6 +1065,10 @@ export const de: Translations = {
       sold: "Verkauft",
     },
     form: {
+      sectionPhotos: "Fotos",
+      sectionWhat: "Was verkaufst du?",
+      sectionPrice: "Preis",
+      sectionDetails: "Details",
       createTitle: "Inserat aufgeben",
       editTitle: "Inserat bearbeiten",
       images: "Bilder",
@@ -1088,6 +1100,7 @@ export const de: Translations = {
       action: "Telefonnummer hinterlegen",
     },
     detail: {
+      description: "Beschreibung",
       seller: "Verkäufer",
       category: "Kategorie",
       condition: "Zustand",

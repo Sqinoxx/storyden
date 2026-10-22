@@ -1028,6 +1028,14 @@ export const en = {
     offers: "{count} offers",
     negotiableShort: "VB",
     free: "Free",
+    all: "All",
+    filters: "Filters",
+    resetFilters: "Reset filters",
+    sort: "Sort",
+    price: "Price",
+    results: "{count} listings",
+    emptyFiltered: "No listings match your filters.",
+    emptyHint: "Got something you no longer need? Put it up here.",
     categories: {
       books: "Books & scripts",
       instruments: "Instruments & equipment",
@@ -1054,6 +1062,10 @@ export const en = {
       sold: "Sold",
     },
     form: {
+      sectionPhotos: "Photos",
+      sectionWhat: "What are you selling?",
+      sectionPrice: "Price",
+      sectionDetails: "Details",
       createTitle: "Create listing",
       editTitle: "Edit listing",
       images: "Images",
@@ -1086,6 +1098,7 @@ export const en = {
       action: "Add phone number",
     },
     detail: {
+      description: "Description",
       seller: "Seller",
       category: "Category",
       condition: "Condition",

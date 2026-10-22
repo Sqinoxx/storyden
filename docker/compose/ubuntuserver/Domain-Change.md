@@ -3,10 +3,12 @@
 Schritt-für-Schritt-Anleitung für den Umzug des Forums auf dem Ubuntu-Server
 (`192.168.178.105`) auf die neue Domain **`unidentists.de`**.
 
+Die neue Domain ist bei **Hetzner** registriert, die alte (`unidentists.social`)
+liegt weiterhin bei **name.com**.
+
 Die Kurzfassung steht schon in [WARTUNG-Ubuntu.md](WARTUNG-Ubuntu.md),
 Abschnitt „Domain ändern“. Diese Datei geht jeden Schritt einzeln durch,
-inklusive Domain-Provider, FRITZ!Box, AdGuard und Weiterleitung der alten
-Domain.
+inklusive Hetzner, FRITZ!Box, AdGuard und Weiterleitung der alten Domain.
 
 ---
 
@@ -14,12 +16,13 @@ Domain.
 
 | Wo                        | Was                                                         | Pflicht?        |
 | ------------------------- | ----------------------------------------------------------- | --------------- |
-| Domain-Provider (neu)     | A-Records für `unidentists.de` und `www.unidentists.de`      | ja              |
-| Domain-Provider (neu)     | SPF/DKIM/DMARC, falls Mails von `@unidentists.de` kommen     | für E-Mail ja   |
+| Hetzner Console           | A-Records für `unidentists.de` und `www.unidentists.de`      | ja              |
+| Hetzner Console           | API-Token für den DynDNS-Updater                             | bei wechselnder IP |
+| Hetzner Console           | SPF/DKIM/DMARC, falls Mails von `@unidentists.de` kommen     | für E-Mail ja   |
 | FRITZ!Box                 | Portfreigaben prüfen, DNS-Rebind-Ausnahme                    | prüfen          |
 | AdGuard Home (Pi)         | DNS-Rewrite für die neue Domain                              | ja (LAN-Zugriff)|
 | Ubuntu-Server `.env`      | `SITE_DOMAIN`, `PUBLIC_*`, `SMTP_FROM_ADDRESS`               | ja              |
-| Ubuntu-Server `ddns/`     | Domain im DynDNS-Updater                                     | falls aktiv     |
+| Ubuntu-Server `ddns/`     | Neue Domain im DynDNS-Updater (Hetzner)                      | bei wechselnder IP |
 | Ubuntu-Server `Caddyfile` | Alte Domain auf neue weiterleiten                            | empfohlen       |
 | Windows-PC `.env`         | Gleiche Änderungen wie auf dem Server                        | ja              |
 | OAuth-Apps (Google usw.)  | Neue Redirect-URL                                            | falls genutzt   |
@@ -71,53 +74,89 @@ Auf dem Server:
 curl -4 ifconfig.me
 ```
 
-Diese IP brauchst du gleich beim Domain-Provider. Liefert der Befehl eine
+Diese IP brauchst du gleich bei Hetzner. Liefert der Befehl eine
 Adresse zwischen `100.64.x.x` und `100.127.x.x`, hast du DS-Lite — dann siehe
 [Anleitung.md](Anleitung.md), Schritt 2a.
 
 ---
 
-## Schritt 2: DNS beim Domain-Provider der neuen Domain
+## Schritt 2: DNS bei Hetzner
 
-Im Kundenbereich des Anbieters, bei dem du `unidentists.de` gekauft hast
-(name.com, IONOS, Strato, INWX, …), die DNS-Verwaltung der Domain öffnen.
+Die Domain ist bei Hetzner registriert. Hetzner zeigt bei eigenen Domains
+automatisch auf seine Nameserver (`hydrogen.ns.hetzner.com`,
+`oxygen.ns.hetzner.com`, `helium.ns.hetzner.de`) — daran musst du nichts
+ändern. Die DNS-Einträge werden seit 2026 in der **Hetzner Console**
+gepflegt; die alte DNS Console (`dns.hetzner.com`) ist abgeschaltet.
 
-### 2a. Vorhandene Standard-Einträge aufräumen
+### 2a. Zone öffnen
 
-Viele Anbieter legen bei einer neuen Domain automatisch eine
-„Parkseite“ oder Weiterleitung an. Diese entfernen:
+1. [console.hetzner.com](https://console.hetzner.com) öffnen und einloggen.
+2. Ein **Projekt** wählen (oder neu anlegen, z. B. „unidentists“).
+3. Links im Menü **DNS** anklicken.
+4. Steht `unidentists.de` in der Liste → anklicken.
+   Steht sie **nicht** da → **„Zone hinzufügen“**, Name `unidentists.de`,
+   Option „leere Zone“ bzw. ohne Import, anlegen.
 
-- vorhandene **A**- und **AAAA**-Records für `@` (leer) und `www` löschen
-- eine eingerichtete „Domain-Weiterleitung“ / „Parking“ deaktivieren
+Nameserver kontrollieren (vom PC oder Server):
+
+```bash
+dig +short NS unidentists.de
+```
+
+Müssen die drei Hetzner-Nameserver von oben sein. Stehen dort andere (z. B.
+`ns1.your-server.de` aus konsoleH oder Robot), dann liegt die Zone noch in der
+alten Hetzner-Verwaltung: im Hetzner-Kundenbereich, in dem du die Domain
+gekauft hast (Robot oder konsoleH), unter der Domain die Nameserver auf die
+drei Hetzner-Console-Nameserver umstellen oder die Hetzner-Hilfe fragen.
+
+### 2b. Vorhandene Standard-Einträge aufräumen
+
+In der Zone unter **Records** nachsehen. `NS`- und `SOA`-Einträge **nicht
+anfassen**. Vorhandene `A`- oder `AAAA`-Einträge für `@` oder `www` (z. B. eine
+Hetzner-Parkseite) **löschen**.
 
 **AAAA-Records nicht neu anlegen**, solange der Server nicht sauber über IPv6
 erreichbar ist (FRITZ!Box-IPv6-Freigabe + `ufw` für IPv6). Sonst versucht
 Let's Encrypt es über IPv6, scheitert, und Caddy bekommt kein Zertifikat.
 
-### 2b. Neue Einträge anlegen
+### 2c. Neue Einträge anlegen
 
-| Typ | Host / Name        | Wert / Ziel                  | TTL |
-| --- | ------------------ | ---------------------------- | --- |
-| A   | `@` bzw. leer      | öffentliche IP aus Schritt 1c | 300 |
-| A   | `www`              | öffentliche IP aus Schritt 1c | 300 |
+**„Record hinzufügen“**, zweimal:
 
-> **Alternative ohne DynDNS-Container (MyFRITZ!):** Statt einer festen IP
-> kann `www` als **CNAME** auf `xxxxxxxxxxxx.myfritz.net` zeigen, und der Apex
-> (`@`) als **ANAME/ALIAS** auf denselben Hostnamen — falls der Anbieter
-> ANAME/ALIAS kann. Details in
-> [raspberrypi/README.md, Anhang B](../raspberrypi/README.md).
+| Typ | Name  | Wert                          | TTL         |
+| --- | ----- | ----------------------------- | ----------- |
+| A   | `@`   | öffentliche IP aus Schritt 1c | 300 (5 Min.) |
+| A   | `www` | öffentliche IP aus Schritt 1c | 300 (5 Min.) |
 
-### 2c. Prüfen
+Die kurze TTL ist wichtig, weil sich die IP deines Anschlusses ändern kann —
+dann greift die Korrektur durch den DynDNS-Updater (Schritt 5b) schnell.
 
-DNS braucht ein paar Minuten (bei `.de` manchmal bis zu einer Stunde, bis die
-Delegation bei der DENIC aktiv ist). Vom PC oder Server:
+### 2d. API-Token für DynDNS erzeugen
+
+Ändert sich die öffentliche IP deines Anschlusses (normaler DSL/Kabel-Anschluss
+ohne feste IP), muss der A-Record automatisch nachgeführt werden. Dafür
+braucht der `ddns`-Container einen Hetzner-Token:
+
+1. In der Hetzner Console im **selben Projekt** wie die Zone:
+   **Sicherheit → API-Tokens → API-Token generieren**.
+2. Beschreibung z. B. `ddns-ubuntuserver`, Berechtigung **Lesen & Schreiben**.
+3. Token sofort kopieren und sicher ablegen — er wird nur einmal angezeigt.
+
+Der Token gilt nur für dieses Projekt. Liegt die Zone in einem anderen
+Projekt, funktioniert er nicht.
+
+### 2e. Prüfen
+
+Hetzner übernimmt Änderungen meist innerhalb weniger Minuten. Vom PC oder
+Server:
 
 ```bash
+dig +short unidentists.de @hydrogen.ns.hetzner.com
 dig +short unidentists.de @1.1.1.1
 dig +short www.unidentists.de @1.1.1.1
 ```
 
-Beide müssen die IP aus Schritt 1c liefern. Unter Windows geht auch:
+Alle müssen die IP aus Schritt 1c liefern. Unter Windows geht auch:
 
 ```powershell
 nslookup unidentists.de 1.1.1.1
@@ -127,11 +166,11 @@ nslookup unidentists.de 1.1.1.1
 Zertifikat fehl, und nach mehreren Fehlversuchen sperrt Let's Encrypt
 vorübergehend (Rate Limit).
 
-### 2d. Alte Domain behalten
+### 2f. Alte Domain behalten
 
-`unidentists.social` **nicht kündigen** und den A-Record dort **nicht
-löschen**. Die alte Domain soll noch mindestens ein Jahr auf den Server
-zeigen, damit alte Links, Lesezeichen und E-Mail-Links weitergeleitet
+`unidentists.social` bei name.com **nicht kündigen** und den A-Record dort
+**nicht löschen**. Die alte Domain soll noch mindestens ein Jahr auf den
+Server zeigen, damit alte Links, Lesezeichen und E-Mail-Links weitergeleitet
 werden (Schritt 5c).
 
 ---
@@ -144,7 +183,8 @@ Soll der Absender von `no-reply@unidentists.social` auf
 Registrierungs- und Passwort-Reset-Mails im Spam oder werden abgelehnt.
 
 1. Beim SMTP-Anbieter `unidentists.de` als Absender-Domain hinzufügen.
-2. Die dort angezeigten DNS-Einträge beim Domain-Provider anlegen,
+2. Die dort angezeigten DNS-Einträge in der Hetzner Console
+   (`DNS → unidentists.de → Records`) anlegen,
    typischerweise:
 
    | Typ | Host                     | Wert (vom SMTP-Anbieter)                 |
@@ -199,21 +239,15 @@ www.unidentists.de
 
 Steht dort schon `unidentists.social`, kann das bleiben.
 
-### 4d. DynDNS in der FRITZ!Box (nur falls du das statt des Containers nutzt)
+### 4d. DynDNS in der FRITZ!Box: nicht benutzen
 
-`Internet → Freigaben → DynDNS`
+Hetzner bietet keine einfache DynDNS-Update-Adresse, die die FRITZ!Box
+aufrufen könnte. Die neue Domain wird daher vom `ddns`-Container auf dem
+Server aktuell gehalten (Schritt 5b). Unter
+`Internet → Freigaben → DynDNS` für `unidentists.de` **nichts** eintragen —
+zwei Updater für dieselbe Domain stören sich.
 
-Benutzt du bisher den `ddns`-Container auf dem Server, hier **nichts**
-eintragen — zwei Updater für dieselbe Domain stören sich.
-
-Willst du stattdessen die FRITZ!Box aktualisieren lassen und unterstützt dein
-Anbieter eine Update-URL (z. B. IONOS, Strato, INWX, DuckDNS):
-
-- DynDNS benutzen: ☑
-- Anbieter: „Benutzerdefiniert“ (oder den Anbieter aus der Liste)
-- Update-URL: laut Anleitung deines Domain-Anbieters
-- Domainname: `unidentists.de`
-- Benutzername / Kennwort: vom Anbieter
+MyFRITZ! kann eingeschaltet bleiben, es betrifft die Domain nicht.
 
 ### 4e. AdGuard Home (läuft auf dem Pi): DNS-Rewrite
 
@@ -280,40 +314,35 @@ Kontrolle:
 grep -E '^(SITE_DOMAIN|PUBLIC_WEB_ADDRESS|PUBLIC_API_ADDRESS|SMTP_FROM_ADDRESS)=' .env
 ```
 
-### 5b. DynDNS-Container (nur falls aktiv)
+### 5b. DynDNS-Container
 
-Ob er läuft:
+Ist die IP deines Anschlusses fest, diesen Schritt überspringen.
 
-```bash
-docker compose ps ddns
-```
-
-Falls ja:
+Sonst die Konfiguration öffnen (bzw. anlegen, falls es sie noch nicht gibt):
 
 ```bash
+mkdir -p ddns
+[ -f ddns/config.json ] || cp ddns-config.example.json ddns/config.json
 nano ddns/config.json
 ```
 
-Den bestehenden Eintrag für die alte Domain **behalten** und die neue
-zusätzlich eintragen — ein Block pro Hostname. Liegen beide Domains bei
-**name.com**:
+Inhalt: die neue Domain über **Hetzner**, die alte weiterhin über
+**name.com** — ein Block pro Hostname:
 
 ```json
 {
   "settings": [
     {
-      "provider": "name.com",
+      "provider": "hetznercloud",
       "domain": "unidentists.de",
-      "username": "DEIN-NAME.COM-BENUTZERNAME",
-      "token": "DEIN-NAME.COM-API-TOKEN",
+      "token": "DEIN-HETZNER-API-TOKEN",
       "ttl": 300,
       "ip_version": "ipv4"
     },
     {
-      "provider": "name.com",
+      "provider": "hetznercloud",
       "domain": "www.unidentists.de",
-      "username": "DEIN-NAME.COM-BENUTZERNAME",
-      "token": "DEIN-NAME.COM-API-TOKEN",
+      "token": "DEIN-HETZNER-API-TOKEN",
       "ttl": 300,
       "ip_version": "ipv4"
     },
@@ -329,10 +358,20 @@ zusätzlich eintragen — ein Block pro Hostname. Liegen beide Domains bei
 }
 ```
 
-Liegt `unidentists.de` bei einem **anderen Anbieter**, in den ersten beiden
-Blöcken `provider` und die Zugangsfelder passend setzen. Die unterstützten Anbieter
-und ihre Felder stehen in der Doku von
-[ddns-updater](https://github.com/qdm12/ddns-updater/tree/master/docs).
+- Den Hetzner-Token aus Schritt 2d einsetzen.
+- **`hetznercloud`** verwenden, nicht `hetzner` — das ist die alte, abgeschaltete
+  DNS-Console-Schnittstelle.
+- Den name.com-Block mit den Werten aus deiner bisherigen `config.json`
+  füllen (Sicherung aus Schritt 1b: `ddns/config.json.vor-domainwechsel`).
+  Gab es bisher keinen DynDNS-Container, den name.com-Block weglassen.
+
+Rechte setzen (der Container läuft als UID 1000) und die Datei schützen, weil
+Tokens darin stehen:
+
+```bash
+sudo chown -R 1000:1000 ddns
+sudo chmod 600 ddns/config.json
+```
 
 ### 5c. Caddyfile: alte Domain weiterleiten
 
@@ -352,7 +391,7 @@ unidentists.social, www.unidentists.social {
 
 Caddy holt dafür ein eigenes Zertifikat für die alte Domain, damit auch
 `https://unidentists.social/...` sauber weitergeleitet wird. Voraussetzung:
-die alte Domain zeigt weiterhin auf deinen Anschluss (Schritt 2d).
+die alte Domain zeigt weiterhin auf deinen Anschluss (Schritt 2f).
 
 Syntax prüfen:
 
@@ -375,7 +414,7 @@ nötig.
 
 ## Schritt 6: Neu starten
 
-Erst wenn Schritt 2c die richtige IP zeigt:
+Erst wenn Schritt 2e die richtige IP zeigt:
 
 ```bash
 cd ~/storyden
@@ -489,6 +528,8 @@ testen:
       Link darin beginnt mit `https://unidentists.de/`
 - [ ] Passkey neu registrieren und damit einloggen
 - [ ] OAuth-Login (falls genutzt) funktioniert
+- [ ] `docker compose logs ddns` (falls aktiv) meldet für alle drei Hostnamen
+      keinen Fehler, in der Hetzner Console steht die aktuelle IP
 - [ ] Neustart-Test: `sudo reboot`, danach kommt alles von selbst wieder hoch
 
 Schnelltest per Kommandozeile:
@@ -525,6 +566,11 @@ Am PC den DNS-Cache leeren: `ipconfig /flushdns`.
 `PUBLIC_WEB_ADDRESS` passt nicht exakt zur Adresse im Browser (Tippfehler,
 `www.`, `/` am Ende, `http` statt `https`). Schritt 5a prüfen, dann
 `docker compose up -d --force-recreate storyden`.
+
+**DynDNS: „unauthorized“ / „zone not found“**
+Token falsch, nur Lesezugriff oder aus einem anderen Projekt als die Zone.
+Neuen Token mit „Lesen & Schreiben“ im Projekt der Zone erzeugen (Schritt 2d)
+und prüfen, dass `provider` auf `hetznercloud` steht.
 
 **E-Mails kommen nicht an oder landen im Spam**
 Schritt 3 — Domain beim SMTP-Anbieter noch nicht verifiziert. Übergangsweise

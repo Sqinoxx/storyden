@@ -309,10 +309,6 @@ function GridCard({
             </Tooltip.Trigger>
             <Portal>
               <Tooltip.Positioner>
-                <Tooltip.Arrow>
-                  <Tooltip.ArrowTip />
-                </Tooltip.Arrow>
-
                 <Tooltip.Content p="1" borderRadius="sm">
                   <p>
                     <styled.span fontWeight="semibold">{t.library.hintClick}</styled.span>
@@ -325,6 +321,9 @@ function GridCard({
                     <styled.span fontWeight="normal">{t.library.hintMove}</styled.span>
                   </p>
                 </Tooltip.Content>
+                <Tooltip.Arrow>
+                  <Tooltip.ArrowTip />
+                </Tooltip.Arrow>
               </Tooltip.Positioner>
             </Portal>
           </Tooltip.Root>

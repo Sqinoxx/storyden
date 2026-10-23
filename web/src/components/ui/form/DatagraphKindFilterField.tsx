@@ -79,11 +79,10 @@ export function DatagraphKindFilterField<T extends FieldValues>({
 
                   <Portal>
                     <Tooltip.Positioner>
+                      <Tooltip.Content>{item.description}</Tooltip.Content>
                       <Tooltip.Arrow>
                         <Tooltip.ArrowTip />
                       </Tooltip.Arrow>
-
-                      <Tooltip.Content>{item.description}</Tooltip.Content>
                     </Tooltip.Positioner>
                   </Portal>
                 </Tooltip.Root>

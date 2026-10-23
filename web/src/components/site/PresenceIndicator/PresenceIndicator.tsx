@@ -90,12 +90,12 @@ export function PresenceIndicator() {
       </Tooltip.Trigger>
       <Portal>
         <Tooltip.Positioner>
-          <Tooltip.Arrow>
-            <Tooltip.ArrowTip />
-          </Tooltip.Arrow>
           <Tooltip.Content p="2" borderRadius="lg" maxW="xs" fontSize="xs">
             {description}
           </Tooltip.Content>
+          <Tooltip.Arrow>
+            <Tooltip.ArrowTip />
+          </Tooltip.Arrow>
         </Tooltip.Positioner>
       </Portal>
     </Tooltip.Root>

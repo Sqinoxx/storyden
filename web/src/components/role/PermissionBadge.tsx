@@ -23,13 +23,12 @@ export function PermissionBadge(props: Props) {
         <Badge cursor="pointer">{p.name}</Badge>
       </Tooltip.Trigger>
       <Tooltip.Positioner>
-        <Tooltip.Arrow>
-          <Tooltip.ArrowTip />
-        </Tooltip.Arrow>
-
         <Tooltip.Content p="2" borderRadius="2xl">
           {p.description}
         </Tooltip.Content>
+        <Tooltip.Arrow>
+          <Tooltip.ArrowTip />
+        </Tooltip.Arrow>
       </Tooltip.Positioner>
     </Tooltip.Root>
   );

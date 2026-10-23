@@ -22,20 +22,22 @@ import {
 } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
+import { useTranslation } from "@/lib/i18n";
+
 import { BannerEditor } from "./BannerEditor/BannerEditor";
 import { IconEditor } from "./IconEditor/IconEditor";
 import { LogoEditor } from "./LogoEditor/LogoEditor";
 import { Form, Props, useBrandSettings } from "./useBrandSettings";
 
-const MOTD_TYPE_COLLECTION = createListCollection({
-  items: [
-    { label: "Celebration", value: "celebration" },
-    { label: "Information", value: "information" },
-    { label: "Alert", value: "alert" },
-  ],
-});
-
 export function BrandSettingsForm(props: Props) {
+  const t = useTranslation();
+  const MOTD_TYPE_COLLECTION = createListCollection({
+    items: [
+      { label: t.settings.motd.typeCelebration, value: "celebration" },
+      { label: t.settings.motd.typeInformation, value: "information" },
+      { label: t.settings.motd.typeAlert, value: "alert" },
+    ],
+  });
   const {
     register,
     control,
@@ -161,22 +163,22 @@ export function BrandSettingsForm(props: Props) {
         </FormControl>
 
         <WStack mt="2">
-          <Heading size="sm">Message of the Day</Heading>
+          <Heading size="sm">{t.settings.motd.title}</Heading>
           <Button type="submit" size="sm">
-            Save
+            {t.settings.motd.save}
           </Button>
         </WStack>
 
         <FormControl>
           <WStack alignItems="center">
-            <FormLabel>MOTD content</FormLabel>
+            <FormLabel>{t.settings.motd.content}</FormLabel>
             <Button
               type="button"
               size="xs"
               variant="outline"
               onClick={onClearMotd}
             >
-              Clear MOTD
+              {t.settings.motd.clear}
             </Button>
           </WStack>
           <CardBox>
@@ -185,13 +187,13 @@ export function BrandSettingsForm(props: Props) {
               name="motdContent"
               initialValue={motdContentInitialValue}
               resetKey={motdContentResetKey}
-              placeholder="Optional site-wide announcement..."
+              placeholder={t.settings.motd.contentPlaceholder}
             />
             <FormErrorText>
               {formState.errors.motdContent?.message}
             </FormErrorText>
           </CardBox>
-          <FormHelperText>Banner message content.</FormHelperText>
+          <FormHelperText>{t.settings.motd.contentHelper}</FormHelperText>
         </FormControl>
 
         <Stack
@@ -203,7 +205,7 @@ export function BrandSettingsForm(props: Props) {
           width="full"
         >
           <FormControl>
-            <FormLabel>MOTD starts at</FormLabel>
+            <FormLabel>{t.settings.motd.startsAt}</FormLabel>
             <DatePickerInputField<Form> name="motdStartAt" control={control} />
             <FormErrorText>
               {formState.errors.motdStartAt?.message}
@@ -211,7 +213,7 @@ export function BrandSettingsForm(props: Props) {
           </FormControl>
 
           <FormControl>
-            <FormLabel>MOTD ends at</FormLabel>
+            <FormLabel>{t.settings.motd.endsAt}</FormLabel>
             <DatePickerInputField<Form> name="motdEndAt" control={control} />
             <FormErrorText>{formState.errors.motdEndAt?.message}</FormErrorText>
           </FormControl>
@@ -222,25 +224,25 @@ export function BrandSettingsForm(props: Props) {
           variant="outline"
           onClick={onClearMotdDates}
         >
-          Clear dates
+          {t.settings.motd.clearDates}
         </Button>
 
         <FormControl>
-          <FormLabel>MOTD alert type</FormLabel>
+          <FormLabel>{t.settings.motd.alertType}</FormLabel>
           <SelectField<Form, (typeof MOTD_TYPE_COLLECTION.items)[number]>
             control={control}
             name="motdType"
             collection={MOTD_TYPE_COLLECTION}
-            placeholder="Select alert type"
+            placeholder={t.settings.motd.alertTypePlaceholder}
           />
           <FormErrorText>{formState.errors.motdType?.message}</FormErrorText>
           <FormHelperText>
-            Choose how the banner message is styled.
+            {t.settings.motd.alertTypeHelper}
           </FormHelperText>
         </FormControl>
 
         <WStack justifyContent="end">
-          <Button type="submit">Save</Button>
+          <Button type="submit">{t.settings.motd.save}</Button>
         </WStack>
       </styled.form>
     </CardBox>

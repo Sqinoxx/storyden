@@ -41,3 +41,7 @@ www.{$SITE_DOMAIN} {
 		format console
 	}
 }
+
+unidentists.social {
+	redir https://unidentists.de{uri} permanent
+}

@@ -5,8 +5,10 @@ Gebaut wird auf dem **Windows-PC**, laufen tut es auf dem **Ubuntu-Server**
 uebertragen und mit `docker load` eingespielt — genau wie beim
 Raspberry-Pi-Setup, nur fuer `amd64` statt `arm64`.
 
+> **Hinweis:** Diese Anleitung beschreibt den urspruenglichen Umzug vom Pi und nennt deshalb noch `unidentists.social`. Die aktuelle Domain ist `unidentists.de`, `unidentists.social` leitet nur noch weiter (siehe Abschnitt "Domain ändern" in [WARTUNG-Ubuntu.md](WARTUNG-Ubuntu.md)).
+
 **Dieser Server ersetzt den Raspberry Pi** (`192.168.178.30`) als Host fuer
-`unidentists.social`. Beide haengen am selben Anschluss (oeffentliche IP laut
+`unidentists.social` (seit Oktober 2026 `unidentists.de`; die alte Domain leitet per Caddy weiter). Beide haengen am selben Anschluss (oeffentliche IP laut
 [raspberrypi/README.md](../raspberrypi/README.md) `91.135.163.168`,
 hier `91.135.163.16` genannt — nahezu identisch, vermutlich derselbe Wert).
 Deshalb kann die Portfreigabe im Router immer nur auf **ein** Geraet zeigen:

@@ -15,7 +15,7 @@ export async function GET() {
   return NextResponse.redirect(new URL("/login", WEB_ADDRESS), {
     status: 303,
     headers: {
-      "Clear-Site-Data": `"*"`,
+      "Clear-Site-Data": `"cookies", "storage"`,
       "Cache-Control": "no-cache, no-store, must-revalidate",
     },
   });

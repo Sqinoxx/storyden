@@ -389,10 +389,6 @@ function Row({
                       </Tooltip.Trigger>
                       <Portal>
                         <Tooltip.Positioner>
-                          <Tooltip.Arrow>
-                            <Tooltip.ArrowTip />
-                          </Tooltip.Arrow>
-
                           <Tooltip.Content p="1" borderRadius="sm">
                             <p>
                               <styled.span fontWeight="semibold">
@@ -413,6 +409,9 @@ function Row({
                               </styled.span>
                             </p>
                           </Tooltip.Content>
+                          <Tooltip.Arrow>
+                            <Tooltip.ArrowTip />
+                          </Tooltip.Arrow>
                         </Tooltip.Positioner>
                       </Portal>
                     </Tooltip.Root>

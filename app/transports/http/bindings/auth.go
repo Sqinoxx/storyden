@@ -224,7 +224,7 @@ func (a *Authentication) AuthProviderLogout(ctx context.Context, request openapi
 	return openapi.AuthProviderLogout302Response{
 		Headers: openapi.AuthProviderLogout302ResponseHeaders{
 			SetCookie:     a.cj.Destroy().String(),
-			ClearSiteData: `"cache", "cookies", "storage", "executionContexts"`,
+			ClearSiteData: `"cookies", "storage"`,
 			CacheControl:  "no-cache, no-store, must-revalidate",
 			Location:      redirectTo.String(),
 		},

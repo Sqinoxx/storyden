@@ -98,6 +98,7 @@ func TestLogout(t *testing.T) {
 
 				r.Equal(http.StatusFound, res.StatusCode)
 				a.Contains(res.Header.Get("Location"), "/logout")
+				a.NotContains(res.Header.Get("Clear-Site-Data"), "cache")
 
 				cookie, err := http.ParseSetCookie(res.Header.Get("Set-Cookie"))
 				r.NoError(err)

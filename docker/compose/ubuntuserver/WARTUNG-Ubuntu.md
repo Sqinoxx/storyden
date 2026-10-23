@@ -147,11 +147,11 @@ PUBLIC_API_ADDRESS=https://neue-domain.tld
 **2. Falls DynDNS aktiv:** `~/storyden/ddns/config.json` — das `domain`-Feld
 auf die neue Domain setzen.
 
-**3. Beim Domain-Provider (name.com):** A-Record für die neue Domain anlegen
+**3. Beim Domain-Provider (name.com bzw. Hetzner für `unidentists.de`):** A-Record für die neue Domain anlegen
 (Host leer, aktuelle öffentliche IP, TTL 300).
 
 **4. Falls im LAN ein AdGuard Home o.ä. mit Split-Horizon-DNS läuft** (der Pi
-hat `unidentists.social` bisher per DNS-Rewrite auf seine eigene LAN-IP
+hat `unidentists.social` (inzwischen `unidentists.de`) bisher per DNS-Rewrite auf seine eigene LAN-IP
 `192.168.178.30` aufgelöst): den Rewrite-Eintrag auf die neue Domain **und**
 auf `192.168.178.105` anpassen, sonst lösen Geräte im eigenen WLAN die Domain
 falsch auf, während externer Zugriff normal funktioniert.

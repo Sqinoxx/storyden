@@ -56,13 +56,12 @@ export function PostReviewBadge({
         </Tooltip.Trigger>
         <Portal>
           <Tooltip.Positioner>
-            <Tooltip.Arrow>
-              <Tooltip.ArrowTip />
-            </Tooltip.Arrow>
-
             <Tooltip.Content p="2" borderRadius="2xl" maxW="xs">
               {t.thread.inReviewDescription}
             </Tooltip.Content>
+            <Tooltip.Arrow>
+              <Tooltip.ArrowTip />
+            </Tooltip.Arrow>
           </Tooltip.Positioner>
         </Portal>
       </Tooltip.Root>

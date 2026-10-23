@@ -9,22 +9,22 @@ import { HStack, styled } from "@/styled-system/jsx";
 
 import styles from "./PresenceIndicator.module.css";
 
-type Props = {
-  compact?: boolean;
-};
-
-export function PresenceIndicator({ compact }: Props) {
+function usePresenceLabels() {
   const t = useTranslation();
   const presence = usePresence();
 
   if (!presence) {
-    return null;
+    return undefined;
   }
 
   const { online, inCategory, category } = presence;
   const showCategory = category !== undefined && inCategory !== undefined;
 
   const onlineLabel = t.presence.online.replace("{count}", String(online));
+  const inCategoryLabel =
+    showCategory && inCategory > 0
+      ? t.presence.inCategory.replace("{count}", String(inCategory))
+      : undefined;
   const description = [
     t.presence.onlineDescription.replace("{count}", String(online)),
     showCategory &&
@@ -37,6 +37,17 @@ export function PresenceIndicator({ compact }: Props) {
     .filter(Boolean)
     .join(" ");
 
+  return { onlineLabel, inCategoryLabel, description };
+}
+
+export function PresenceIndicator() {
+  const labels = usePresenceLabels();
+  if (!labels) {
+    return null;
+  }
+
+  const { onlineLabel, inCategoryLabel, description } = labels;
+
   return (
     <Tooltip.Root openDelay={300} positioning={{ placement: "bottom" }}>
       <Tooltip.Trigger asChild>
@@ -44,8 +55,8 @@ export function PresenceIndicator({ compact }: Props) {
           data-testid="presence-indicator"
           aria-label={description}
           gap="1.5"
-          px={compact ? "2" : "2.5"}
-          h={compact ? "8" : "7"}
+          px="2.5"
+          h="7"
           flexShrink="0"
           borderRadius="full"
           borderWidth="thin"
@@ -62,21 +73,16 @@ export function PresenceIndicator({ compact }: Props) {
           _hover={{ color: "fg.default", borderColor: "border.default" }}
         >
           <span className={styles["dot"]} />
-          <styled.span>{compact ? online : onlineLabel}</styled.span>
-          {showCategory && inCategory > 0 && (
+          <styled.span>{onlineLabel}</styled.span>
+          {inCategoryLabel && (
             <>
               <styled.span
                 h="3"
                 borderLeftWidth="thin"
                 borderColor="border.default"
-                display={compact ? "none" : "inline-block"}
               />
-              <styled.span
-                display={compact ? "none" : "inline"}
-                color="fg.default"
-                data-testid="presence-in-category"
-              >
-                {t.presence.inCategory.replace("{count}", String(inCategory))}
+              <styled.span color="fg.default" data-testid="presence-in-category">
+                {inCategoryLabel}
               </styled.span>
             </>
           )}
@@ -84,14 +90,52 @@ export function PresenceIndicator({ compact }: Props) {
       </Tooltip.Trigger>
       <Portal>
         <Tooltip.Positioner>
-          <Tooltip.Arrow>
-            <Tooltip.ArrowTip />
-          </Tooltip.Arrow>
           <Tooltip.Content p="2" borderRadius="lg" maxW="xs" fontSize="xs">
             {description}
           </Tooltip.Content>
+          <Tooltip.Arrow>
+            <Tooltip.ArrowTip />
+          </Tooltip.Arrow>
         </Tooltip.Positioner>
       </Portal>
     </Tooltip.Root>
+  );
+}
+
+export function PresenceFooter() {
+  const labels = usePresenceLabels();
+  if (!labels) {
+    return null;
+  }
+
+  const { onlineLabel, inCategoryLabel, description } = labels;
+
+  return (
+    <HStack
+      data-testid="presence-indicator"
+      aria-label={description}
+      w="full"
+      justify="center"
+      gap="1.5"
+      pt="1.5"
+      borderTopWidth="thin"
+      borderColor="border.muted"
+      color="fg.muted"
+      fontSize="xs"
+      fontVariantNumeric="tabular-nums"
+      whiteSpace="nowrap"
+      userSelect="none"
+    >
+      <span className={styles["dot"]} />
+      <span>{onlineLabel}</span>
+      {inCategoryLabel && (
+        <>
+          <span>·</span>
+          <styled.span color="fg.default" data-testid="presence-in-category">
+            {inCategoryLabel}
+          </styled.span>
+        </>
+      )}
+    </HStack>
   );
 }

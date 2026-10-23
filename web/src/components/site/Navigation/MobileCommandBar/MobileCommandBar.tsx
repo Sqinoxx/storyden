@@ -10,7 +10,7 @@ import { WStack } from "@/styled-system/jsx";
 import { CloseAction } from "../../Action/Close";
 import { AccountMenu } from "../AccountMenu/AccountMenu";
 import { ComposeAnchor } from "../Anchors/Compose";
-import { PresenceIndicator } from "../../PresenceIndicator/PresenceIndicator";
+import { PresenceFooter } from "../../PresenceIndicator/PresenceIndicator";
 import { HomeAnchor } from "../Anchors/Home";
 import { LoginAnchor } from "../Anchors/Login";
 import { SearchAnchor } from "../Anchors/Search";
@@ -88,11 +88,11 @@ export function MobileCommandBar({ canRegister }: Props) {
               <LoginAnchor />
             )}
             <SearchAnchor hideLabel size="sm" />
-            {account && <PresenceIndicator compact />}
             {account && <ExpandTrigger onClick={onExpand} />}
           </>
         )}
       </WStack>
+      {account && !isExpanded && <PresenceFooter />}
     </CommandDock>
   );
 }

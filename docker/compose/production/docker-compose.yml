@@ -96,7 +96,7 @@ services:
       - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
 
       # --- Uploads ---
-      # Muss <= der max_size im Caddyfile bleiben.
+      # Muss <= CADDY_MAX_BODY_SIZE (Caddy, Default 1GB) bleiben.
       - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-50}
 
       # --- OCR / Volltextsuche in Dateien ---
@@ -155,6 +155,7 @@ services:
     environment:
       - SITE_DOMAIN=${SITE_DOMAIN:?SITE_DOMAIN fehlt in .env}
       - ACME_EMAIL=${ACME_EMAIL:?ACME_EMAIL fehlt in .env}
+      - CADDY_MAX_BODY_SIZE=${CADDY_MAX_BODY_SIZE:-1GB}
     depends_on:
       - storyden
 

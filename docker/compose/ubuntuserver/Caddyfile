@@ -12,10 +12,11 @@ www.{$SITE_DOMAIN} {
 {$SITE_DOMAIN} {
 	encode zstd gzip
 
-	# Muss >= MAX_UPLOAD_SIZE_MB sein, sonst bricht Caddy grosse Uploads ab,
-	# bevor die App eine saubere Fehlermeldung liefern kann.
+	# Nur Sicherheitsnetz: das eigentliche Limit setzt die App (MAX_UPLOAD_SIZE_MB
+	# bzw. Admin-Einstellung). Muss darueber liegen, sonst antwortet Caddy mit
+	# einem nackten 413 statt der App-Fehlermeldung.
 	request_body {
-		max_size 64MB
+		max_size {$CADDY_MAX_BODY_SIZE:1GB}
 	}
 
 	header {

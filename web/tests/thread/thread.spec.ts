@@ -283,8 +283,8 @@ test.describe("Thread Editing", () => {
     const semester = page.locator("main").getByRole("combobox").first();
     await expect(semester).toBeVisible({ timeout: 5000 });
     await semester.click();
-    await page.getByRole("option", { name: "SS25", exact: true }).click();
-    await expect(semester).toHaveText(/SS25/);
+    await page.getByRole("option", { name: "SS23", exact: true }).click();
+    await expect(semester).toHaveText(/SS23/);
 
     await page.getByRole("button", { name: "Save" }).click();
     await expect(page.getByRole("button", { name: "Save" })).toHaveCount(0, {
@@ -296,7 +296,7 @@ test.describe("Thread Editing", () => {
 
     await expect(
       page.locator("main").getByRole("combobox").first(),
-    ).toHaveText(/SS25/, { timeout: 10000 });
+    ).toHaveText(/SS23/, { timeout: 10000 });
   });
 });
 

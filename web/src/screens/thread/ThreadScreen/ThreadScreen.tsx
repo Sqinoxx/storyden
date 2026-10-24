@@ -46,6 +46,8 @@ import { CardBox } from "@/styled-system/patterns";
 
 import { Form, Props, useThreadScreen } from "./useThreadScreen";
 
+const THREAD_EDIT_FORM_ID = "thread-edit-form";
+
 export function ThreadScreen(props: Props) {
   const t = useTranslation();
   const {
@@ -90,7 +92,11 @@ export function ThreadScreen(props: Props) {
                 >
                   {t.common.discard}
                 </CancelAction>
-                <SaveAction type="submit" disabled={isEmpty || isUploading}>
+                <SaveAction
+                  type="submit"
+                  form={THREAD_EDIT_FORM_ID}
+                  disabled={isEmpty || isUploading}
+                >
                   {t.common.save}
                 </SaveAction>
               </>
@@ -102,6 +108,7 @@ export function ThreadScreen(props: Props) {
 
         <styled.article className={CardBox()} p="4" gap="4">
           <styled.form
+            id={THREAD_EDIT_FORM_ID}
             display="flex"
             flexDirection="column"
             alignItems="start"

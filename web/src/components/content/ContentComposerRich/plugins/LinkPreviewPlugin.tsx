@@ -7,7 +7,7 @@ import {
 import { useEffect } from "react";
 
 import { useLinkCreate } from "@/api/openapi-client/links";
-import { LinkCard } from "@/components/library/links/LinkCard";
+import { LinkPreviewCard } from "@/components/library/links/LinkPreviewCard";
 import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/button";
 import { WarningIcon } from "@/components/ui/icons/Warning";
@@ -123,7 +123,7 @@ function LinkPreviewComponent(props: NodeViewProps) {
             )}
           </Center>
         ) : (
-          <LinkCard shape="row" link={data} disableAnchors={isEditable} />
+          <LinkPreviewCard link={data} disableAnchors={isEditable} />
         )}
       </div>
     </NodeViewWrapper>

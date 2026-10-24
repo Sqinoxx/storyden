@@ -74,6 +74,19 @@ export function LinkButton({ editor }: LinkButtonProps) {
         .extendMarkRange("link")
         .setLink({ href: normalizedUrl })
         .run();
+    } else if (editor.state.selection.empty) {
+      editor
+        .chain()
+        .focus()
+        .insertContent([
+          {
+            type: "text",
+            text: normalizedUrl,
+            marks: [{ type: "link", attrs: { href: normalizedUrl } }],
+          },
+          { type: "text", text: " " },
+        ])
+        .run();
     } else {
       editor.chain().focus().setLink({ href: normalizedUrl }).run();
     }

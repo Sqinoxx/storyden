@@ -7,7 +7,7 @@ import { Asset, Thread, Visibility } from "@/api/openapi-schema";
 import { CategoryBadge } from "@/components/category/CategoryBadge";
 import { Byline } from "@/components/content/Byline";
 import { ContentComposer } from "@/components/content/ContentComposer/ContentComposer";
-import { LinkCard } from "@/components/library/links/LinkCard";
+import { LinkPreviewCard } from "@/components/library/links/LinkPreviewCard";
 import { FileAttachmentList } from "@/components/post/FileAttachmentList";
 import { CancelAction } from "@/components/site/Action/Cancel";
 import { SaveAction } from "@/components/site/Action/Save";
@@ -183,7 +183,7 @@ export function ThreadScreen(props: Props) {
               )}
             </LStack>
 
-            {thread.link && <LinkCard link={thread.link} />}
+            {thread.link && <LinkPreviewCard link={thread.link} />}
 
             <ThreadBodyInput
               control={form.control}

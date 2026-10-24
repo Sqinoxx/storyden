@@ -163,6 +163,9 @@ func (s *Fetcher) CopyAsset(ctx context.Context, url string) (*asset.Asset, erro
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	req.Header.Set("Accept", "image/avif,image/webp,image/apng,image/*,*/*;q=0.8")
+	req.Header.Set("User-Agent", `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36`)
+
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))

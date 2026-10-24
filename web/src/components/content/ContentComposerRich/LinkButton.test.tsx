@@ -7,16 +7,22 @@ import { LinkButton } from "./LinkButton";
 
 import { de } from "@/lib/i18n/translations/de";
 
-function createEditorState(options: { active: boolean; href?: string }) {
+function createEditorState(options: {
+  active: boolean;
+  href?: string;
+  emptySelection?: boolean;
+}) {
   const chain = {
     focus: vi.fn(() => chain),
     extendMarkRange: vi.fn(() => chain),
     unsetLink: vi.fn(() => chain),
     setLink: vi.fn(() => chain),
+    insertContent: vi.fn(() => chain),
     run: vi.fn(() => true),
   };
 
   const editor = {
+    state: { selection: { empty: options.emptySelection ?? false } },
     isActive: vi.fn(() => options.active),
     getAttributes: vi.fn(() => ({ href: options.href ?? "" })),
     chain: vi.fn(() => chain),
@@ -37,6 +43,30 @@ describe("LinkButton", () => {
 
     expect(chain.setLink).toHaveBeenCalledWith({ href: "https://example.com/" });
     expect(chain.extendMarkRange).not.toHaveBeenCalled();
+    expect(chain.run).toHaveBeenCalled();
+  });
+
+  it("inserts the url as linked text when nothing is selected", async () => {
+    const user = userEvent.setup();
+    const { editor, chain } = createEditorState({
+      active: false,
+      emptySelection: true,
+    });
+
+    render(<LinkButton editor={editor} />);
+
+    await user.click(screen.getByTitle(de.link.addLink));
+    await user.type(screen.getByLabelText(de.link.linkUrl), "example.com{enter}");
+
+    expect(chain.setLink).not.toHaveBeenCalled();
+    expect(chain.insertContent).toHaveBeenCalledWith([
+      {
+        type: "text",
+        text: "https://example.com/",
+        marks: [{ type: "link", attrs: { href: "https://example.com/" } }],
+      },
+      { type: "text", text: " " },
+    ]);
     expect(chain.run).toHaveBeenCalled();
   });
 

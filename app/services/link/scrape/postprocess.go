@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"net/url"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Southclaws/dt"
@@ -52,11 +53,11 @@ func (s *webScraper) postprocess(ctx context.Context, addr url.URL, r io.Reader)
 	}
 
 	wc := &WebContent{
-		Title:       title(t),
+		Title:       title(t, doc),
 		Description: description(t),
 		Text:        text,
 		Favicon:     withBaseURL(favicon(doc)),
-		Image:       withBaseURL(t["og:image"]),
+		Image:       withBaseURL(image(t, doc)),
 		Content:     rc,
 	}
 
@@ -98,52 +99,51 @@ func ogtable(attrs []html.Attribute) (k string, v string) {
 	return
 }
 
-func title(t map[string]string) string {
-	if t["og:title"] != "" {
-		return t["og:title"]
+func title(t map[string]string, doc *goquery.Document) string {
+	if v := first(t, "og:title", "twitter:title", "title"); v != "" {
+		return v
 	}
-	if t["title"] != "" {
-		return t["title"]
+	if v := strings.TrimSpace(doc.Find("title").First().Text()); v != "" {
+		return v
 	}
-	if t["og:site_name"] != "" {
-		return t["og:site_name"]
+
+	return first(t, "og:site_name", "og:url")
+}
+
+func description(t map[string]string) string {
+	return first(t, "og:description", "twitter:description", "description")
+}
+
+func image(t map[string]string, doc *goquery.Document) string {
+	if v := first(t, "og:image", "og:image:secure_url", "og:image:url", "twitter:image", "twitter:image:src"); v != "" {
+		return v
 	}
-	if t["og:url"] != "" {
-		return t["og:url"]
-	}
-	if t["title"] != "" {
-		return t["title"]
+	if href, ok := doc.Find("link[rel='image_src']").Attr("href"); ok {
+		return strings.TrimSpace(href)
 	}
 
 	return ""
 }
 
-func description(t map[string]string) string {
-	if t["og:description"] != "" {
-		return t["og:description"]
-	}
-	if t["description"] != "" {
-		return t["description"]
+func first(t map[string]string, keys ...string) string {
+	for _, k := range keys {
+		if v := strings.TrimSpace(t[k]); v != "" {
+			return v
+		}
 	}
 
 	return ""
 }
 
 func favicon(doc *goquery.Document) string {
-	if href, ok := doc.Find("link[rel='icon']").Attr("href"); ok {
-		return href
-	}
-
-	if href, ok := doc.Find("link[rel='shortcut icon']").Attr("href"); ok {
-		return href
-	}
-
-	if href, ok := doc.Find("link[rel='apple-touch-icon']").Attr("href"); ok {
-		return href
-	}
-
-	if href, ok := doc.Find("link[rel='apple-touch-icon-precomposed']").Attr("href"); ok {
-		return href
+	for _, sel := range []string{
+		"link[rel='apple-touch-icon']",
+		"link[rel='apple-touch-icon-precomposed']",
+		"link[rel~='icon']",
+	} {
+		if href, ok := doc.Find(sel).First().Attr("href"); ok && strings.TrimSpace(href) != "" {
+			return strings.TrimSpace(href)
+		}
 	}
 
 	return "/favicon.ico"

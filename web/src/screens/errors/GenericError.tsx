@@ -24,8 +24,11 @@ export function GenericError({
   return (
     <VStack p="4" h="dvh" justify="center">
       <VStack maxW="sm" minH="60" gap="8">
-        <UnreadyBanner error={message ?? t.validation.unexpectedError} />
-        <HStack>
+        <UnreadyBanner
+          error={message ?? t.validation.unexpectedError}
+          hideReload
+        />
+        <HStack flexWrap="wrap" justifyContent="center">
           {!isHome && (
             <LinkButton variant="subtle" href="/">
               {t.nav.home}
@@ -33,6 +36,9 @@ export function GenericError({
           )}
           <Button variant="outline" onClick={reset}>
             {t.common.retry}
+          </Button>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            {t.common.reload}
           </Button>
         </HStack>
       </VStack>

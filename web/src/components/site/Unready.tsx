@@ -20,12 +20,27 @@ import {
 import { deriveError } from "@/utils/error";
 
 import { Spinner } from "../ui/Spinner";
+import { Button } from "../ui/button";
 import { WarningIcon } from "../ui/icons/Warning";
 import { LinkButton } from "../ui/link-button";
 
 type Props = {
   error?: unknown;
 };
+
+function ReloadButton() {
+  const t = useTranslation();
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => window.location.reload()}
+    >
+      {t.common.reload}
+    </Button>
+  );
+}
 
 export function Unready({ error }: Props) {
   const t = useTranslation();
@@ -168,13 +183,19 @@ export function Unready({ error }: Props) {
               {translate(message)}
             </styled.p>
           </VStack>
+
+          <ReloadButton />
         </VStack>
       </CardBox>
     </Center>
   );
 }
 
-export function UnreadyBanner({ error, children }: PropsWithChildren<Props>) {
+export function UnreadyBanner({
+  error,
+  children,
+  hideReload,
+}: PropsWithChildren<Props & { hideReload?: boolean }>) {
   const t = useTranslation();
   const translate = useTranslateMessage();
 
@@ -217,6 +238,8 @@ export function UnreadyBanner({ error, children }: PropsWithChildren<Props>) {
           </styled.p>
 
           {children && <LStack>{children}</LStack>}
+
+          {!hideReload && <ReloadButton />}
         </LStack>
       </CardBox>
     </Center>

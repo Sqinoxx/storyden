@@ -263,6 +263,7 @@ export const en = {
     loading: "Loading...",
     error: "Error",
     retry: "Retry",
+    reload: "Reload page",
     yes: "Yes",
     no: "No",
     scrollToTop: "Scroll to top",

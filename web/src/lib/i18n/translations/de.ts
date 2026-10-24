@@ -265,6 +265,7 @@ export const de: Translations = {
     loading: "Lädt...",
     error: "Fehler",
     retry: "Erneut versuchen",
+    reload: "Seite neu laden",
     yes: "Ja",
     no: "Nein",
     scrollToTop: "Nach oben",

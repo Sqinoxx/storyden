@@ -62,7 +62,7 @@ const BG_STYLE_KEY = "storyden-light-bg-style";
 const DARK_PRESET_KEY = "storyden-dark-preset";
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: "system",
+  theme: "dark",
   resolvedTheme: "dark",
   setTheme: () => { },
   toggleTheme: () => { },
@@ -88,14 +88,14 @@ function getSystemTheme(): "dark" | "light" {
 }
 
 function getStoredTheme(): Theme {
-  if (typeof window === "undefined") return "system";
+  if (typeof window === "undefined") return "dark";
   try {
     const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
     if (stored === "dark" || stored === "light" || stored === "system") {
       return stored;
     }
   } catch { }
-  return "system";
+  return "dark";
 }
 
 function getStoredWarmth(): number {
@@ -170,7 +170,7 @@ function applyDarkStyles(preset: DarkPreset) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
+  const [theme, setThemeState] = useState<Theme>("dark");
   const [resolvedTheme, setResolvedTheme] = useState<"dark" | "light">("dark");
   const [warmth, setWarmthState] = useState<number>(0);
   const [lightPreset, setLightPresetState] = useState<LightPreset>("neutral");

@@ -33,7 +33,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
 
         {/* Theme init: set dark/light class and light mode preset before first paint to prevent flash of wrong theme */}
         <script dangerouslySetInnerHTML={{
-          __html: `(function(){try{var s=localStorage.getItem('storyden-theme');var t=(s==='dark'||s==='light')?s:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.classList.add(t);var w=localStorage.getItem('storyden-warmth');if(w!==null){document.documentElement.style.setProperty('--color-warmth',w);}var p=localStorage.getItem('storyden-light-preset');if(p!==null){document.documentElement.setAttribute('data-light-preset',p);}var bg=localStorage.getItem('storyden-light-bg-style');if(bg!==null&&bg!=='default'){document.documentElement.setAttribute('data-light-bg',bg);}}catch(e){document.documentElement.classList.add('dark');}})();`
+          __html: `(function(){try{var s=localStorage.getItem('storyden-theme');var t=(s==='dark'||s==='light')?s:(s==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):'dark');document.documentElement.classList.add(t);var w=localStorage.getItem('storyden-warmth');if(w!==null){document.documentElement.style.setProperty('--color-warmth',w);}var p=localStorage.getItem('storyden-light-preset');if(p!==null){document.documentElement.setAttribute('data-light-preset',p);}var bg=localStorage.getItem('storyden-light-bg-style');if(bg!==null&&bg!=='default'){document.documentElement.setAttribute('data-light-bg',bg);}}catch(e){document.documentElement.classList.add('dark');}})();`
         }} />
 
 

@@ -431,23 +431,26 @@ export function ListingLightbox({
           backgroundColor: `rgba(0, 0, 0, ${1 - dismissProgress})`,
         }}
       >
-        <styled.img
+        <Box
           key={`ambient-${active.id}`}
-          src={getAssetURL(active.path)}
-          alt=""
           aria-hidden
           position="absolute"
           inset="0"
-          w="full"
-          h="full"
-          objectFit="cover"
           pointerEvents="none"
           style={{
             filter: "blur(64px) saturate(1.6)",
             transform: "scale(1.25)",
             opacity: 0.35 * (1 - dismissProgress * 1.6),
           }}
-        />
+        >
+          <styled.img
+            src={getAssetURL(active.path)}
+            alt=""
+            w="full"
+            h="full"
+            objectFit="cover"
+          />
+        </Box>
 
         <HStack
           position="relative"

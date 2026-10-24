@@ -17,17 +17,17 @@ export const slider = defineSlotRecipe({
       alignItems: "center",
     },
     track: {
-      backgroundColor: "bg.emphasized",
+      backgroundColor: "border.default",
       borderRadius: "full",
       overflow: "hidden",
       flex: "1",
     },
     range: {
-      background: "colorPalette.default",
+      background: "fg.accent",
     },
     thumb: {
       background: "bg.default",
-      borderColor: "colorPalette.default",
+      borderColor: "fg.accent",
       borderRadius: "full",
       borderWidth: "2px",
       boxShadow: "sm",

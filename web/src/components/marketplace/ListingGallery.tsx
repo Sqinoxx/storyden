@@ -151,7 +151,7 @@ export function ListingGallery({
         </Box>
       </Box>
       {assets.length > 1 && (
-        <HStack gap="2" w="full" overflowX="auto">
+        <HStack gap="2" w="full" overflowX="auto" overscrollBehaviorX="contain">
           {assets.map((a, i) => (
             <styled.button
               key={a.id}

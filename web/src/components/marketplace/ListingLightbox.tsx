@@ -211,20 +211,34 @@ export function ListingLightbox({
   );
 
   useEffect(() => {
-    const thumb = thumbsRef.current?.children[current];
-    thumb?.scrollIntoView({
+    const strip = thumbsRef.current;
+    const thumb = strip?.children[current] as HTMLElement | undefined;
+    if (!strip || !thumb) return;
+
+    strip.scrollTo({
+      left: thumb.offsetLeft - (strip.clientWidth - thumb.offsetWidth) / 2,
       behavior: "smooth",
-      block: "nearest",
-      inline: "center",
     });
   }, [current]);
 
   useEffect(() => {
-    const { overflow } = document.body.style;
-    document.body.style.overflow = "hidden";
-    closeRef.current?.focus();
+    const html = document.documentElement.style;
+    const body = document.body.style;
+    const saved = {
+      htmlOverflow: html.overflow,
+      htmlOverscroll: html.overscrollBehavior,
+      bodyOverflow: body.overflow,
+    };
+
+    html.overflow = "hidden";
+    html.overscrollBehavior = "none";
+    body.overflow = "hidden";
+    closeRef.current?.focus({ preventScroll: true });
+
     return () => {
-      document.body.style.overflow = overflow;
+      html.overflow = saved.htmlOverflow;
+      html.overscrollBehavior = saved.htmlOverscroll;
+      body.overflow = saved.bodyOverflow;
     };
   }, []);
 
@@ -410,6 +424,8 @@ export function ListingLightbox({
         display="grid"
         gridTemplateRows="auto 1fr auto"
         overflow="hidden"
+        touchAction="none"
+        overscrollBehavior="none"
         color="white"
         bg="black"
         style={{
@@ -666,7 +682,10 @@ export function ListingLightbox({
               w="fit"
               maxW="full"
               mx="auto"
+              position="relative"
               overflowX="auto"
+              overscrollBehaviorX="contain"
+              touchAction="pan-x"
               scrollbar="hidden"
             >
               {assets.map((a, i) => (

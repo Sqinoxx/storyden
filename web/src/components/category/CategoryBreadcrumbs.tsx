@@ -15,26 +15,34 @@ type Props = {
   category: Category;
 };
 
-export function CategoryBreadcrumbs({ category }: Props) {
-  const t = useTranslation();
+export function useCategoryAncestors(
+  category: Pick<Category, "id" | "parent"> | undefined,
+) {
   const { data } = useCategoryList();
+  const id = category?.id;
+  const parent = category?.parent;
 
-  const ancestors = useMemo(() => {
+  return useMemo(() => {
     const byID = new Map((data?.categories ?? []).map((c) => [c.id, c]));
     const chain: Category[] = [];
-    const seen = new Set<string>([category.id]);
+    const seen = new Set<string>(id ? [id] : []);
 
-    let parentID = category.parent;
+    let parentID = parent;
     while (parentID && !seen.has(parentID)) {
-      const parent = byID.get(parentID);
-      if (!parent) break;
+      const next = byID.get(parentID);
+      if (!next) break;
       seen.add(parentID);
-      chain.unshift(parent);
-      parentID = parent.parent;
+      chain.unshift(next);
+      parentID = next.parent;
     }
 
     return chain;
-  }, [data, category.id, category.parent]);
+  }, [data, id, parent]);
+}
+
+export function CategoryBreadcrumbs({ category }: Props) {
+  const t = useTranslation();
+  const ancestors = useCategoryAncestors(category);
 
   const crumbs = [...ancestors, category];
 
@@ -42,9 +50,8 @@ export function CategoryBreadcrumbs({ category }: Props) {
     <HStack
       w="full"
       color="fg.subtle"
-      overflowX="scroll"
-      pt="scrollGutter"
-      mt="-scrollGutter"
+      overflowX="hidden"
+      justifyContent="flex-end"
     >
       <LinkButton
         size="xs"
@@ -78,6 +85,7 @@ export function CategoryBreadcrumbs({ category }: Props) {
           </LinkButton>
         </Fragment>
       ))}
+      <Box flex="1" />
     </HStack>
   );
 }

@@ -6,6 +6,7 @@ import {
   ThreadReference,
 } from "@/api/openapi-schema";
 
+import { useCategoryAncestors } from "@/components/category/CategoryBreadcrumbs";
 import { BreadcrumbIcon } from "@/components/ui/icons/Breadcrumb";
 import { LinkButton } from "@/components/ui/link-button";
 import { Box, HStack, styled } from "@/styled-system/jsx";
@@ -31,17 +32,15 @@ type Breadcrumb =
 
 export function Breadcrumbs({ thread }: Props) {
   const t = useTranslation();
+  const ancestors = useCategoryAncestors(thread?.category);
   const category = thread?.category
-    ? [
-        {
-          type: "category" as const,
-          key: thread.category.id,
-          category: thread.category,
-        },
-      ]
+    ? [...ancestors, thread.category].map((c) => ({
+        type: "category" as const,
+        key: c.id,
+        category: c,
+      }))
     : [];
 
-  // This is a list as we may do nested categories in future.
   const crumbs: Breadcrumb[] = thread
     ? [
         ...category,
@@ -57,9 +56,8 @@ export function Breadcrumbs({ thread }: Props) {
     <HStack
       w="full"
       color="fg.subtle"
-      overflowX="scroll"
-      pt="scrollGutter"
-      mt="-scrollGutter"
+      overflowX="hidden"
+      justifyContent="flex-end"
     >
       <LinkButton
         size="xs"
@@ -81,6 +79,7 @@ export function Breadcrumbs({ thread }: Props) {
           </Fragment>
         );
       })}
+      <Box flex="1" />
     </HStack>
   );
 }

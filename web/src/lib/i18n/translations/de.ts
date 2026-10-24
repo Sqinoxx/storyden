@@ -25,6 +25,7 @@ export const de: Translations = {
     drafts: "Entwürfe",
     queue: "Warteschlange",
     reports: "Meldungen",
+    reportBug: "Fehler melden",
     roles: "Rollen",
     latest: "Neueste Beiträge",
     tags: "Tags",
@@ -793,6 +794,7 @@ export const de: Translations = {
       attendeeRemoved: "hat dich von der Veranstaltung entfernt",
       reportSubmitted: "hat eine Meldung eingereicht",
       reportUpdated: "Meldungsstatus aktualisiert",
+      bugReportSubmitted: "hat einen Fehler gemeldet",
       warningIssued: "hat dich verwarnt",
       nodeVersionCreated: "hat einen Entwurf für deine Seite erstellt",
       nodeVersionApplied: "hat deinen Entwurf übernommen",
@@ -1020,6 +1022,28 @@ export const de: Translations = {
     submissionsEmpty: "Eingereichte Seiten erscheinen hier.",
     editsEmpty: "Änderungsvorschläge erscheinen hier.",
   },
+  bugReport: {
+    title: "Fehler melden",
+    description:
+      "Etwas funktioniert nicht oder du hast eine Idee? Deine Meldung geht direkt an die Administratoren.",
+    category: "Art",
+    categories: {
+      bug: "Fehler",
+      suggestion: "Vorschlag",
+      other: "Sonstiges",
+    },
+    descriptionLabel: "Was ist passiert?",
+    descriptionPlaceholder:
+      "Beschreibe, was du gemacht hast, was du erwartet hast und was stattdessen passiert ist.",
+    descriptionRequired: "Bitte beschreibe das Problem.",
+    screenshot: "Screenshot (optional)",
+    addScreenshot: "Screenshot hinzufügen",
+    removeScreenshot: "Entfernen",
+    uploadingScreenshot: "Screenshot wird hochgeladen...",
+    onlyImages: "Es können nur Bilder angehängt werden.",
+    pageInfo: "Die aktuelle Seitenadresse und deine Browserversion werden automatisch mitgesendet.",
+    submit: "Meldung senden",
+    sending: "Meldung wird gesendet...",
+    sent: "Danke! Deine Meldung wurde an die Administratoren geschickt.",
+  },
 };
-
-

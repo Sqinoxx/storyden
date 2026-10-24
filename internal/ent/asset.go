@@ -66,9 +66,11 @@ type AssetEdges struct {
 	Assets []*Asset `json:"assets,omitempty"`
 	// Event holds the value of the event edge.
 	Event []*Event `json:"event,omitempty"`
+	// BugReports holds the value of the bug_reports edge.
+	BugReports []*BugReport `json:"bug_reports,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // PostsOrErr returns the Posts value or an error if the edge
@@ -136,6 +138,15 @@ func (e AssetEdges) EventOrErr() ([]*Event, error) {
 		return e.Event, nil
 	}
 	return nil, &NotLoadedError{edge: "event"}
+}
+
+// BugReportsOrErr returns the BugReports value or an error if the edge
+// was not loaded in eager-loading.
+func (e AssetEdges) BugReportsOrErr() ([]*BugReport, error) {
+	if e.loadedTypes[7] {
+		return e.BugReports, nil
+	}
+	return nil, &NotLoadedError{edge: "bug_reports"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -300,6 +311,11 @@ func (_m *Asset) QueryAssets() *AssetQuery {
 // QueryEvent queries the "event" edge of the Asset entity.
 func (_m *Asset) QueryEvent() *EventQuery {
 	return NewAssetClient(_m.config).QueryEvent(_m)
+}
+
+// QueryBugReports queries the "bug_reports" edge of the Asset entity.
+func (_m *Asset) QueryBugReports() *BugReportQuery {
+	return NewAssetClient(_m.config).QueryBugReports(_m)
 }
 
 // Update returns a builder for updating this Asset.

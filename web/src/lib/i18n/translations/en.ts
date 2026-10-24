@@ -23,6 +23,7 @@ export const en = {
     drafts: "Drafts",
     queue: "Queue",
     reports: "Reports",
+    reportBug: "Report a problem",
     roles: "Roles",
     latest: "Latest posts",
     tags: "Tags",
@@ -790,6 +791,7 @@ export const en = {
       attendeeRemoved: "removed you from their event",
       reportSubmitted: "submitted a report",
       reportUpdated: "report status updated",
+      bugReportSubmitted: "reported a problem with the site",
       warningIssued: "issued you a warning",
       nodeVersionCreated: "created a draft for your page",
       nodeVersionApplied: "applied your draft",
@@ -1017,8 +1019,30 @@ export const en = {
     submissionsEmpty: "Submissions appear here.",
     editsEmpty: "Edit proposals appear here.",
   },
+  bugReport: {
+    title: "Report a problem",
+    description:
+      "Found a bug or have an idea? Your report goes directly to the administrators.",
+    category: "Type",
+    categories: {
+      bug: "Bug",
+      suggestion: "Suggestion",
+      other: "Other",
+    },
+    descriptionLabel: "What happened?",
+    descriptionPlaceholder:
+      "Describe what you did, what you expected and what happened instead.",
+    descriptionRequired: "Please describe the problem.",
+    screenshot: "Screenshot (optional)",
+    addScreenshot: "Add screenshot",
+    removeScreenshot: "Remove",
+    uploadingScreenshot: "Uploading screenshot...",
+    onlyImages: "Only images can be attached.",
+    pageInfo: "The current page address and your browser version are sent along automatically.",
+    submit: "Send report",
+    sending: "Sending report...",
+    sent: "Thanks! Your report was sent to the administrators.",
+  },
 };
 
-
 export type Translations = typeof en;
-

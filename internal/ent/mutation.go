@@ -18,6 +18,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/ent/auditlog"
 	"github.com/Southclaws/storyden/internal/ent/authentication"
+	"github.com/Southclaws/storyden/internal/ent/bugreport"
 	"github.com/Southclaws/storyden/internal/ent/category"
 	"github.com/Southclaws/storyden/internal/ent/collection"
 	"github.com/Southclaws/storyden/internal/ent/collectionnode"
@@ -84,6 +85,7 @@ const (
 	TypeAsset                        = "Asset"
 	TypeAuditLog                     = "AuditLog"
 	TypeAuthentication               = "Authentication"
+	TypeBugReport                    = "BugReport"
 	TypeCategory                     = "Category"
 	TypeCollection                   = "Collection"
 	TypeCollectionNode               = "CollectionNode"
@@ -251,6 +253,9 @@ type AccountMutation struct {
 	handled_reports                             map[xid.ID]struct{}
 	removedhandled_reports                      map[xid.ID]struct{}
 	clearedhandled_reports                      bool
+	bug_reports                                 map[xid.ID]struct{}
+	removedbug_reports                          map[xid.ID]struct{}
+	clearedbug_reports                          bool
 	audit_logs                                  map[xid.ID]struct{}
 	removedaudit_logs                           map[xid.ID]struct{}
 	clearedaudit_logs                           bool
@@ -2762,6 +2767,60 @@ func (m *AccountMutation) ResetHandledReports() {
 	m.removedhandled_reports = nil
 }
 
+// AddBugReportIDs adds the "bug_reports" edge to the BugReport entity by ids.
+func (m *AccountMutation) AddBugReportIDs(ids ...xid.ID) {
+	if m.bug_reports == nil {
+		m.bug_reports = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.bug_reports[ids[i]] = struct{}{}
+	}
+}
+
+// ClearBugReports clears the "bug_reports" edge to the BugReport entity.
+func (m *AccountMutation) ClearBugReports() {
+	m.clearedbug_reports = true
+}
+
+// BugReportsCleared reports if the "bug_reports" edge to the BugReport entity was cleared.
+func (m *AccountMutation) BugReportsCleared() bool {
+	return m.clearedbug_reports
+}
+
+// RemoveBugReportIDs removes the "bug_reports" edge to the BugReport entity by IDs.
+func (m *AccountMutation) RemoveBugReportIDs(ids ...xid.ID) {
+	if m.removedbug_reports == nil {
+		m.removedbug_reports = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.bug_reports, ids[i])
+		m.removedbug_reports[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedBugReports returns the removed IDs of the "bug_reports" edge to the BugReport entity.
+func (m *AccountMutation) RemovedBugReportsIDs() (ids []xid.ID) {
+	for id := range m.removedbug_reports {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// BugReportsIDs returns the "bug_reports" edge IDs in the mutation.
+func (m *AccountMutation) BugReportsIDs() (ids []xid.ID) {
+	for id := range m.bug_reports {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetBugReports resets all changes to the "bug_reports" edge.
+func (m *AccountMutation) ResetBugReports() {
+	m.bug_reports = nil
+	m.clearedbug_reports = false
+	m.removedbug_reports = nil
+}
+
 // AddAuditLogIDs adds the "audit_logs" edge to the AuditLog entity by ids.
 func (m *AccountMutation) AddAuditLogIDs(ids ...xid.ID) {
 	if m.audit_logs == nil {
@@ -3809,7 +3868,7 @@ func (m *AccountMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AccountMutation) AddedEdges() []string {
-	edges := make([]string, 0, 45)
+	edges := make([]string, 0, 46)
 	if m.sessions != nil {
 		edges = append(edges, account.EdgeSessions)
 	}
@@ -3908,6 +3967,9 @@ func (m *AccountMutation) AddedEdges() []string {
 	}
 	if m.handled_reports != nil {
 		edges = append(edges, account.EdgeHandledReports)
+	}
+	if m.bug_reports != nil {
+		edges = append(edges, account.EdgeBugReports)
 	}
 	if m.audit_logs != nil {
 		edges = append(edges, account.EdgeAuditLogs)
@@ -4148,6 +4210,12 @@ func (m *AccountMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case account.EdgeBugReports:
+		ids := make([]ent.Value, 0, len(m.bug_reports))
+		for id := range m.bug_reports {
+			ids = append(ids, id)
+		}
+		return ids
 	case account.EdgeAuditLogs:
 		ids := make([]ent.Value, 0, len(m.audit_logs))
 		for id := range m.audit_logs {
@@ -4226,7 +4294,7 @@ func (m *AccountMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AccountMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 45)
+	edges := make([]string, 0, 46)
 	if m.removedsessions != nil {
 		edges = append(edges, account.EdgeSessions)
 	}
@@ -4322,6 +4390,9 @@ func (m *AccountMutation) RemovedEdges() []string {
 	}
 	if m.removedhandled_reports != nil {
 		edges = append(edges, account.EdgeHandledReports)
+	}
+	if m.removedbug_reports != nil {
+		edges = append(edges, account.EdgeBugReports)
 	}
 	if m.removedaudit_logs != nil {
 		edges = append(edges, account.EdgeAuditLogs)
@@ -4558,6 +4629,12 @@ func (m *AccountMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case account.EdgeBugReports:
+		ids := make([]ent.Value, 0, len(m.removedbug_reports))
+		for id := range m.removedbug_reports {
+			ids = append(ids, id)
+		}
+		return ids
 	case account.EdgeAuditLogs:
 		ids := make([]ent.Value, 0, len(m.removedaudit_logs))
 		for id := range m.removedaudit_logs {
@@ -4636,7 +4713,7 @@ func (m *AccountMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AccountMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 45)
+	edges := make([]string, 0, 46)
 	if m.clearedsessions {
 		edges = append(edges, account.EdgeSessions)
 	}
@@ -4735,6 +4812,9 @@ func (m *AccountMutation) ClearedEdges() []string {
 	}
 	if m.clearedhandled_reports {
 		edges = append(edges, account.EdgeHandledReports)
+	}
+	if m.clearedbug_reports {
+		edges = append(edges, account.EdgeBugReports)
 	}
 	if m.clearedaudit_logs {
 		edges = append(edges, account.EdgeAuditLogs)
@@ -4845,6 +4925,8 @@ func (m *AccountMutation) EdgeCleared(name string) bool {
 		return m.clearedreports
 	case account.EdgeHandledReports:
 		return m.clearedhandled_reports
+	case account.EdgeBugReports:
+		return m.clearedbug_reports
 	case account.EdgeAuditLogs:
 		return m.clearedaudit_logs
 	case account.EdgeModerationNotes:
@@ -4986,6 +5068,9 @@ func (m *AccountMutation) ResetEdge(name string) error {
 		return nil
 	case account.EdgeHandledReports:
 		m.ResetHandledReports()
+		return nil
+	case account.EdgeBugReports:
+		m.ResetBugReports()
 		return nil
 	case account.EdgeAuditLogs:
 		m.ResetAuditLogs()
@@ -6212,43 +6297,46 @@ func (m *AccountRolesMutation) ResetEdge(name string) error {
 // AssetMutation represents an operation that mutates the Asset nodes in the graph.
 type AssetMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *xid.ID
-	created_at       *time.Time
-	updated_at       *time.Time
-	filename         *string
-	size             *int
-	addsize          *int
-	mime_type        *string
-	metadata         *map[string]interface{}
-	ocr_text         *string
-	ocr_status       *asset.OcrStatus
-	ocr_error        *string
-	ocr_processed_at *time.Time
-	clearedFields    map[string]struct{}
-	posts            map[xid.ID]struct{}
-	removedposts     map[xid.ID]struct{}
-	clearedposts     bool
-	nodes            map[xid.ID]struct{}
-	removednodes     map[xid.ID]struct{}
-	clearednodes     bool
-	links            map[xid.ID]struct{}
-	removedlinks     map[xid.ID]struct{}
-	clearedlinks     bool
-	owner            *xid.ID
-	clearedowner     bool
-	parent           *xid.ID
-	clearedparent    bool
-	assets           map[xid.ID]struct{}
-	removedassets    map[xid.ID]struct{}
-	clearedassets    bool
-	event            map[xid.ID]struct{}
-	removedevent     map[xid.ID]struct{}
-	clearedevent     bool
-	done             bool
-	oldValue         func(context.Context) (*Asset, error)
-	predicates       []predicate.Asset
+	op                 Op
+	typ                string
+	id                 *xid.ID
+	created_at         *time.Time
+	updated_at         *time.Time
+	filename           *string
+	size               *int
+	addsize            *int
+	mime_type          *string
+	metadata           *map[string]interface{}
+	ocr_text           *string
+	ocr_status         *asset.OcrStatus
+	ocr_error          *string
+	ocr_processed_at   *time.Time
+	clearedFields      map[string]struct{}
+	posts              map[xid.ID]struct{}
+	removedposts       map[xid.ID]struct{}
+	clearedposts       bool
+	nodes              map[xid.ID]struct{}
+	removednodes       map[xid.ID]struct{}
+	clearednodes       bool
+	links              map[xid.ID]struct{}
+	removedlinks       map[xid.ID]struct{}
+	clearedlinks       bool
+	owner              *xid.ID
+	clearedowner       bool
+	parent             *xid.ID
+	clearedparent      bool
+	assets             map[xid.ID]struct{}
+	removedassets      map[xid.ID]struct{}
+	clearedassets      bool
+	event              map[xid.ID]struct{}
+	removedevent       map[xid.ID]struct{}
+	clearedevent       bool
+	bug_reports        map[xid.ID]struct{}
+	removedbug_reports map[xid.ID]struct{}
+	clearedbug_reports bool
+	done               bool
+	oldValue           func(context.Context) (*Asset, error)
+	predicates         []predicate.Asset
 }
 
 var _ ent.Mutation = (*AssetMutation)(nil)
@@ -7222,6 +7310,60 @@ func (m *AssetMutation) ResetEvent() {
 	m.removedevent = nil
 }
 
+// AddBugReportIDs adds the "bug_reports" edge to the BugReport entity by ids.
+func (m *AssetMutation) AddBugReportIDs(ids ...xid.ID) {
+	if m.bug_reports == nil {
+		m.bug_reports = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.bug_reports[ids[i]] = struct{}{}
+	}
+}
+
+// ClearBugReports clears the "bug_reports" edge to the BugReport entity.
+func (m *AssetMutation) ClearBugReports() {
+	m.clearedbug_reports = true
+}
+
+// BugReportsCleared reports if the "bug_reports" edge to the BugReport entity was cleared.
+func (m *AssetMutation) BugReportsCleared() bool {
+	return m.clearedbug_reports
+}
+
+// RemoveBugReportIDs removes the "bug_reports" edge to the BugReport entity by IDs.
+func (m *AssetMutation) RemoveBugReportIDs(ids ...xid.ID) {
+	if m.removedbug_reports == nil {
+		m.removedbug_reports = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.bug_reports, ids[i])
+		m.removedbug_reports[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedBugReports returns the removed IDs of the "bug_reports" edge to the BugReport entity.
+func (m *AssetMutation) RemovedBugReportsIDs() (ids []xid.ID) {
+	for id := range m.removedbug_reports {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// BugReportsIDs returns the "bug_reports" edge IDs in the mutation.
+func (m *AssetMutation) BugReportsIDs() (ids []xid.ID) {
+	for id := range m.bug_reports {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetBugReports resets all changes to the "bug_reports" edge.
+func (m *AssetMutation) ResetBugReports() {
+	m.bug_reports = nil
+	m.clearedbug_reports = false
+	m.removedbug_reports = nil
+}
+
 // Where appends a list predicates to the AssetMutation builder.
 func (m *AssetMutation) Where(ps ...predicate.Asset) {
 	m.predicates = append(m.predicates, ps...)
@@ -7590,7 +7732,7 @@ func (m *AssetMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AssetMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.posts != nil {
 		edges = append(edges, asset.EdgePosts)
 	}
@@ -7611,6 +7753,9 @@ func (m *AssetMutation) AddedEdges() []string {
 	}
 	if m.event != nil {
 		edges = append(edges, asset.EdgeEvent)
+	}
+	if m.bug_reports != nil {
+		edges = append(edges, asset.EdgeBugReports)
 	}
 	return edges
 }
@@ -7657,13 +7802,19 @@ func (m *AssetMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case asset.EdgeBugReports:
+		ids := make([]ent.Value, 0, len(m.bug_reports))
+		for id := range m.bug_reports {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AssetMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.removedposts != nil {
 		edges = append(edges, asset.EdgePosts)
 	}
@@ -7678,6 +7829,9 @@ func (m *AssetMutation) RemovedEdges() []string {
 	}
 	if m.removedevent != nil {
 		edges = append(edges, asset.EdgeEvent)
+	}
+	if m.removedbug_reports != nil {
+		edges = append(edges, asset.EdgeBugReports)
 	}
 	return edges
 }
@@ -7716,13 +7870,19 @@ func (m *AssetMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case asset.EdgeBugReports:
+		ids := make([]ent.Value, 0, len(m.removedbug_reports))
+		for id := range m.removedbug_reports {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AssetMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 8)
 	if m.clearedposts {
 		edges = append(edges, asset.EdgePosts)
 	}
@@ -7743,6 +7903,9 @@ func (m *AssetMutation) ClearedEdges() []string {
 	}
 	if m.clearedevent {
 		edges = append(edges, asset.EdgeEvent)
+	}
+	if m.clearedbug_reports {
+		edges = append(edges, asset.EdgeBugReports)
 	}
 	return edges
 }
@@ -7765,6 +7928,8 @@ func (m *AssetMutation) EdgeCleared(name string) bool {
 		return m.clearedassets
 	case asset.EdgeEvent:
 		return m.clearedevent
+	case asset.EdgeBugReports:
+		return m.clearedbug_reports
 	}
 	return false
 }
@@ -7807,6 +7972,9 @@ func (m *AssetMutation) ResetEdge(name string) error {
 		return nil
 	case asset.EdgeEvent:
 		m.ResetEvent()
+		return nil
+	case asset.EdgeBugReports:
+		m.ResetBugReports()
 		return nil
 	}
 	return fmt.Errorf("unknown Asset edge %s", name)
@@ -9563,6 +9731,956 @@ func (m *AuthenticationMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Authentication edge %s", name)
+}
+
+// BugReportMutation represents an operation that mutates the BugReport nodes in the graph.
+type BugReportMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *xid.ID
+	created_at        *time.Time
+	updated_at        *time.Time
+	category          *string
+	description       *string
+	page_url          *string
+	user_agent        *string
+	status            *string
+	clearedFields     map[string]struct{}
+	author            *xid.ID
+	clearedauthor     bool
+	screenshot        *xid.ID
+	clearedscreenshot bool
+	done              bool
+	oldValue          func(context.Context) (*BugReport, error)
+	predicates        []predicate.BugReport
+}
+
+var _ ent.Mutation = (*BugReportMutation)(nil)
+
+// bugreportOption allows management of the mutation configuration using functional options.
+type bugreportOption func(*BugReportMutation)
+
+// newBugReportMutation creates new mutation for the BugReport entity.
+func newBugReportMutation(c config, op Op, opts ...bugreportOption) *BugReportMutation {
+	m := &BugReportMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeBugReport,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withBugReportID sets the ID field of the mutation.
+func withBugReportID(id xid.ID) bugreportOption {
+	return func(m *BugReportMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *BugReport
+		)
+		m.oldValue = func(ctx context.Context) (*BugReport, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().BugReport.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withBugReport sets the old BugReport of the mutation.
+func withBugReport(node *BugReport) bugreportOption {
+	return func(m *BugReportMutation) {
+		m.oldValue = func(context.Context) (*BugReport, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m BugReportMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m BugReportMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of BugReport entities.
+func (m *BugReportMutation) SetID(id xid.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *BugReportMutation) ID() (id xid.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *BugReportMutation) IDs(ctx context.Context) ([]xid.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []xid.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().BugReport.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *BugReportMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *BugReportMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the BugReport entity.
+// If the BugReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugReportMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *BugReportMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *BugReportMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *BugReportMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the BugReport entity.
+// If the BugReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugReportMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *BugReportMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetAccountID sets the "account_id" field.
+func (m *BugReportMutation) SetAccountID(x xid.ID) {
+	m.author = &x
+}
+
+// AccountID returns the value of the "account_id" field in the mutation.
+func (m *BugReportMutation) AccountID() (r xid.ID, exists bool) {
+	v := m.author
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccountID returns the old "account_id" field's value of the BugReport entity.
+// If the BugReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugReportMutation) OldAccountID(ctx context.Context) (v xid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccountID: %w", err)
+	}
+	return oldValue.AccountID, nil
+}
+
+// ResetAccountID resets all changes to the "account_id" field.
+func (m *BugReportMutation) ResetAccountID() {
+	m.author = nil
+}
+
+// SetCategory sets the "category" field.
+func (m *BugReportMutation) SetCategory(s string) {
+	m.category = &s
+}
+
+// Category returns the value of the "category" field in the mutation.
+func (m *BugReportMutation) Category() (r string, exists bool) {
+	v := m.category
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCategory returns the old "category" field's value of the BugReport entity.
+// If the BugReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugReportMutation) OldCategory(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCategory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCategory: %w", err)
+	}
+	return oldValue.Category, nil
+}
+
+// ResetCategory resets all changes to the "category" field.
+func (m *BugReportMutation) ResetCategory() {
+	m.category = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *BugReportMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *BugReportMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the BugReport entity.
+// If the BugReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugReportMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *BugReportMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetPageURL sets the "page_url" field.
+func (m *BugReportMutation) SetPageURL(s string) {
+	m.page_url = &s
+}
+
+// PageURL returns the value of the "page_url" field in the mutation.
+func (m *BugReportMutation) PageURL() (r string, exists bool) {
+	v := m.page_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPageURL returns the old "page_url" field's value of the BugReport entity.
+// If the BugReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugReportMutation) OldPageURL(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPageURL: %w", err)
+	}
+	return oldValue.PageURL, nil
+}
+
+// ClearPageURL clears the value of the "page_url" field.
+func (m *BugReportMutation) ClearPageURL() {
+	m.page_url = nil
+	m.clearedFields[bugreport.FieldPageURL] = struct{}{}
+}
+
+// PageURLCleared returns if the "page_url" field was cleared in this mutation.
+func (m *BugReportMutation) PageURLCleared() bool {
+	_, ok := m.clearedFields[bugreport.FieldPageURL]
+	return ok
+}
+
+// ResetPageURL resets all changes to the "page_url" field.
+func (m *BugReportMutation) ResetPageURL() {
+	m.page_url = nil
+	delete(m.clearedFields, bugreport.FieldPageURL)
+}
+
+// SetUserAgent sets the "user_agent" field.
+func (m *BugReportMutation) SetUserAgent(s string) {
+	m.user_agent = &s
+}
+
+// UserAgent returns the value of the "user_agent" field in the mutation.
+func (m *BugReportMutation) UserAgent() (r string, exists bool) {
+	v := m.user_agent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserAgent returns the old "user_agent" field's value of the BugReport entity.
+// If the BugReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugReportMutation) OldUserAgent(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserAgent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserAgent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserAgent: %w", err)
+	}
+	return oldValue.UserAgent, nil
+}
+
+// ClearUserAgent clears the value of the "user_agent" field.
+func (m *BugReportMutation) ClearUserAgent() {
+	m.user_agent = nil
+	m.clearedFields[bugreport.FieldUserAgent] = struct{}{}
+}
+
+// UserAgentCleared returns if the "user_agent" field was cleared in this mutation.
+func (m *BugReportMutation) UserAgentCleared() bool {
+	_, ok := m.clearedFields[bugreport.FieldUserAgent]
+	return ok
+}
+
+// ResetUserAgent resets all changes to the "user_agent" field.
+func (m *BugReportMutation) ResetUserAgent() {
+	m.user_agent = nil
+	delete(m.clearedFields, bugreport.FieldUserAgent)
+}
+
+// SetStatus sets the "status" field.
+func (m *BugReportMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *BugReportMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the BugReport entity.
+// If the BugReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugReportMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *BugReportMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetAssetID sets the "asset_id" field.
+func (m *BugReportMutation) SetAssetID(x xid.ID) {
+	m.screenshot = &x
+}
+
+// AssetID returns the value of the "asset_id" field in the mutation.
+func (m *BugReportMutation) AssetID() (r xid.ID, exists bool) {
+	v := m.screenshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAssetID returns the old "asset_id" field's value of the BugReport entity.
+// If the BugReport object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugReportMutation) OldAssetID(ctx context.Context) (v *xid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAssetID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAssetID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAssetID: %w", err)
+	}
+	return oldValue.AssetID, nil
+}
+
+// ClearAssetID clears the value of the "asset_id" field.
+func (m *BugReportMutation) ClearAssetID() {
+	m.screenshot = nil
+	m.clearedFields[bugreport.FieldAssetID] = struct{}{}
+}
+
+// AssetIDCleared returns if the "asset_id" field was cleared in this mutation.
+func (m *BugReportMutation) AssetIDCleared() bool {
+	_, ok := m.clearedFields[bugreport.FieldAssetID]
+	return ok
+}
+
+// ResetAssetID resets all changes to the "asset_id" field.
+func (m *BugReportMutation) ResetAssetID() {
+	m.screenshot = nil
+	delete(m.clearedFields, bugreport.FieldAssetID)
+}
+
+// SetAuthorID sets the "author" edge to the Account entity by id.
+func (m *BugReportMutation) SetAuthorID(id xid.ID) {
+	m.author = &id
+}
+
+// ClearAuthor clears the "author" edge to the Account entity.
+func (m *BugReportMutation) ClearAuthor() {
+	m.clearedauthor = true
+	m.clearedFields[bugreport.FieldAccountID] = struct{}{}
+}
+
+// AuthorCleared reports if the "author" edge to the Account entity was cleared.
+func (m *BugReportMutation) AuthorCleared() bool {
+	return m.clearedauthor
+}
+
+// AuthorID returns the "author" edge ID in the mutation.
+func (m *BugReportMutation) AuthorID() (id xid.ID, exists bool) {
+	if m.author != nil {
+		return *m.author, true
+	}
+	return
+}
+
+// AuthorIDs returns the "author" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AuthorID instead. It exists only for internal usage by the builders.
+func (m *BugReportMutation) AuthorIDs() (ids []xid.ID) {
+	if id := m.author; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAuthor resets all changes to the "author" edge.
+func (m *BugReportMutation) ResetAuthor() {
+	m.author = nil
+	m.clearedauthor = false
+}
+
+// SetScreenshotID sets the "screenshot" edge to the Asset entity by id.
+func (m *BugReportMutation) SetScreenshotID(id xid.ID) {
+	m.screenshot = &id
+}
+
+// ClearScreenshot clears the "screenshot" edge to the Asset entity.
+func (m *BugReportMutation) ClearScreenshot() {
+	m.clearedscreenshot = true
+	m.clearedFields[bugreport.FieldAssetID] = struct{}{}
+}
+
+// ScreenshotCleared reports if the "screenshot" edge to the Asset entity was cleared.
+func (m *BugReportMutation) ScreenshotCleared() bool {
+	return m.AssetIDCleared() || m.clearedscreenshot
+}
+
+// ScreenshotID returns the "screenshot" edge ID in the mutation.
+func (m *BugReportMutation) ScreenshotID() (id xid.ID, exists bool) {
+	if m.screenshot != nil {
+		return *m.screenshot, true
+	}
+	return
+}
+
+// ScreenshotIDs returns the "screenshot" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ScreenshotID instead. It exists only for internal usage by the builders.
+func (m *BugReportMutation) ScreenshotIDs() (ids []xid.ID) {
+	if id := m.screenshot; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetScreenshot resets all changes to the "screenshot" edge.
+func (m *BugReportMutation) ResetScreenshot() {
+	m.screenshot = nil
+	m.clearedscreenshot = false
+}
+
+// Where appends a list predicates to the BugReportMutation builder.
+func (m *BugReportMutation) Where(ps ...predicate.BugReport) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the BugReportMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *BugReportMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.BugReport, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *BugReportMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *BugReportMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (BugReport).
+func (m *BugReportMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *BugReportMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, bugreport.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, bugreport.FieldUpdatedAt)
+	}
+	if m.author != nil {
+		fields = append(fields, bugreport.FieldAccountID)
+	}
+	if m.category != nil {
+		fields = append(fields, bugreport.FieldCategory)
+	}
+	if m.description != nil {
+		fields = append(fields, bugreport.FieldDescription)
+	}
+	if m.page_url != nil {
+		fields = append(fields, bugreport.FieldPageURL)
+	}
+	if m.user_agent != nil {
+		fields = append(fields, bugreport.FieldUserAgent)
+	}
+	if m.status != nil {
+		fields = append(fields, bugreport.FieldStatus)
+	}
+	if m.screenshot != nil {
+		fields = append(fields, bugreport.FieldAssetID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *BugReportMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case bugreport.FieldCreatedAt:
+		return m.CreatedAt()
+	case bugreport.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case bugreport.FieldAccountID:
+		return m.AccountID()
+	case bugreport.FieldCategory:
+		return m.Category()
+	case bugreport.FieldDescription:
+		return m.Description()
+	case bugreport.FieldPageURL:
+		return m.PageURL()
+	case bugreport.FieldUserAgent:
+		return m.UserAgent()
+	case bugreport.FieldStatus:
+		return m.Status()
+	case bugreport.FieldAssetID:
+		return m.AssetID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *BugReportMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case bugreport.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case bugreport.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case bugreport.FieldAccountID:
+		return m.OldAccountID(ctx)
+	case bugreport.FieldCategory:
+		return m.OldCategory(ctx)
+	case bugreport.FieldDescription:
+		return m.OldDescription(ctx)
+	case bugreport.FieldPageURL:
+		return m.OldPageURL(ctx)
+	case bugreport.FieldUserAgent:
+		return m.OldUserAgent(ctx)
+	case bugreport.FieldStatus:
+		return m.OldStatus(ctx)
+	case bugreport.FieldAssetID:
+		return m.OldAssetID(ctx)
+	}
+	return nil, fmt.Errorf("unknown BugReport field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BugReportMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case bugreport.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case bugreport.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case bugreport.FieldAccountID:
+		v, ok := value.(xid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccountID(v)
+		return nil
+	case bugreport.FieldCategory:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCategory(v)
+		return nil
+	case bugreport.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case bugreport.FieldPageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPageURL(v)
+		return nil
+	case bugreport.FieldUserAgent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserAgent(v)
+		return nil
+	case bugreport.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case bugreport.FieldAssetID:
+		v, ok := value.(xid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAssetID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown BugReport field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *BugReportMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *BugReportMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BugReportMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown BugReport numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *BugReportMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(bugreport.FieldPageURL) {
+		fields = append(fields, bugreport.FieldPageURL)
+	}
+	if m.FieldCleared(bugreport.FieldUserAgent) {
+		fields = append(fields, bugreport.FieldUserAgent)
+	}
+	if m.FieldCleared(bugreport.FieldAssetID) {
+		fields = append(fields, bugreport.FieldAssetID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *BugReportMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *BugReportMutation) ClearField(name string) error {
+	switch name {
+	case bugreport.FieldPageURL:
+		m.ClearPageURL()
+		return nil
+	case bugreport.FieldUserAgent:
+		m.ClearUserAgent()
+		return nil
+	case bugreport.FieldAssetID:
+		m.ClearAssetID()
+		return nil
+	}
+	return fmt.Errorf("unknown BugReport nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *BugReportMutation) ResetField(name string) error {
+	switch name {
+	case bugreport.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case bugreport.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case bugreport.FieldAccountID:
+		m.ResetAccountID()
+		return nil
+	case bugreport.FieldCategory:
+		m.ResetCategory()
+		return nil
+	case bugreport.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case bugreport.FieldPageURL:
+		m.ResetPageURL()
+		return nil
+	case bugreport.FieldUserAgent:
+		m.ResetUserAgent()
+		return nil
+	case bugreport.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case bugreport.FieldAssetID:
+		m.ResetAssetID()
+		return nil
+	}
+	return fmt.Errorf("unknown BugReport field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *BugReportMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.author != nil {
+		edges = append(edges, bugreport.EdgeAuthor)
+	}
+	if m.screenshot != nil {
+		edges = append(edges, bugreport.EdgeScreenshot)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *BugReportMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case bugreport.EdgeAuthor:
+		if id := m.author; id != nil {
+			return []ent.Value{*id}
+		}
+	case bugreport.EdgeScreenshot:
+		if id := m.screenshot; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *BugReportMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *BugReportMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *BugReportMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedauthor {
+		edges = append(edges, bugreport.EdgeAuthor)
+	}
+	if m.clearedscreenshot {
+		edges = append(edges, bugreport.EdgeScreenshot)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *BugReportMutation) EdgeCleared(name string) bool {
+	switch name {
+	case bugreport.EdgeAuthor:
+		return m.clearedauthor
+	case bugreport.EdgeScreenshot:
+		return m.clearedscreenshot
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *BugReportMutation) ClearEdge(name string) error {
+	switch name {
+	case bugreport.EdgeAuthor:
+		m.ClearAuthor()
+		return nil
+	case bugreport.EdgeScreenshot:
+		m.ClearScreenshot()
+		return nil
+	}
+	return fmt.Errorf("unknown BugReport unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *BugReportMutation) ResetEdge(name string) error {
+	switch name {
+	case bugreport.EdgeAuthor:
+		m.ResetAuthor()
+		return nil
+	case bugreport.EdgeScreenshot:
+		m.ResetScreenshot()
+		return nil
+	}
+	return fmt.Errorf("unknown BugReport edge %s", name)
 }
 
 // CategoryMutation represents an operation that mutates the Category nodes in the graph.

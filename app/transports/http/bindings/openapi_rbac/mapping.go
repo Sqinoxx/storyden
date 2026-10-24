@@ -590,6 +590,22 @@ func (m *Mapping) NotificationUpdateMany() (bool, *rbac.Permission) {
 	return true, nil
 }
 
+func (m *Mapping) BugReportCreate() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) AdminBugReportList() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
+func (m *Mapping) AdminBugReportUpdate() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
+func (m *Mapping) AdminBugReportDelete() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
 func (m *Mapping) ReportCreate() (bool, *rbac.Permission) {
 	return true, nil
 }

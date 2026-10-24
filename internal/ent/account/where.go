@@ -1475,6 +1475,29 @@ func HasHandledReportsWith(preds ...predicate.Report) predicate.Account {
 	})
 }
 
+// HasBugReports applies the HasEdge predicate on the "bug_reports" edge.
+func HasBugReports() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, BugReportsTable, BugReportsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasBugReportsWith applies the HasEdge predicate on the "bug_reports" edge with a given conditions (other predicates).
+func HasBugReportsWith(preds ...predicate.BugReport) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		step := newBugReportsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasAuditLogs applies the HasEdge predicate on the "audit_logs" edge.
 func HasAuditLogs() predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {

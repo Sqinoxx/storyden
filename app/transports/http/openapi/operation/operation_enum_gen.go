@@ -160,6 +160,10 @@ var (
 	OperationIDReportCreate                           = OperationID{`ReportCreate`}
 	OperationIDReportList                             = OperationID{`ReportList`}
 	OperationIDReportUpdate                           = OperationID{`ReportUpdate`}
+	OperationIDBugReportCreate                        = OperationID{`BugReportCreate`}
+	OperationIDAdminBugReportList                     = OperationID{`AdminBugReportList`}
+	OperationIDAdminBugReportUpdate                   = OperationID{`AdminBugReportUpdate`}
+	OperationIDAdminBugReportDelete                   = OperationID{`AdminBugReportDelete`}
 	OperationIDProfileList                            = OperationID{`ProfileList`}
 	OperationIDProfileGet                             = OperationID{`ProfileGet`}
 	OperationIDProfileFollowersGet                    = OperationID{`ProfileFollowersGet`}
@@ -606,6 +610,14 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDReportList, nil
 	case string(`ReportUpdate`):
 		return OperationIDReportUpdate, nil
+	case string(`BugReportCreate`):
+		return OperationIDBugReportCreate, nil
+	case string(`AdminBugReportList`):
+		return OperationIDAdminBugReportList, nil
+	case string(`AdminBugReportUpdate`):
+		return OperationIDAdminBugReportUpdate, nil
+	case string(`AdminBugReportDelete`):
+		return OperationIDAdminBugReportDelete, nil
 	case string(`ProfileList`):
 		return OperationIDProfileList, nil
 	case string(`ProfileGet`):

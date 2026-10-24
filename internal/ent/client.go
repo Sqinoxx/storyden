@@ -22,6 +22,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/ent/auditlog"
 	"github.com/Southclaws/storyden/internal/ent/authentication"
+	"github.com/Southclaws/storyden/internal/ent/bugreport"
 	"github.com/Southclaws/storyden/internal/ent/category"
 	"github.com/Southclaws/storyden/internal/ent/collection"
 	"github.com/Southclaws/storyden/internal/ent/collectionnode"
@@ -89,6 +90,8 @@ type Client struct {
 	AuditLog *AuditLogClient
 	// Authentication is the client for interacting with the Authentication builders.
 	Authentication *AuthenticationClient
+	// BugReport is the client for interacting with the BugReport builders.
+	BugReport *BugReportClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Collection is the client for interacting with the Collection builders.
@@ -198,6 +201,7 @@ func (c *Client) init() {
 	c.Asset = NewAssetClient(c.config)
 	c.AuditLog = NewAuditLogClient(c.config)
 	c.Authentication = NewAuthenticationClient(c.config)
+	c.BugReport = NewBugReportClient(c.config)
 	c.Category = NewCategoryClient(c.config)
 	c.Collection = NewCollectionClient(c.config)
 	c.CollectionNode = NewCollectionNodeClient(c.config)
@@ -342,6 +346,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Asset:                        NewAssetClient(cfg),
 		AuditLog:                     NewAuditLogClient(cfg),
 		Authentication:               NewAuthenticationClient(cfg),
+		BugReport:                    NewBugReportClient(cfg),
 		Category:                     NewCategoryClient(cfg),
 		Collection:                   NewCollectionClient(cfg),
 		CollectionNode:               NewCollectionNodeClient(cfg),
@@ -413,6 +418,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Asset:                        NewAssetClient(cfg),
 		AuditLog:                     NewAuditLogClient(cfg),
 		Authentication:               NewAuthenticationClient(cfg),
+		BugReport:                    NewBugReportClient(cfg),
 		Category:                     NewCategoryClient(cfg),
 		Collection:                   NewCollectionClient(cfg),
 		CollectionNode:               NewCollectionNodeClient(cfg),
@@ -489,17 +495,18 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Account, c.AccountFollow, c.AccountRoles, c.Asset, c.AuditLog,
-		c.Authentication, c.Category, c.Collection, c.CollectionNode, c.CollectionPost,
-		c.DriveFolder, c.Email, c.EmailQueue, c.Event, c.EventParticipant,
-		c.Invitation, c.LikePost, c.Link, c.MentionProfile, c.ModerationNote, c.Node,
-		c.NodeVersion, c.Notification, c.OAuthAuthorisationCode,
-		c.OAuthAuthorisationRequest, c.OAuthClient, c.OAuthDeviceAuthorisation,
-		c.OAuthRefreshToken, c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection,
-		c.PasswordResetToken, c.Plugin, c.Post, c.PostRead, c.Property,
-		c.PropertySchema, c.PropertySchemaField, c.React, c.Report, c.Robot,
-		c.RobotMCPServer, c.RobotMCPTool, c.RobotProviderModel, c.RobotSession,
-		c.RobotSessionMessage, c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role,
-		c.Session, c.Setting, c.Tag, c.Warning,
+		c.Authentication, c.BugReport, c.Category, c.Collection, c.CollectionNode,
+		c.CollectionPost, c.DriveFolder, c.Email, c.EmailQueue, c.Event,
+		c.EventParticipant, c.Invitation, c.LikePost, c.Link, c.MentionProfile,
+		c.ModerationNote, c.Node, c.NodeVersion, c.Notification,
+		c.OAuthAuthorisationCode, c.OAuthAuthorisationRequest, c.OAuthClient,
+		c.OAuthDeviceAuthorisation, c.OAuthRefreshToken,
+		c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection, c.PasswordResetToken,
+		c.Plugin, c.Post, c.PostRead, c.Property, c.PropertySchema,
+		c.PropertySchemaField, c.React, c.Report, c.Robot, c.RobotMCPServer,
+		c.RobotMCPTool, c.RobotProviderModel, c.RobotSession, c.RobotSessionMessage,
+		c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role, c.Session, c.Setting,
+		c.Tag, c.Warning,
 	} {
 		n.Use(hooks...)
 	}
@@ -510,17 +517,18 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Account, c.AccountFollow, c.AccountRoles, c.Asset, c.AuditLog,
-		c.Authentication, c.Category, c.Collection, c.CollectionNode, c.CollectionPost,
-		c.DriveFolder, c.Email, c.EmailQueue, c.Event, c.EventParticipant,
-		c.Invitation, c.LikePost, c.Link, c.MentionProfile, c.ModerationNote, c.Node,
-		c.NodeVersion, c.Notification, c.OAuthAuthorisationCode,
-		c.OAuthAuthorisationRequest, c.OAuthClient, c.OAuthDeviceAuthorisation,
-		c.OAuthRefreshToken, c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection,
-		c.PasswordResetToken, c.Plugin, c.Post, c.PostRead, c.Property,
-		c.PropertySchema, c.PropertySchemaField, c.React, c.Report, c.Robot,
-		c.RobotMCPServer, c.RobotMCPTool, c.RobotProviderModel, c.RobotSession,
-		c.RobotSessionMessage, c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role,
-		c.Session, c.Setting, c.Tag, c.Warning,
+		c.Authentication, c.BugReport, c.Category, c.Collection, c.CollectionNode,
+		c.CollectionPost, c.DriveFolder, c.Email, c.EmailQueue, c.Event,
+		c.EventParticipant, c.Invitation, c.LikePost, c.Link, c.MentionProfile,
+		c.ModerationNote, c.Node, c.NodeVersion, c.Notification,
+		c.OAuthAuthorisationCode, c.OAuthAuthorisationRequest, c.OAuthClient,
+		c.OAuthDeviceAuthorisation, c.OAuthRefreshToken,
+		c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection, c.PasswordResetToken,
+		c.Plugin, c.Post, c.PostRead, c.Property, c.PropertySchema,
+		c.PropertySchemaField, c.React, c.Report, c.Robot, c.RobotMCPServer,
+		c.RobotMCPTool, c.RobotProviderModel, c.RobotSession, c.RobotSessionMessage,
+		c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role, c.Session, c.Setting,
+		c.Tag, c.Warning,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -541,6 +549,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AuditLog.mutate(ctx, m)
 	case *AuthenticationMutation:
 		return c.Authentication.mutate(ctx, m)
+	case *BugReportMutation:
+		return c.BugReport.mutate(ctx, m)
 	case *CategoryMutation:
 		return c.Category.mutate(ctx, m)
 	case *CollectionMutation:
@@ -1267,6 +1277,22 @@ func (c *AccountClient) QueryHandledReports(_m *Account) *ReportQuery {
 			sqlgraph.From(account.Table, account.FieldID, id),
 			sqlgraph.To(report.Table, report.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, account.HandledReportsTable, account.HandledReportsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBugReports queries the bug_reports edge of a Account.
+func (c *AccountClient) QueryBugReports(_m *Account) *BugReportQuery {
+	query := (&BugReportClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(bugreport.Table, bugreport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.BugReportsTable, account.BugReportsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -2041,6 +2067,22 @@ func (c *AssetClient) QueryEvent(_m *Asset) *EventQuery {
 	return query
 }
 
+// QueryBugReports queries the bug_reports edge of a Asset.
+func (c *AssetClient) QueryBugReports(_m *Asset) *BugReportQuery {
+	query := (&BugReportClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(asset.Table, asset.FieldID, id),
+			sqlgraph.To(bugreport.Table, bugreport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, asset.BugReportsTable, asset.BugReportsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *AssetClient) Hooks() []Hook {
 	return c.hooks.Asset
@@ -2361,6 +2403,171 @@ func (c *AuthenticationClient) mutate(ctx context.Context, m *AuthenticationMuta
 		return (&AuthenticationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Authentication mutation op: %q", m.Op())
+	}
+}
+
+// BugReportClient is a client for the BugReport schema.
+type BugReportClient struct {
+	config
+}
+
+// NewBugReportClient returns a client for the BugReport from the given config.
+func NewBugReportClient(c config) *BugReportClient {
+	return &BugReportClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `bugreport.Hooks(f(g(h())))`.
+func (c *BugReportClient) Use(hooks ...Hook) {
+	c.hooks.BugReport = append(c.hooks.BugReport, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `bugreport.Intercept(f(g(h())))`.
+func (c *BugReportClient) Intercept(interceptors ...Interceptor) {
+	c.inters.BugReport = append(c.inters.BugReport, interceptors...)
+}
+
+// Create returns a builder for creating a BugReport entity.
+func (c *BugReportClient) Create() *BugReportCreate {
+	mutation := newBugReportMutation(c.config, OpCreate)
+	return &BugReportCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of BugReport entities.
+func (c *BugReportClient) CreateBulk(builders ...*BugReportCreate) *BugReportCreateBulk {
+	return &BugReportCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *BugReportClient) MapCreateBulk(slice any, setFunc func(*BugReportCreate, int)) *BugReportCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &BugReportCreateBulk{err: fmt.Errorf("calling to BugReportClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*BugReportCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &BugReportCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for BugReport.
+func (c *BugReportClient) Update() *BugReportUpdate {
+	mutation := newBugReportMutation(c.config, OpUpdate)
+	return &BugReportUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BugReportClient) UpdateOne(_m *BugReport) *BugReportUpdateOne {
+	mutation := newBugReportMutation(c.config, OpUpdateOne, withBugReport(_m))
+	return &BugReportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BugReportClient) UpdateOneID(id xid.ID) *BugReportUpdateOne {
+	mutation := newBugReportMutation(c.config, OpUpdateOne, withBugReportID(id))
+	return &BugReportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for BugReport.
+func (c *BugReportClient) Delete() *BugReportDelete {
+	mutation := newBugReportMutation(c.config, OpDelete)
+	return &BugReportDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BugReportClient) DeleteOne(_m *BugReport) *BugReportDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BugReportClient) DeleteOneID(id xid.ID) *BugReportDeleteOne {
+	builder := c.Delete().Where(bugreport.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BugReportDeleteOne{builder}
+}
+
+// Query returns a query builder for BugReport.
+func (c *BugReportClient) Query() *BugReportQuery {
+	return &BugReportQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBugReport},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a BugReport entity by its id.
+func (c *BugReportClient) Get(ctx context.Context, id xid.ID) (*BugReport, error) {
+	return c.Query().Where(bugreport.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BugReportClient) GetX(ctx context.Context, id xid.ID) *BugReport {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAuthor queries the author edge of a BugReport.
+func (c *BugReportClient) QueryAuthor(_m *BugReport) *AccountQuery {
+	query := (&AccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(bugreport.Table, bugreport.FieldID, id),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, bugreport.AuthorTable, bugreport.AuthorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryScreenshot queries the screenshot edge of a BugReport.
+func (c *BugReportClient) QueryScreenshot(_m *BugReport) *AssetQuery {
+	query := (&AssetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(bugreport.Table, bugreport.FieldID, id),
+			sqlgraph.To(asset.Table, asset.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, bugreport.ScreenshotTable, bugreport.ScreenshotColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *BugReportClient) Hooks() []Hook {
+	return c.hooks.BugReport
+}
+
+// Interceptors returns the client interceptors.
+func (c *BugReportClient) Interceptors() []Interceptor {
+	return c.inters.BugReport
+}
+
+func (c *BugReportClient) mutate(ctx context.Context, m *BugReportMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BugReportCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BugReportUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BugReportUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BugReportDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown BugReport mutation op: %q", m.Op())
 	}
 }
 
@@ -10499,28 +10706,30 @@ func (c *WarningClient) mutate(ctx context.Context, m *WarningMutation) (Value, 
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Account, AccountFollow, AccountRoles, Asset, AuditLog, Authentication, Category,
-		Collection, CollectionNode, CollectionPost, DriveFolder, Email, EmailQueue,
-		Event, EventParticipant, Invitation, LikePost, Link, MentionProfile,
-		ModerationNote, Node, NodeVersion, Notification, OAuthAuthorisationCode,
-		OAuthAuthorisationRequest, OAuthClient, OAuthDeviceAuthorisation,
-		OAuthRefreshToken, OAuthRemoteAuthorisationFlow, OAuthRemoteConnection,
-		PasswordResetToken, Plugin, Post, PostRead, Property, PropertySchema,
-		PropertySchemaField, React, Report, Robot, RobotMCPServer, RobotMCPTool,
-		RobotProviderModel, RobotSession, RobotSessionMessage, RobotWorkspace,
-		RobotWorkspaceInstance, Role, Session, Setting, Tag, Warning []ent.Hook
+		Account, AccountFollow, AccountRoles, Asset, AuditLog, Authentication,
+		BugReport, Category, Collection, CollectionNode, CollectionPost, DriveFolder,
+		Email, EmailQueue, Event, EventParticipant, Invitation, LikePost, Link,
+		MentionProfile, ModerationNote, Node, NodeVersion, Notification,
+		OAuthAuthorisationCode, OAuthAuthorisationRequest, OAuthClient,
+		OAuthDeviceAuthorisation, OAuthRefreshToken, OAuthRemoteAuthorisationFlow,
+		OAuthRemoteConnection, PasswordResetToken, Plugin, Post, PostRead, Property,
+		PropertySchema, PropertySchemaField, React, Report, Robot, RobotMCPServer,
+		RobotMCPTool, RobotProviderModel, RobotSession, RobotSessionMessage,
+		RobotWorkspace, RobotWorkspaceInstance, Role, Session, Setting, Tag,
+		Warning []ent.Hook
 	}
 	inters struct {
-		Account, AccountFollow, AccountRoles, Asset, AuditLog, Authentication, Category,
-		Collection, CollectionNode, CollectionPost, DriveFolder, Email, EmailQueue,
-		Event, EventParticipant, Invitation, LikePost, Link, MentionProfile,
-		ModerationNote, Node, NodeVersion, Notification, OAuthAuthorisationCode,
-		OAuthAuthorisationRequest, OAuthClient, OAuthDeviceAuthorisation,
-		OAuthRefreshToken, OAuthRemoteAuthorisationFlow, OAuthRemoteConnection,
-		PasswordResetToken, Plugin, Post, PostRead, Property, PropertySchema,
-		PropertySchemaField, React, Report, Robot, RobotMCPServer, RobotMCPTool,
-		RobotProviderModel, RobotSession, RobotSessionMessage, RobotWorkspace,
-		RobotWorkspaceInstance, Role, Session, Setting, Tag, Warning []ent.Interceptor
+		Account, AccountFollow, AccountRoles, Asset, AuditLog, Authentication,
+		BugReport, Category, Collection, CollectionNode, CollectionPost, DriveFolder,
+		Email, EmailQueue, Event, EventParticipant, Invitation, LikePost, Link,
+		MentionProfile, ModerationNote, Node, NodeVersion, Notification,
+		OAuthAuthorisationCode, OAuthAuthorisationRequest, OAuthClient,
+		OAuthDeviceAuthorisation, OAuthRefreshToken, OAuthRemoteAuthorisationFlow,
+		OAuthRemoteConnection, PasswordResetToken, Plugin, Post, PostRead, Property,
+		PropertySchema, PropertySchemaField, React, Report, Robot, RobotMCPServer,
+		RobotMCPTool, RobotProviderModel, RobotSession, RobotSessionMessage,
+		RobotWorkspace, RobotWorkspaceInstance, Role, Session, Setting, Tag,
+		Warning []ent.Interceptor
 	}
 )
 

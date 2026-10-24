@@ -18,6 +18,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/ent/auditlog"
 	"github.com/Southclaws/storyden/internal/ent/authentication"
+	"github.com/Southclaws/storyden/internal/ent/bugreport"
 	"github.com/Southclaws/storyden/internal/ent/collection"
 	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/Southclaws/storyden/internal/ent/email"
@@ -95,6 +96,7 @@ type AccountQuery struct {
 	withPostReads                         *PostReadQuery
 	withReports                           *ReportQuery
 	withHandledReports                    *ReportQuery
+	withBugReports                        *BugReportQuery
 	withAuditLogs                         *AuditLogQuery
 	withModerationNotes                   *ModerationNoteQuery
 	withAuthoredModerationNotes           *ModerationNoteQuery
@@ -870,6 +872,28 @@ func (_q *AccountQuery) QueryHandledReports() *ReportQuery {
 	return query
 }
 
+// QueryBugReports chains the current query on the "bug_reports" edge.
+func (_q *AccountQuery) QueryBugReports() *BugReportQuery {
+	query := (&BugReportClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(bugreport.Table, bugreport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.BugReportsTable, account.BugReportsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryAuditLogs chains the current query on the "audit_logs" edge.
 func (_q *AccountQuery) QueryAuditLogs() *AuditLogQuery {
 	query := (&AuditLogClient{config: _q.config}).Query()
@@ -1359,6 +1383,7 @@ func (_q *AccountQuery) Clone() *AccountQuery {
 		withPostReads:                         _q.withPostReads.Clone(),
 		withReports:                           _q.withReports.Clone(),
 		withHandledReports:                    _q.withHandledReports.Clone(),
+		withBugReports:                        _q.withBugReports.Clone(),
 		withAuditLogs:                         _q.withAuditLogs.Clone(),
 		withModerationNotes:                   _q.withModerationNotes.Clone(),
 		withAuthoredModerationNotes:           _q.withAuthoredModerationNotes.Clone(),
@@ -1741,6 +1766,17 @@ func (_q *AccountQuery) WithHandledReports(opts ...func(*ReportQuery)) *AccountQ
 	return _q
 }
 
+// WithBugReports tells the query-builder to eager-load the nodes that are connected to
+// the "bug_reports" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithBugReports(opts ...func(*BugReportQuery)) *AccountQuery {
+	query := (&BugReportClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withBugReports = query
+	return _q
+}
+
 // WithAuditLogs tells the query-builder to eager-load the nodes that are connected to
 // the "audit_logs" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *AccountQuery) WithAuditLogs(opts ...func(*AuditLogQuery)) *AccountQuery {
@@ -1951,7 +1987,7 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 	var (
 		nodes       = []*Account{}
 		_spec       = _q.querySpec()
-		loadedTypes = [45]bool{
+		loadedTypes = [46]bool{
 			_q.withSessions != nil,
 			_q.withPlugins != nil,
 			_q.withEmails != nil,
@@ -1985,6 +2021,7 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 			_q.withPostReads != nil,
 			_q.withReports != nil,
 			_q.withHandledReports != nil,
+			_q.withBugReports != nil,
 			_q.withAuditLogs != nil,
 			_q.withModerationNotes != nil,
 			_q.withAuthoredModerationNotes != nil,
@@ -2263,6 +2300,13 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 		if err := _q.loadHandledReports(ctx, query, nodes,
 			func(n *Account) { n.Edges.HandledReports = []*Report{} },
 			func(n *Account, e *Report) { n.Edges.HandledReports = append(n.Edges.HandledReports, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withBugReports; query != nil {
+		if err := _q.loadBugReports(ctx, query, nodes,
+			func(n *Account) { n.Edges.BugReports = []*BugReport{} },
+			func(n *Account, e *BugReport) { n.Edges.BugReports = append(n.Edges.BugReports, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -3428,6 +3472,36 @@ func (_q *AccountQuery) loadHandledReports(ctx context.Context, query *ReportQue
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "handled_by_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *AccountQuery) loadBugReports(ctx context.Context, query *BugReportQuery, nodes []*Account, init func(*Account), assign func(*Account, *BugReport)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[xid.ID]*Account)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(bugreport.FieldAccountID)
+	}
+	query.Where(predicate.BugReport(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(account.BugReportsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AccountID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "account_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

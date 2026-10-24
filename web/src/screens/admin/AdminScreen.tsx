@@ -15,6 +15,7 @@ import { AssetSettingsScreen } from "./AssetSettingsScreen";
 import { AuditLogSettingsScreen } from "./AuditLogSettingsScreen/AuditLogSettingsScreen";
 import { AuthenticationSettingsScreen } from "./AuthenticationSettingsScreen";
 import { BrandSettingsScreen } from "./BrandSettingsScreen";
+import { BugReportSettingsScreen } from "./BugReportSettingsScreen/BugReportSettingsScreen";
 import { ContentSettingsScreen } from "./ContentSettingsScreen";
 import { DriveSettingsScreen } from "./DriveSettingsScreen";
 import { EmailLogSettingsScreen } from "./EmailLogSettingsScreen/EmailLogSettingsScreen";
@@ -36,6 +37,7 @@ export function AdminScreen() {
   const session = useSession();
   const canViewEmailLog = hasPermission(session, Permission.ADMINISTRATOR);
   const canViewStatistics = hasPermission(session, Permission.ADMINISTRATOR);
+  const canViewBugReports = hasPermission(session, Permission.ADMINISTRATOR);
   const canViewOAuth =
     oauthCapabilityEnabled && hasPermission(session, Permission.ADMINISTRATOR);
   const [tab, setTab] = useQueryState("tab", {
@@ -67,7 +69,12 @@ export function AdminScreen() {
     if (!canViewOAuth && tab === "oauth") {
       setTab(DEFAULT_TAB);
     }
+
+    if (!canViewBugReports && tab === "bug_reports") {
+      setTab(DEFAULT_TAB);
+    }
   }, [
+    canViewBugReports,
     canViewEmailLog,
     canViewStatistics,
     canViewOAuth,
@@ -83,6 +90,7 @@ export function AdminScreen() {
   return (
     <Tabs.Root
       key={[
+        canViewBugReports,
         canViewStatistics,
         canViewEmailLog,
         canViewOAuth,
@@ -112,6 +120,9 @@ export function AdminScreen() {
         <Tabs.Trigger value="ocr">OCR & Bildtext</Tabs.Trigger>
         {canViewStatistics && (
           <Tabs.Trigger value="statistics">Statistiken</Tabs.Trigger>
+        )}
+        {canViewBugReports && (
+          <Tabs.Trigger value="bug_reports">Fehlermeldungen</Tabs.Trigger>
         )}
         <Tabs.Trigger value="audit">Audit Log</Tabs.Trigger>
         {canViewEmailLog && <Tabs.Trigger value="email">Email</Tabs.Trigger>}
@@ -153,6 +164,12 @@ export function AdminScreen() {
       {canViewStatistics && (
         <Tabs.Content value="statistics">
           {tab === "statistics" && <StatisticsSettingsScreen />}
+        </Tabs.Content>
+      )}
+
+      {canViewBugReports && (
+        <Tabs.Content value="bug_reports">
+          {tab === "bug_reports" && <BugReportSettingsScreen />}
         </Tabs.Content>
       )}
 

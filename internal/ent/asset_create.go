@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Southclaws/storyden/internal/ent/account"
 	"github.com/Southclaws/storyden/internal/ent/asset"
+	"github.com/Southclaws/storyden/internal/ent/bugreport"
 	"github.com/Southclaws/storyden/internal/ent/event"
 	"github.com/Southclaws/storyden/internal/ent/link"
 	"github.com/Southclaws/storyden/internal/ent/node"
@@ -274,6 +275,21 @@ func (_c *AssetCreate) AddEvent(v ...*Event) *AssetCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddEventIDs(ids...)
+}
+
+// AddBugReportIDs adds the "bug_reports" edge to the BugReport entity by IDs.
+func (_c *AssetCreate) AddBugReportIDs(ids ...xid.ID) *AssetCreate {
+	_c.mutation.AddBugReportIDs(ids...)
+	return _c
+}
+
+// AddBugReports adds the "bug_reports" edges to the BugReport entity.
+func (_c *AssetCreate) AddBugReports(v ...*BugReport) *AssetCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddBugReportIDs(ids...)
 }
 
 // Mutation returns the AssetMutation object of the builder.
@@ -548,6 +564,22 @@ func (_c *AssetCreate) createSpec() (*Asset, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.BugReportsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   asset.BugReportsTable,
+			Columns: []string{asset.BugReportsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bugreport.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

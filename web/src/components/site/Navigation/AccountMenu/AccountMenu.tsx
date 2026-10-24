@@ -3,6 +3,7 @@
 import { MenuSelectionDetails, Portal } from "@ark-ui/react";
 
 import { Account, Permission } from "@/api/openapi-schema";
+import { BugReportModal } from "@/components/bug-report/BugReportModal";
 import { MemberAvatar } from "@/components/member/MemberBadge/MemberAvatar";
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import * as Menu from "@/components/ui/menu";
@@ -10,6 +11,7 @@ import { hasPermission, isModeratorOrAdmin } from "@/utils/permissions";
 import { useDisclosure } from "@/utils/useDisclosure";
 
 import { AdminMenuItem } from "../Anchors/Admin";
+import { BugReportID, BugReportMenuItem } from "../Anchors/BugReport";
 import { DraftsMenuItem } from "../Anchors/Drafts";
 import { LanguageMenuItem } from "../Anchors/Language";
 import { LogoutMenuItem } from "../Anchors/Logout";
@@ -49,6 +51,7 @@ export function AccountMenu({
   const isStaff = isModeratorOrAdmin(account);
   const invitationDisclosure = useDisclosure();
   const invitation = useInvitation();
+  const bugReportDisclosure = useDisclosure();
 
   async function handleInvitationSelect() {
     invitationDisclosure.onOpen();
@@ -58,6 +61,9 @@ export function AccountMenu({
   function handleSelect(details: MenuSelectionDetails) {
     if (details.value === InvitationID) {
       void handleInvitationSelect();
+    }
+    if (details.value === BugReportID) {
+      bugReportDisclosure.onOpen();
     }
   }
 
@@ -106,6 +112,7 @@ export function AccountMenu({
                 <ReportsMenuItem />
                 <TagsMenuItem />
                 {isStaff && <TagManagementMenuItem />}
+                <BugReportMenuItem />
               </Menu.ItemGroup>
 
               <Menu.Separator />
@@ -130,6 +137,12 @@ export function AccountMenu({
         invitation={invitation.invitation}
         onRetry={invitation.createInvitation}
         onClose={invitationDisclosure.onClose}
+      />
+
+      <BugReportModal
+        isOpen={bugReportDisclosure.isOpen}
+        onOpen={bugReportDisclosure.onOpen}
+        onClose={bugReportDisclosure.onClose}
       />
     </>
   );

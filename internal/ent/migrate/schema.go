@@ -227,6 +227,46 @@ var (
 			},
 		},
 	}
+	// BugReportsColumns holds the columns for the "bug_reports" table.
+	BugReportsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 20},
+		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "category", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Size: 2147483647},
+		{Name: "page_url", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "user_agent", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "status", Type: field.TypeString, Default: "open"},
+		{Name: "account_id", Type: field.TypeString, Size: 20},
+		{Name: "asset_id", Type: field.TypeString, Nullable: true, Size: 20},
+	}
+	// BugReportsTable holds the schema information for the "bug_reports" table.
+	BugReportsTable = &schema.Table{
+		Name:       "bug_reports",
+		Columns:    BugReportsColumns,
+		PrimaryKey: []*schema.Column{BugReportsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "bug_reports_accounts_bug_reports",
+				Columns:    []*schema.Column{BugReportsColumns[8]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "bug_reports_assets_bug_reports",
+				Columns:    []*schema.Column{BugReportsColumns[9]},
+				RefColumns: []*schema.Column{AssetsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "bugreport_status",
+				Unique:  false,
+				Columns: []*schema.Column{BugReportsColumns[7]},
+			},
+		},
+	}
 	// CategoriesColumns holds the columns for the "categories" table.
 	CategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Size: 20},
@@ -2072,6 +2112,7 @@ var (
 		AssetsTable,
 		AuditLogsTable,
 		AuthenticationsTable,
+		BugReportsTable,
 		CategoriesTable,
 		CollectionsTable,
 		CollectionNodesTable,
@@ -2140,6 +2181,8 @@ func init() {
 	AssetsTable.ForeignKeys[1].RefTable = AssetsTable
 	AuditLogsTable.ForeignKeys[0].RefTable = AccountsTable
 	AuthenticationsTable.ForeignKeys[0].RefTable = AccountsTable
+	BugReportsTable.ForeignKeys[0].RefTable = AccountsTable
+	BugReportsTable.ForeignKeys[1].RefTable = AssetsTable
 	CategoriesTable.ForeignKeys[0].RefTable = CategoriesTable
 	CategoriesTable.ForeignKeys[1].RefTable = AssetsTable
 	CollectionsTable.ForeignKeys[0].RefTable = AccountsTable

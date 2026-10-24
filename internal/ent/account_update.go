@@ -18,6 +18,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/ent/auditlog"
 	"github.com/Southclaws/storyden/internal/ent/authentication"
+	"github.com/Southclaws/storyden/internal/ent/bugreport"
 	"github.com/Southclaws/storyden/internal/ent/collection"
 	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/Southclaws/storyden/internal/ent/email"
@@ -759,6 +760,21 @@ func (_u *AccountUpdate) AddHandledReports(v ...*Report) *AccountUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddHandledReportIDs(ids...)
+}
+
+// AddBugReportIDs adds the "bug_reports" edge to the BugReport entity by IDs.
+func (_u *AccountUpdate) AddBugReportIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.AddBugReportIDs(ids...)
+	return _u
+}
+
+// AddBugReports adds the "bug_reports" edges to the BugReport entity.
+func (_u *AccountUpdate) AddBugReports(v ...*BugReport) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddBugReportIDs(ids...)
 }
 
 // AddAuditLogIDs adds the "audit_logs" edge to the AuditLog entity by IDs.
@@ -1622,6 +1638,27 @@ func (_u *AccountUpdate) RemoveHandledReports(v ...*Report) *AccountUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveHandledReportIDs(ids...)
+}
+
+// ClearBugReports clears all "bug_reports" edges to the BugReport entity.
+func (_u *AccountUpdate) ClearBugReports() *AccountUpdate {
+	_u.mutation.ClearBugReports()
+	return _u
+}
+
+// RemoveBugReportIDs removes the "bug_reports" edge to BugReport entities by IDs.
+func (_u *AccountUpdate) RemoveBugReportIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.RemoveBugReportIDs(ids...)
+	return _u
+}
+
+// RemoveBugReports removes "bug_reports" edges to BugReport entities.
+func (_u *AccountUpdate) RemoveBugReports(v ...*BugReport) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveBugReportIDs(ids...)
 }
 
 // ClearAuditLogs clears all "audit_logs" edges to the AuditLog entity.
@@ -3504,6 +3541,51 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.BugReportsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.BugReportsTable,
+			Columns: []string{account.BugReportsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bugreport.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedBugReportsIDs(); len(nodes) > 0 && !_u.mutation.BugReportsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.BugReportsTable,
+			Columns: []string{account.BugReportsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bugreport.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.BugReportsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.BugReportsTable,
+			Columns: []string{account.BugReportsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bugreport.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.AuditLogsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -4757,6 +4839,21 @@ func (_u *AccountUpdateOne) AddHandledReports(v ...*Report) *AccountUpdateOne {
 	return _u.AddHandledReportIDs(ids...)
 }
 
+// AddBugReportIDs adds the "bug_reports" edge to the BugReport entity by IDs.
+func (_u *AccountUpdateOne) AddBugReportIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.AddBugReportIDs(ids...)
+	return _u
+}
+
+// AddBugReports adds the "bug_reports" edges to the BugReport entity.
+func (_u *AccountUpdateOne) AddBugReports(v ...*BugReport) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddBugReportIDs(ids...)
+}
+
 // AddAuditLogIDs adds the "audit_logs" edge to the AuditLog entity by IDs.
 func (_u *AccountUpdateOne) AddAuditLogIDs(ids ...xid.ID) *AccountUpdateOne {
 	_u.mutation.AddAuditLogIDs(ids...)
@@ -5618,6 +5715,27 @@ func (_u *AccountUpdateOne) RemoveHandledReports(v ...*Report) *AccountUpdateOne
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveHandledReportIDs(ids...)
+}
+
+// ClearBugReports clears all "bug_reports" edges to the BugReport entity.
+func (_u *AccountUpdateOne) ClearBugReports() *AccountUpdateOne {
+	_u.mutation.ClearBugReports()
+	return _u
+}
+
+// RemoveBugReportIDs removes the "bug_reports" edge to BugReport entities by IDs.
+func (_u *AccountUpdateOne) RemoveBugReportIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.RemoveBugReportIDs(ids...)
+	return _u
+}
+
+// RemoveBugReports removes "bug_reports" edges to BugReport entities.
+func (_u *AccountUpdateOne) RemoveBugReports(v ...*BugReport) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveBugReportIDs(ids...)
 }
 
 // ClearAuditLogs clears all "audit_logs" edges to the AuditLog entity.
@@ -7523,6 +7641,51 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(report.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.BugReportsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.BugReportsTable,
+			Columns: []string{account.BugReportsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bugreport.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedBugReportsIDs(); len(nodes) > 0 && !_u.mutation.BugReportsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.BugReportsTable,
+			Columns: []string{account.BugReportsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bugreport.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.BugReportsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.BugReportsTable,
+			Columns: []string{account.BugReportsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bugreport.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

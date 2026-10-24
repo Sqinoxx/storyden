@@ -12,6 +12,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/ent/auditlog"
 	"github.com/Southclaws/storyden/internal/ent/authentication"
+	"github.com/Southclaws/storyden/internal/ent/bugreport"
 	"github.com/Southclaws/storyden/internal/ent/category"
 	"github.com/Southclaws/storyden/internal/ent/collection"
 	"github.com/Southclaws/storyden/internal/ent/collectionnode"
@@ -283,6 +284,49 @@ func init() {
 	// authentication.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	authentication.IDValidator = func() func(string) error {
 		validators := authenticationDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	bugreportMixin := schema.BugReport{}.Mixin()
+	bugreportMixinFields0 := bugreportMixin[0].Fields()
+	_ = bugreportMixinFields0
+	bugreportMixinFields1 := bugreportMixin[1].Fields()
+	_ = bugreportMixinFields1
+	bugreportMixinFields2 := bugreportMixin[2].Fields()
+	_ = bugreportMixinFields2
+	bugreportFields := schema.BugReport{}.Fields()
+	_ = bugreportFields
+	// bugreportDescCreatedAt is the schema descriptor for created_at field.
+	bugreportDescCreatedAt := bugreportMixinFields1[0].Descriptor()
+	// bugreport.DefaultCreatedAt holds the default value on creation for the created_at field.
+	bugreport.DefaultCreatedAt = bugreportDescCreatedAt.Default.(func() time.Time)
+	// bugreportDescUpdatedAt is the schema descriptor for updated_at field.
+	bugreportDescUpdatedAt := bugreportMixinFields2[0].Descriptor()
+	// bugreport.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	bugreport.DefaultUpdatedAt = bugreportDescUpdatedAt.Default.(func() time.Time)
+	// bugreport.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	bugreport.UpdateDefaultUpdatedAt = bugreportDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// bugreportDescStatus is the schema descriptor for status field.
+	bugreportDescStatus := bugreportFields[5].Descriptor()
+	// bugreport.DefaultStatus holds the default value on creation for the status field.
+	bugreport.DefaultStatus = bugreportDescStatus.Default.(string)
+	// bugreportDescID is the schema descriptor for id field.
+	bugreportDescID := bugreportMixinFields0[0].Descriptor()
+	// bugreport.DefaultID holds the default value on creation for the id field.
+	bugreport.DefaultID = bugreportDescID.Default.(func() xid.ID)
+	// bugreport.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	bugreport.IDValidator = func() func(string) error {
+		validators := bugreportDescID.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),

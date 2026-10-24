@@ -26,6 +26,8 @@ type Tx struct {
 	AuditLog *AuditLogClient
 	// Authentication is the client for interacting with the Authentication builders.
 	Authentication *AuthenticationClient
+	// BugReport is the client for interacting with the BugReport builders.
+	BugReport *BugReportClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Collection is the client for interacting with the Collection builders.
@@ -255,6 +257,7 @@ func (tx *Tx) init() {
 	tx.Asset = NewAssetClient(tx.config)
 	tx.AuditLog = NewAuditLogClient(tx.config)
 	tx.Authentication = NewAuthenticationClient(tx.config)
+	tx.BugReport = NewBugReportClient(tx.config)
 	tx.Category = NewCategoryClient(tx.config)
 	tx.Collection = NewCollectionClient(tx.config)
 	tx.CollectionNode = NewCollectionNodeClient(tx.config)

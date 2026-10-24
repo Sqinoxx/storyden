@@ -81,6 +81,18 @@ func (f AuthenticationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AuthenticationMutation", m)
 }
 
+// The BugReportFunc type is an adapter to allow the use of ordinary
+// function as BugReport mutator.
+type BugReportFunc func(context.Context, *ent.BugReportMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BugReportFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BugReportMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BugReportMutation", m)
+}
+
 // The CategoryFunc type is an adapter to allow the use of ordinary
 // function as Category mutator.
 type CategoryFunc func(context.Context, *ent.CategoryMutation) (ent.Value, error)

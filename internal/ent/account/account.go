@@ -110,6 +110,8 @@ const (
 	EdgeReports = "reports"
 	// EdgeHandledReports holds the string denoting the handled_reports edge name in mutations.
 	EdgeHandledReports = "handled_reports"
+	// EdgeBugReports holds the string denoting the bug_reports edge name in mutations.
+	EdgeBugReports = "bug_reports"
 	// EdgeAuditLogs holds the string denoting the audit_logs edge name in mutations.
 	EdgeAuditLogs = "audit_logs"
 	// EdgeModerationNotes holds the string denoting the moderation_notes edge name in mutations.
@@ -363,6 +365,13 @@ const (
 	HandledReportsInverseTable = "reports"
 	// HandledReportsColumn is the table column denoting the handled_reports relation/edge.
 	HandledReportsColumn = "handled_by_id"
+	// BugReportsTable is the table that holds the bug_reports relation/edge.
+	BugReportsTable = "bug_reports"
+	// BugReportsInverseTable is the table name for the BugReport entity.
+	// It exists in this package in order to avoid circular dependency with the "bugreport" package.
+	BugReportsInverseTable = "bug_reports"
+	// BugReportsColumn is the table column denoting the bug_reports relation/edge.
+	BugReportsColumn = "account_id"
 	// AuditLogsTable is the table that holds the audit_logs relation/edge.
 	AuditLogsTable = "audit_logs"
 	// AuditLogsInverseTable is the table name for the AuditLog entity.
@@ -1082,6 +1091,20 @@ func ByHandledReports(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByBugReportsCount orders the results by bug_reports count.
+func ByBugReportsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newBugReportsStep(), opts...)
+	}
+}
+
+// ByBugReports orders the results by bug_reports terms.
+func ByBugReports(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBugReportsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAuditLogsCount orders the results by audit_logs count.
 func ByAuditLogsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1478,6 +1501,13 @@ func newHandledReportsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(HandledReportsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, HandledReportsTable, HandledReportsColumn),
+	)
+}
+func newBugReportsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BugReportsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, BugReportsTable, BugReportsColumn),
 	)
 }
 func newAuditLogsStep() *sqlgraph.Step {

@@ -77,6 +77,8 @@ import (
 	"github.com/Southclaws/storyden/app/resources/profile/profile_search"
 	"github.com/Southclaws/storyden/app/resources/report/report_querier"
 	"github.com/Southclaws/storyden/app/resources/report/report_writer"
+	"github.com/Southclaws/storyden/app/resources/bug_report/bug_report_querier"
+	"github.com/Southclaws/storyden/app/resources/bug_report/bug_report_writer"
 	"github.com/Southclaws/storyden/app/resources/robot/llm_provider"
 	robot_mcp "github.com/Southclaws/storyden/app/resources/robot/mcp"
 	"github.com/Southclaws/storyden/app/resources/robot/robot_model_cache"
@@ -172,6 +174,8 @@ func Build() fx.Option {
 			hydrate.New,
 			report_querier.New,
 			report_writer.New,
+			bug_report_querier.New,
+			bug_report_writer.New,
 			plugin_reader.New,
 			plugin_writer.New,
 			llm_provider.New,

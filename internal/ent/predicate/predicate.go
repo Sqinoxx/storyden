@@ -24,6 +24,9 @@ type AuditLog func(*sql.Selector)
 // Authentication is the predicate function for authentication builders.
 type Authentication func(*sql.Selector)
 
+// BugReport is the predicate function for bugreport builders.
+type BugReport func(*sql.Selector)
+
 // Category is the predicate function for category builders.
 type Category func(*sql.Selector)
 

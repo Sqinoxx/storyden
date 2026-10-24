@@ -29,6 +29,7 @@ export const NotificationEvent = {
   attendee_removed: "attendee_removed",
   report_submitted: "report_submitted",
   report_updated: "report_updated",
+  bug_report_submitted: "bug_report_submitted",
   warning_issued: "warning_issued",
   node_version_created: "node_version_created",
   node_version_applied: "node_version_applied",

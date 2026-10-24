@@ -54,6 +54,8 @@ const (
 	EdgeAssets = "assets"
 	// EdgeEvent holds the string denoting the event edge name in mutations.
 	EdgeEvent = "event"
+	// EdgeBugReports holds the string denoting the bug_reports edge name in mutations.
+	EdgeBugReports = "bug_reports"
 	// Table holds the table name of the asset in the database.
 	Table = "assets"
 	// PostsTable is the table that holds the posts relation/edge. The primary key declared below.
@@ -93,6 +95,13 @@ const (
 	EventInverseTable = "events"
 	// EventColumn is the table column denoting the event relation/edge.
 	EventColumn = "asset_event"
+	// BugReportsTable is the table that holds the bug_reports relation/edge.
+	BugReportsTable = "bug_reports"
+	// BugReportsInverseTable is the table name for the BugReport entity.
+	// It exists in this package in order to avoid circular dependency with the "bugreport" package.
+	BugReportsInverseTable = "bug_reports"
+	// BugReportsColumn is the table column denoting the bug_reports relation/edge.
+	BugReportsColumn = "asset_id"
 )
 
 // Columns holds all SQL columns for asset fields.
@@ -322,6 +331,20 @@ func ByEvent(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newEventStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByBugReportsCount orders the results by bug_reports count.
+func ByBugReportsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newBugReportsStep(), opts...)
+	}
+}
+
+// ByBugReports orders the results by bug_reports terms.
+func ByBugReports(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBugReportsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPostsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -369,5 +392,12 @@ func newEventStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EventInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, EventTable, EventColumn),
+	)
+}
+func newBugReportsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BugReportsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, BugReportsTable, BugReportsColumn),
 	)
 }

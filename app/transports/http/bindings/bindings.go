@@ -76,6 +76,7 @@ type Bindings struct {
 	Invitations
 	Notifications
 	Reports
+	BugReports
 	Profiles
 	Categories
 	Tags
@@ -115,6 +116,7 @@ func bindingsProviders() fx.Option {
 		NewInvitations,
 		NewNotifications,
 		NewReports,
+		NewBugReports,
 		NewProfiles,
 		NewCategories,
 		NewTags,

@@ -897,6 +897,29 @@ func HasEventWith(preds ...predicate.Event) predicate.Asset {
 	})
 }
 
+// HasBugReports applies the HasEdge predicate on the "bug_reports" edge.
+func HasBugReports() predicate.Asset {
+	return predicate.Asset(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, BugReportsTable, BugReportsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasBugReportsWith applies the HasEdge predicate on the "bug_reports" edge with a given conditions (other predicates).
+func HasBugReportsWith(preds ...predicate.BugReport) predicate.Asset {
+	return predicate.Asset(func(s *sql.Selector) {
+		step := newBugReportsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Asset) predicate.Asset {
 	return predicate.Asset(sql.AndPredicates(predicates...))

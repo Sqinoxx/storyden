@@ -19,6 +19,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/avatar_gen"
 	"github.com/Southclaws/storyden/app/services/beacon_listener"
 	"github.com/Southclaws/storyden/app/services/branding"
+	"github.com/Southclaws/storyden/app/services/bug_report"
 	"github.com/Southclaws/storyden/app/services/category"
 	"github.com/Southclaws/storyden/app/services/collection"
 	"github.com/Southclaws/storyden/app/services/comms"
@@ -105,5 +106,6 @@ func Build() fx.Option {
 		fx.Provide(drive_manage.New, drive_browse.New),
 		fx.Provide(account_auth.New, account_email.New),
 		fx.Provide(settings_manager.New),
+		fx.Provide(bug_report.New),
 	)
 }

@@ -70,5 +70,8 @@ func (Asset) Edges() []ent.Edge {
 			Field("parent_asset_id"),
 
 		edge.To("event", Event.Type),
+
+		edge.To("bug_reports", BugReport.Type).
+			Annotations(entsql.OnDelete(entsql.SetNull)),
 	}
 }

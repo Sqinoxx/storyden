@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Southclaws/storyden/internal/ent/account"
 	"github.com/Southclaws/storyden/internal/ent/asset"
+	"github.com/Southclaws/storyden/internal/ent/bugreport"
 	"github.com/Southclaws/storyden/internal/ent/event"
 	"github.com/Southclaws/storyden/internal/ent/link"
 	"github.com/Southclaws/storyden/internal/ent/node"
@@ -25,18 +26,19 @@ import (
 // AssetQuery is the builder for querying Asset entities.
 type AssetQuery struct {
 	config
-	ctx        *QueryContext
-	order      []asset.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Asset
-	withPosts  *PostQuery
-	withNodes  *NodeQuery
-	withLinks  *LinkQuery
-	withOwner  *AccountQuery
-	withParent *AssetQuery
-	withAssets *AssetQuery
-	withEvent  *EventQuery
-	modifiers  []func(*sql.Selector)
+	ctx            *QueryContext
+	order          []asset.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.Asset
+	withPosts      *PostQuery
+	withNodes      *NodeQuery
+	withLinks      *LinkQuery
+	withOwner      *AccountQuery
+	withParent     *AssetQuery
+	withAssets     *AssetQuery
+	withEvent      *EventQuery
+	withBugReports *BugReportQuery
+	modifiers      []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -220,6 +222,28 @@ func (_q *AssetQuery) QueryEvent() *EventQuery {
 			sqlgraph.From(asset.Table, asset.FieldID, selector),
 			sqlgraph.To(event.Table, event.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, asset.EventTable, asset.EventColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryBugReports chains the current query on the "bug_reports" edge.
+func (_q *AssetQuery) QueryBugReports() *BugReportQuery {
+	query := (&BugReportClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(asset.Table, asset.FieldID, selector),
+			sqlgraph.To(bugreport.Table, bugreport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, asset.BugReportsTable, asset.BugReportsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -414,18 +438,19 @@ func (_q *AssetQuery) Clone() *AssetQuery {
 		return nil
 	}
 	return &AssetQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]asset.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Asset{}, _q.predicates...),
-		withPosts:  _q.withPosts.Clone(),
-		withNodes:  _q.withNodes.Clone(),
-		withLinks:  _q.withLinks.Clone(),
-		withOwner:  _q.withOwner.Clone(),
-		withParent: _q.withParent.Clone(),
-		withAssets: _q.withAssets.Clone(),
-		withEvent:  _q.withEvent.Clone(),
+		config:         _q.config,
+		ctx:            _q.ctx.Clone(),
+		order:          append([]asset.OrderOption{}, _q.order...),
+		inters:         append([]Interceptor{}, _q.inters...),
+		predicates:     append([]predicate.Asset{}, _q.predicates...),
+		withPosts:      _q.withPosts.Clone(),
+		withNodes:      _q.withNodes.Clone(),
+		withLinks:      _q.withLinks.Clone(),
+		withOwner:      _q.withOwner.Clone(),
+		withParent:     _q.withParent.Clone(),
+		withAssets:     _q.withAssets.Clone(),
+		withEvent:      _q.withEvent.Clone(),
+		withBugReports: _q.withBugReports.Clone(),
 		// clone intermediate query.
 		sql:       _q.sql.Clone(),
 		path:      _q.path,
@@ -510,6 +535,17 @@ func (_q *AssetQuery) WithEvent(opts ...func(*EventQuery)) *AssetQuery {
 	return _q
 }
 
+// WithBugReports tells the query-builder to eager-load the nodes that are connected to
+// the "bug_reports" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AssetQuery) WithBugReports(opts ...func(*BugReportQuery)) *AssetQuery {
+	query := (&BugReportClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withBugReports = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -588,7 +624,7 @@ func (_q *AssetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Asset,
 	var (
 		nodes       = []*Asset{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			_q.withPosts != nil,
 			_q.withNodes != nil,
 			_q.withLinks != nil,
@@ -596,6 +632,7 @@ func (_q *AssetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Asset,
 			_q.withParent != nil,
 			_q.withAssets != nil,
 			_q.withEvent != nil,
+			_q.withBugReports != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -663,6 +700,13 @@ func (_q *AssetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Asset,
 		if err := _q.loadEvent(ctx, query, nodes,
 			func(n *Asset) { n.Edges.Event = []*Event{} },
 			func(n *Asset, e *Event) { n.Edges.Event = append(n.Edges.Event, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withBugReports; query != nil {
+		if err := _q.loadBugReports(ctx, query, nodes,
+			func(n *Asset) { n.Edges.BugReports = []*BugReport{} },
+			func(n *Asset, e *BugReport) { n.Edges.BugReports = append(n.Edges.BugReports, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -972,6 +1016,39 @@ func (_q *AssetQuery) loadEvent(ctx context.Context, query *EventQuery, nodes []
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "asset_event" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *AssetQuery) loadBugReports(ctx context.Context, query *BugReportQuery, nodes []*Asset, init func(*Asset), assign func(*Asset, *BugReport)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[xid.ID]*Asset)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(bugreport.FieldAssetID)
+	}
+	query.Where(predicate.BugReport(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(asset.BugReportsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AssetID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "asset_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "asset_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

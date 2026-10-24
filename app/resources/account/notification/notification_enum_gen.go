@@ -23,6 +23,7 @@ var (
 	EventAttendeeRemoved      = Event{eventAttendeeRemoved}
 	EventReportSubmitted      = Event{eventReportSubmitted}
 	EventReportUpdated        = Event{eventReportUpdated}
+	EventBugReportSubmitted   = Event{eventBugReportSubmitted}
 	EventWarningIssued        = Event{eventWarningIssued}
 	EventNodeVersionCreated   = Event{eventNodeVersionCreated}
 	EventNodeVersionApplied   = Event{eventNodeVersionApplied}
@@ -88,6 +89,8 @@ func NewEvent(__iNpUt__ string) (Event, error) {
 		return EventReportSubmitted, nil
 	case string(eventReportUpdated):
 		return EventReportUpdated, nil
+	case string(eventBugReportSubmitted):
+		return EventBugReportSubmitted, nil
 	case string(eventWarningIssued):
 		return EventWarningIssued, nil
 	case string(eventNodeVersionCreated):

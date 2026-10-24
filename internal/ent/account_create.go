@@ -18,6 +18,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/ent/auditlog"
 	"github.com/Southclaws/storyden/internal/ent/authentication"
+	"github.com/Southclaws/storyden/internal/ent/bugreport"
 	"github.com/Southclaws/storyden/internal/ent/collection"
 	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/Southclaws/storyden/internal/ent/email"
@@ -724,6 +725,21 @@ func (_c *AccountCreate) AddHandledReports(v ...*Report) *AccountCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddHandledReportIDs(ids...)
+}
+
+// AddBugReportIDs adds the "bug_reports" edge to the BugReport entity by IDs.
+func (_c *AccountCreate) AddBugReportIDs(ids ...xid.ID) *AccountCreate {
+	_c.mutation.AddBugReportIDs(ids...)
+	return _c
+}
+
+// AddBugReports adds the "bug_reports" edges to the BugReport entity.
+func (_c *AccountCreate) AddBugReports(v ...*BugReport) *AccountCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddBugReportIDs(ids...)
 }
 
 // AddAuditLogIDs adds the "audit_logs" edge to the AuditLog entity by IDs.
@@ -1632,6 +1648,22 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(report.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.BugReportsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.BugReportsTable,
+			Columns: []string{account.BugReportsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bugreport.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

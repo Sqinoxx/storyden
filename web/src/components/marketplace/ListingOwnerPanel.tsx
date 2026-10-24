@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { handle } from "@/api/client";
 import {
@@ -16,6 +17,7 @@ import { FormControl } from "@/components/ui/form/FormControl";
 import { FormHelperText } from "@/components/ui/form/FormHelperText";
 import { FormLabel } from "@/components/ui/form/FormLabel";
 import { Heading } from "@/components/ui/heading";
+import { DeleteIcon } from "@/components/ui/icons/Delete";
 import { LinkButton } from "@/components/ui/link-button";
 import { useTranslation } from "@/lib/i18n";
 import { formatCents, formatDate } from "@/lib/marketplace/marketplace";
@@ -35,6 +37,8 @@ type Props = {
 export function ListingOwnerPanel({ listing, onChange }: Props) {
   const t = useTranslation();
   const router = useRouter();
+  const [isConfirmingDelete, setConfirmingDelete] = useState(false);
+  const [isDeleting, setDeleting] = useState(false);
   const offers = useListingOfferList(listing.slug, {
     swr: { enabled: listing.can_manage },
   });
@@ -73,9 +77,6 @@ export function ListingOwnerPanel({ listing, onChange }: Props) {
   }
 
   async function handleDelete() {
-    if (!window.confirm(t.marketplace.owner.deleteConfirm)) {
-      return;
-    }
     await handle(
       async () => {
         await listingDelete(listing.slug);
@@ -139,16 +140,64 @@ export function ListingOwnerPanel({ listing, onChange }: Props) {
                 {t.marketplace.owner.renew}
               </Button>
             )}
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              colorPalette="red"
-              onClick={handleDelete}
-            >
-              {t.marketplace.owner.delete}
-            </Button>
+            {!isConfirmingDelete && (
+              <Button
+                type="button"
+                size="sm"
+                variant="subtle"
+                colorPalette="red"
+                onClick={() => setConfirmingDelete(true)}
+              >
+                <DeleteIcon />
+                {t.marketplace.owner.delete}
+              </Button>
+            )}
           </HStack>
+          {isConfirmingDelete && (
+            <LStack
+              gap="3"
+              w="full"
+              p="3"
+              borderRadius="l2"
+              borderWidth="thin"
+              borderStyle="solid"
+              colorPalette="red"
+              borderColor="colorPalette.a7"
+              bg="colorPalette.a2"
+            >
+              <styled.p fontSize="sm" fontWeight="medium">
+                {t.marketplace.owner.deleteConfirm}
+              </styled.p>
+              <HStack gap="2" flexWrap="wrap">
+                <Button
+                  type="button"
+                  size="sm"
+                  colorPalette="red"
+                  loading={isDeleting}
+                  onClick={async () => {
+                    setDeleting(true);
+                    try {
+                      await handleDelete();
+                    } finally {
+                      setDeleting(false);
+                    }
+                  }}
+                >
+                  <DeleteIcon />
+                  {t.marketplace.owner.deleteConfirmAction}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  disabled={isDeleting}
+                  onClick={() => setConfirmingDelete(false)}
+                >
+                  {t.common.cancel}
+                </Button>
+              </HStack>
+            </LStack>
+          )}
           {listing.can_manage && !canRenew && (
             <FormHelperText>{t.marketplace.owner.renewHelp}</FormHelperText>
           )}

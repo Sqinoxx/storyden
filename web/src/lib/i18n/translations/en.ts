@@ -1184,6 +1184,7 @@ export const en = {
       edit: "Edit",
       delete: "Delete",
       deleteConfirm: "Delete this listing permanently?",
+      deleteConfirmAction: "Delete permanently",
       deleted: "Listing deleted",
       renew: "Renew",
       renewHelp: "Listings can be renewed 7 days before they expire.",

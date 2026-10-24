@@ -1186,6 +1186,7 @@ export const de: Translations = {
       edit: "Bearbeiten",
       delete: "Löschen",
       deleteConfirm: "Dieses Inserat endgültig löschen?",
+      deleteConfirmAction: "Endgültig löschen",
       deleted: "Inserat gelöscht",
       renew: "Verlängern",
       renewHelp: "Inserate können 7 Tage vor Ablauf verlängert werden.",

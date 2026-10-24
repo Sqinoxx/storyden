@@ -100,6 +100,11 @@ func (p Partial) Opts() []listing_repo.Option {
 	return opts
 }
 
+func (p Partial) statusOnly() bool {
+	return !p.Title.Ok() && !p.Description.Ok() && !p.PriceCents.Ok() && !p.PriceType.Ok() &&
+		!p.Category.Ok() && !p.Condition.Ok() && !p.Location.Ok() && !p.Assets.Ok()
+}
+
 func (m *Manager) viewer(ctx context.Context) (*account.AccountWithEdges, error) {
 	accountID, err := session.GetAccountID(ctx)
 	if err != nil {
@@ -336,6 +341,11 @@ func (m *Manager) Update(ctx context.Context, key listing.QueryKey, partial Part
 
 	if err := m.authoriseOwner(ctx, acc, l); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if l.Owner.ID != acc.ID && !partial.statusOnly() {
+		return nil, fault.Wrap(ErrNotAuthorised, fctx.With(ctx),
+			fmsg.WithDesc("not owner", "Moderatoren dürfen nur den Status eines Inserats ändern."))
 	}
 
 	if err := validateAssets(ctx, partial.Assets); err != nil {

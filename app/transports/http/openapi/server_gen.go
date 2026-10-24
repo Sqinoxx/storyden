@@ -3321,8 +3321,8 @@ type LinkTitle = string
 type Listing struct {
 	Assets AssetList `json:"assets"`
 
-	// CanManage Whether the authenticated account may edit, renew, delete and view
-	// offers of this listing, either as owner or via MANAGE_LISTINGS.
+	// CanManage Whether the authenticated account may renew, delete, change the status of
+	// and view offers of this listing, either as owner or via MANAGE_LISTINGS.
 	CanManage bool `json:"can_manage"`
 
 	// Category The ID of one of the admin-defined Flohmarkt categories, see

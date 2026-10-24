@@ -1061,7 +1061,7 @@ export const de: Translations = {
     scopeAll: "Alle Inserate",
     scopeMine: "Meine Inserate",
     scopeFavourites: "Merkliste",
-    scopeManage: "Alle verwalten",
+    scopeManage: "Moderation",
     allCategories: "Alle Kategorien",
     anyCondition: "Jeder Zustand",
     anyPriceType: "Jede Preisart",

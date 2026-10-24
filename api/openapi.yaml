@@ -13658,8 +13658,8 @@ components:
         can_manage:
           type: boolean
           description: |
-            Whether the authenticated account may edit, renew, delete and view
-            offers of this listing, either as owner or via MANAGE_LISTINGS.
+            Whether the authenticated account may renew, delete, change the status of
+            and view offers of this listing, either as owner or via MANAGE_LISTINGS.
         is_expired:
           type: boolean
         has_offered:

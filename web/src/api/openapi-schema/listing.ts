@@ -23,8 +23,8 @@ import type { UpdatedAt } from "./updatedAt";
 
 export interface Listing {
   assets: AssetList;
-  /** Whether the authenticated account may edit, renew, delete and view
-offers of this listing, either as owner or via MANAGE_LISTINGS.
+  /** Whether the authenticated account may renew, delete, change the status of
+and view offers of this listing, either as owner or via MANAGE_LISTINGS.
  */
   can_manage: boolean;
   category: ListingCategory;

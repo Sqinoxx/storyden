@@ -1058,7 +1058,7 @@ export const en = {
     scopeAll: "All listings",
     scopeMine: "My listings",
     scopeFavourites: "Watch list",
-    scopeManage: "Manage all",
+    scopeManage: "Moderation",
     allCategories: "All categories",
     anyCondition: "Any condition",
     anyPriceType: "Any price type",

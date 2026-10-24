@@ -119,7 +119,7 @@ export function ListingOwnerPanel({ listing, onChange }: Props) {
           )}
 
           <HStack gap="2" flexWrap="wrap">
-            {listing.can_manage && (
+            {listing.is_own && (
               <LinkButton
                 href={`/flohmarkt/${listing.slug}/edit`}
                 size="sm"

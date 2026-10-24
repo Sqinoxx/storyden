@@ -548,12 +548,22 @@ func TestListingsModerator(t *testing.T) {
 				a.True(asSeller.JSON200.CanManage)
 			})
 
-			t.Run("update", func(t *testing.T) {
-				upd := tests.AssertRequest(cl.ListingUpdateWithResponse(root, created.Slug, openapi.ListingMutableProps{
+			t.Run("status_only", func(t *testing.T) {
+				edit, err := cl.ListingUpdateWithResponse(root, created.Slug, openapi.ListingMutableProps{
 					Title:  opt.New("Anatomie Atlas (moderiert)").Ptr(),
 					Status: opt.New(openapi.ListingStatusReserved).Ptr(),
+				}, modSession)
+				tests.Status(t, err, edit, http.StatusForbidden)
+
+				adminEdit, err := cl.ListingUpdateWithResponse(root, created.Slug, openapi.ListingMutableProps{
+					Price: opt.New(1).Ptr(),
+				}, adminSession)
+				tests.Status(t, err, adminEdit, http.StatusForbidden)
+
+				upd := tests.AssertRequest(cl.ListingUpdateWithResponse(root, created.Slug, openapi.ListingMutableProps{
+					Status: opt.New(openapi.ListingStatusReserved).Ptr(),
 				}, modSession))(t, http.StatusOK)
-				a.Equal("Anatomie Atlas (moderiert)", upd.JSON200.Title)
+				a.Equal("Anatomie Atlas", upd.JSON200.Title)
 				a.Equal(openapi.ListingStatusReserved, upd.JSON200.Status)
 			})
 

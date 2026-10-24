@@ -23,6 +23,8 @@ import type {
   AccountModerationNoteCreateOKResponse,
   AccountModerationNoteListOKResponse,
   AccountPasswordResetTokenGetOKResponse,
+  AccountPhoneOKResponse,
+  AccountPhoneSetBody,
   AccountSetAvatarBody,
   AccountUpdateBody,
   AccountUpdateOKResponse,
@@ -636,6 +638,78 @@ export const accountEmailRemove = async (
 ): Promise<accountEmailRemoveResponse> => {
   return fetcher<Promise<accountEmailRemoveResponse>>(
     getAccountEmailRemoveUrl(emailAddressId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+/**
+ * Get the private phone number of the authenticated account. The phone
+number is never shown publicly, it is only revealed to members who
+make an offer on one of the account's Flohmarkt listings.
+
+ */
+export type accountPhoneGetResponse = {
+  data: AccountPhoneOKResponse;
+  status: number;
+};
+
+export const getAccountPhoneGetUrl = () => {
+  return `/accounts/self/phone`;
+};
+
+export const accountPhoneGet = async (
+  options?: RequestInit,
+): Promise<accountPhoneGetResponse> => {
+  return fetcher<Promise<accountPhoneGetResponse>>(getAccountPhoneGetUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+/**
+ * Set the private phone number of the authenticated account.
+ */
+export type accountPhoneSetResponse = {
+  data: AccountPhoneOKResponse;
+  status: number;
+};
+
+export const getAccountPhoneSetUrl = () => {
+  return `/accounts/self/phone`;
+};
+
+export const accountPhoneSet = async (
+  accountPhoneSetBody: AccountPhoneSetBody,
+  options?: RequestInit,
+): Promise<accountPhoneSetResponse> => {
+  return fetcher<Promise<accountPhoneSetResponse>>(getAccountPhoneSetUrl(), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(accountPhoneSetBody),
+  });
+};
+
+/**
+ * Remove the private phone number of the authenticated account.
+ */
+export type accountPhoneRemoveResponse = {
+  data: AccountPhoneOKResponse;
+  status: number;
+};
+
+export const getAccountPhoneRemoveUrl = () => {
+  return `/accounts/self/phone`;
+};
+
+export const accountPhoneRemove = async (
+  options?: RequestInit,
+): Promise<accountPhoneRemoveResponse> => {
+  return fetcher<Promise<accountPhoneRemoveResponse>>(
+    getAccountPhoneRemoveUrl(),
     {
       ...options,
       method: "DELETE",

@@ -35,6 +35,9 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/invitation"
 	"github.com/Southclaws/storyden/internal/ent/likepost"
 	"github.com/Southclaws/storyden/internal/ent/link"
+	"github.com/Southclaws/storyden/internal/ent/listing"
+	"github.com/Southclaws/storyden/internal/ent/listingfavourite"
+	"github.com/Southclaws/storyden/internal/ent/listingoffer"
 	"github.com/Southclaws/storyden/internal/ent/mentionprofile"
 	"github.com/Southclaws/storyden/internal/ent/moderationnote"
 	"github.com/Southclaws/storyden/internal/ent/node"
@@ -116,6 +119,12 @@ type Client struct {
 	LikePost *LikePostClient
 	// Link is the client for interacting with the Link builders.
 	Link *LinkClient
+	// Listing is the client for interacting with the Listing builders.
+	Listing *ListingClient
+	// ListingFavourite is the client for interacting with the ListingFavourite builders.
+	ListingFavourite *ListingFavouriteClient
+	// ListingOffer is the client for interacting with the ListingOffer builders.
+	ListingOffer *ListingOfferClient
 	// MentionProfile is the client for interacting with the MentionProfile builders.
 	MentionProfile *MentionProfileClient
 	// ModerationNote is the client for interacting with the ModerationNote builders.
@@ -214,6 +223,9 @@ func (c *Client) init() {
 	c.Invitation = NewInvitationClient(c.config)
 	c.LikePost = NewLikePostClient(c.config)
 	c.Link = NewLinkClient(c.config)
+	c.Listing = NewListingClient(c.config)
+	c.ListingFavourite = NewListingFavouriteClient(c.config)
+	c.ListingOffer = NewListingOfferClient(c.config)
 	c.MentionProfile = NewMentionProfileClient(c.config)
 	c.ModerationNote = NewModerationNoteClient(c.config)
 	c.Node = NewNodeClient(c.config)
@@ -359,6 +371,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Invitation:                   NewInvitationClient(cfg),
 		LikePost:                     NewLikePostClient(cfg),
 		Link:                         NewLinkClient(cfg),
+		Listing:                      NewListingClient(cfg),
+		ListingFavourite:             NewListingFavouriteClient(cfg),
+		ListingOffer:                 NewListingOfferClient(cfg),
 		MentionProfile:               NewMentionProfileClient(cfg),
 		ModerationNote:               NewModerationNoteClient(cfg),
 		Node:                         NewNodeClient(cfg),
@@ -431,6 +446,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Invitation:                   NewInvitationClient(cfg),
 		LikePost:                     NewLikePostClient(cfg),
 		Link:                         NewLinkClient(cfg),
+		Listing:                      NewListingClient(cfg),
+		ListingFavourite:             NewListingFavouriteClient(cfg),
+		ListingOffer:                 NewListingOfferClient(cfg),
 		MentionProfile:               NewMentionProfileClient(cfg),
 		ModerationNote:               NewModerationNoteClient(cfg),
 		Node:                         NewNodeClient(cfg),
@@ -497,16 +515,16 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Account, c.AccountFollow, c.AccountRoles, c.Asset, c.AuditLog,
 		c.Authentication, c.BugReport, c.Category, c.Collection, c.CollectionNode,
 		c.CollectionPost, c.DriveFolder, c.Email, c.EmailQueue, c.Event,
-		c.EventParticipant, c.Invitation, c.LikePost, c.Link, c.MentionProfile,
-		c.ModerationNote, c.Node, c.NodeVersion, c.Notification,
-		c.OAuthAuthorisationCode, c.OAuthAuthorisationRequest, c.OAuthClient,
-		c.OAuthDeviceAuthorisation, c.OAuthRefreshToken,
-		c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection, c.PasswordResetToken,
-		c.Plugin, c.Post, c.PostRead, c.Property, c.PropertySchema,
-		c.PropertySchemaField, c.React, c.Report, c.Robot, c.RobotMCPServer,
-		c.RobotMCPTool, c.RobotProviderModel, c.RobotSession, c.RobotSessionMessage,
-		c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role, c.Session, c.Setting,
-		c.Tag, c.Warning,
+		c.EventParticipant, c.Invitation, c.LikePost, c.Link, c.Listing,
+		c.ListingFavourite, c.ListingOffer, c.MentionProfile, c.ModerationNote, c.Node,
+		c.NodeVersion, c.Notification, c.OAuthAuthorisationCode,
+		c.OAuthAuthorisationRequest, c.OAuthClient, c.OAuthDeviceAuthorisation,
+		c.OAuthRefreshToken, c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection,
+		c.PasswordResetToken, c.Plugin, c.Post, c.PostRead, c.Property,
+		c.PropertySchema, c.PropertySchemaField, c.React, c.Report, c.Robot,
+		c.RobotMCPServer, c.RobotMCPTool, c.RobotProviderModel, c.RobotSession,
+		c.RobotSessionMessage, c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role,
+		c.Session, c.Setting, c.Tag, c.Warning,
 	} {
 		n.Use(hooks...)
 	}
@@ -519,16 +537,16 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Account, c.AccountFollow, c.AccountRoles, c.Asset, c.AuditLog,
 		c.Authentication, c.BugReport, c.Category, c.Collection, c.CollectionNode,
 		c.CollectionPost, c.DriveFolder, c.Email, c.EmailQueue, c.Event,
-		c.EventParticipant, c.Invitation, c.LikePost, c.Link, c.MentionProfile,
-		c.ModerationNote, c.Node, c.NodeVersion, c.Notification,
-		c.OAuthAuthorisationCode, c.OAuthAuthorisationRequest, c.OAuthClient,
-		c.OAuthDeviceAuthorisation, c.OAuthRefreshToken,
-		c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection, c.PasswordResetToken,
-		c.Plugin, c.Post, c.PostRead, c.Property, c.PropertySchema,
-		c.PropertySchemaField, c.React, c.Report, c.Robot, c.RobotMCPServer,
-		c.RobotMCPTool, c.RobotProviderModel, c.RobotSession, c.RobotSessionMessage,
-		c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role, c.Session, c.Setting,
-		c.Tag, c.Warning,
+		c.EventParticipant, c.Invitation, c.LikePost, c.Link, c.Listing,
+		c.ListingFavourite, c.ListingOffer, c.MentionProfile, c.ModerationNote, c.Node,
+		c.NodeVersion, c.Notification, c.OAuthAuthorisationCode,
+		c.OAuthAuthorisationRequest, c.OAuthClient, c.OAuthDeviceAuthorisation,
+		c.OAuthRefreshToken, c.OAuthRemoteAuthorisationFlow, c.OAuthRemoteConnection,
+		c.PasswordResetToken, c.Plugin, c.Post, c.PostRead, c.Property,
+		c.PropertySchema, c.PropertySchemaField, c.React, c.Report, c.Robot,
+		c.RobotMCPServer, c.RobotMCPTool, c.RobotProviderModel, c.RobotSession,
+		c.RobotSessionMessage, c.RobotWorkspace, c.RobotWorkspaceInstance, c.Role,
+		c.Session, c.Setting, c.Tag, c.Warning,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -575,6 +593,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.LikePost.mutate(ctx, m)
 	case *LinkMutation:
 		return c.Link.mutate(ctx, m)
+	case *ListingMutation:
+		return c.Listing.mutate(ctx, m)
+	case *ListingFavouriteMutation:
+		return c.ListingFavourite.mutate(ctx, m)
+	case *ListingOfferMutation:
+		return c.ListingOffer.mutate(ctx, m)
 	case *MentionProfileMutation:
 		return c.MentionProfile.mutate(ctx, m)
 	case *ModerationNoteMutation:
@@ -1476,6 +1500,54 @@ func (c *AccountClient) QueryRobotMessages(_m *Account) *RobotSessionMessageQuer
 	return query
 }
 
+// QueryListings queries the listings edge of a Account.
+func (c *AccountClient) QueryListings(_m *Account) *ListingQuery {
+	query := (&ListingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(listing.Table, listing.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.ListingsTable, account.ListingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryListingOffers queries the listing_offers edge of a Account.
+func (c *AccountClient) QueryListingOffers(_m *Account) *ListingOfferQuery {
+	query := (&ListingOfferClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(listingoffer.Table, listingoffer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.ListingOffersTable, account.ListingOffersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryListingFavourites queries the listing_favourites edge of a Account.
+func (c *AccountClient) QueryListingFavourites(_m *Account) *ListingFavouriteQuery {
+	query := (&ListingFavouriteClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(listingfavourite.Table, listingfavourite.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.ListingFavouritesTable, account.ListingFavouritesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryAccountRoles queries the account_roles edge of a Account.
 func (c *AccountClient) QueryAccountRoles(_m *Account) *AccountRolesQuery {
 	query := (&AccountRolesClient{config: c.config}).Query()
@@ -1996,6 +2068,22 @@ func (c *AssetClient) QueryLinks(_m *Asset) *LinkQuery {
 			sqlgraph.From(asset.Table, asset.FieldID, id),
 			sqlgraph.To(link.Table, link.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, asset.LinksTable, asset.LinksPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryListings queries the listings edge of a Asset.
+func (c *AssetClient) QueryListings(_m *Asset) *ListingQuery {
+	query := (&ListingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(asset.Table, asset.FieldID, id),
+			sqlgraph.To(listing.Table, listing.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, asset.ListingsTable, asset.ListingsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -4610,6 +4698,533 @@ func (c *LinkClient) mutate(ctx context.Context, m *LinkMutation) (Value, error)
 		return (&LinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Link mutation op: %q", m.Op())
+	}
+}
+
+// ListingClient is a client for the Listing schema.
+type ListingClient struct {
+	config
+}
+
+// NewListingClient returns a client for the Listing from the given config.
+func NewListingClient(c config) *ListingClient {
+	return &ListingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `listing.Hooks(f(g(h())))`.
+func (c *ListingClient) Use(hooks ...Hook) {
+	c.hooks.Listing = append(c.hooks.Listing, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `listing.Intercept(f(g(h())))`.
+func (c *ListingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Listing = append(c.inters.Listing, interceptors...)
+}
+
+// Create returns a builder for creating a Listing entity.
+func (c *ListingClient) Create() *ListingCreate {
+	mutation := newListingMutation(c.config, OpCreate)
+	return &ListingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Listing entities.
+func (c *ListingClient) CreateBulk(builders ...*ListingCreate) *ListingCreateBulk {
+	return &ListingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ListingClient) MapCreateBulk(slice any, setFunc func(*ListingCreate, int)) *ListingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ListingCreateBulk{err: fmt.Errorf("calling to ListingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ListingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ListingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Listing.
+func (c *ListingClient) Update() *ListingUpdate {
+	mutation := newListingMutation(c.config, OpUpdate)
+	return &ListingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ListingClient) UpdateOne(_m *Listing) *ListingUpdateOne {
+	mutation := newListingMutation(c.config, OpUpdateOne, withListing(_m))
+	return &ListingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ListingClient) UpdateOneID(id xid.ID) *ListingUpdateOne {
+	mutation := newListingMutation(c.config, OpUpdateOne, withListingID(id))
+	return &ListingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Listing.
+func (c *ListingClient) Delete() *ListingDelete {
+	mutation := newListingMutation(c.config, OpDelete)
+	return &ListingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ListingClient) DeleteOne(_m *Listing) *ListingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ListingClient) DeleteOneID(id xid.ID) *ListingDeleteOne {
+	builder := c.Delete().Where(listing.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ListingDeleteOne{builder}
+}
+
+// Query returns a query builder for Listing.
+func (c *ListingClient) Query() *ListingQuery {
+	return &ListingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeListing},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Listing entity by its id.
+func (c *ListingClient) Get(ctx context.Context, id xid.ID) (*Listing, error) {
+	return c.Query().Where(listing.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ListingClient) GetX(ctx context.Context, id xid.ID) *Listing {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOwner queries the owner edge of a Listing.
+func (c *ListingClient) QueryOwner(_m *Listing) *AccountQuery {
+	query := (&AccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(listing.Table, listing.FieldID, id),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, listing.OwnerTable, listing.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAssets queries the assets edge of a Listing.
+func (c *ListingClient) QueryAssets(_m *Listing) *AssetQuery {
+	query := (&AssetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(listing.Table, listing.FieldID, id),
+			sqlgraph.To(asset.Table, asset.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, listing.AssetsTable, listing.AssetsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOffers queries the offers edge of a Listing.
+func (c *ListingClient) QueryOffers(_m *Listing) *ListingOfferQuery {
+	query := (&ListingOfferClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(listing.Table, listing.FieldID, id),
+			sqlgraph.To(listingoffer.Table, listingoffer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, listing.OffersTable, listing.OffersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFavourites queries the favourites edge of a Listing.
+func (c *ListingClient) QueryFavourites(_m *Listing) *ListingFavouriteQuery {
+	query := (&ListingFavouriteClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(listing.Table, listing.FieldID, id),
+			sqlgraph.To(listingfavourite.Table, listingfavourite.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, listing.FavouritesTable, listing.FavouritesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ListingClient) Hooks() []Hook {
+	return c.hooks.Listing
+}
+
+// Interceptors returns the client interceptors.
+func (c *ListingClient) Interceptors() []Interceptor {
+	return c.inters.Listing
+}
+
+func (c *ListingClient) mutate(ctx context.Context, m *ListingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ListingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ListingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ListingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ListingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Listing mutation op: %q", m.Op())
+	}
+}
+
+// ListingFavouriteClient is a client for the ListingFavourite schema.
+type ListingFavouriteClient struct {
+	config
+}
+
+// NewListingFavouriteClient returns a client for the ListingFavourite from the given config.
+func NewListingFavouriteClient(c config) *ListingFavouriteClient {
+	return &ListingFavouriteClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `listingfavourite.Hooks(f(g(h())))`.
+func (c *ListingFavouriteClient) Use(hooks ...Hook) {
+	c.hooks.ListingFavourite = append(c.hooks.ListingFavourite, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `listingfavourite.Intercept(f(g(h())))`.
+func (c *ListingFavouriteClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ListingFavourite = append(c.inters.ListingFavourite, interceptors...)
+}
+
+// Create returns a builder for creating a ListingFavourite entity.
+func (c *ListingFavouriteClient) Create() *ListingFavouriteCreate {
+	mutation := newListingFavouriteMutation(c.config, OpCreate)
+	return &ListingFavouriteCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ListingFavourite entities.
+func (c *ListingFavouriteClient) CreateBulk(builders ...*ListingFavouriteCreate) *ListingFavouriteCreateBulk {
+	return &ListingFavouriteCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ListingFavouriteClient) MapCreateBulk(slice any, setFunc func(*ListingFavouriteCreate, int)) *ListingFavouriteCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ListingFavouriteCreateBulk{err: fmt.Errorf("calling to ListingFavouriteClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ListingFavouriteCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ListingFavouriteCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ListingFavourite.
+func (c *ListingFavouriteClient) Update() *ListingFavouriteUpdate {
+	mutation := newListingFavouriteMutation(c.config, OpUpdate)
+	return &ListingFavouriteUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ListingFavouriteClient) UpdateOne(_m *ListingFavourite) *ListingFavouriteUpdateOne {
+	mutation := newListingFavouriteMutation(c.config, OpUpdateOne, withListingFavourite(_m))
+	return &ListingFavouriteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ListingFavouriteClient) UpdateOneID(id xid.ID) *ListingFavouriteUpdateOne {
+	mutation := newListingFavouriteMutation(c.config, OpUpdateOne, withListingFavouriteID(id))
+	return &ListingFavouriteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ListingFavourite.
+func (c *ListingFavouriteClient) Delete() *ListingFavouriteDelete {
+	mutation := newListingFavouriteMutation(c.config, OpDelete)
+	return &ListingFavouriteDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ListingFavouriteClient) DeleteOne(_m *ListingFavourite) *ListingFavouriteDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ListingFavouriteClient) DeleteOneID(id xid.ID) *ListingFavouriteDeleteOne {
+	builder := c.Delete().Where(listingfavourite.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ListingFavouriteDeleteOne{builder}
+}
+
+// Query returns a query builder for ListingFavourite.
+func (c *ListingFavouriteClient) Query() *ListingFavouriteQuery {
+	return &ListingFavouriteQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeListingFavourite},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ListingFavourite entity by its id.
+func (c *ListingFavouriteClient) Get(ctx context.Context, id xid.ID) (*ListingFavourite, error) {
+	return c.Query().Where(listingfavourite.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ListingFavouriteClient) GetX(ctx context.Context, id xid.ID) *ListingFavourite {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryListing queries the listing edge of a ListingFavourite.
+func (c *ListingFavouriteClient) QueryListing(_m *ListingFavourite) *ListingQuery {
+	query := (&ListingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(listingfavourite.Table, listingfavourite.FieldID, id),
+			sqlgraph.To(listing.Table, listing.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, listingfavourite.ListingTable, listingfavourite.ListingColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAccount queries the account edge of a ListingFavourite.
+func (c *ListingFavouriteClient) QueryAccount(_m *ListingFavourite) *AccountQuery {
+	query := (&AccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(listingfavourite.Table, listingfavourite.FieldID, id),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, listingfavourite.AccountTable, listingfavourite.AccountColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ListingFavouriteClient) Hooks() []Hook {
+	return c.hooks.ListingFavourite
+}
+
+// Interceptors returns the client interceptors.
+func (c *ListingFavouriteClient) Interceptors() []Interceptor {
+	return c.inters.ListingFavourite
+}
+
+func (c *ListingFavouriteClient) mutate(ctx context.Context, m *ListingFavouriteMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ListingFavouriteCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ListingFavouriteUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ListingFavouriteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ListingFavouriteDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ListingFavourite mutation op: %q", m.Op())
+	}
+}
+
+// ListingOfferClient is a client for the ListingOffer schema.
+type ListingOfferClient struct {
+	config
+}
+
+// NewListingOfferClient returns a client for the ListingOffer from the given config.
+func NewListingOfferClient(c config) *ListingOfferClient {
+	return &ListingOfferClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `listingoffer.Hooks(f(g(h())))`.
+func (c *ListingOfferClient) Use(hooks ...Hook) {
+	c.hooks.ListingOffer = append(c.hooks.ListingOffer, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `listingoffer.Intercept(f(g(h())))`.
+func (c *ListingOfferClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ListingOffer = append(c.inters.ListingOffer, interceptors...)
+}
+
+// Create returns a builder for creating a ListingOffer entity.
+func (c *ListingOfferClient) Create() *ListingOfferCreate {
+	mutation := newListingOfferMutation(c.config, OpCreate)
+	return &ListingOfferCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ListingOffer entities.
+func (c *ListingOfferClient) CreateBulk(builders ...*ListingOfferCreate) *ListingOfferCreateBulk {
+	return &ListingOfferCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ListingOfferClient) MapCreateBulk(slice any, setFunc func(*ListingOfferCreate, int)) *ListingOfferCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ListingOfferCreateBulk{err: fmt.Errorf("calling to ListingOfferClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ListingOfferCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ListingOfferCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ListingOffer.
+func (c *ListingOfferClient) Update() *ListingOfferUpdate {
+	mutation := newListingOfferMutation(c.config, OpUpdate)
+	return &ListingOfferUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ListingOfferClient) UpdateOne(_m *ListingOffer) *ListingOfferUpdateOne {
+	mutation := newListingOfferMutation(c.config, OpUpdateOne, withListingOffer(_m))
+	return &ListingOfferUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ListingOfferClient) UpdateOneID(id xid.ID) *ListingOfferUpdateOne {
+	mutation := newListingOfferMutation(c.config, OpUpdateOne, withListingOfferID(id))
+	return &ListingOfferUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ListingOffer.
+func (c *ListingOfferClient) Delete() *ListingOfferDelete {
+	mutation := newListingOfferMutation(c.config, OpDelete)
+	return &ListingOfferDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ListingOfferClient) DeleteOne(_m *ListingOffer) *ListingOfferDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ListingOfferClient) DeleteOneID(id xid.ID) *ListingOfferDeleteOne {
+	builder := c.Delete().Where(listingoffer.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ListingOfferDeleteOne{builder}
+}
+
+// Query returns a query builder for ListingOffer.
+func (c *ListingOfferClient) Query() *ListingOfferQuery {
+	return &ListingOfferQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeListingOffer},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ListingOffer entity by its id.
+func (c *ListingOfferClient) Get(ctx context.Context, id xid.ID) (*ListingOffer, error) {
+	return c.Query().Where(listingoffer.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ListingOfferClient) GetX(ctx context.Context, id xid.ID) *ListingOffer {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryListing queries the listing edge of a ListingOffer.
+func (c *ListingOfferClient) QueryListing(_m *ListingOffer) *ListingQuery {
+	query := (&ListingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(listingoffer.Table, listingoffer.FieldID, id),
+			sqlgraph.To(listing.Table, listing.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, listingoffer.ListingTable, listingoffer.ListingColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBuyer queries the buyer edge of a ListingOffer.
+func (c *ListingOfferClient) QueryBuyer(_m *ListingOffer) *AccountQuery {
+	query := (&AccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(listingoffer.Table, listingoffer.FieldID, id),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, listingoffer.BuyerTable, listingoffer.BuyerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ListingOfferClient) Hooks() []Hook {
+	return c.hooks.ListingOffer
+}
+
+// Interceptors returns the client interceptors.
+func (c *ListingOfferClient) Interceptors() []Interceptor {
+	return c.inters.ListingOffer
+}
+
+func (c *ListingOfferClient) mutate(ctx context.Context, m *ListingOfferMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ListingOfferCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ListingOfferUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ListingOfferUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ListingOfferDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ListingOffer mutation op: %q", m.Op())
 	}
 }
 
@@ -10709,27 +11324,27 @@ type (
 		Account, AccountFollow, AccountRoles, Asset, AuditLog, Authentication,
 		BugReport, Category, Collection, CollectionNode, CollectionPost, DriveFolder,
 		Email, EmailQueue, Event, EventParticipant, Invitation, LikePost, Link,
-		MentionProfile, ModerationNote, Node, NodeVersion, Notification,
-		OAuthAuthorisationCode, OAuthAuthorisationRequest, OAuthClient,
-		OAuthDeviceAuthorisation, OAuthRefreshToken, OAuthRemoteAuthorisationFlow,
-		OAuthRemoteConnection, PasswordResetToken, Plugin, Post, PostRead, Property,
-		PropertySchema, PropertySchemaField, React, Report, Robot, RobotMCPServer,
-		RobotMCPTool, RobotProviderModel, RobotSession, RobotSessionMessage,
-		RobotWorkspace, RobotWorkspaceInstance, Role, Session, Setting, Tag,
-		Warning []ent.Hook
+		Listing, ListingFavourite, ListingOffer, MentionProfile, ModerationNote, Node,
+		NodeVersion, Notification, OAuthAuthorisationCode, OAuthAuthorisationRequest,
+		OAuthClient, OAuthDeviceAuthorisation, OAuthRefreshToken,
+		OAuthRemoteAuthorisationFlow, OAuthRemoteConnection, PasswordResetToken,
+		Plugin, Post, PostRead, Property, PropertySchema, PropertySchemaField, React,
+		Report, Robot, RobotMCPServer, RobotMCPTool, RobotProviderModel, RobotSession,
+		RobotSessionMessage, RobotWorkspace, RobotWorkspaceInstance, Role, Session,
+		Setting, Tag, Warning []ent.Hook
 	}
 	inters struct {
 		Account, AccountFollow, AccountRoles, Asset, AuditLog, Authentication,
 		BugReport, Category, Collection, CollectionNode, CollectionPost, DriveFolder,
 		Email, EmailQueue, Event, EventParticipant, Invitation, LikePost, Link,
-		MentionProfile, ModerationNote, Node, NodeVersion, Notification,
-		OAuthAuthorisationCode, OAuthAuthorisationRequest, OAuthClient,
-		OAuthDeviceAuthorisation, OAuthRefreshToken, OAuthRemoteAuthorisationFlow,
-		OAuthRemoteConnection, PasswordResetToken, Plugin, Post, PostRead, Property,
-		PropertySchema, PropertySchemaField, React, Report, Robot, RobotMCPServer,
-		RobotMCPTool, RobotProviderModel, RobotSession, RobotSessionMessage,
-		RobotWorkspace, RobotWorkspaceInstance, Role, Session, Setting, Tag,
-		Warning []ent.Interceptor
+		Listing, ListingFavourite, ListingOffer, MentionProfile, ModerationNote, Node,
+		NodeVersion, Notification, OAuthAuthorisationCode, OAuthAuthorisationRequest,
+		OAuthClient, OAuthDeviceAuthorisation, OAuthRefreshToken,
+		OAuthRemoteAuthorisationFlow, OAuthRemoteConnection, PasswordResetToken,
+		Plugin, Post, PostRead, Property, PropertySchema, PropertySchemaField, React,
+		Report, Robot, RobotMCPServer, RobotMCPTool, RobotProviderModel, RobotSession,
+		RobotSessionMessage, RobotWorkspace, RobotWorkspaceInstance, Role, Session,
+		Setting, Tag, Warning []ent.Interceptor
 	}
 )
 

@@ -237,6 +237,42 @@ func (f LinkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LinkMutation", m)
 }
 
+// The ListingFunc type is an adapter to allow the use of ordinary
+// function as Listing mutator.
+type ListingFunc func(context.Context, *ent.ListingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ListingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ListingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ListingMutation", m)
+}
+
+// The ListingFavouriteFunc type is an adapter to allow the use of ordinary
+// function as ListingFavourite mutator.
+type ListingFavouriteFunc func(context.Context, *ent.ListingFavouriteMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ListingFavouriteFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ListingFavouriteMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ListingFavouriteMutation", m)
+}
+
+// The ListingOfferFunc type is an adapter to allow the use of ordinary
+// function as ListingOffer mutator.
+type ListingOfferFunc func(context.Context, *ent.ListingOfferMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ListingOfferFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ListingOfferMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ListingOfferMutation", m)
+}
+
 // The MentionProfileFunc type is an adapter to allow the use of ordinary
 // function as MentionProfile mutator.
 type MentionProfileFunc func(context.Context, *ent.MentionProfileMutation) (ent.Value, error)

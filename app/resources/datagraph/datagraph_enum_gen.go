@@ -19,6 +19,7 @@ var (
 	KindCollection = Kind{kindCollection}
 	KindProfile    = Kind{kindProfile}
 	KindEvent      = Kind{kindEvent}
+	KindListing    = Kind{kindListing}
 )
 
 func (r Kind) Format(f fmt.State, verb rune) {
@@ -72,6 +73,8 @@ func NewKind(__iNpUt__ string) (Kind, error) {
 		return KindProfile, nil
 	case string(kindEvent):
 		return KindEvent, nil
+	case string(kindListing):
+		return KindListing, nil
 	default:
 		return Kind{}, fmt.Errorf("invalid value for type 'Kind': '%s'", __iNpUt__)
 	}

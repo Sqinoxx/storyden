@@ -19,6 +19,7 @@ oneOf:
   - $ref: "#/$defs/SUBMIT_LIBRARY_NODE_CHANGES"
   - $ref: "#/$defs/UPLOAD_ASSET"
   - $ref: "#/$defs/MANAGE_EVENTS"
+  - $ref: "#/$defs/MANAGE_LISTINGS"
   - $ref: "#/$defs/LIST_PROFILES"
   - $ref: "#/$defs/READ_PROFILE"
   - $ref: "#/$defs/CREATE_COLLECTION"
@@ -125,6 +126,12 @@ $defs:
     const: MANAGE_EVENTS
     title: Manage events
     description: Create, edit and remove events as well as change event hosts.
+
+  MANAGE_LISTINGS:
+    type: string
+    const: MANAGE_LISTINGS
+    title: Manage Flohmarkt listings
+    description: Edit and remove any member's Flohmarkt listings.
 
   LIST_PROFILES:
     type: string

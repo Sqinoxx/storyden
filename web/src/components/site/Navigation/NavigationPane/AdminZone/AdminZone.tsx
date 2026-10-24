@@ -41,6 +41,7 @@ const MotionSpan = motion.span;
 const editableRoute: Record<Route["name"], boolean> = {
   index: true,
   library: false,
+  marketplace: false,
   drive: false,
   admin: false,
   settings: false,

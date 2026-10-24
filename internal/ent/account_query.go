@@ -25,6 +25,9 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/eventparticipant"
 	"github.com/Southclaws/storyden/internal/ent/invitation"
 	"github.com/Southclaws/storyden/internal/ent/likepost"
+	"github.com/Southclaws/storyden/internal/ent/listing"
+	"github.com/Southclaws/storyden/internal/ent/listingfavourite"
+	"github.com/Southclaws/storyden/internal/ent/listingoffer"
 	"github.com/Southclaws/storyden/internal/ent/mentionprofile"
 	"github.com/Southclaws/storyden/internal/ent/moderationnote"
 	"github.com/Southclaws/storyden/internal/ent/node"
@@ -108,6 +111,9 @@ type AccountQuery struct {
 	withRobotMcpServers                   *RobotMCPServerQuery
 	withRobotSessions                     *RobotSessionQuery
 	withRobotMessages                     *RobotSessionMessageQuery
+	withListings                          *ListingQuery
+	withListingOffers                     *ListingOfferQuery
+	withListingFavourites                 *ListingFavouriteQuery
 	withAccountRoles                      *AccountRolesQuery
 	modifiers                             []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -1136,6 +1142,72 @@ func (_q *AccountQuery) QueryRobotMessages() *RobotSessionMessageQuery {
 	return query
 }
 
+// QueryListings chains the current query on the "listings" edge.
+func (_q *AccountQuery) QueryListings() *ListingQuery {
+	query := (&ListingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(listing.Table, listing.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.ListingsTable, account.ListingsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryListingOffers chains the current query on the "listing_offers" edge.
+func (_q *AccountQuery) QueryListingOffers() *ListingOfferQuery {
+	query := (&ListingOfferClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(listingoffer.Table, listingoffer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.ListingOffersTable, account.ListingOffersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryListingFavourites chains the current query on the "listing_favourites" edge.
+func (_q *AccountQuery) QueryListingFavourites() *ListingFavouriteQuery {
+	query := (&ListingFavouriteClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(listingfavourite.Table, listingfavourite.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.ListingFavouritesTable, account.ListingFavouritesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryAccountRoles chains the current query on the "account_roles" edge.
 func (_q *AccountQuery) QueryAccountRoles() *AccountRolesQuery {
 	query := (&AccountRolesClient{config: _q.config}).Query()
@@ -1395,6 +1467,9 @@ func (_q *AccountQuery) Clone() *AccountQuery {
 		withRobotMcpServers:                   _q.withRobotMcpServers.Clone(),
 		withRobotSessions:                     _q.withRobotSessions.Clone(),
 		withRobotMessages:                     _q.withRobotMessages.Clone(),
+		withListings:                          _q.withListings.Clone(),
+		withListingOffers:                     _q.withListingOffers.Clone(),
+		withListingFavourites:                 _q.withListingFavourites.Clone(),
 		withAccountRoles:                      _q.withAccountRoles.Clone(),
 		// clone intermediate query.
 		sql:       _q.sql.Clone(),
@@ -1898,6 +1973,39 @@ func (_q *AccountQuery) WithRobotMessages(opts ...func(*RobotSessionMessageQuery
 	return _q
 }
 
+// WithListings tells the query-builder to eager-load the nodes that are connected to
+// the "listings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithListings(opts ...func(*ListingQuery)) *AccountQuery {
+	query := (&ListingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withListings = query
+	return _q
+}
+
+// WithListingOffers tells the query-builder to eager-load the nodes that are connected to
+// the "listing_offers" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithListingOffers(opts ...func(*ListingOfferQuery)) *AccountQuery {
+	query := (&ListingOfferClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withListingOffers = query
+	return _q
+}
+
+// WithListingFavourites tells the query-builder to eager-load the nodes that are connected to
+// the "listing_favourites" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithListingFavourites(opts ...func(*ListingFavouriteQuery)) *AccountQuery {
+	query := (&ListingFavouriteClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withListingFavourites = query
+	return _q
+}
+
 // WithAccountRoles tells the query-builder to eager-load the nodes that are connected to
 // the "account_roles" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *AccountQuery) WithAccountRoles(opts ...func(*AccountRolesQuery)) *AccountQuery {
@@ -1987,7 +2095,7 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 	var (
 		nodes       = []*Account{}
 		_spec       = _q.querySpec()
-		loadedTypes = [46]bool{
+		loadedTypes = [49]bool{
 			_q.withSessions != nil,
 			_q.withPlugins != nil,
 			_q.withEmails != nil,
@@ -2033,6 +2141,9 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 			_q.withRobotMcpServers != nil,
 			_q.withRobotSessions != nil,
 			_q.withRobotMessages != nil,
+			_q.withListings != nil,
+			_q.withListingOffers != nil,
+			_q.withListingFavourites != nil,
 			_q.withAccountRoles != nil,
 		}
 	)
@@ -2388,6 +2499,29 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 		if err := _q.loadRobotMessages(ctx, query, nodes,
 			func(n *Account) { n.Edges.RobotMessages = []*RobotSessionMessage{} },
 			func(n *Account, e *RobotSessionMessage) { n.Edges.RobotMessages = append(n.Edges.RobotMessages, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withListings; query != nil {
+		if err := _q.loadListings(ctx, query, nodes,
+			func(n *Account) { n.Edges.Listings = []*Listing{} },
+			func(n *Account, e *Listing) { n.Edges.Listings = append(n.Edges.Listings, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withListingOffers; query != nil {
+		if err := _q.loadListingOffers(ctx, query, nodes,
+			func(n *Account) { n.Edges.ListingOffers = []*ListingOffer{} },
+			func(n *Account, e *ListingOffer) { n.Edges.ListingOffers = append(n.Edges.ListingOffers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withListingFavourites; query != nil {
+		if err := _q.loadListingFavourites(ctx, query, nodes,
+			func(n *Account) { n.Edges.ListingFavourites = []*ListingFavourite{} },
+			func(n *Account, e *ListingFavourite) {
+				n.Edges.ListingFavourites = append(n.Edges.ListingFavourites, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -3844,6 +3978,96 @@ func (_q *AccountQuery) loadRobotMessages(ctx context.Context, query *RobotSessi
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "account_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *AccountQuery) loadListings(ctx context.Context, query *ListingQuery, nodes []*Account, init func(*Account), assign func(*Account, *Listing)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[xid.ID]*Account)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(listing.FieldAccountID)
+	}
+	query.Where(predicate.Listing(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(account.ListingsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AccountID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "account_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *AccountQuery) loadListingOffers(ctx context.Context, query *ListingOfferQuery, nodes []*Account, init func(*Account), assign func(*Account, *ListingOffer)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[xid.ID]*Account)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(listingoffer.FieldAccountID)
+	}
+	query.Where(predicate.ListingOffer(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(account.ListingOffersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AccountID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "account_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *AccountQuery) loadListingFavourites(ctx context.Context, query *ListingFavouriteQuery, nodes []*Account, init func(*Account), assign func(*Account, *ListingFavourite)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[xid.ID]*Account)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(listingfavourite.FieldAccountID)
+	}
+	query.Where(predicate.ListingFavourite(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(account.ListingFavouritesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AccountID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "account_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

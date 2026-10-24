@@ -63,6 +63,15 @@ type LikePost func(*sql.Selector)
 // Link is the predicate function for link builders.
 type Link func(*sql.Selector)
 
+// Listing is the predicate function for listing builders.
+type Listing func(*sql.Selector)
+
+// ListingFavourite is the predicate function for listingfavourite builders.
+type ListingFavourite func(*sql.Selector)
+
+// ListingOffer is the predicate function for listingoffer builders.
+type ListingOffer func(*sql.Selector)
+
 // MentionProfile is the predicate function for mentionprofile builders.
 type MentionProfile func(*sql.Selector)
 

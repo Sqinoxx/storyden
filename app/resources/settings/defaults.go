@@ -41,6 +41,10 @@ var DefaultSettings = Settings{
 			RepliesPerPage: opt.New(DefaultRepliesPerPage),
 			ThreadsPerPage: opt.New(DefaultThreadsPerPage),
 		}),
+		Market: opt.New(MarketServiceSettings{
+			ListingDurationDays: opt.New(DefaultListingDurationDays),
+			Categories:          opt.New(DefaultMarketCategories),
+		}),
 		Session: opt.New(SessionServiceSettings{
 			IdleTimeout:       opt.New(DefaultSessionIdleTimeout),
 			RememberMeDefault: opt.New(DefaultRememberMeDuration),
@@ -52,6 +56,9 @@ var DefaultSettings = Settings{
 const (
 	DefaultRepliesPerPage = 15
 	DefaultThreadsPerPage = 50
+
+	DefaultListingDurationDays = 90
+	MaxListingDurationDays     = 365
 
 	DefaultSessionIdleTimeout = time.Hour
 	DefaultRememberMeDuration = time.Hour * 24 * 30
@@ -90,6 +97,47 @@ func (s *Settings) RememberMeDuration(requested opt.Optional[time.Duration]) tim
 	}
 
 	return duration
+}
+
+// MarketEnabled reports whether the Flohmarkt is open to all members. While it
+// is in beta (unset or false) only admins and listing moderators can use it.
+func (s *Settings) MarketEnabled() bool {
+	return s.Services.OrZero().Market.OrZero().Enabled.OrZero()
+}
+
+var DefaultMarketCategories = []MarketCategory{
+	{ID: "books", Name: "Bücher & Skripten"},
+	{ID: "instruments", Name: "Instrumente & Ausrüstung"},
+	{ID: "electronics", Name: "Elektronik"},
+	{ID: "clothing", Name: "Kleidung"},
+	{ID: "furniture", Name: "Möbel & Wohnen"},
+	{ID: "tickets", Name: "Tickets"},
+	{ID: "other", Name: "Sonstiges"},
+}
+
+// MarketCategories resolves the admin-defined Flohmarkt categories, falling
+// back to the defaults when none are configured.
+func (s *Settings) MarketCategories() []MarketCategory {
+	c := s.Services.OrZero().Market.OrZero().Categories.OrZero()
+	if len(c) == 0 {
+		return DefaultMarketCategories
+	}
+	return c
+}
+
+func (s *Settings) HasMarketCategory(id string) bool {
+	for _, c := range s.MarketCategories() {
+		if c.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+// ListingDuration resolves how long a Flohmarkt listing stays visible.
+func (s *Settings) ListingDuration() time.Duration {
+	days := clampPageSize(s.Services.OrZero().Market.OrZero().ListingDurationDays, DefaultListingDurationDays, MaxListingDurationDays)
+	return time.Duration(days) * 24 * time.Hour
 }
 
 func contentSettings(s *Settings) ContentServiceSettings {

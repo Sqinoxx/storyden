@@ -85,6 +85,11 @@ export const PermissionDetails: Record<Permission, PermissionDetail> = {
     description:
       "Create, edit and remove events as well as change event hosts.",
   },
+  [Permission.MANAGE_LISTINGS]: {
+    value: Permission.MANAGE_LISTINGS,
+    name: "Manage Flohmarkt listings",
+    description: "Edit and remove any member's Flohmarkt listings.",
+  },
   [Permission.LIST_PROFILES]: {
     value: Permission.LIST_PROFILES,
     name: "Access member list",

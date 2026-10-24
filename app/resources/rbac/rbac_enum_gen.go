@@ -26,6 +26,7 @@ var (
 	PermissionSubmitLibraryNodeChanges = Permission{`SUBMIT_LIBRARY_NODE_CHANGES`}
 	PermissionUploadAsset              = Permission{`UPLOAD_ASSET`}
 	PermissionManageEvents             = Permission{`MANAGE_EVENTS`}
+	PermissionManageListings           = Permission{`MANAGE_LISTINGS`}
 	PermissionListProfiles             = Permission{`LIST_PROFILES`}
 	PermissionReadProfile              = Permission{`READ_PROFILE`}
 	PermissionCreateCollection         = Permission{`CREATE_COLLECTION`}
@@ -114,6 +115,8 @@ func NewPermission(__iNpUt__ string) (Permission, error) {
 		return PermissionUploadAsset, nil
 	case string(`MANAGE_EVENTS`):
 		return PermissionManageEvents, nil
+	case string(`MANAGE_LISTINGS`):
+		return PermissionManageListings, nil
 	case string(`LIST_PROFILES`):
 		return PermissionListProfiles, nil
 	case string(`READ_PROFILE`):

@@ -10,6 +10,7 @@ export const DatagraphKindTable: { [K in DatagraphItemKind]: string } = {
   collection: "Collection",
   profile: "Profile",
   event: "Event",
+  listing: "Listing",
 };
 
 const DatagraphKinds = Object.keys(DatagraphKindTable) as unknown as readonly [

@@ -617,7 +617,20 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 			})
 		}
 
-		if clientIP.Ok() || rateLimit.Ok() || moderation.Ok() || robots.Ok() || content.Ok() || sessionSettings.Ok() || assets.Ok() {
+		var market opt.Optional[settings.MarketServiceSettings]
+		if request.Body.Services.Market != nil {
+			categories, err := deserialiseMarketCategories(request.Body.Services.Market.Categories)
+			if err != nil {
+				return nil, fault.Wrap(err, fctx.With(ctx))
+			}
+			market = opt.New(settings.MarketServiceSettings{
+				Enabled:             opt.NewPtr(request.Body.Services.Market.Enabled),
+				ListingDurationDays: opt.NewPtr(request.Body.Services.Market.ListingDurationDays),
+				Categories:          categories,
+			})
+		}
+
+		if clientIP.Ok() || rateLimit.Ok() || moderation.Ok() || robots.Ok() || content.Ok() || sessionSettings.Ok() || assets.Ok() || market.Ok() {
 			services = opt.New(settings.ServiceSettings{
 				ClientIP:   clientIP,
 				RateLimit:  rateLimit,
@@ -626,6 +639,7 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 				Content:    content,
 				Session:    sessionSettings,
 				Assets:     assets,
+				Market:     market,
 			})
 		}
 	}
@@ -1343,7 +1357,48 @@ func serialiseServiceSettings(in settings.ServiceSettings) openapi.AdminSettings
 		Content:      opt.Map(in.Content, serialiseContentSettings).Ptr(),
 		Session:      opt.Map(in.Session, serialiseSessionSettings).Ptr(),
 		Assets:       opt.Map(in.Assets, serialiseAssetSettings).Ptr(),
+		Market:       opt.Map(in.Market, serialiseMarketSettings).Ptr(),
 	}
+}
+
+func serialiseMarketSettings(in settings.MarketServiceSettings) openapi.MarketServiceSettings {
+	return openapi.MarketServiceSettings{
+		Enabled:             in.Enabled.Ptr(),
+		ListingDurationDays: in.ListingDurationDays.Ptr(),
+		Categories:          opt.Map(in.Categories, serialiseMarketCategories).Ptr(),
+	}
+}
+
+func serialiseMarketCategories(in []settings.MarketCategory) openapi.MarketCategoryList {
+	return dt.Map(in, func(c settings.MarketCategory) openapi.MarketCategory {
+		return openapi.MarketCategory{Id: c.ID, Name: c.Name}
+	})
+}
+
+func deserialiseMarketCategories(in *openapi.MarketCategoryList) (opt.Optional[[]settings.MarketCategory], error) {
+	if in == nil {
+		return opt.NewEmpty[[]settings.MarketCategory](), nil
+	}
+	if len(*in) == 0 {
+		return opt.NewEmpty[[]settings.MarketCategory](), fault.New("at least one category is required", ftag.With(ftag.InvalidArgument))
+	}
+
+	seen := map[string]bool{}
+	out := make([]settings.MarketCategory, 0, len(*in))
+	for _, c := range *in {
+		id := strings.TrimSpace(c.Id)
+		name := strings.TrimSpace(c.Name)
+		if id == "" || name == "" {
+			return opt.NewEmpty[[]settings.MarketCategory](), fault.New("category id and name are required", ftag.With(ftag.InvalidArgument))
+		}
+		if seen[id] {
+			return opt.NewEmpty[[]settings.MarketCategory](), fault.New("duplicate category id", ftag.With(ftag.InvalidArgument))
+		}
+		seen[id] = true
+		out = append(out, settings.MarketCategory{ID: id, Name: name})
+	}
+
+	return opt.New(out), nil
 }
 
 func serialiseContentSettings(in settings.ContentServiceSettings) openapi.ContentServiceSettings {

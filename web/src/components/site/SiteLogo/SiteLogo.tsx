@@ -19,6 +19,10 @@ export function SiteLogo({ initialSettings, alt, className }: Props) {
 
   const { light, dark } = getLogoURLs(logo);
 
+  if (!light) {
+    return null;
+  }
+
   if (light === dark) {
     return <img src={light} alt={alt} className={className} />;
   }

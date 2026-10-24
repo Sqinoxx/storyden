@@ -34,4 +34,6 @@ export const NotificationEvent = {
   node_version_created: "node_version_created",
   node_version_applied: "node_version_applied",
   node_version_deleted: "node_version_deleted",
+  listing_offer_received: "listing_offer_received",
+  listing_expiring: "listing_expiring",
 } as const;

@@ -7,7 +7,13 @@ export type Route = {
   label: string;
 };
 
-type RouteName = "index" | "library" | "drive" | "admin" | "settings";
+type RouteName =
+  | "index"
+  | "library"
+  | "marketplace"
+  | "drive"
+  | "admin"
+  | "settings";
 
 function routeLabel(t: Translations, name: RouteName) {
   switch (name) {
@@ -15,6 +21,8 @@ function routeLabel(t: Translations, name: RouteName) {
       return t.nav.home;
     case "library":
       return t.nav.library;
+    case "marketplace":
+      return t.nav.marketplace;
     case "drive":
       return t.nav.drive;
     case "admin":
@@ -28,6 +36,7 @@ const mapping: Record<string, RouteName> = {
   "/": "index",
   "/d": "index",
   "/l": "library",
+  "/flohmarkt": "marketplace",
   "/drive": "drive",
   "/admin": "admin",
   "/settings": "settings",

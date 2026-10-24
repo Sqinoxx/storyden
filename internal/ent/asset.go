@@ -58,6 +58,8 @@ type AssetEdges struct {
 	Nodes []*Node `json:"nodes,omitempty"`
 	// Links holds the value of the links edge.
 	Links []*Link `json:"links,omitempty"`
+	// Listings holds the value of the listings edge.
+	Listings []*Listing `json:"listings,omitempty"`
 	// Owner holds the value of the owner edge.
 	Owner *Account `json:"owner,omitempty"`
 	// Parent holds the value of the parent edge.
@@ -70,7 +72,7 @@ type AssetEdges struct {
 	BugReports []*BugReport `json:"bug_reports,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // PostsOrErr returns the Posts value or an error if the edge
@@ -100,12 +102,21 @@ func (e AssetEdges) LinksOrErr() ([]*Link, error) {
 	return nil, &NotLoadedError{edge: "links"}
 }
 
+// ListingsOrErr returns the Listings value or an error if the edge
+// was not loaded in eager-loading.
+func (e AssetEdges) ListingsOrErr() ([]*Listing, error) {
+	if e.loadedTypes[3] {
+		return e.Listings, nil
+	}
+	return nil, &NotLoadedError{edge: "listings"}
+}
+
 // OwnerOrErr returns the Owner value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e AssetEdges) OwnerOrErr() (*Account, error) {
 	if e.Owner != nil {
 		return e.Owner, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: account.Label}
 	}
 	return nil, &NotLoadedError{edge: "owner"}
@@ -116,7 +127,7 @@ func (e AssetEdges) OwnerOrErr() (*Account, error) {
 func (e AssetEdges) ParentOrErr() (*Asset, error) {
 	if e.Parent != nil {
 		return e.Parent, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[5] {
 		return nil, &NotFoundError{label: asset.Label}
 	}
 	return nil, &NotLoadedError{edge: "parent"}
@@ -125,7 +136,7 @@ func (e AssetEdges) ParentOrErr() (*Asset, error) {
 // AssetsOrErr returns the Assets value or an error if the edge
 // was not loaded in eager-loading.
 func (e AssetEdges) AssetsOrErr() ([]*Asset, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.Assets, nil
 	}
 	return nil, &NotLoadedError{edge: "assets"}
@@ -134,7 +145,7 @@ func (e AssetEdges) AssetsOrErr() ([]*Asset, error) {
 // EventOrErr returns the Event value or an error if the edge
 // was not loaded in eager-loading.
 func (e AssetEdges) EventOrErr() ([]*Event, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.Event, nil
 	}
 	return nil, &NotLoadedError{edge: "event"}
@@ -143,7 +154,7 @@ func (e AssetEdges) EventOrErr() ([]*Event, error) {
 // BugReportsOrErr returns the BugReports value or an error if the edge
 // was not loaded in eager-loading.
 func (e AssetEdges) BugReportsOrErr() ([]*BugReport, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.BugReports, nil
 	}
 	return nil, &NotLoadedError{edge: "bug_reports"}
@@ -291,6 +302,11 @@ func (_m *Asset) QueryNodes() *NodeQuery {
 // QueryLinks queries the "links" edge of the Asset entity.
 func (_m *Asset) QueryLinks() *LinkQuery {
 	return NewAssetClient(_m.config).QueryLinks(_m)
+}
+
+// QueryListings queries the "listings" edge of the Asset entity.
+func (_m *Asset) QueryListings() *ListingQuery {
+	return NewAssetClient(_m.config).QueryListings(_m)
 }
 
 // QueryOwner queries the "owner" edge of the Asset entity.

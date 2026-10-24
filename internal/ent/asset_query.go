@@ -17,6 +17,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/bugreport"
 	"github.com/Southclaws/storyden/internal/ent/event"
 	"github.com/Southclaws/storyden/internal/ent/link"
+	"github.com/Southclaws/storyden/internal/ent/listing"
 	"github.com/Southclaws/storyden/internal/ent/node"
 	"github.com/Southclaws/storyden/internal/ent/post"
 	"github.com/Southclaws/storyden/internal/ent/predicate"
@@ -33,6 +34,7 @@ type AssetQuery struct {
 	withPosts      *PostQuery
 	withNodes      *NodeQuery
 	withLinks      *LinkQuery
+	withListings   *ListingQuery
 	withOwner      *AccountQuery
 	withParent     *AssetQuery
 	withAssets     *AssetQuery
@@ -134,6 +136,28 @@ func (_q *AssetQuery) QueryLinks() *LinkQuery {
 			sqlgraph.From(asset.Table, asset.FieldID, selector),
 			sqlgraph.To(link.Table, link.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, asset.LinksTable, asset.LinksPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryListings chains the current query on the "listings" edge.
+func (_q *AssetQuery) QueryListings() *ListingQuery {
+	query := (&ListingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(asset.Table, asset.FieldID, selector),
+			sqlgraph.To(listing.Table, listing.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, asset.ListingsTable, asset.ListingsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -446,6 +470,7 @@ func (_q *AssetQuery) Clone() *AssetQuery {
 		withPosts:      _q.withPosts.Clone(),
 		withNodes:      _q.withNodes.Clone(),
 		withLinks:      _q.withLinks.Clone(),
+		withListings:   _q.withListings.Clone(),
 		withOwner:      _q.withOwner.Clone(),
 		withParent:     _q.withParent.Clone(),
 		withAssets:     _q.withAssets.Clone(),
@@ -488,6 +513,17 @@ func (_q *AssetQuery) WithLinks(opts ...func(*LinkQuery)) *AssetQuery {
 		opt(query)
 	}
 	_q.withLinks = query
+	return _q
+}
+
+// WithListings tells the query-builder to eager-load the nodes that are connected to
+// the "listings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AssetQuery) WithListings(opts ...func(*ListingQuery)) *AssetQuery {
+	query := (&ListingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withListings = query
 	return _q
 }
 
@@ -624,10 +660,11 @@ func (_q *AssetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Asset,
 	var (
 		nodes       = []*Asset{}
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			_q.withPosts != nil,
 			_q.withNodes != nil,
 			_q.withLinks != nil,
+			_q.withListings != nil,
 			_q.withOwner != nil,
 			_q.withParent != nil,
 			_q.withAssets != nil,
@@ -674,6 +711,13 @@ func (_q *AssetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Asset,
 		if err := _q.loadLinks(ctx, query, nodes,
 			func(n *Asset) { n.Edges.Links = []*Link{} },
 			func(n *Asset, e *Link) { n.Edges.Links = append(n.Edges.Links, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withListings; query != nil {
+		if err := _q.loadListings(ctx, query, nodes,
+			func(n *Asset) { n.Edges.Listings = []*Listing{} },
+			func(n *Asset, e *Listing) { n.Edges.Listings = append(n.Edges.Listings, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -889,6 +933,67 @@ func (_q *AssetQuery) loadLinks(ctx context.Context, query *LinkQuery, nodes []*
 		nodes, ok := nids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected "links" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *AssetQuery) loadListings(ctx context.Context, query *ListingQuery, nodes []*Asset, init func(*Asset), assign func(*Asset, *Listing)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[xid.ID]*Asset)
+	nids := make(map[xid.ID]map[*Asset]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(asset.ListingsTable)
+		s.Join(joinT).On(s.C(listing.FieldID), joinT.C(asset.ListingsPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(asset.ListingsPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(asset.ListingsPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(xid.ID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*xid.ID)
+				inValue := *values[1].(*xid.ID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Asset]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Listing](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "listings" node returned %v`, n.ID)
 		}
 		for kn := range nodes {
 			assign(kn, n)

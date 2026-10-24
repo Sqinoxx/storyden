@@ -25,6 +25,9 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/eventparticipant"
 	"github.com/Southclaws/storyden/internal/ent/invitation"
 	"github.com/Southclaws/storyden/internal/ent/likepost"
+	"github.com/Southclaws/storyden/internal/ent/listing"
+	"github.com/Southclaws/storyden/internal/ent/listingfavourite"
+	"github.com/Southclaws/storyden/internal/ent/listingoffer"
 	"github.com/Southclaws/storyden/internal/ent/mentionprofile"
 	"github.com/Southclaws/storyden/internal/ent/moderationnote"
 	"github.com/Southclaws/storyden/internal/ent/node"
@@ -211,6 +214,20 @@ func (_c *AccountCreate) SetLinks(v []schema.ExternalLink) *AccountCreate {
 // SetMetadata sets the "metadata" field.
 func (_c *AccountCreate) SetMetadata(v map[string]interface{}) *AccountCreate {
 	_c.mutation.SetMetadata(v)
+	return _c
+}
+
+// SetPhone sets the "phone" field.
+func (_c *AccountCreate) SetPhone(v string) *AccountCreate {
+	_c.mutation.SetPhone(v)
+	return _c
+}
+
+// SetNillablePhone sets the "phone" field if the given value is not nil.
+func (_c *AccountCreate) SetNillablePhone(v *string) *AccountCreate {
+	if v != nil {
+		_c.SetPhone(*v)
+	}
 	return _c
 }
 
@@ -907,6 +924,51 @@ func (_c *AccountCreate) AddRobotMessages(v ...*RobotSessionMessage) *AccountCre
 	return _c.AddRobotMessageIDs(ids...)
 }
 
+// AddListingIDs adds the "listings" edge to the Listing entity by IDs.
+func (_c *AccountCreate) AddListingIDs(ids ...xid.ID) *AccountCreate {
+	_c.mutation.AddListingIDs(ids...)
+	return _c
+}
+
+// AddListings adds the "listings" edges to the Listing entity.
+func (_c *AccountCreate) AddListings(v ...*Listing) *AccountCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddListingIDs(ids...)
+}
+
+// AddListingOfferIDs adds the "listing_offers" edge to the ListingOffer entity by IDs.
+func (_c *AccountCreate) AddListingOfferIDs(ids ...xid.ID) *AccountCreate {
+	_c.mutation.AddListingOfferIDs(ids...)
+	return _c
+}
+
+// AddListingOffers adds the "listing_offers" edges to the ListingOffer entity.
+func (_c *AccountCreate) AddListingOffers(v ...*ListingOffer) *AccountCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddListingOfferIDs(ids...)
+}
+
+// AddListingFavouriteIDs adds the "listing_favourites" edge to the ListingFavourite entity by IDs.
+func (_c *AccountCreate) AddListingFavouriteIDs(ids ...xid.ID) *AccountCreate {
+	_c.mutation.AddListingFavouriteIDs(ids...)
+	return _c
+}
+
+// AddListingFavourites adds the "listing_favourites" edges to the ListingFavourite entity.
+func (_c *AccountCreate) AddListingFavourites(v ...*ListingFavourite) *AccountCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddListingFavouriteIDs(ids...)
+}
+
 // AddAccountRoleIDs adds the "account_roles" edge to the AccountRoles entity by IDs.
 func (_c *AccountCreate) AddAccountRoleIDs(ids ...xid.ID) *AccountCreate {
 	_c.mutation.AddAccountRoleIDs(ids...)
@@ -1118,6 +1180,10 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Metadata(); ok {
 		_spec.SetField(account.FieldMetadata, field.TypeJSON, value)
 		_node.Metadata = value
+	}
+	if value, ok := _c.mutation.Phone(); ok {
+		_spec.SetField(account.FieldPhone, field.TypeString, value)
+		_node.Phone = &value
 	}
 	if nodes := _c.mutation.SessionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1847,6 +1913,54 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.ListingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingsTable,
+			Columns: []string{account.ListingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ListingOffersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingOffersTable,
+			Columns: []string{account.ListingOffersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingoffer.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ListingFavouritesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.ListingFavouritesTable,
+			Columns: []string{account.ListingFavouritesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listingfavourite.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.AccountRolesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -2092,6 +2206,24 @@ func (u *AccountUpsert) UpdateMetadata() *AccountUpsert {
 // ClearMetadata clears the value of the "metadata" field.
 func (u *AccountUpsert) ClearMetadata() *AccountUpsert {
 	u.SetNull(account.FieldMetadata)
+	return u
+}
+
+// SetPhone sets the "phone" field.
+func (u *AccountUpsert) SetPhone(v string) *AccountUpsert {
+	u.Set(account.FieldPhone, v)
+	return u
+}
+
+// UpdatePhone sets the "phone" field to the value that was provided on create.
+func (u *AccountUpsert) UpdatePhone() *AccountUpsert {
+	u.SetExcluded(account.FieldPhone)
+	return u
+}
+
+// ClearPhone clears the value of the "phone" field.
+func (u *AccountUpsert) ClearPhone() *AccountUpsert {
+	u.SetNull(account.FieldPhone)
 	return u
 }
 
@@ -2371,6 +2503,27 @@ func (u *AccountUpsertOne) UpdateMetadata() *AccountUpsertOne {
 func (u *AccountUpsertOne) ClearMetadata() *AccountUpsertOne {
 	return u.Update(func(s *AccountUpsert) {
 		s.ClearMetadata()
+	})
+}
+
+// SetPhone sets the "phone" field.
+func (u *AccountUpsertOne) SetPhone(v string) *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetPhone(v)
+	})
+}
+
+// UpdatePhone sets the "phone" field to the value that was provided on create.
+func (u *AccountUpsertOne) UpdatePhone() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdatePhone()
+	})
+}
+
+// ClearPhone clears the value of the "phone" field.
+func (u *AccountUpsertOne) ClearPhone() *AccountUpsertOne {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearPhone()
 	})
 }
 
@@ -2820,6 +2973,27 @@ func (u *AccountUpsertBulk) UpdateMetadata() *AccountUpsertBulk {
 func (u *AccountUpsertBulk) ClearMetadata() *AccountUpsertBulk {
 	return u.Update(func(s *AccountUpsert) {
 		s.ClearMetadata()
+	})
+}
+
+// SetPhone sets the "phone" field.
+func (u *AccountUpsertBulk) SetPhone(v string) *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.SetPhone(v)
+	})
+}
+
+// UpdatePhone sets the "phone" field to the value that was provided on create.
+func (u *AccountUpsertBulk) UpdatePhone() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.UpdatePhone()
+	})
+}
+
+// ClearPhone clears the value of the "phone" field.
+func (u *AccountUpsertBulk) ClearPhone() *AccountUpsertBulk {
+	return u.Update(func(s *AccountUpsert) {
+		s.ClearPhone()
 	})
 }
 

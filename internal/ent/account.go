@@ -47,6 +47,8 @@ type Account struct {
 	Links []schema.ExternalLink `json:"links,omitempty"`
 	// Metadata holds the value of the "metadata" field.
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	// Phone holds the value of the "phone" field.
+	Phone *string `json:"-"`
 	// InvitedByID holds the value of the "invited_by_id" field.
 	InvitedByID *xid.ID `json:"invited_by_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -147,11 +149,17 @@ type AccountEdges struct {
 	RobotSessions []*RobotSession `json:"robot_sessions,omitempty"`
 	// RobotMessages holds the value of the robot_messages edge.
 	RobotMessages []*RobotSessionMessage `json:"robot_messages,omitempty"`
+	// Listings holds the value of the listings edge.
+	Listings []*Listing `json:"listings,omitempty"`
+	// ListingOffers holds the value of the listing_offers edge.
+	ListingOffers []*ListingOffer `json:"listing_offers,omitempty"`
+	// ListingFavourites holds the value of the listing_favourites edge.
+	ListingFavourites []*ListingFavourite `json:"listing_favourites,omitempty"`
 	// AccountRoles holds the value of the account_roles edge.
 	AccountRoles []*AccountRoles `json:"account_roles,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [46]bool
+	loadedTypes [49]bool
 }
 
 // SessionsOrErr returns the Sessions value or an error if the edge
@@ -561,10 +569,37 @@ func (e AccountEdges) RobotMessagesOrErr() ([]*RobotSessionMessage, error) {
 	return nil, &NotLoadedError{edge: "robot_messages"}
 }
 
+// ListingsOrErr returns the Listings value or an error if the edge
+// was not loaded in eager-loading.
+func (e AccountEdges) ListingsOrErr() ([]*Listing, error) {
+	if e.loadedTypes[45] {
+		return e.Listings, nil
+	}
+	return nil, &NotLoadedError{edge: "listings"}
+}
+
+// ListingOffersOrErr returns the ListingOffers value or an error if the edge
+// was not loaded in eager-loading.
+func (e AccountEdges) ListingOffersOrErr() ([]*ListingOffer, error) {
+	if e.loadedTypes[46] {
+		return e.ListingOffers, nil
+	}
+	return nil, &NotLoadedError{edge: "listing_offers"}
+}
+
+// ListingFavouritesOrErr returns the ListingFavourites value or an error if the edge
+// was not loaded in eager-loading.
+func (e AccountEdges) ListingFavouritesOrErr() ([]*ListingFavourite, error) {
+	if e.loadedTypes[47] {
+		return e.ListingFavourites, nil
+	}
+	return nil, &NotLoadedError{edge: "listing_favourites"}
+}
+
 // AccountRolesOrErr returns the AccountRoles value or an error if the edge
 // was not loaded in eager-loading.
 func (e AccountEdges) AccountRolesOrErr() ([]*AccountRoles, error) {
-	if e.loadedTypes[45] {
+	if e.loadedTypes[48] {
 		return e.AccountRoles, nil
 	}
 	return nil, &NotLoadedError{edge: "account_roles"}
@@ -581,7 +616,7 @@ func (*Account) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case account.FieldAdmin:
 			values[i] = new(sql.NullBool)
-		case account.FieldHandle, account.FieldName, account.FieldBio, account.FieldSignature, account.FieldKind, account.FieldVerifiedStatus:
+		case account.FieldHandle, account.FieldName, account.FieldBio, account.FieldSignature, account.FieldKind, account.FieldVerifiedStatus, account.FieldPhone:
 			values[i] = new(sql.NullString)
 		case account.FieldCreatedAt, account.FieldUpdatedAt, account.FieldDeletedAt, account.FieldIndexedAt:
 			values[i] = new(sql.NullTime)
@@ -692,6 +727,13 @@ func (_m *Account) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &_m.Metadata); err != nil {
 					return fmt.Errorf("unmarshal field metadata: %w", err)
 				}
+			}
+		case account.FieldPhone:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field phone", values[i])
+			} else if value.Valid {
+				_m.Phone = new(string)
+				*_m.Phone = value.String
 			}
 		case account.FieldInvitedByID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -938,6 +980,21 @@ func (_m *Account) QueryRobotMessages() *RobotSessionMessageQuery {
 	return NewAccountClient(_m.config).QueryRobotMessages(_m)
 }
 
+// QueryListings queries the "listings" edge of the Account entity.
+func (_m *Account) QueryListings() *ListingQuery {
+	return NewAccountClient(_m.config).QueryListings(_m)
+}
+
+// QueryListingOffers queries the "listing_offers" edge of the Account entity.
+func (_m *Account) QueryListingOffers() *ListingOfferQuery {
+	return NewAccountClient(_m.config).QueryListingOffers(_m)
+}
+
+// QueryListingFavourites queries the "listing_favourites" edge of the Account entity.
+func (_m *Account) QueryListingFavourites() *ListingFavouriteQuery {
+	return NewAccountClient(_m.config).QueryListingFavourites(_m)
+}
+
 // QueryAccountRoles queries the "account_roles" edge of the Account entity.
 func (_m *Account) QueryAccountRoles() *AccountRolesQuery {
 	return NewAccountClient(_m.config).QueryAccountRoles(_m)
@@ -1010,6 +1067,8 @@ func (_m *Account) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("metadata=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Metadata))
+	builder.WriteString(", ")
+	builder.WriteString("phone=<sensitive>")
 	builder.WriteString(", ")
 	if v := _m.InvitedByID; v != nil {
 		builder.WriteString("invited_by_id=")

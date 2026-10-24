@@ -12,4 +12,5 @@ const (
 	kindCollection kindEnum = "collection"
 	kindProfile    kindEnum = "profile"
 	kindEvent      kindEnum = "event"
+	kindListing    kindEnum = "listing"
 )

@@ -70,6 +70,7 @@ export const writePermissions = [
   Permission.SUBMIT_LIBRARY_NODE,
   Permission.UPLOAD_ASSET,
   Permission.MANAGE_EVENTS,
+  Permission.MANAGE_LISTINGS,
   Permission.CREATE_COLLECTION,
   Permission.MANAGE_COLLECTIONS,
   Permission.COLLECTION_SUBMIT,

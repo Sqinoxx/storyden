@@ -42,6 +42,8 @@ const (
 	FieldLinks = "links"
 	// FieldMetadata holds the string denoting the metadata field in the database.
 	FieldMetadata = "metadata"
+	// FieldPhone holds the string denoting the phone field in the database.
+	FieldPhone = "phone"
 	// FieldInvitedByID holds the string denoting the invited_by_id field in the database.
 	FieldInvitedByID = "invited_by_id"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
@@ -134,6 +136,12 @@ const (
 	EdgeRobotSessions = "robot_sessions"
 	// EdgeRobotMessages holds the string denoting the robot_messages edge name in mutations.
 	EdgeRobotMessages = "robot_messages"
+	// EdgeListings holds the string denoting the listings edge name in mutations.
+	EdgeListings = "listings"
+	// EdgeListingOffers holds the string denoting the listing_offers edge name in mutations.
+	EdgeListingOffers = "listing_offers"
+	// EdgeListingFavourites holds the string denoting the listing_favourites edge name in mutations.
+	EdgeListingFavourites = "listing_favourites"
 	// EdgeAccountRoles holds the string denoting the account_roles edge name in mutations.
 	EdgeAccountRoles = "account_roles"
 	// Table holds the table name of the account in the database.
@@ -449,6 +457,27 @@ const (
 	RobotMessagesInverseTable = "robot_session_messages"
 	// RobotMessagesColumn is the table column denoting the robot_messages relation/edge.
 	RobotMessagesColumn = "account_id"
+	// ListingsTable is the table that holds the listings relation/edge.
+	ListingsTable = "listings"
+	// ListingsInverseTable is the table name for the Listing entity.
+	// It exists in this package in order to avoid circular dependency with the "listing" package.
+	ListingsInverseTable = "listings"
+	// ListingsColumn is the table column denoting the listings relation/edge.
+	ListingsColumn = "account_id"
+	// ListingOffersTable is the table that holds the listing_offers relation/edge.
+	ListingOffersTable = "listing_offers"
+	// ListingOffersInverseTable is the table name for the ListingOffer entity.
+	// It exists in this package in order to avoid circular dependency with the "listingoffer" package.
+	ListingOffersInverseTable = "listing_offers"
+	// ListingOffersColumn is the table column denoting the listing_offers relation/edge.
+	ListingOffersColumn = "account_id"
+	// ListingFavouritesTable is the table that holds the listing_favourites relation/edge.
+	ListingFavouritesTable = "listing_favourites"
+	// ListingFavouritesInverseTable is the table name for the ListingFavourite entity.
+	// It exists in this package in order to avoid circular dependency with the "listingfavourite" package.
+	ListingFavouritesInverseTable = "listing_favourites"
+	// ListingFavouritesColumn is the table column denoting the listing_favourites relation/edge.
+	ListingFavouritesColumn = "account_id"
 	// AccountRolesTable is the table that holds the account_roles relation/edge.
 	AccountRolesTable = "account_roles"
 	// AccountRolesInverseTable is the table name for the AccountRoles entity.
@@ -474,6 +503,7 @@ var Columns = []string{
 	FieldAdmin,
 	FieldLinks,
 	FieldMetadata,
+	FieldPhone,
 	FieldInvitedByID,
 }
 
@@ -629,6 +659,11 @@ func ByVerifiedStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByAdmin orders the results by the admin field.
 func ByAdmin(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAdmin, opts...).ToFunc()
+}
+
+// ByPhone orders the results by the phone field.
+func ByPhone(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPhone, opts...).ToFunc()
 }
 
 // ByInvitedByID orders the results by the invited_by_id field.
@@ -1259,6 +1294,48 @@ func ByRobotMessages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByListingsCount orders the results by listings count.
+func ByListingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newListingsStep(), opts...)
+	}
+}
+
+// ByListings orders the results by listings terms.
+func ByListings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newListingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByListingOffersCount orders the results by listing_offers count.
+func ByListingOffersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newListingOffersStep(), opts...)
+	}
+}
+
+// ByListingOffers orders the results by listing_offers terms.
+func ByListingOffers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newListingOffersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByListingFavouritesCount orders the results by listing_favourites count.
+func ByListingFavouritesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newListingFavouritesStep(), opts...)
+	}
+}
+
+// ByListingFavourites orders the results by listing_favourites terms.
+func ByListingFavourites(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newListingFavouritesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAccountRolesCount orders the results by account_roles count.
 func ByAccountRolesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1585,6 +1662,27 @@ func newRobotMessagesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RobotMessagesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, RobotMessagesTable, RobotMessagesColumn),
+	)
+}
+func newListingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ListingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ListingsTable, ListingsColumn),
+	)
+}
+func newListingOffersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ListingOffersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ListingOffersTable, ListingOffersColumn),
+	)
+}
+func newListingFavouritesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ListingFavouritesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ListingFavouritesTable, ListingFavouritesColumn),
 	)
 }
 func newAccountRolesStep() *sqlgraph.Step {

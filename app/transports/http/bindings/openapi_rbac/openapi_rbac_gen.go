@@ -135,6 +135,9 @@ type OperationPermissions interface {
 	AccountAuthMethodDelete() (bool, *rbac.Permission)
 	AccountEmailAdd() (bool, *rbac.Permission)
 	AccountEmailRemove() (bool, *rbac.Permission)
+	AccountPhoneGet() (bool, *rbac.Permission)
+	AccountPhoneSet() (bool, *rbac.Permission)
+	AccountPhoneRemove() (bool, *rbac.Permission)
 	AccountSetAvatar() (bool, *rbac.Permission)
 	AccountGetAvatar() (bool, *rbac.Permission)
 	AccountAddRole() (bool, *rbac.Permission)
@@ -237,6 +240,17 @@ type OperationPermissions interface {
 	EventDelete() (bool, *rbac.Permission)
 	EventParticipantUpdate() (bool, *rbac.Permission)
 	EventParticipantRemove() (bool, *rbac.Permission)
+	ListingList() (bool, *rbac.Permission)
+	ListingCreate() (bool, *rbac.Permission)
+	ListingGet() (bool, *rbac.Permission)
+	ListingUpdate() (bool, *rbac.Permission)
+	ListingDelete() (bool, *rbac.Permission)
+	ListingRenew() (bool, *rbac.Permission)
+	ListingOfferSubmit() (bool, *rbac.Permission)
+	ListingContactGet() (bool, *rbac.Permission)
+	ListingOfferList() (bool, *rbac.Permission)
+	ListingFavouriteAdd() (bool, *rbac.Permission)
+	ListingFavouriteRemove() (bool, *rbac.Permission)
 	RobotsList() (bool, *rbac.Permission)
 	RobotCreate() (bool, *rbac.Permission)
 	RobotToolsList() (bool, *rbac.Permission)
@@ -534,6 +548,12 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.AccountEmailAdd()
 	case "AccountEmailRemove":
 		return optable.AccountEmailRemove()
+	case "AccountPhoneGet":
+		return optable.AccountPhoneGet()
+	case "AccountPhoneSet":
+		return optable.AccountPhoneSet()
+	case "AccountPhoneRemove":
+		return optable.AccountPhoneRemove()
 	case "AccountSetAvatar":
 		return optable.AccountSetAvatar()
 	case "AccountGetAvatar":
@@ -738,6 +758,28 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.EventParticipantUpdate()
 	case "EventParticipantRemove":
 		return optable.EventParticipantRemove()
+	case "ListingList":
+		return optable.ListingList()
+	case "ListingCreate":
+		return optable.ListingCreate()
+	case "ListingGet":
+		return optable.ListingGet()
+	case "ListingUpdate":
+		return optable.ListingUpdate()
+	case "ListingDelete":
+		return optable.ListingDelete()
+	case "ListingRenew":
+		return optable.ListingRenew()
+	case "ListingOfferSubmit":
+		return optable.ListingOfferSubmit()
+	case "ListingContactGet":
+		return optable.ListingContactGet()
+	case "ListingOfferList":
+		return optable.ListingOfferList()
+	case "ListingFavouriteAdd":
+		return optable.ListingFavouriteAdd()
+	case "ListingFavouriteRemove":
+		return optable.ListingFavouriteRemove()
 	case "RobotsList":
 		return optable.RobotsList()
 	case "RobotCreate":

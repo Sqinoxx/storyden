@@ -1073,3 +1073,59 @@ func (m *Mapping) TagDelete() (bool, *rbac.Permission) {
 func (m *Mapping) TagUpdate() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManagePosts
 }
+
+func (m *Mapping) AccountPhoneGet() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) AccountPhoneSet() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) AccountPhoneRemove() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) ListingList() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) ListingCreate() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) ListingGet() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) ListingUpdate() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) ListingDelete() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) ListingRenew() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) ListingOfferSubmit() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) ListingContactGet() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) ListingOfferList() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) ListingFavouriteAdd() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) ListingFavouriteRemove() (bool, *rbac.Permission) {
+	return true, nil
+}

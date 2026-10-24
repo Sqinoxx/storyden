@@ -10,6 +10,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 import type { AssetServiceSettings } from "./assetServiceSettings";
 import type { ClientIPServiceSettings } from "./clientIPServiceSettings";
 import type { ContentServiceSettings } from "./contentServiceSettings";
+import type { MarketServiceSettings } from "./marketServiceSettings";
 import type { ModerationServiceSettings } from "./moderationServiceSettings";
 import type { RateLimitServiceSettings } from "./rateLimitServiceSettings";
 import type { RobotServiceSettings } from "./robotServiceSettings";
@@ -19,6 +20,7 @@ export interface AdminSettingsServiceProps {
   assets?: AssetServiceSettings;
   client_ip?: ClientIPServiceSettings;
   content?: ContentServiceSettings;
+  market?: MarketServiceSettings;
   moderation?: ModerationServiceSettings;
   rate_limiting?: RateLimitServiceSettings;
   robots?: RobotServiceSettings;

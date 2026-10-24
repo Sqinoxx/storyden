@@ -121,16 +121,28 @@ export function LogoEditor() {
             borderColor="border.subtle"
             bg={variant === "light" ? "white" : "black"}
           >
-            <img
-              src={urls[variant]}
-              alt={`${label} logo`}
-              className={css({
-                h: "16",
-                w: "auto",
-                maxW: "full",
-                objectFit: "contain",
-              })}
-            />
+            {urls[variant] ? (
+              <img
+                src={urls[variant]}
+                alt={`${label} logo`}
+                className={css({
+                  h: "16",
+                  w: "auto",
+                  maxW: "full",
+                  objectFit: "contain",
+                })}
+              />
+            ) : (
+              <styled.span
+                display="flex"
+                h="16"
+                alignItems="center"
+                fontSize="sm"
+                color="fg.subtle"
+              >
+                No logo
+              </styled.span>
+            )}
           </Box>
 
           <HStack>

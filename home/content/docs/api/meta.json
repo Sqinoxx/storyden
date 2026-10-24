@@ -13,6 +13,7 @@
     "invitations",
     "notifications",
     "reports",
+    "bug_reports",
     "profiles",
     "categories",
     "tags",
@@ -26,6 +27,7 @@
     "links",
     "datagraph",
     "events",
+    "listings",
     "robots",
     "drive"
   ]

@@ -26,10 +26,16 @@ function usePresenceLabels() {
       ? t.presence.inCategory.replace("{count}", String(inCategory))
       : undefined;
   const description = [
-    t.presence.onlineDescription.replace("{count}", String(online)),
+    (online === 1
+      ? t.presence.onlineDescriptionOne
+      : t.presence.onlineDescription
+    ).replace("{count}", String(online)),
     showCategory &&
       (inCategory > 0
-        ? t.presence.inCategoryDescription
+        ? (inCategory === 1
+            ? t.presence.inCategoryDescriptionOne
+            : t.presence.inCategoryDescription
+          )
             .replace("{count}", String(inCategory))
             .replace("{name}", category.name)
         : t.presence.inCategoryAlone.replace("{name}", category.name)),

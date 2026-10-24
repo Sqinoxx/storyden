@@ -35,6 +35,7 @@ var writePermissions = []Permission{
 	PermissionSubmitLibraryNodeChanges,
 	PermissionUploadAsset,
 	PermissionManageEvents,
+	PermissionManageListings,
 	PermissionCreateCollection,
 	PermissionManageCollections,
 	PermissionCollectionSubmit,

@@ -42,6 +42,7 @@ func (Account) Fields() []ent.Field {
 		field.Bool("admin").Default(false),
 		field.JSON("links", []ExternalLink{}).Optional(),
 		field.JSON("metadata", map[string]any{}).Optional(),
+		field.String("phone").Optional().Nillable().Sensitive(),
 
 		field.String("invited_by_id").
 			GoType(xid.ID{}).
@@ -189,5 +190,14 @@ func (Account) Edges() []ent.Edge {
 
 		edge.To("robot_messages", RobotSessionMessage.Type).
 			Annotations(entsql.OnDelete(entsql.SetNull)),
+
+		edge.To("listings", Listing.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
+
+		edge.To("listing_offers", ListingOffer.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
+
+		edge.To("listing_favourites", ListingFavourite.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

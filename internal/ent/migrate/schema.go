@@ -24,6 +24,7 @@ var (
 		{Name: "admin", Type: field.TypeBool, Default: false},
 		{Name: "links", Type: field.TypeJSON, Nullable: true},
 		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "phone", Type: field.TypeString, Nullable: true},
 		{Name: "invited_by_id", Type: field.TypeString, Nullable: true, Size: 20},
 	}
 	// AccountsTable holds the schema information for the "accounts" table.
@@ -34,7 +35,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "accounts_invitations_invited",
-				Columns:    []*schema.Column{AccountsColumns[14]},
+				Columns:    []*schema.Column{AccountsColumns[15]},
 				RefColumns: []*schema.Column{InvitationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -666,6 +667,128 @@ var (
 				Columns:    []*schema.Column{LinksColumns[8]},
 				RefColumns: []*schema.Column{AssetsColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// ListingsColumns holds the columns for the "listings" table.
+	ListingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 20},
+		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Size: 2147483647},
+		{Name: "price_cents", Type: field.TypeInt, Default: 0},
+		{Name: "price_type", Type: field.TypeEnum, Enums: []string{"fixed", "negotiable", "free"}, Default: "negotiable"},
+		{Name: "category", Type: field.TypeString, Default: "other"},
+		{Name: "condition", Type: field.TypeEnum, Enums: []string{"new", "like_new", "used", "defective"}, Default: "used"},
+		{Name: "location", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "reserved", "sold"}, Default: "active"},
+		{Name: "asset_order", Type: field.TypeJSON, Nullable: true},
+		{Name: "expiry_notified_at", Type: field.TypeTime, Nullable: true},
+		{Name: "account_id", Type: field.TypeString, Size: 20},
+	}
+	// ListingsTable holds the schema information for the "listings" table.
+	ListingsTable = &schema.Table{
+		Name:       "listings",
+		Columns:    ListingsColumns,
+		PrimaryKey: []*schema.Column{ListingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "listings_accounts_listings",
+				Columns:    []*schema.Column{ListingsColumns[16]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "listing_slug",
+				Unique:  true,
+				Columns: []*schema.Column{ListingsColumns[6]},
+			},
+			{
+				Name:    "listing_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{ListingsColumns[4]},
+			},
+			{
+				Name:    "listing_category",
+				Unique:  false,
+				Columns: []*schema.Column{ListingsColumns[10]},
+			},
+		},
+	}
+	// ListingFavouritesColumns holds the columns for the "listing_favourites" table.
+	ListingFavouritesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 20},
+		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},
+		{Name: "account_id", Type: field.TypeString, Size: 20},
+		{Name: "listing_id", Type: field.TypeString, Size: 20},
+	}
+	// ListingFavouritesTable holds the schema information for the "listing_favourites" table.
+	ListingFavouritesTable = &schema.Table{
+		Name:       "listing_favourites",
+		Columns:    ListingFavouritesColumns,
+		PrimaryKey: []*schema.Column{ListingFavouritesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "listing_favourites_accounts_listing_favourites",
+				Columns:    []*schema.Column{ListingFavouritesColumns[2]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "listing_favourites_listings_favourites",
+				Columns:    []*schema.Column{ListingFavouritesColumns[3]},
+				RefColumns: []*schema.Column{ListingsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "unique_listing_favourite",
+				Unique:  true,
+				Columns: []*schema.Column{ListingFavouritesColumns[3], ListingFavouritesColumns[2]},
+			},
+		},
+	}
+	// ListingOffersColumns holds the columns for the "listing_offers" table.
+	ListingOffersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 20},
+		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "amount_cents", Type: field.TypeInt},
+		{Name: "message", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "account_id", Type: field.TypeString, Size: 20},
+		{Name: "listing_id", Type: field.TypeString, Size: 20},
+	}
+	// ListingOffersTable holds the schema information for the "listing_offers" table.
+	ListingOffersTable = &schema.Table{
+		Name:       "listing_offers",
+		Columns:    ListingOffersColumns,
+		PrimaryKey: []*schema.Column{ListingOffersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "listing_offers_accounts_listing_offers",
+				Columns:    []*schema.Column{ListingOffersColumns[5]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "listing_offers_listings_offers",
+				Columns:    []*schema.Column{ListingOffersColumns[6]},
+				RefColumns: []*schema.Column{ListingsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "unique_listing_offer",
+				Unique:  true,
+				Columns: []*schema.Column{ListingOffersColumns[6], ListingOffersColumns[5]},
 			},
 		},
 	}
@@ -2004,6 +2127,31 @@ var (
 			},
 		},
 	}
+	// ListingAssetsColumns holds the columns for the "listing_assets" table.
+	ListingAssetsColumns = []*schema.Column{
+		{Name: "listing_id", Type: field.TypeString, Size: 20},
+		{Name: "asset_id", Type: field.TypeString, Size: 20},
+	}
+	// ListingAssetsTable holds the schema information for the "listing_assets" table.
+	ListingAssetsTable = &schema.Table{
+		Name:       "listing_assets",
+		Columns:    ListingAssetsColumns,
+		PrimaryKey: []*schema.Column{ListingAssetsColumns[0], ListingAssetsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "listing_assets_listing_id",
+				Columns:    []*schema.Column{ListingAssetsColumns[0]},
+				RefColumns: []*schema.Column{ListingsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "listing_assets_asset_id",
+				Columns:    []*schema.Column{ListingAssetsColumns[1]},
+				RefColumns: []*schema.Column{AssetsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// NodeAssetsColumns holds the columns for the "node_assets" table.
 	NodeAssetsColumns = []*schema.Column{
 		{Name: "node_id", Type: field.TypeString, Size: 20},
@@ -2125,6 +2273,9 @@ var (
 		InvitationsTable,
 		LikePostsTable,
 		LinksTable,
+		ListingsTable,
+		ListingFavouritesTable,
+		ListingOffersTable,
 		MentionProfilesTable,
 		ModerationNotesTable,
 		NodesTable,
@@ -2164,6 +2315,7 @@ var (
 		LinkPostContentReferencesTable,
 		LinkNodeContentReferencesTable,
 		LinkAssetsTable,
+		ListingAssetsTable,
 		NodeAssetsTable,
 		PostAssetsTable,
 		TagPostsTable,
@@ -2202,6 +2354,11 @@ func init() {
 	LikePostsTable.ForeignKeys[1].RefTable = PostsTable
 	LinksTable.ForeignKeys[0].RefTable = AssetsTable
 	LinksTable.ForeignKeys[1].RefTable = AssetsTable
+	ListingsTable.ForeignKeys[0].RefTable = AccountsTable
+	ListingFavouritesTable.ForeignKeys[0].RefTable = AccountsTable
+	ListingFavouritesTable.ForeignKeys[1].RefTable = ListingsTable
+	ListingOffersTable.ForeignKeys[0].RefTable = AccountsTable
+	ListingOffersTable.ForeignKeys[1].RefTable = ListingsTable
 	MentionProfilesTable.ForeignKeys[0].RefTable = AccountsTable
 	MentionProfilesTable.ForeignKeys[1].RefTable = PostsTable
 	ModerationNotesTable.ForeignKeys[0].RefTable = AccountsTable
@@ -2270,6 +2427,8 @@ func init() {
 	LinkNodeContentReferencesTable.ForeignKeys[1].RefTable = NodesTable
 	LinkAssetsTable.ForeignKeys[0].RefTable = LinksTable
 	LinkAssetsTable.ForeignKeys[1].RefTable = AssetsTable
+	ListingAssetsTable.ForeignKeys[0].RefTable = ListingsTable
+	ListingAssetsTable.ForeignKeys[1].RefTable = AssetsTable
 	NodeAssetsTable.ForeignKeys[0].RefTable = NodesTable
 	NodeAssetsTable.ForeignKeys[1].RefTable = AssetsTable
 	PostAssetsTable.ForeignKeys[0].RefTable = PostsTable

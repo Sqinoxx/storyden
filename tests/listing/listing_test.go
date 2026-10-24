@@ -548,23 +548,25 @@ func TestListingsModerator(t *testing.T) {
 				a.True(asSeller.JSON200.CanManage)
 			})
 
-			t.Run("status_only", func(t *testing.T) {
+			t.Run("cannot_update", func(t *testing.T) {
 				edit, err := cl.ListingUpdateWithResponse(root, created.Slug, openapi.ListingMutableProps{
-					Title:  opt.New("Anatomie Atlas (moderiert)").Ptr(),
-					Status: opt.New(openapi.ListingStatusReserved).Ptr(),
+					Title: opt.New("Anatomie Atlas (moderiert)").Ptr(),
 				}, modSession)
 				tests.Status(t, err, edit, http.StatusForbidden)
 
-				adminEdit, err := cl.ListingUpdateWithResponse(root, created.Slug, openapi.ListingMutableProps{
-					Price: opt.New(1).Ptr(),
-				}, adminSession)
-				tests.Status(t, err, adminEdit, http.StatusForbidden)
-
-				upd := tests.AssertRequest(cl.ListingUpdateWithResponse(root, created.Slug, openapi.ListingMutableProps{
+				status, err := cl.ListingUpdateWithResponse(root, created.Slug, openapi.ListingMutableProps{
 					Status: opt.New(openapi.ListingStatusReserved).Ptr(),
-				}, modSession))(t, http.StatusOK)
-				a.Equal("Anatomie Atlas", upd.JSON200.Title)
-				a.Equal(openapi.ListingStatusReserved, upd.JSON200.Status)
+				}, modSession)
+				tests.Status(t, err, status, http.StatusForbidden)
+
+				adminStatus, err := cl.ListingUpdateWithResponse(root, created.Slug, openapi.ListingMutableProps{
+					Status: opt.New(openapi.ListingStatusSold).Ptr(),
+				}, adminSession)
+				tests.Status(t, err, adminStatus, http.StatusForbidden)
+
+				get := tests.AssertRequest(cl.ListingGetWithResponse(root, created.Slug, sellerSession))(t, http.StatusOK)
+				a.Equal("Anatomie Atlas", get.JSON200.Title)
+				a.Equal(openapi.ListingStatusActive, get.JSON200.Status)
 			})
 
 			t.Run("offers", func(t *testing.T) {

@@ -107,7 +107,7 @@ export function ListingOwnerPanel({ listing, onChange }: Props) {
               : t.marketplace.owner.moderationTitle}
           </Heading>
 
-          {listing.can_manage && (
+          {listing.is_own && (
             <FormControl>
               <FormLabel>{t.marketplace.owner.setStatus}</FormLabel>
               <NativeSelect

@@ -3321,7 +3321,7 @@ type LinkTitle = string
 type Listing struct {
 	Assets AssetList `json:"assets"`
 
-	// CanManage Whether the authenticated account may renew, delete, change the status of
+	// CanManage Whether the authenticated account may renew, delete
 	// and view offers of this listing, either as owner or via MANAGE_LISTINGS.
 	CanManage bool `json:"can_manage"`
 

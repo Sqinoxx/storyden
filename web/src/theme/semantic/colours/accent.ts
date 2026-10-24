@@ -1,7 +1,7 @@
 export const accent = {
   default: {
     value: {
-      _light: "var(--accent-colour-flat-fill-400)",
+      _light: "var(--accent-colour-flat-fill-600)",
       _dark: "var(--accent-colour-flat-fill-500)",
     },
   },

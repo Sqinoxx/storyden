@@ -23,11 +23,11 @@ export const slider = defineSlotRecipe({
       flex: "1",
     },
     range: {
-      background: "fg.accent",
+      background: "colorPalette.default",
     },
     thumb: {
       background: "bg.default",
-      borderColor: "fg.accent",
+      borderColor: "colorPalette.default",
       borderRadius: "full",
       borderWidth: "2px",
       boxShadow: "sm",

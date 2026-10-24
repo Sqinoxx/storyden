@@ -445,7 +445,7 @@ export const ThreadReferenceCard = memo(
           </HStack>
         }
       >
-        <LStack gap="2" w="full">
+        <LStack gap="2" w="full" minW="0">
           {documentAssets.length > 0 && (
             <styled.div
               display="flex"

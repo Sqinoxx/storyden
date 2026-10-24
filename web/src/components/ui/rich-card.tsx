@@ -165,7 +165,17 @@ export function Card({
         </div>
 
         <div className={styles.footerContainer}>
-          {children} {controls}
+          {children}
+          {controls && (
+            <Box
+              display="flex"
+              alignSelf="end"
+              flexShrink="0"
+              marginLeft="auto"
+            >
+              {controls}
+            </Box>
+          )}
         </div>
       </div>
     </styled.article>

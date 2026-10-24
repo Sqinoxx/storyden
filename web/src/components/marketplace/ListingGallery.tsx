@@ -104,7 +104,8 @@ export function ListingGallery({
               <styled.img
                 src={getAssetURL(a.path)}
                 alt={`${title} ${i + 1}`}
-                loading={i === 0 ? "eager" : "lazy"}
+                loading="eager"
+                decoding="async"
                 draggable={false}
                 w="full"
                 h="full"

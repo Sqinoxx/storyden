@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { handle } from "@/api/client";
+import { likePostAdd, likePostRemove } from "@/api/openapi-client/likes";
 import { threadUpdate, useThreadGet } from "@/api/openapi-client/threads";
 import {
   Account,
@@ -15,9 +16,10 @@ import {
   ThreadGetResponse,
 } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
-import { useConfirmation } from "@/components/site/useConfirmation";
 import { extractDocumentAssetsFromThread } from "@/components/post/ThreadCard";
+import { useConfirmation } from "@/components/site/useConfirmation";
 import { useBeacon } from "@/lib/beacon/useBeacon";
+import { useTranslation } from "@/lib/i18n";
 import { usePresenceCategory } from "@/lib/presence/presence-category";
 import { useReportContext } from "@/lib/report/useReportContext";
 import type { Settings, SignatureConfig } from "@/lib/settings/settings";
@@ -35,7 +37,6 @@ import {
   normalizeFilename,
 } from "@/utils/asset";
 import { hasPermission } from "@/utils/permissions";
-import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   initialSession?: Account;
@@ -148,31 +149,49 @@ export function useThreadScreen({
 
     // Find what was originally embedded
     const originalEmbeddedPaths = new Set<string>();
-    const originalParsed = new DOMParser().parseFromString(thread.body, "text/html");
-    originalParsed.querySelectorAll("a, img, span[data-type='file-attachment'], div[data-type='file-attachment']").forEach((el) => {
-      const href = el.getAttribute("href") || el.getAttribute("src") || "";
-      const path = normalizeAssetPath(href);
-      if (path) originalEmbeddedPaths.add(path);
-    });
+    const originalParsed = new DOMParser().parseFromString(
+      thread.body,
+      "text/html",
+    );
+    originalParsed
+      .querySelectorAll(
+        "a, img, span[data-type='file-attachment'], div[data-type='file-attachment']",
+      )
+      .forEach((el) => {
+        const href = el.getAttribute("href") || el.getAttribute("src") || "";
+        const path = normalizeAssetPath(href);
+        if (path) originalEmbeddedPaths.add(path);
+      });
 
     // Find what is currently embedded
     const currentEmbeddedPaths = new Set<string>();
-    const currentParsed = new DOMParser().parseFromString(currentBody, "text/html");
-    currentParsed.querySelectorAll("a, img, span[data-type='file-attachment'], div[data-type='file-attachment']").forEach((el) => {
-      const href = el.getAttribute("href") || el.getAttribute("src") || "";
-      const path = normalizeAssetPath(href);
-      if (path) currentEmbeddedPaths.add(path);
-    });
+    const currentParsed = new DOMParser().parseFromString(
+      currentBody,
+      "text/html",
+    );
+    currentParsed
+      .querySelectorAll(
+        "a, img, span[data-type='file-attachment'], div[data-type='file-attachment']",
+      )
+      .forEach((el) => {
+        const href = el.getAttribute("href") || el.getAttribute("src") || "";
+        const path = normalizeAssetPath(href);
+        if (path) currentEmbeddedPaths.add(path);
+      });
 
     // Remove from attachments state if it was originally embedded but is no longer embedded
-    setAttachments((prev) => 
+    setAttachments((prev) =>
       prev.filter((a) => {
         const path = normalizeAssetPath(a.path ?? a.id);
-        if (path && originalEmbeddedPaths.has(path) && !currentEmbeddedPaths.has(path)) {
+        if (
+          path &&
+          originalEmbeddedPaths.has(path) &&
+          !currentEmbeddedPaths.has(path)
+        ) {
           return false;
         }
         return true;
-      })
+      }),
     );
   }, [currentBody, editing, thread.body]);
 
@@ -314,13 +333,17 @@ export function useThreadScreen({
       async () => {
         const currentBody = formData.body || "";
         const currentEmbeddedPaths = new Set<string>();
-        const parsed = new DOMParser().parseFromString(currentBody, "text/html");
+        const parsed = new DOMParser().parseFromString(
+          currentBody,
+          "text/html",
+        );
         parsed
           .querySelectorAll(
             "a, img, span[data-type='file-attachment'], div[data-type='file-attachment']",
           )
           .forEach((el) => {
-            const href = el.getAttribute("href") || el.getAttribute("src") || "";
+            const href =
+              el.getAttribute("href") || el.getAttribute("src") || "";
             const normP = normalizeAssetPath(href);
             if (normP) {
               currentEmbeddedPaths.add(normP);
@@ -333,13 +356,17 @@ export function useThreadScreen({
 
         const originalBody = (data?.body ?? thread.body) || "";
         const originalEmbeddedPaths = new Set<string>();
-        const originalParsed = new DOMParser().parseFromString(originalBody, "text/html");
+        const originalParsed = new DOMParser().parseFromString(
+          originalBody,
+          "text/html",
+        );
         originalParsed
           .querySelectorAll(
             "a, img, span[data-type='file-attachment'], div[data-type='file-attachment']",
           )
           .forEach((el) => {
-            const href = el.getAttribute("href") || el.getAttribute("src") || "";
+            const href =
+              el.getAttribute("href") || el.getAttribute("src") || "";
             const normP = normalizeAssetPath(href);
             if (normP) {
               originalEmbeddedPaths.add(normP);
@@ -441,6 +468,32 @@ export function useThreadScreen({
     setEditing(true);
   }
 
+  async function handleToggleLike() {
+    if (!session || !data) return;
+
+    const liked = !data.likes.liked;
+    const likes = Math.max(0, data.likes.likes + (liked ? 1 : -1));
+
+    await handle(
+      async () => {
+        await mutate(
+          { ...data, likes: { liked, likes } },
+          { revalidate: false },
+        );
+        if (liked) {
+          await likePostAdd(data.id);
+        } else {
+          await likePostRemove(data.id);
+        }
+      },
+      {
+        cleanup: async () => {
+          await mutate();
+        },
+      },
+    );
+  }
+
   async function handleDeleteThread() {
     await handle(
       async () => {
@@ -479,6 +532,7 @@ export function useThreadScreen({
     isModerator,
     isConfirmingDelete,
     sortOrder,
+    canLike: Boolean(session),
     data: {
       thread: data,
     },
@@ -494,9 +548,9 @@ export function useThreadScreen({
       handleEditAndAccept,
       handleConfirmDelete,
       handleCancelDelete,
+      handleToggleLike,
       handleSetSortOrder: (order: "asc" | "desc") =>
         setSortParam(order === "desc" ? null : order),
     },
   };
 }
-

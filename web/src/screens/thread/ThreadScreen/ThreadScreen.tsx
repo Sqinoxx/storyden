@@ -3,43 +3,46 @@
 import { Controller, ControllerProps } from "react-hook-form";
 import { match } from "ts-pattern";
 
-import { Unready } from "@/components/site/Unready";
-
 import { Asset, Thread, Visibility } from "@/api/openapi-schema";
 import { CategoryBadge } from "@/components/category/CategoryBadge";
 import { Byline } from "@/components/content/Byline";
 import { ContentComposer } from "@/components/content/ContentComposer/ContentComposer";
 import { LinkCard } from "@/components/library/links/LinkCard";
+import { FileAttachmentList } from "@/components/post/FileAttachmentList";
 import { CancelAction } from "@/components/site/Action/Cancel";
 import { SaveAction } from "@/components/site/Action/Save";
 import { PaginationControls } from "@/components/site/PaginationControls/PaginationControls";
+import { Unready } from "@/components/site/Unready";
 import { TagBadgeList } from "@/components/tag/TagBadgeList";
 import { Breadcrumbs } from "@/components/thread/Breadcrumbs";
 import { PostReviewBadge } from "@/components/thread/PostReviewBadge";
 import { ReplyBox } from "@/components/thread/ReplyBox/ReplyBox";
 import { ReplyProvider } from "@/components/thread/ReplyContext";
-import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { ReplyList } from "@/components/thread/ReplyList/ReplyList";
+import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { Signature } from "@/components/thread/Signature";
 import { ThreadDeletedAlert } from "@/components/thread/ThreadDeletedAlert";
 import { ThreadMenu } from "@/components/thread/ThreadMenu/ThreadMenu";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { FormErrorText } from "@/components/ui/FormErrorText";
-import { Heading } from "@/components/ui/heading";
-import { useTranslation } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
-import { CheckIcon } from "@/components/ui/icons/Check";
-import { SortAscendingIcon, SortDescendingIcon } from "@/components/ui/icons/Sort";
-import * as Menu from "@/components/ui/menu";
+import { Heading } from "@/components/ui/heading";
 import { HeadingInput } from "@/components/ui/heading-input";
+import { CheckIcon } from "@/components/ui/icons/Check";
 import {
   DiscussionIcon,
   DiscussionParticipatingIcon,
 } from "@/components/ui/icons/Discussion";
 import { LikeIcon, LikeSavedIcon } from "@/components/ui/icons/Like";
+import {
+  SortAscendingIcon,
+  SortDescendingIcon,
+} from "@/components/ui/icons/Sort";
+import * as Menu from "@/components/ui/menu";
 import { VisibilityBadge } from "@/components/visibility/VisibilityBadge";
+import { useTranslation } from "@/lib/i18n";
 import { HStack, LStack, VStack, WStack, styled } from "@/styled-system/jsx";
-import { FileAttachmentList } from "@/components/post/FileAttachmentList";
+import { CardBox } from "@/styled-system/patterns";
 
 import { Form, Props, useThreadScreen } from "./useThreadScreen";
 
@@ -57,6 +60,7 @@ export function ThreadScreen(props: Props) {
     isModerator,
     isConfirmingDelete,
     sortOrder,
+    canLike,
     data,
     handlers,
   } = useThreadScreen(props);
@@ -74,141 +78,148 @@ export function ThreadScreen(props: Props) {
   return (
     <ReplyProvider>
       <LStack gap="6" pb="12">
-        <styled.form
-          display="flex"
-          flexDirection="column"
-          alignItems="start"
-          gap="4"
-          width="full"
-          onSubmit={handlers.handleSave}
-        >
-          <HStack
-            w="full"
-            gap="3"
-            pb="3"
-            borderBottomWidth="thin"
-            borderBottomColor="border.subtle"
-          >
-            <Breadcrumbs thread={thread} />
+        <HStack w="full" gap="3">
+          <Breadcrumbs thread={thread} />
 
-            <HStack gap="1" flexShrink="0">
-              {isEditing && (
-                <>
-                  <CancelAction
-                    type="button"
-                    onClick={handlers.handleDiscardChanges}
-                  >
-                    {t.common.discard}
-                  </CancelAction>
-                  <SaveAction type="submit" disabled={isEmpty || isUploading}>
-                    {t.common.save}
-                  </SaveAction>
-                </>
+          <HStack gap="1" flexShrink="0">
+            {isEditing && (
+              <>
+                <CancelAction
+                  type="button"
+                  onClick={handlers.handleDiscardChanges}
+                >
+                  {t.common.discard}
+                </CancelAction>
+                <SaveAction type="submit" disabled={isEmpty || isUploading}>
+                  {t.common.save}
+                </SaveAction>
+              </>
+            )}
+
+            <ThreadMenu thread={thread} editingEnabled movingEnabled />
+          </HStack>
+        </HStack>
+
+        <styled.article className={CardBox()} p="4" gap="4">
+          <styled.form
+            display="flex"
+            flexDirection="column"
+            alignItems="start"
+            gap="4"
+            width="full"
+            onSubmit={handlers.handleSave}
+          >
+            {thread.deletedAt !== undefined && (
+              <ThreadDeletedAlert thread={thread} />
+            )}
+
+            <LStack gap="3">
+              <WStack alignItems="center" flexWrap="wrap" rowGap="2">
+                <HStack gap="2" flexWrap="wrap" minW="0">
+                  <Byline
+                    href={`#${thread.id}`}
+                    author={thread.author}
+                    time={new Date(thread.createdAt)}
+                    updated={new Date(thread.updatedAt)}
+                  />
+
+                  {thread.category && (
+                    <CategoryBadge category={thread.category} />
+                  )}
+
+                  {!isEditing && <TagBadgeList tags={thread.tags} />}
+                </HStack>
+
+                {match(thread.visibility)
+                  .with(Visibility.published, () => null)
+                  .with(Visibility.review, () => (
+                    <PostReviewBadge
+                      isModerator={isModerator}
+                      postId={thread.id}
+                      onAccept={handlers.handleAcceptThread}
+                      onEditAndAccept={handlers.handleEditAndAccept}
+                      onDelete={handlers.handleConfirmDelete}
+                      isConfirmingDelete={isConfirmingDelete}
+                      onCancelDelete={handlers.handleCancelDelete}
+                    />
+                  ))
+                  .otherwise(() => (
+                    <VisibilityBadge visibility={thread.visibility} />
+                  ))}
+              </WStack>
+              <FormErrorText>
+                {form.formState.errors.root?.message}
+              </FormErrorText>
+
+              {isEditing ? (
+                <TitleInput name="title" control={form.control} />
+              ) : (
+                <Heading
+                  fontSize="heading.variable.1"
+                  fontWeight="bold"
+                  lineHeight="tight"
+                >
+                  {thread.title}
+                </Heading>
               )}
 
-              <ThreadMenu thread={thread} editingEnabled movingEnabled />
-            </HStack>
-          </HStack>
-
-          {thread.deletedAt !== undefined && (
-            <ThreadDeletedAlert thread={thread} />
-          )}
-
-          <LStack gap="3">
-            <WStack alignItems="center" flexWrap="wrap" rowGap="2">
-              <HStack gap="2" flexWrap="wrap" minW="0">
-                <Byline
-                  href={`#${thread.id}`}
-                  author={thread.author}
-                  time={new Date(thread.createdAt)}
-                  updated={new Date(thread.updatedAt)}
-                />
-
-                {thread.category && (
-                  <CategoryBadge category={thread.category} />
-                )}
-              </HStack>
-
-              {match(thread.visibility)
-                .with(Visibility.published, () => null)
-                .with(Visibility.review, () => (
-                  <PostReviewBadge
-                    isModerator={isModerator}
-                    postId={thread.id}
-                    onAccept={handlers.handleAcceptThread}
-                    onEditAndAccept={handlers.handleEditAndAccept}
-                    onDelete={handlers.handleConfirmDelete}
-                    isConfirmingDelete={isConfirmingDelete}
-                    onCancelDelete={handlers.handleCancelDelete}
+              {isEditing && (
+                <HStack gap="2" flexWrap="wrap">
+                  <SemesterSelect control={form.control} name="semester" />
+                  <TagListField
+                    name="tags"
+                    control={form.control}
+                    initialTags={thread.tags}
+                    attachments={thread.assets}
                   />
-                ))
-                .otherwise(() => (
-                  <VisibilityBadge visibility={thread.visibility} />
-                ))}
-            </WStack>
-            <FormErrorText>{form.formState.errors.root?.message}</FormErrorText>
+                </HStack>
+              )}
+            </LStack>
 
-            {isEditing ? (
-              <TitleInput name="title" control={form.control} />
-            ) : (
-              <Heading
-                fontSize="heading.variable.1"
-                fontWeight="bold"
-                lineHeight="tight"
-              >
-                {thread.title}
-              </Heading>
+            {thread.link && <LinkCard link={thread.link} />}
+
+            <ThreadBodyInput
+              control={form.control}
+              name="body"
+              initialValue={thread.body}
+              resetKey={resetKey}
+              disabled={!isEditing}
+              handleEmptyStateChange={handlers.handleEmptyStateChange}
+              handleAssetUpload={handlers.handleAssetUpload}
+              handleUploadingChange={handlers.handleUploadingChange}
+            />
+
+            {((isEditing && attachments.length > 0) ||
+              (thread.assets && thread.assets.length > 0)) && (
+              <FileAttachmentList
+                assets={
+                  isEditing
+                    ? attachments
+                    : (data.thread.assets ?? thread.assets)
+                }
+                body={isEditing ? form.watch("body") : thread.body}
+                onRemoveAsset={
+                  isEditing ? handlers.handleRemoveAsset : undefined
+                }
+              />
             )}
 
-            {isEditing ? (
-              <HStack gap="2" flexWrap="wrap">
-                <SemesterSelect control={form.control} name="semester" />
-                <TagListField
-                  name="tags"
-                  control={form.control}
-                  initialTags={thread.tags}
-                  attachments={thread.assets}
-                />
-              </HStack>
-            ) : (
-              <TagBadgeList tags={thread.tags} />
+            {signatureConfig.enabled && (
+              <Signature
+                signature={thread.author.signature}
+                maxHeight={signatureConfig.maxHeight}
+              />
             )}
-          </LStack>
+          </styled.form>
 
-          {thread.link && <LinkCard link={thread.link} />}
-
-          <ThreadBodyInput
-            control={form.control}
-            name="body"
-            initialValue={thread.body}
-            resetKey={resetKey}
-            disabled={!isEditing}
-            handleEmptyStateChange={handlers.handleEmptyStateChange}
-            handleAssetUpload={handlers.handleAssetUpload}
-            handleUploadingChange={handlers.handleUploadingChange}
+          <ThreadStats
+            thread={thread}
+            sortOrder={sortOrder}
+            onSortOrderChange={handlers.handleSetSortOrder}
+            canLike={canLike}
+            onToggleLike={handlers.handleToggleLike}
           />
-
-          {((isEditing && attachments.length > 0) || (thread.assets && thread.assets.length > 0)) && (
-            <FileAttachmentList
-              assets={isEditing ? attachments : (data.thread.assets ?? thread.assets)}
-              body={isEditing ? form.watch("body") : thread.body}
-              onRemoveAsset={isEditing ? handlers.handleRemoveAsset : undefined}
-            />
-          )}
-
-          {signatureConfig.enabled && (
-            <Signature
-              signature={thread.author.signature}
-              maxHeight={signatureConfig.maxHeight}
-            />
-          )}
-        </styled.form>
-
-        <ThreadStats
-          thread={thread}
-          sortOrder={sortOrder}
-          onSortOrderChange={handlers.handleSetSortOrder}
-        />
+        </styled.article>
 
         <ReplyBox
           initialSession={props.initialSession}
@@ -325,10 +336,14 @@ function ThreadStats({
   thread,
   sortOrder,
   onSortOrderChange,
+  canLike,
+  onToggleLike,
 }: {
   thread: Thread;
   sortOrder: "asc" | "desc";
   onSortOrderChange: (order: "asc" | "desc") => void;
+  canLike: boolean;
+  onToggleLike: () => void;
 }) {
   const t = useTranslation();
   const likeCount = thread.likes.likes;
@@ -341,39 +356,45 @@ function ThreadStats({
       justifyContent="space-between"
       alignItems="center"
       width="full"
-      py="2"
+      pt="3"
       borderTopWidth="thin"
       borderTopColor="border.subtle"
       color="fg.muted"
       fontSize="sm"
     >
       <HStack gap="4">
-        <styled.span
-          display="flex"
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          ms="-2"
           gap="1"
-          alignItems="center"
-          title={thread.likes.liked ? t.thread.youLikedThis : undefined}
+          fontSize="sm"
+          fontWeight="normal"
+          color={thread.likes.liked ? "fg.default" : "fg.muted"}
+          aria-pressed={thread.likes.liked}
+          title={
+            thread.likes.liked ? t.thread.unlikeAction : t.thread.likeAction
+          }
+          disabled={!canLike}
+          onClick={onToggleLike}
         >
-          <span>
-            {thread.likes.liked ? (
-              <LikeSavedIcon width="4" />
-            ) : (
-              <LikeIcon width="4" />
-            )}
-          </span>
+          {thread.likes.liked ? (
+            <LikeSavedIcon width="4" />
+          ) : (
+            <LikeIcon width="4" />
+          )}
           <span>
             {likeCount} {likeLabel}
           </span>
-        </styled.span>
+        </Button>
 
         <styled.span
           display="flex"
           gap="1"
           alignItems="center"
           title={
-            thread.reply_status.replied
-              ? t.thread.youRepliedToThis
-              : undefined
+            thread.reply_status.replied ? t.thread.youRepliedToThis : undefined
           }
         >
           <span>

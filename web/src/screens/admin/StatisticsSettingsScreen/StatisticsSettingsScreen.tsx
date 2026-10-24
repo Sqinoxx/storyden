@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { useAdminStatistics } from "@/api/openapi-client/admin";
+import { useCategoryList } from "@/api/openapi-client/categories";
 import type {
   AdminStatistics200,
   StatisticsContributor,
@@ -21,6 +22,7 @@ import { ProfileRoute } from "@/components/site/Navigation/Anchors/Profile";
 import { ReportsRoute } from "@/components/site/Navigation/Anchors/Reports";
 import { TagsRoute } from "@/components/site/Navigation/Anchors/Tags";
 import * as Table from "@/components/ui/table";
+import { categoryPathLabels } from "@/lib/category/tree";
 import { formatTermKeyLabel } from "@/lib/thread/semester";
 import { Box, Flex, Grid, Stack, styled } from "@/styled-system/jsx";
 
@@ -463,8 +465,13 @@ function StudySection({ data, loading }: SectionProps) {
 }
 
 function ContentSection({ data, loading }: SectionProps) {
+  const { data: categoryList } = useCategoryList();
+  const categoryLabels = useMemo(
+    () => categoryPathLabels(categoryList?.categories ?? []),
+    [categoryList],
+  );
   const categories = (data?.topCategories ?? []).map((c) => ({
-    name: c.name,
+    name: categoryLabels.get(c.categoryId) ?? c.name,
     count: c.threadCount,
   }));
   const tags = (data?.topTags ?? []).map((t) => ({

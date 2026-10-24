@@ -7,6 +7,7 @@ import {
   MultiSelectPicker,
   MultiSelectPickerItem,
 } from "@/components/ui/MultiSelectPicker";
+import { categoryPathLabels } from "@/lib/category/tree";
 import { useTranslation } from "@/lib/i18n";
 import { deriveError } from "@/utils/error";
 
@@ -16,11 +17,13 @@ type Props<T extends FieldValues> = {
   excludeID: string;
 };
 
-const toItem = (c: Category): MultiSelectPickerItem => ({
-  label: c.name,
-  value: c.id,
-  colour: c.colour,
-});
+const toItem =
+  (labels: Map<string, string>) =>
+  (c: Category): MultiSelectPickerItem => ({
+    label: labels.get(c.id) ?? c.name,
+    value: c.id,
+    colour: c.colour,
+  });
 
 export function RelatedCategoriesField<T extends FieldValues>({
   control,
@@ -31,14 +34,14 @@ export function RelatedCategoriesField<T extends FieldValues>({
   const { data, error } = useCategoryList();
   const [query, setQuery] = useState("");
 
-  const items = useMemo(
-    () =>
-      (data?.categories ?? [])
-        .filter((c) => c.id !== excludeID)
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map(toItem),
-    [data, excludeID],
-  );
+  const items = useMemo(() => {
+    const categories = data?.categories ?? [];
+    const labels = categoryPathLabels(categories);
+    return categories
+      .filter((c) => c.id !== excludeID)
+      .map(toItem(labels))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [data, excludeID]);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();

@@ -103,21 +103,24 @@ func TestCategoryCRUD(t *testing.T) {
 				a.Equal(newName, found.Name)
 			})
 
-			t.Run("create_category_rejects_invalid_slug", func(t *testing.T) {
+			t.Run("create_category_sanitises_invalid_slug", func(t *testing.T) {
 				r := require.New(t)
+				a := assert.New(t)
 
-				name := "Category " + uuid.NewString()
+				prefix := uuid.NewString()
 				create := tests.AssertRequest(cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
 					Colour:      "#abc123",
 					Description: "category testing",
-					Name:        name,
-					Slug:        lo.ToPtr("has/a-slash"),
-				}, adminSession))(t, http.StatusBadRequest)
-				r.NotNil(create)
+					Name:        "Category " + prefix,
+					Slug:        lo.ToPtr(prefix + "/a-slash"),
+				}, adminSession))(t, http.StatusOK)
+				r.NotNil(create.JSON200)
+				a.Equal(prefix+"-a-slash", create.JSON200.Slug)
 			})
 
-			t.Run("update_category_rejects_invalid_slug", func(t *testing.T) {
+			t.Run("update_category_sanitises_invalid_slug", func(t *testing.T) {
 				r := require.New(t)
+				a := assert.New(t)
 
 				name := "Category " + uuid.NewString()
 				create := tests.AssertRequest(cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
@@ -127,10 +130,100 @@ func TestCategoryCRUD(t *testing.T) {
 				}, adminSession))(t, http.StatusOK)
 				r.NotNil(create.JSON200)
 
+				prefix := uuid.NewString()
 				update := tests.AssertRequest(cl.CategoryUpdateWithResponse(root, create.JSON200.Slug, openapi.CategoryUpdateJSONRequestBody{
-					Slug: lo.ToPtr("has/a-slash"),
-				}, adminSession))(t, http.StatusBadRequest)
-				r.NotNil(update)
+					Slug: lo.ToPtr(prefix + "/a-slash"),
+				}, adminSession))(t, http.StatusOK)
+				r.NotNil(update.JSON200)
+				a.Equal(prefix+"-a-slash", update.JSON200.Slug)
+			})
+
+			t.Run("create_duplicate_names_get_unique_slugs", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				newCategory := func(name string, parent *openapi.Identifier) *openapi.CategoryCreateOK {
+					res := tests.AssertRequest(cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+						Colour:      "#abc123",
+						Description: "category testing",
+						Name:        name,
+						Parent:      parent,
+					}, adminSession))(t, http.StatusOK)
+					r.NotNil(res.JSON200)
+					return res.JSON200
+				}
+
+				parentA := newCategory("Semester "+uuid.NewString(), nil)
+				parentB := newCategory("Semester "+uuid.NewString(), nil)
+
+				name := "Allgemein " + uuid.NewString()
+				base := mark.Slugify(name)
+
+				first := newCategory(name, lo.ToPtr(parentA.Id))
+				a.Equal(base, first.Slug)
+
+				second := newCategory(name, lo.ToPtr(parentB.Id))
+				a.Equal(parentB.Slug+"-"+base, second.Slug)
+
+				third := newCategory(name, lo.ToPtr(parentB.Id))
+				a.Equal(parentB.Slug+"-"+base+"-2", third.Slug)
+
+				rootLevel := newCategory(name, nil)
+				a.Equal(base+"-2", rootLevel.Slug)
+			})
+
+			t.Run("create_without_slug_or_description", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				name := "Category " + uuid.NewString()
+				create := tests.AssertRequest(cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+					Colour: "#abc123",
+					Name:   name,
+				}, adminSession))(t, http.StatusOK)
+				r.NotNil(create.JSON200)
+				a.Equal(mark.Slugify(name), create.JSON200.Slug)
+				a.Equal("", create.JSON200.Description)
+			})
+
+			t.Run("update_keeps_own_slug_and_dedupes_taken_slug", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				otherName := "Category " + uuid.NewString()
+				other := tests.AssertRequest(cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+					Colour:      "#abc123",
+					Description: "category testing",
+					Name:        otherName,
+				}, adminSession))(t, http.StatusOK)
+				r.NotNil(other.JSON200)
+
+				create := tests.AssertRequest(cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+					Colour:      "#abc123",
+					Description: "category testing",
+					Name:        "Category " + uuid.NewString(),
+				}, adminSession))(t, http.StatusOK)
+				r.NotNil(create.JSON200)
+				ownSlug := create.JSON200.Slug
+
+				same := tests.AssertRequest(cl.CategoryUpdateWithResponse(root, ownSlug, openapi.CategoryUpdateJSONRequestBody{
+					Name:   lo.ToPtr(otherName),
+					Slug:   lo.ToPtr(ownSlug),
+					Colour: lo.ToPtr("#ff0000"),
+				}, adminSession))(t, http.StatusOK)
+				r.NotNil(same.JSON200)
+				a.Equal(ownSlug, same.JSON200.Slug)
+				a.Equal(otherName, same.JSON200.Name)
+
+				taken := tests.AssertRequest(cl.CategoryUpdateWithResponse(root, ownSlug, openapi.CategoryUpdateJSONRequestBody{
+					Slug: lo.ToPtr(other.JSON200.Slug),
+				}, adminSession))(t, http.StatusOK)
+				r.NotNil(taken.JSON200)
+				a.Equal(other.JSON200.Slug+"-2", taken.JSON200.Slug)
+
+				otherGet := tests.AssertRequest(cl.CategoryGetWithResponse(root, other.JSON200.Slug, adminSession))(t, http.StatusOK)
+				r.NotNil(otherGet.JSON200)
+				a.Equal(other.JSON200.Id, otherGet.JSON200.Id)
 			})
 
 			t.Run("move_category_to_new_parent", func(t *testing.T) {
@@ -299,9 +392,9 @@ func TestCategoryCRUD(t *testing.T) {
 				a.False(ok)
 			})
 
-			// Regression test: slugs containing "/" are rejected on create and
-			// update (see create_category_rejects_invalid_slug and
-			// update_category_rejects_invalid_slug above), but rows written
+			// Regression test: slugs containing "/" are sanitised on create and
+			// update (see create_category_sanitises_invalid_slug and
+			// update_category_sanitises_invalid_slug above), but rows written
 			// before that validation existed can still have one. Deleting such
 			// a category previously 404'd because the raw "/" split the
 			// request path into two segments before it reached the router.

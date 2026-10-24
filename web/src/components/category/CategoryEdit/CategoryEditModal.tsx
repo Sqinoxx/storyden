@@ -132,7 +132,11 @@ export function CategoryEditModal(props: Props) {
           >
             {t.common.cancel}
           </Button>
-          <Button type="submit" size="sm">
+          <Button
+            type="submit"
+            size="sm"
+            loading={form.formState.isSubmitting}
+          >
             {t.common.save}
           </Button>
         </HStack>

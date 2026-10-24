@@ -320,6 +320,20 @@ func (d *Repository) GetSlug(ctx context.Context, id CategoryID) (string, error)
 	return c.Slug, nil
 }
 
+func (d *Repository) SlugTaken(ctx context.Context, slug string, exclude *CategoryID) (bool, error) {
+	filters := []predicate.Category{category.SlugEQ(slug)}
+	if exclude != nil {
+		filters = append(filters, category.IDNEQ(xid.ID(*exclude)))
+	}
+
+	exists, err := d.db.Category.Query().Where(filters...).Exist(ctx)
+	if err != nil {
+		return false, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return exists, nil
+}
+
 func (d *Repository) Get(ctx context.Context, slug string) (*Category, error) {
 	tree, err := d.assembleTree(ctx)
 	if err != nil {

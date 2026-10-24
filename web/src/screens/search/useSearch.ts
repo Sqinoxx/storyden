@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { debounce } from "lodash";
 import { parseAsArrayOf, parseAsString, useQueryStates } from "nuqs";
 import { parseAsInteger, useQueryState } from "nuqs";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -19,6 +19,7 @@ import {
 } from "@/api/openapi-schema";
 import { useSearchQueryState } from "@/components/search/Search/useSearch";
 import { MultiSelectPickerItem } from "@/components/ui/MultiSelectPicker";
+import { categoryPathLabels } from "@/lib/category/tree";
 import { DatagraphKindSchema } from "@/lib/datagraph/schema";
 import { deriveError } from "@/utils/error";
 
@@ -62,6 +63,10 @@ export function useSearchScreen(props: Props) {
   );
 
   const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const categoryLabels = useMemo(
+    () => categoryPathLabels(allCategories),
+    [allCategories],
+  );
   const [authorsResults, setAuthorsResults] = useState<MultiSelectPickerItem[]>(
     [],
   );
@@ -151,13 +156,17 @@ export function useSearchScreen(props: Props) {
       return;
     }
 
+    const q = query.toLowerCase();
     const filtered = allCategories
+      .map((cat) => ({
+        label: categoryLabels.get(cat.id) ?? cat.name,
+        value: cat.slug,
+      }))
       .filter(
-        (cat) =>
-          cat.name.toLowerCase().includes(query.toLowerCase()) ||
-          cat.slug.toLowerCase().includes(query.toLowerCase()),
-      )
-      .map((cat) => ({ label: cat.name, value: cat.slug }));
+        (item) =>
+          item.label.toLowerCase().includes(q) ||
+          item.value.toLowerCase().includes(q),
+      );
 
     setCategoriesResults(filtered);
   }
@@ -193,7 +202,7 @@ export function useSearchScreen(props: Props) {
   const categoriesValue = (filters.categories || []).map((slug) => {
     const category = allCategories.find((c) => c.slug === slug);
     return {
-      label: category?.name || slug,
+      label: (category && categoryLabels.get(category.id)) || slug,
       value: slug,
     };
   });

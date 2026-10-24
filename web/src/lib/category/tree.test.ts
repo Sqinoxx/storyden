@@ -6,6 +6,7 @@ import type { Category } from "@/api/openapi-schema";
 import {
   buildCategoryTree,
   categoryDepths,
+  categoryPathLabels,
   findCategoryNode,
   findCategoryPath,
   isDescendant,
@@ -113,6 +114,23 @@ test("members may post in leaves and from the third level down", () => {
   assert.ok(postable("chirpro"));
   assert.ok(postable("mkg"));
   assert.ok(postable("flohmarkt"));
+});
+
+test("categoryPathLabels distinguishes duplicate names by parent", () => {
+  const labels = categoryPathLabels([
+    category("vorklinik", 1, undefined, "Vorklinik"),
+    category("semester-3", 1, "vorklinik", "3. Semester"),
+    category("semester-4", 2, "vorklinik", "4. Semester"),
+    category("allgemein", 1, "semester-3", "Allgemein"),
+    category("4-semester-allgemein", 1, "semester-4", "Allgemein"),
+  ]);
+
+  assert.is(labels.get("vorklinik"), "Vorklinik");
+  assert.is(labels.get("allgemein"), "Vorklinik / 3. Semester / Allgemein");
+  assert.is(
+    labels.get("4-semester-allgemein"),
+    "Vorklinik / 4. Semester / Allgemein",
+  );
 });
 
 test("findCategoryPath returns the full ancestor chain", () => {

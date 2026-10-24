@@ -122,7 +122,7 @@ export function SimpleBarChart({
               type="category"
               dataKey={xKey}
               {...AXIS_PROPS}
-              width={120}
+              width={160}
               interval={0}
               tickFormatter={truncate}
             />
@@ -185,6 +185,9 @@ export function Sparkline({
 }
 
 function truncate(value: string): string {
+  if (value.includes(" / ")) {
+    return value.length > 26 ? `…${value.slice(-25)}` : value;
+  }
   return value.length > 18 ? `${value.slice(0, 17)}…` : value;
 }
 

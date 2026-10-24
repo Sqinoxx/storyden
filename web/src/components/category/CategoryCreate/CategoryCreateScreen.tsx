@@ -37,19 +37,30 @@ export function CategoryCreateScreen(props: CategoryCreateProps) {
         onSubmit={onSubmit}
       >
         <FormControl>
-          <FormLabel>{t.category.coverImage}</FormLabel>
-          <AssetUploadEditor
-            width={CATEGORY_COVER_WIDTH}
-            height={CATEGORY_COVER_HEIGHT}
-            onUpload={handleImageUpload}
-          />
-          <FormHelperText>{t.category.coverImageHelper}</FormHelperText>
+          <FormLabel>{t.category.name}</FormLabel>
+          <Input {...register("name")} type="text" autoFocus />
+          <FormFeedback error={formState.errors["name"]?.message}>
+            {t.category.nameHelper}
+          </FormFeedback>
         </FormControl>
 
         <FormControl>
-          <FormLabel>{t.category.name}</FormLabel>
-          <Input {...register("name")} type="text" />
-          <FormHelperText>{t.category.nameHelper}</FormHelperText>
+          <FormLabel>{t.category.parentCategory}</FormLabel>
+          <CategoryTreeSelect
+            name="parent"
+            control={control}
+            selectable="all"
+            emptyOption={{ label: t.category.noParentCategory, value: "" }}
+          />
+          <FormHelperText>{t.category.parentHelper}</FormHelperText>
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>{t.category.description}</FormLabel>
+          <Input {...register("description")} type="text" />
+          <FormFeedback error={formState.errors["description"]?.message}>
+            {t.category.descriptionHelper}
+          </FormFeedback>
         </FormControl>
 
         <FormControl>
@@ -83,35 +94,30 @@ export function CategoryCreateScreen(props: CategoryCreateProps) {
         </FormControl>
 
         <FormControl>
-          <FormLabel>{t.category.description}</FormLabel>
-
-          {/* TODO: Make a larger textarea component for this. */}
-          <Input {...register("description")} type="text" />
-          <FormHelperText>{t.category.descriptionHelper}</FormHelperText>
-        </FormControl>
-
-        <FormControl>
-          <FormLabel>{t.category.parentCategory}</FormLabel>
-          <CategoryTreeSelect
-            name="parent"
-            control={control}
-            selectable="all"
-            emptyOption={{ label: t.category.noParentCategory, value: "" }}
-          />
-          <FormHelperText>{t.category.parentHelper}</FormHelperText>
-        </FormControl>
-
-        <FormControl>
           <FormLabel>{t.category.colour}</FormLabel>
           <ColourPickerField control={control} name="colour" />
           <FormHelperText>{t.category.colourHelper}</FormHelperText>
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>{t.category.coverImage}</FormLabel>
+          <AssetUploadEditor
+            width={CATEGORY_COVER_WIDTH}
+            height={CATEGORY_COVER_HEIGHT}
+            onUpload={handleImageUpload}
+          />
+          <FormHelperText>{t.category.coverImageHelper}</FormHelperText>
         </FormControl>
 
         <WStack>
           <Button flexGrow="1" type="button" onClick={props.onClose}>
             {t.common.cancel}
           </Button>
-          <Button flexGrow="1" type="submit">
+          <Button
+            flexGrow="1"
+            type="submit"
+            loading={formState.isSubmitting}
+          >
             {t.actions.create}
           </Button>
         </WStack>

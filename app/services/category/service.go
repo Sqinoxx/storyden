@@ -2,6 +2,7 @@ package category
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
@@ -86,12 +87,16 @@ func (s *service) Create(ctx context.Context, partial Partial) (*category.Catego
 		opts = append(opts, category.WithParent(&pid))
 	}
 
-	if v, ok := partial.Slug.Get(); ok {
-		if _, err := mark.NewSlug(v); err != nil {
-			return nil, fault.Wrap(err, fctx.With(ctx))
-		}
-		opts = append(opts, category.WithSlug(v))
+	name, ok := partial.Name.Get()
+	if !ok || mark.Slugify(name) == "" {
+		return nil, fault.Wrap(errInvalidCategoryCreate, fctx.With(ctx), fmsg.WithDesc("missing name", "Category name is required."))
 	}
+
+	slug, err := s.uniqueSlug(ctx, mark.Slugify(partial.Slug.OrZero()), name, parentID, nil)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	opts = append(opts, category.WithSlug(slug))
 
 	coverImage, _ := partial.CoverImageAssetID.Get()
 	if v, ok := coverImage.Get(); ok {
@@ -102,15 +107,7 @@ func (s *service) Create(ctx context.Context, partial Partial) (*category.Catego
 		opts = append(opts, category.WithMeta(v))
 	}
 
-	name, ok := partial.Name.Get()
-	if !ok {
-		return nil, fault.Wrap(errInvalidCategoryCreate, fctx.With(ctx), fmsg.WithDesc("missing name", "Category name is required."))
-	}
-
-	description, ok := partial.Description.Get()
-	if !ok {
-		return nil, fault.Wrap(errInvalidCategoryCreate, fctx.With(ctx), fmsg.WithDesc("missing description", "Category description is required."))
-	}
+	description := partial.Description.OrZero()
 
 	colour, ok := partial.Colour.Get()
 	if !ok {
@@ -152,11 +149,20 @@ func (s *service) Update(ctx context.Context, slug string, partial Partial) (*ca
 	if v, ok := partial.Name.Get(); ok {
 		opts = append(opts, category.WithName(v))
 	}
-	if v, ok := partial.Slug.Get(); ok {
-		if _, err := mark.NewSlug(v); err != nil {
+	if v, ok := partial.Slug.Get(); ok && mark.Slugify(v) != slug {
+		existing, err := s.category_repo.Get(ctx, slug)
+		if err != nil {
 			return nil, fault.Wrap(err, fctx.With(ctx))
 		}
-		opts = append(opts, category.WithSlug(v))
+
+		name := partial.Name.Or(existing.Name)
+		next, err := s.uniqueSlug(ctx, mark.Slugify(v), name, existing.ParentID, &existing.ID)
+		if err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+		if next != slug {
+			opts = append(opts, category.WithSlug(next))
+		}
 	}
 	if v, ok := partial.Description.Get(); ok {
 		opts = append(opts, category.WithDescription(v))
@@ -283,4 +289,33 @@ func (s *service) invalidateByID(ctx context.Context, id category.CategoryID) er
 	}
 
 	return s.cache.Invalidate(ctx, slug)
+}
+
+func (s *service) uniqueSlug(ctx context.Context, base, name string, parentID *category.CategoryID, self *category.CategoryID) (string, error) {
+	if base == "" {
+		base = mark.Slugify(name)
+	}
+
+	candidates := []string{base}
+	if parentID != nil {
+		parentSlug, err := s.category_repo.GetSlug(ctx, *parentID)
+		if err != nil {
+			return "", fault.Wrap(err, fctx.With(ctx))
+		}
+		candidates = append(candidates, parentSlug+"-"+base)
+	}
+
+	last := candidates[len(candidates)-1]
+	for i := 2; ; i++ {
+		for _, c := range candidates {
+			taken, err := s.category_repo.SlugTaken(ctx, c, self)
+			if err != nil {
+				return "", fault.Wrap(err, fctx.With(ctx))
+			}
+			if !taken {
+				return c, nil
+			}
+		}
+		candidates = []string{fmt.Sprintf("%s-%d", last, i)}
+	}
 }

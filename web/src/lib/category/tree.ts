@@ -140,3 +140,26 @@ function containsNode(node: CategoryTree, id: string): boolean {
 
   return false;
 }
+
+export function categoryPathLabels(
+  categories: Category[],
+): Map<string, string> {
+  const byId = new Map(categories.map((c) => [c.id, c]));
+  const labels = new Map<string, string>();
+
+  categories.forEach((category) => {
+    const names: string[] = [];
+    const visited = new Set<string>();
+
+    let current: Category | undefined = category;
+    while (current && !visited.has(current.id)) {
+      visited.add(current.id);
+      names.unshift(current.name);
+      current = current.parent ? byId.get(current.parent) : undefined;
+    }
+
+    labels.set(category.id, names.join(" / "));
+  });
+
+  return labels;
+}

@@ -77,7 +77,7 @@ export function useCategoryMutations() {
 
     // Slugs are validated on write, but legacy rows may still contain
     // characters like "/" that would otherwise split the request path.
-    await categoryUpdate(encodeURIComponent(slug), updated);
+    return await categoryUpdate(encodeURIComponent(slug), updated);
   };
 
   const deleteCategory = async (slug: string, body: CategoryDeleteBody) => {

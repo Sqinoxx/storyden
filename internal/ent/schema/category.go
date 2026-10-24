@@ -19,7 +19,7 @@ func (Category) Mixin() []ent.Mixin {
 // Fields of Category.
 func (Category) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").Unique(),
+		field.String("name"),
 		field.String("slug").Unique(),
 		field.String("description").Default("(No description)"),
 		field.String("colour").Default("#8577ce"),

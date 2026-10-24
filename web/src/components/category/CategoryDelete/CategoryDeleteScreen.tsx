@@ -10,6 +10,7 @@ import { SelectField } from "@/components/ui/form/SelectField";
 import { HStack, LStack } from "@/styled-system/jsx";
 
 import { CategoryDeleteProps, useCategoryDelete } from "./useCategoryDelete";
+import { categoryPathLabels } from "@/lib/category/tree";
 import { useTranslation } from "@/lib/i18n";
 
 export type { CategoryDeleteProps };
@@ -19,6 +20,7 @@ export function CategoryDeleteScreen(props: CategoryDeleteProps) {
   const { form, handleDelete } = useCategoryDelete(props);
   const { data: categoryListResult } = useCategoryList();
   const categories = categoryListResult?.categories || [];
+  const labels = categoryPathLabels(categories);
 
   // Filter out the category being deleted from the move options
   const availableCategories = categories.filter(
@@ -27,7 +29,7 @@ export function CategoryDeleteScreen(props: CategoryDeleteProps) {
 
   const categoryCollection = createListCollection({
     items: availableCategories.map((category) => ({
-      label: category.name,
+      label: labels.get(category.id) ?? category.name,
       value: category.id,
     })),
   });

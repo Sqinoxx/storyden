@@ -1131,6 +1131,15 @@ export const de: Translations = {
         "Um ein Inserat aufzugeben oder ein Angebot zu machen, brauchst du eine Telefonnummer in deinem Konto. Sie ist privat und wird nur deinen Handelspartnern angezeigt.",
       action: "Telefonnummer hinterlegen",
     },
+    lightbox: {
+      open: "Bild vergrößern",
+      close: "Schließen",
+      previous: "Vorheriges Bild",
+      next: "Nächstes Bild",
+      zoomIn: "Hineinzoomen",
+      zoomOut: "Herauszoomen",
+      resetZoom: "Zoom zurücksetzen",
+    },
     detail: {
       seller: "Verkäufer",
       category: "Kategorie",

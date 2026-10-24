@@ -1129,6 +1129,15 @@ export const en = {
         "To post a listing or make an offer you need a phone number in your account. It is private and only shown to people you trade with.",
       action: "Add phone number",
     },
+    lightbox: {
+      open: "View full size",
+      close: "Close",
+      previous: "Previous image",
+      next: "Next image",
+      zoomIn: "Zoom in",
+      zoomOut: "Zoom out",
+      resetZoom: "Reset zoom",
+    },
     detail: {
       seller: "Seller",
       category: "Category",

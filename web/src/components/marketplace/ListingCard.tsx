@@ -8,6 +8,7 @@ import { useTranslation } from "@/lib/i18n";
 import {
   formatDate,
   formatListingPrice,
+  formatRemaining,
   listingURL,
 } from "@/lib/marketplace/marketplace";
 import { Box, HStack, LStack, styled } from "@/styled-system/jsx";
@@ -85,10 +86,17 @@ export function ListingCard({ listing, onChange }: Props) {
           </styled.span>
         </Link>
         <styled.span fontSize="xs" color="fg.muted">
-          {[listing.location, formatDate(listing.createdAt)]
-            .filter(Boolean)
-            .join(" · ")}
+          {formatDate(listing.createdAt)}
         </styled.span>
+        {listing.is_own && !listing.is_expired && (
+          <styled.span
+            fontSize="xs"
+            color="fg.muted"
+            data-testid="listing-card-remaining"
+          >
+            {formatRemaining(t, listing.expires_at)}
+          </styled.span>
+        )}
         {listing.is_own && listing.offer_count !== undefined && (
           <styled.span fontSize="xs" color="fg.muted">
             {t.marketplace.offers.replace(

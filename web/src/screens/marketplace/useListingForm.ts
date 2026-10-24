@@ -27,7 +27,6 @@ export const FormSchema = z.object({
   price_type: z.nativeEnum(ListingPriceType),
   category: z.string().min(1),
   condition: z.nativeEnum(ListingCondition),
-  location: z.string().trim().max(100),
 });
 export type Form = z.infer<typeof FormSchema>;
 
@@ -41,6 +40,7 @@ export function useListingForm({ listing }: Props) {
   const router = useRouter();
   const [assets, setAssets] = useState<Asset[]>(listing?.assets ?? []);
   const [uploading, setUploading] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
@@ -51,7 +51,6 @@ export function useListingForm({ listing }: Props) {
       price_type: listing?.price_type ?? ListingPriceType.negotiable,
       category: listing?.category ?? categories[0]?.id ?? "",
       condition: listing?.condition ?? ListingCondition.used,
-      location: listing?.location ?? "",
     },
   });
 
@@ -65,6 +64,7 @@ export function useListingForm({ listing }: Props) {
   }, [firstCategory, form]);
 
   const onSubmit = form.handleSubmit(async (data) => {
+    setPublishing(true);
     const body = {
       title: data.title,
       description: data.description,
@@ -75,7 +75,6 @@ export function useListingForm({ listing }: Props) {
       price_type: data.price_type,
       category: data.category,
       condition: data.condition,
-      location: data.location,
       asset_ids: assets.map((a) => a.id),
     };
 
@@ -101,6 +100,8 @@ export function useListingForm({ listing }: Props) {
 
     if (saved) {
       router.push(listingURL(saved));
+    } else {
+      setPublishing(false);
     }
   });
 
@@ -111,6 +112,7 @@ export function useListingForm({ listing }: Props) {
     setAssets,
     uploading,
     setUploading,
+    publishing,
     onSubmit,
   };
 }

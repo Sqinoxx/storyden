@@ -1323,6 +1323,13 @@ func optionalOAuthScopePolicy(in *openapi.OAuthClientScopePolicy) opt.Optional[o
 }
 
 func serialiseSettings(in *instance_info.Info, headers *openapi.NetworkHeadersSample) openapi.AdminSettingsProps {
+	services := opt.Map(in.Settings.Services, serialiseServiceSettings).OrZero()
+	if services.Market == nil {
+		services.Market = &openapi.MarketServiceSettings{}
+	}
+	categories := serialiseMarketCategories(in.Settings.MarketCategories())
+	services.Market.Categories = &categories
+
 	return openapi.AdminSettingsProps{
 		AccentColour:       in.Settings.AccentColour.OrZero(),
 		Description:        in.Settings.Description.OrZero(),
@@ -1332,7 +1339,7 @@ func serialiseSettings(in *instance_info.Info, headers *openapi.NetworkHeadersSa
 		RegistrationMode:   openapi.RegistrationMode(in.Settings.RegistrationMode.Or(settings.RegistrationModePublic).String()),
 		WebAddress:         in.WebAddress.String(),
 		ApiAddress:         in.APIAddress.String(),
-		Services:           opt.Map(in.Settings.Services, serialiseServiceSettings).Ptr(),
+		Services:           &services,
 		Metadata:           (*openapi.Metadata)(in.Settings.Metadata.Ptr()),
 		Motd:               opt.Map(in.Settings.Motd, serialiseMOTD).Ptr(),
 		Headers:            headers,

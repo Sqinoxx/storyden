@@ -7,8 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { PaginatedResult } from "./paginatedResult";
-import type { RobotWorkspacesListResultAllOf } from "./robotWorkspacesListResultAllOf";
+import type { PaginatedResult } from './paginatedResult';
+import type { RobotWorkspacesListResultAllOf } from './robotWorkspacesListResultAllOf';
 
-export type RobotWorkspacesListResult = PaginatedResult &
-  RobotWorkspacesListResultAllOf;
+export type RobotWorkspacesListResult = PaginatedResult & RobotWorkspacesListResultAllOf;

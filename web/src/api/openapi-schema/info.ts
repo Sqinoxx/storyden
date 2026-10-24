@@ -33,6 +33,10 @@ export interface Info {
 admins and listing moderators can access it.
  */
   marketplace_enabled?: boolean;
+  /** How many days a Flohmarkt listing stays visible after it was
+created or renewed.
+ */
+  marketplace_listing_duration_days?: number;
   /** The maximum size, in megabytes, of a single file upload accepted by
 this instance. Clients should use this to reject oversized files
 before spending bandwidth uploading them.

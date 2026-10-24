@@ -44,6 +44,26 @@ export function formatDate(iso: string) {
   });
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export function daysUntil(iso: string) {
+  return Math.max(
+    0,
+    Math.ceil((new Date(iso).getTime() - Date.now()) / DAY_MS),
+  );
+}
+
+export function addDays(days: number) {
+  return new Date(Date.now() + days * DAY_MS).toISOString();
+}
+
+export function formatRemaining(t: Translations, iso: string) {
+  const days = daysUntil(iso);
+  if (days === 0) return t.marketplace.remainingToday;
+  if (days === 1) return t.marketplace.remainingOneDay;
+  return t.marketplace.remainingDays.replace("{days}", String(days));
+}
+
 export function whatsappURL(phone: string, message: string) {
   const digits = phone.replace(/[^0-9]/g, "");
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;

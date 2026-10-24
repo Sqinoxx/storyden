@@ -98,8 +98,10 @@ test.describe("Flea market", () => {
     await page.locator('select[name="price_type"]').selectOption("negotiable");
     await page.locator('input[name="price"]').fill("45");
     await page.locator('select[name="category"]').selectOption("instruments");
-    await page.locator('input[name="location"]').fill("Wien");
     await page.locator('textarea[name="description"]').fill("Kaum benutzt.");
+    await expect(page.getByTestId("listing-visibility")).toContainText(
+      "90 days",
+    );
     await page.getByRole("button", { name: "Publish listing" }).click();
 
     await expect(page).toHaveURL(/\/flohmarkt\/[a-z0-9]+-/, { timeout: 15000 });

@@ -82,18 +82,18 @@ func TestListings(t *testing.T) {
 				bad, err := cl.AccountPhoneSetWithResponse(root, openapi.AccountPhoneSetProps{Phone: "abc123"}, sellerSession)
 				tests.Status(t, err, bad, http.StatusBadRequest)
 
-				ok := tests.AssertRequest(cl.AccountPhoneSetWithResponse(root, openapi.AccountPhoneSetProps{Phone: "0664 123 45 67"}, sellerSession))(t, http.StatusOK)
-				r.Equal("+436641234567", *ok.JSON200.Phone)
+				ok := tests.AssertRequest(cl.AccountPhoneSetWithResponse(root, openapi.AccountPhoneSetProps{Phone: "0151 123 456 78"}, sellerSession))(t, http.StatusOK)
+				r.Equal("+4915112345678", *ok.JSON200.Phone)
 
 				get := tests.AssertRequest(cl.AccountPhoneGetWithResponse(root, sellerSession))(t, http.StatusOK)
-				r.Equal("+436641234567", *get.JSON200.Phone)
+				r.Equal("+4915112345678", *get.JSON200.Phone)
 			})
 
 			t.Run("phone_not_in_public_profile", func(t *testing.T) {
 				r := require.New(t)
 
 				prof := tests.AssertRequest(cl.ProfileGetWithResponse(root, seller.Handle, buyerSession))(t, http.StatusOK)
-				r.NotContains(string(prof.Body), "6641234567")
+				r.NotContains(string(prof.Body), "15112345678")
 			})
 
 			image1 := uploadPNG(t, root, cl, sellerSession, "a.png")
@@ -191,7 +191,7 @@ func TestListings(t *testing.T) {
 				a.Nil(offer.JSON200.BuyerPhone)
 
 				contact := tests.AssertRequest(cl.ListingContactGetWithResponse(root, created.Slug, buyerSession))(t, http.StatusOK)
-				a.Equal("+436641234567", contact.JSON200.Phone)
+				a.Equal("+4915112345678", contact.JSON200.Phone)
 
 				get := tests.AssertRequest(cl.ListingGetWithResponse(root, created.Slug, buyerSession))(t, http.StatusOK)
 				a.True(get.JSON200.HasOffered)
@@ -298,6 +298,9 @@ func TestListings(t *testing.T) {
 				get := tests.AssertRequest(cl.AdminSettingsGetWithResponse(root, adminSession))(t, http.StatusOK)
 				a.Equal(14, *get.JSON200.Services.Market.ListingDurationDays)
 
+				info := tests.AssertRequest(cl.GetInfoWithResponse(root))(t, http.StatusOK)
+				a.Equal(14, *info.JSON200.MarketplaceListingDurationDays)
+
 				resp := tests.AssertRequest(cl.ListingCreateWithResponse(root, guitar, sellerSession))(t, http.StatusOK)
 				a.WithinDuration(time.Now().Add(14*24*time.Hour), resp.JSON200.ExpiresAt, time.Minute)
 
@@ -385,6 +388,7 @@ func TestListingsBetaVisibility(t *testing.T) {
 			settings := tests.AssertRequest(cl.AdminSettingsGetWithResponse(root, adminSession))(t, http.StatusOK)
 			a.True(*settings.JSON200.Services.Market.Enabled)
 			a.Equal(90, *settings.JSON200.Services.Market.ListingDurationDays)
+			a.Equal(90, *info.JSON200.MarketplaceListingDurationDays)
 		}))
 	}))
 }
@@ -411,6 +415,10 @@ func TestListingsAdminCategories(t *testing.T) {
 			info := tests.AssertRequest(cl.GetInfoWithResponse(root))(t, http.StatusOK)
 			r.NotNil(info.JSON200.MarketplaceCategories)
 			a.Len(*info.JSON200.MarketplaceCategories, len(settings.DefaultMarketCategories))
+
+			defaults := tests.AssertRequest(cl.AdminSettingsGetWithResponse(root, adminSession))(t, http.StatusOK)
+			r.NotNil(defaults.JSON200.Services.Market.Categories)
+			a.Equal(*info.JSON200.MarketplaceCategories, *defaults.JSON200.Services.Market.Categories)
 
 			categories := openapi.MarketCategoryList{
 				{Id: "instruments", Name: "Instrumente"},

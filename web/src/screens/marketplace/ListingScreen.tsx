@@ -17,7 +17,11 @@ import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { ReportIcon } from "@/components/ui/icons/Report";
 import { useTranslation } from "@/lib/i18n";
-import { formatDate, formatListingPrice } from "@/lib/marketplace/marketplace";
+import {
+  formatDate,
+  formatListingPrice,
+  formatRemaining,
+} from "@/lib/marketplace/marketplace";
 import {
   CardBox,
   Grid,
@@ -59,9 +63,6 @@ export function ListingScreen({ slug, initialListing }: Props) {
       label: t.marketplace.detail.condition,
       value: t.marketplace.conditions[listing.condition],
     },
-    ...(listing.location
-      ? [{ label: t.marketplace.detail.location, value: listing.location }]
-      : []),
   ];
 
   return (
@@ -116,6 +117,8 @@ export function ListingScreen({ slug, initialListing }: Props) {
                 ? t.marketplace.expiredOn
                 : t.marketplace.expiresOn
               ).replace("{date}", formatDate(listing.expires_at))}
+              {!listing.is_expired &&
+                ` (${formatRemaining(t, listing.expires_at)})`}
             </styled.span>
           </LStack>
 

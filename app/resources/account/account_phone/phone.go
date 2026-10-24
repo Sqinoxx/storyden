@@ -16,7 +16,7 @@ import (
 	ent_account "github.com/Southclaws/storyden/internal/ent/account"
 )
 
-const DefaultCountryCode = "43"
+const DefaultCountryCode = "49"
 
 var ErrInvalidPhone = fault.New("invalid phone number", ftag.With(ftag.InvalidArgument))
 
@@ -47,7 +47,7 @@ func Normalise(raw string) (string, error) {
 	}
 
 	if len(s) < 8 || len(s) > 15 || s[0] == '0' {
-		return "", fault.Wrap(ErrInvalidPhone, fmsg.WithDesc("invalid length", "Bitte gib eine gültige Telefonnummer ein, z. B. +43 664 1234567."))
+		return "", fault.Wrap(ErrInvalidPhone, fmsg.WithDesc("invalid length", "Bitte gib eine gültige Telefonnummer ein, z. B. +49 151 12345678."))
 	}
 
 	return "+" + s, nil

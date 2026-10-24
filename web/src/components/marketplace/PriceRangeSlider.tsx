@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ComponentProps, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -90,11 +90,8 @@ export function PriceRangeSlider({
         onValueChange={(d) => setValue(d.value)}
         onValueChangeEnd={(d) => commit(d.value[0], d.value[1])}
       />
-      <HStack gap="2">
-        <Input
-          size="sm"
-          type="number"
-          inputMode="numeric"
+      <WStack>
+        <PriceBox
           min={lower}
           max={upper}
           step={step}
@@ -104,10 +101,7 @@ export function PriceRangeSlider({
           onBlur={() => commitText(loText, "lo")}
           onKeyDown={(e) => e.key === "Enter" && commitText(loText, "lo")}
         />
-        <Input
-          size="sm"
-          type="number"
-          inputMode="numeric"
+        <PriceBox
           min={lower}
           max={upper}
           step={step}
@@ -117,7 +111,46 @@ export function PriceRangeSlider({
           onBlur={() => commitText(hiText, "hi")}
           onKeyDown={(e) => e.key === "Enter" && commitText(hiText, "hi")}
         />
-      </HStack>
+      </WStack>
     </LStack>
+  );
+}
+
+function PriceBox(props: ComponentProps<typeof Input>) {
+  return (
+    <HStack
+      gap="1"
+      h="7"
+      w="20"
+      px="2"
+      borderWidth="thin"
+      borderColor="border.default"
+      borderRadius="l2"
+      bg="bg.default"
+      transitionProperty="common"
+      transitionDuration="normal"
+      _focusWithin={{ borderColor: "border.accent", boxShadow: "xs" }}
+    >
+      <Input
+        size="xs"
+        variant="ghost"
+        type="number"
+        inputMode="numeric"
+        textAlign="right"
+        fontVariantNumeric="tabular-nums"
+        minW="0"
+        css={{
+          appearance: "textfield",
+          "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button": {
+            WebkitAppearance: "none",
+            m: "0",
+          },
+        }}
+        {...props}
+      />
+      <styled.span fontSize="xs" color="fg.muted">
+        €
+      </styled.span>
+    </HStack>
   );
 }

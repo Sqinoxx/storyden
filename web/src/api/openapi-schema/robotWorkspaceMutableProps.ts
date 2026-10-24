@@ -7,12 +7,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { Metadata } from "./metadata";
-import type { RobotWorkspaceMutablePropsConfig } from "./robotWorkspaceMutablePropsConfig";
+import type { RobotWorkspaceMutablePropsConfig } from './robotWorkspaceMutablePropsConfig';
+import type { Metadata } from './metadata';
 
 export interface RobotWorkspaceMutableProps {
   /** Allow robots using this template to run arbitrary shell commands.
-   */
+ */
   allow_untrusted_commands?: boolean;
   /** Provider-specific template configuration. */
   config?: RobotWorkspaceMutablePropsConfig;

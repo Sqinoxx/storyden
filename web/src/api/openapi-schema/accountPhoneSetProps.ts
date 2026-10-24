@@ -11,7 +11,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 export interface AccountPhoneSetProps {
   /**
    * A phone number. Numbers without a country code are assumed to be
-Austrian. The number is stored normalised in E.164 format.
+German. The number is stored normalised in E.164 format.
 
    * @minLength 4
    * @maxLength 32

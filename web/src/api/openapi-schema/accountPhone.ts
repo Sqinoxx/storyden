@@ -9,6 +9,6 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  */
 
 export interface AccountPhone {
-  /** The phone number in E.164 format, e.g. +436641234567. */
+  /** The phone number in E.164 format, e.g. +4915112345678. */
   phone?: string;
 }

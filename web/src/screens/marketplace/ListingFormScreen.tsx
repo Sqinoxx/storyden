@@ -8,13 +8,14 @@ import {
 } from "@/components/marketplace/ListingImagesField";
 import { NativeSelect } from "@/components/marketplace/NativeSelect";
 import { PhoneRequiredNotice } from "@/components/marketplace/PhoneRequiredNotice";
-import { useMarketCategories } from "@/components/marketplace/useMarketCategories";
 import {
   conditionOptions,
   priceTypeOptions,
 } from "@/components/marketplace/options";
+import { useMarketCategories } from "@/components/marketplace/useMarketCategories";
 import { UnreadyBanner } from "@/components/site/Unready";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/button";
 import { FormControl } from "@/components/ui/form/FormControl";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
@@ -23,7 +24,20 @@ import { FormLabel } from "@/components/ui/form/FormLabel";
 import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/lib/i18n";
-import { CardBox, Grid, LStack, WStack, styled } from "@/styled-system/jsx";
+import {
+  addDays,
+  formatDate,
+  formatRemaining,
+} from "@/lib/marketplace/marketplace";
+import { useSettings } from "@/lib/settings/settings-client";
+import {
+  Box,
+  CardBox,
+  Grid,
+  LStack,
+  WStack,
+  styled,
+} from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
 import { Props, useListingForm } from "./useListingForm";
@@ -32,6 +46,7 @@ export function ListingFormScreen(props: Props) {
   const t = useTranslation();
   const categories = useMarketCategories();
   const phone = useAccountPhoneGet();
+  const settings = useSettings();
   const {
     form,
     priceType,
@@ -39,6 +54,7 @@ export function ListingFormScreen(props: Props) {
     setAssets,
     uploading,
     setUploading,
+    publishing,
     onSubmit,
   } = useListingForm(props);
   const errors = form.formState.errors;
@@ -50,6 +66,22 @@ export function ListingFormScreen(props: Props) {
   const title = props.listing
     ? t.marketplace.form.editTitle
     : t.marketplace.form.createTitle;
+
+  const durationDays = settings.ready
+    ? settings.settings.marketplace_listing_duration_days
+    : undefined;
+
+  const visibility = props.listing
+    ? props.listing.is_expired
+      ? undefined
+      : t.marketplace.form.visibilityCurrent
+          .replace("{date}", formatDate(props.listing.expires_at))
+          .replace("{remaining}", formatRemaining(t, props.listing.expires_at))
+    : durationDays
+      ? t.marketplace.form.visibilityNotice
+          .replace("{days}", String(durationDays))
+          .replace("{date}", formatDate(addDays(durationDays)))
+      : undefined;
 
   return (
     <LStack gap="4">
@@ -71,8 +103,38 @@ export function ListingFormScreen(props: Props) {
       {!phone.data.phone && !props.listing ? (
         <PhoneRequiredNotice />
       ) : (
-        <styled.form w="full" onSubmit={onSubmit}>
-          <CardBox className={lstack()} gap="6">
+        <styled.form w="full" position="relative" onSubmit={onSubmit}>
+          {publishing && (
+            <Box
+              position="absolute"
+              inset="0"
+              zIndex="overlay"
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              gap="3"
+              borderRadius="l3"
+              bg="bg.default/80"
+              backdropBlur="md"
+              backdropFilter="auto"
+              data-testid="listing-publishing"
+              aria-live="polite"
+            >
+              <Spinner size="lg" />
+              <styled.p fontWeight="medium">
+                {props.listing
+                  ? t.marketplace.form.saving
+                  : t.marketplace.form.creating}
+              </styled.p>
+              {!props.listing && (
+                <styled.p fontSize="sm" color="fg.muted">
+                  {t.marketplace.form.publishingHint}
+                </styled.p>
+              )}
+            </Box>
+          )}
+          <CardBox className={lstack()} gap="6" aria-busy={publishing}>
             <Heading size="md">{title}</Heading>
 
             <FormControl>
@@ -147,15 +209,6 @@ export function ListingFormScreen(props: Props) {
             </Grid>
 
             <FormControl>
-              <FormLabel>{t.marketplace.form.location}</FormLabel>
-              <Input
-                placeholder={t.marketplace.form.locationPlaceholder}
-                {...form.register("location")}
-              />
-              <FormErrorText>{errors.location?.message}</FormErrorText>
-            </FormControl>
-
-            <FormControl>
               <FormLabel>{t.marketplace.form.description}</FormLabel>
               <styled.textarea
                 w="full"
@@ -172,11 +225,23 @@ export function ListingFormScreen(props: Props) {
               <FormErrorText>{errors.description?.message}</FormErrorText>
             </FormControl>
 
-            <WStack justifyContent="flex-end">
+            <WStack
+              justifyContent="space-between"
+              alignItems="center"
+              flexWrap={{ base: "wrap", md: "nowrap" }}
+            >
+              <styled.p
+                fontSize="sm"
+                color="fg.muted"
+                data-testid="listing-visibility"
+              >
+                {visibility}
+              </styled.p>
               <Button
                 type="submit"
-                loading={form.formState.isSubmitting}
-                disabled={uploading}
+                flexShrink="0"
+                loading={publishing}
+                disabled={uploading || publishing}
               >
                 {props.listing
                   ? t.marketplace.form.submitEdit

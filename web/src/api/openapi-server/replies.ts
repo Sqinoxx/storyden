@@ -7,8 +7,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { ReplyCreateBody, ReplyCreateOKResponse } from "../openapi-schema";
-import { fetcher } from "../server";
+import type {
+  ReplyCreateBody,
+  ReplyCreateOKResponse
+} from '../openapi-schema'
+import { fetcher } from '../server';
+
 
 /**
  * Create a new post within a thread.
@@ -16,21 +20,25 @@ import { fetcher } from "../server";
 export type replyCreateResponse = {
   data: ReplyCreateOKResponse;
   status: number;
-};
+}
 
-export const getReplyCreateUrl = (threadMark: string) => {
-  return `/threads/${threadMark}/replies`;
-};
+export const getReplyCreateUrl = (threadMark: string,) => {
 
-export const replyCreate = async (
-  threadMark: string,
-  replyCreateBody: ReplyCreateBody,
-  options?: RequestInit,
-): Promise<replyCreateResponse> => {
-  return fetcher<Promise<replyCreateResponse>>(getReplyCreateUrl(threadMark), {
+
+  return `/threads/${threadMark}/replies`
+}
+
+export const replyCreate = async (threadMark: string,
+    replyCreateBody: ReplyCreateBody, options?: RequestInit): Promise<replyCreateResponse> => {
+  
+  return fetcher<Promise<replyCreateResponse>>(getReplyCreateUrl(threadMark),
+  {      
     ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(replyCreateBody),
-  });
-};
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      replyCreateBody,)
+  }
+);}
+
+

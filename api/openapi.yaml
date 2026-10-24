@@ -8020,6 +8020,11 @@ components:
             admins and listing moderators can access it.
         marketplace_categories:
           $ref: "#/components/schemas/MarketCategoryList"
+        marketplace_listing_duration_days:
+          type: integer
+          description: |
+            How many days a Flohmarkt listing stays visible after it was
+            created or renewed.
         web_address:
           type: string
           format: uri
@@ -13482,7 +13487,7 @@ components:
       properties:
         phone:
           type: string
-          description: The phone number in E.164 format, e.g. +436641234567.
+          description: The phone number in E.164 format, e.g. +4915112345678.
 
     AccountPhoneSetProps:
       type: object
@@ -13494,7 +13499,7 @@ components:
           maxLength: 32
           description: |
             A phone number. Numbers without a country code are assumed to be
-            Austrian. The number is stored normalised in E.164 format.
+            German. The number is stored normalised in E.164 format.
 
     ListingCategory:
       type: string

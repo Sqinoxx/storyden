@@ -8,7 +8,6 @@ const PUBLIC_PAGES = [
   "/invitation",
   "/oauth",
   "/logout",
-  "/impressum",
 ];
 
 export function matchesPage(pages: string[], pathName: string): boolean {

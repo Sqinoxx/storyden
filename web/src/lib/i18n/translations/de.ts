@@ -76,6 +76,8 @@ export const de: Translations = {
     usernamePlaceholder: "Benutzername",
     passwordLabel: "Passwort",
     passwordPlaceholder: "••••••••",
+    showPassword: "Passwort anzeigen",
+    hidePassword: "Passwort verbergen",
     forgotPassword: "Passwort vergessen",
   },
   actions: {
@@ -872,6 +874,8 @@ export const de: Translations = {
     enterHandle: "Bitte gib einen Benutzernamen ein",
     handleMaxLength: "Der Benutzername darf höchstens 30 Zeichen lang sein",
     enterTitle: "Bitte gib einen Titel ein.",
+    passwordMismatch: "Benutzername oder Passwort ist falsch.",
+    tooManyRequests: "Zu viele fehlgeschlagene Anmeldeversuche. Bitte versuche es später erneut.",
   },
   collections: {
     collectionBy: "Sammlung von {name}",

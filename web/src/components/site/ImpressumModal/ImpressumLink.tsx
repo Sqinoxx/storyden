@@ -1,11 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
+import { useSession } from "@/auth";
 import { styled } from "@/styled-system/jsx";
 import { ImpressumModal } from "./ImpressumModal";
 
 export function ImpressumLink() {
+  const session = useSession();
   const [isOpen, setIsOpen] = useState(false);
+
+  if (!session) {
+    return null;
+  }
 
   return (
     <>
@@ -26,6 +32,8 @@ export function ImpressumLink() {
       >
         Impressum
       </styled.button>
+
+      <styled.span color="fg.subtle">•</styled.span>
 
       <ImpressumModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>

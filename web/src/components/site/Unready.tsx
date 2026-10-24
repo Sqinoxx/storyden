@@ -140,7 +140,6 @@ export function Unready({ error }: Props) {
 
           <HStack color="fg.subtle" fontSize="xs" flexShrink="0" py="1" gap="2">
             <ImpressumLink />
-            <styled.span color="fg.subtle">•</styled.span>
             <CookieLink />
             <styled.span color="fg.subtle">•</styled.span>
             <p>powered by storyden</p>

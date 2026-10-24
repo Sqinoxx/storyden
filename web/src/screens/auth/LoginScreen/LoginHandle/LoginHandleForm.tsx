@@ -9,6 +9,7 @@ import { FormLabel } from "@/components/ui/FormLabel";
 import { Button } from "@/components/ui/button";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useTranslation } from "@/lib/i18n";
 import { Flex, styled } from "@/styled-system/jsx";
 
@@ -64,8 +65,7 @@ export function LoginHandleForm() {
 
       <FormControl>
         <FormLabel>{t.auth.passwordLabel}</FormLabel>
-        <Input
-          type="password"
+        <PasswordInput
           w="full"
           size="sm"
           placeholder={t.auth.passwordPlaceholder}

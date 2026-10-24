@@ -3,14 +3,15 @@ import { PropsWithChildren } from "react";
 
 import { Fullpage } from "@/layouts/Fullpage";
 
-import { BackAction } from "@/components/site/Action/Back";
 import { ImpressumLink } from "@/components/site/ImpressumModal/ImpressumLink";
 import { CookieLink } from "@/components/site/CookieNotice/CookieLink";
 import { getSettings } from "@/lib/settings/settings-server";
 import { css } from "@/styled-system/css";
-import { CardBox, HStack, VStack, WStack, styled } from "@/styled-system/jsx";
+import { CardBox, HStack, VStack, styled } from "@/styled-system/jsx";
 import { vstack } from "@/styled-system/patterns";
 import { getIconURL } from "@/utils/icon";
+
+import { BareBackAction } from "./BareBackAction";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -35,9 +36,7 @@ export default async function Layout({ children }: PropsWithChildren) {
           borderRadius="2xl"
           boxShadow="lg"
         >
-          <WStack>
-            <BackAction />
-          </WStack>
+          <BareBackAction />
           <VStack gap="3">
             <Image
               className={css({
@@ -64,7 +63,6 @@ export default async function Layout({ children }: PropsWithChildren) {
 
         <HStack color="fg.subtle" fontSize="xs" flexShrink="0" py="2" gap="2">
           <ImpressumLink />
-          <styled.span color="fg.subtle">•</styled.span>
           <CookieLink />
           <styled.span color="fg.subtle">•</styled.span>
           <p>powered by storyden</p>

@@ -74,6 +74,8 @@ export const en = {
     usernamePlaceholder: "Username",
     passwordLabel: "Password",
     passwordPlaceholder: "••••••••",
+    showPassword: "Show password",
+    hidePassword: "Hide password",
     forgotPassword: "Forgot password",
   },
   actions: {
@@ -869,6 +871,8 @@ export const en = {
     enterHandle: "Please enter a handle",
     handleMaxLength: "Handle must be 30 characters or less",
     enterTitle: "Please enter a title.",
+    passwordMismatch: "The provided password did not match the account.",
+    tooManyRequests: "Too Many Requests",
   },
   collections: {
     collectionBy: "Collection by {name}",

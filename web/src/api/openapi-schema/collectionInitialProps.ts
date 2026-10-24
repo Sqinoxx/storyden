@@ -7,9 +7,9 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { CollectionDescription } from "./collectionDescription";
-import type { CollectionName } from "./collectionName";
-import type { Mark } from "./mark";
+import type { CollectionDescription } from './collectionDescription';
+import type { CollectionName } from './collectionName';
+import type { Mark } from './mark';
 
 export interface CollectionInitialProps {
   description?: CollectionDescription;

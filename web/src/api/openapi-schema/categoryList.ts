@@ -7,6 +7,6 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { Category } from "./category";
+import type { Category } from './category';
 
 export type CategoryList = Category[];

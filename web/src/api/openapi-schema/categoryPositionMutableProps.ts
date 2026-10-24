@@ -7,8 +7,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { Identifier } from "./identifier";
-import type { NullableIdentifier } from "./nullableIdentifier";
+import type { Identifier } from './identifier';
+import type { NullableIdentifier } from './nullableIdentifier';
 
 /**
  * Parameters for repositioning a category in the hierarchy. Update the

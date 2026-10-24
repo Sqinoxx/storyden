@@ -7,12 +7,15 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import useSwr from "swr";
-import type { Key, SWRConfiguration } from "swr";
-import useSWRMutation from "swr/mutation";
-import type { SWRMutationConfiguration } from "swr/mutation";
-
-import { fetcher } from "../client";
+import useSwr from 'swr'
+import type {
+  Key,
+  SWRConfiguration
+} from 'swr'
+import useSWRMutation from 'swr/mutation'
+import type {
+  SWRMutationConfiguration
+} from 'swr/mutation'
 import type {
   AssetGetOKResponse,
   AssetUploadBody,
@@ -23,53 +26,54 @@ import type {
   InternalServerErrorResponse,
   PresenceHeartbeatBody,
   PresenceHeartbeatOKResponse,
-  UnauthorisedResponse,
-} from "../openapi-schema";
+  UnauthorisedResponse
+} from '../openapi-schema'
+import { fetcher } from '../client';
 
-/**
+
+
+  
+  /**
  * The version number includes the date and time of the release build as
 well as a short representation of the Git commit hash.
 
  * @summary Get the software version string.
  */
-export const getVersion = () => {
-  return fetcher<string>({ url: `/version`, method: "GET" });
-};
+export const getVersion = (
+    
+ ) => {
+    return fetcher<string>(
+    {url: `/version`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getGetVersionKey = () => [`/version`] as const;
 
-export type GetVersionQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getVersion>>
->;
-export type GetVersionQueryError = InternalServerErrorResponse;
+export type GetVersionQueryResult = NonNullable<Awaited<ReturnType<typeof getVersion>>>
+export type GetVersionQueryError = InternalServerErrorResponse
 
 /**
  * @summary Get the software version string.
  */
-export const useGetVersion = <TError = InternalServerErrorResponse>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof getVersion>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useGetVersion = <TError = InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getVersion>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetVersionKey() : null));
-  const swrFn = () => getVersion();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetVersionKey() : null);
+  const swrFn = () => getVersion()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * This endpoint returns the OpenAPI specification for the Storyden API in
 JSON format. This is useful for clients that want to dynamically load
@@ -77,44 +81,41 @@ the API specification for documentation or code generation.
 
  * @summary OpenAPI specification
  */
-export const getSpec = () => {
-  return fetcher<GetSpec200>({ url: `/openapi.json`, method: "GET" });
-};
+export const getSpec = (
+    
+ ) => {
+    return fetcher<GetSpec200>(
+    {url: `/openapi.json`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getGetSpecKey = () => [`/openapi.json`] as const;
 
-export type GetSpecQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getSpec>>
->;
-export type GetSpecQueryError = InternalServerErrorResponse;
+export type GetSpecQueryResult = NonNullable<Awaited<ReturnType<typeof getSpec>>>
+export type GetSpecQueryError = InternalServerErrorResponse
 
 /**
  * @summary OpenAPI specification
  */
-export const useGetSpec = <TError = InternalServerErrorResponse>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof getSpec>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useGetSpec = <TError = InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getSpec>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetSpecKey() : null));
-  const swrFn = () => getSpec();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetSpecKey() : null);
+  const swrFn = () => getSpec()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * This endpoint returns the OpenAPI documentation for the Storyden API in
 an interactive HTML format. This is useful for developers who want to
@@ -122,44 +123,41 @@ explore the API and test endpoints without writing code.
 
  * @summary API documentation
  */
-export const getDocs = () => {
-  return fetcher<string>({ url: `/docs`, method: "GET" });
-};
+export const getDocs = (
+    
+ ) => {
+    return fetcher<string>(
+    {url: `/docs`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getGetDocsKey = () => [`/docs`] as const;
 
-export type GetDocsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getDocs>>
->;
-export type GetDocsQueryError = InternalServerErrorResponse;
+export type GetDocsQueryResult = NonNullable<Awaited<ReturnType<typeof getDocs>>>
+export type GetDocsQueryError = InternalServerErrorResponse
 
 /**
  * @summary API documentation
  */
-export const useGetDocs = <TError = InternalServerErrorResponse>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof getDocs>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useGetDocs = <TError = InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getDocs>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetDocsKey() : null));
-  const swrFn = () => getDocs();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetDocsKey() : null);
+  const swrFn = () => getDocs()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Provides the instance settings and, if authenticated, the member's
 settings as well. This is effectively the same as calling `GetInfo` and
@@ -167,41 +165,38 @@ settings as well. This is effectively the same as calling `GetInfo` and
 round-trips for root level data needed to render a client's initial UI.
 
  */
-export const getSession = () => {
-  return fetcher<GetSessionOKResponse>({ url: `/session`, method: "GET" });
-};
+export const getSession = (
+    
+ ) => {
+    return fetcher<GetSessionOKResponse>(
+    {url: `/session`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getGetSessionKey = () => [`/session`] as const;
 
-export type GetSessionQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getSession>>
->;
-export type GetSessionQueryError = InternalServerErrorResponse;
+export type GetSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getSession>>>
+export type GetSessionQueryError = InternalServerErrorResponse
 
-export const useGetSession = <TError = InternalServerErrorResponse>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof getSession>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useGetSession = <TError = InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getSession>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetSessionKey() : null));
-  const swrFn = () => getSession();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetSessionKey() : null);
+  const swrFn = () => getSession()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Get the basic forum installation info such as title, description, etc.
 
@@ -209,225 +204,192 @@ This is a fully public endpoint as it drives the ability to render stuff
 like OpenGraph metadata, favicon, titles, descriptions, for crawlers.
 
  */
-export const getInfo = () => {
-  return fetcher<GetInfoOKResponse>({ url: `/info`, method: "GET" });
-};
+export const getInfo = (
+    
+ ) => {
+    return fetcher<GetInfoOKResponse>(
+    {url: `/info`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getGetInfoKey = () => [`/info`] as const;
 
-export type GetInfoQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getInfo>>
->;
-export type GetInfoQueryError = InternalServerErrorResponse;
+export type GetInfoQueryResult = NonNullable<Awaited<ReturnType<typeof getInfo>>>
+export type GetInfoQueryError = InternalServerErrorResponse
 
-export const useGetInfo = <TError = InternalServerErrorResponse>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof getInfo>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useGetInfo = <TError = InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getInfo>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetInfoKey() : null));
-  const swrFn = () => getInfo();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetInfoKey() : null);
+  const swrFn = () => getInfo()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Get the logo icon image.
  */
 export const iconGet = (
-  iconSize: "512x512" | "32x32" | "180x180" | "120x120" | "167x167" | "152x152",
-) => {
-  return fetcher<AssetGetOKResponse>({
-    url: `/info/icon/${iconSize}`,
-    method: "GET",
-  });
-};
+    iconSize: '512x512' | '32x32' | '180x180' | '120x120' | '167x167' | '152x152',
+ ) => {
+    return fetcher<AssetGetOKResponse>(
+    {url: `/info/icon/${iconSize}`, method: 'GET'
+    },
+    );
+  }
 
-export const getIconGetKey = (
-  iconSize: "512x512" | "32x32" | "180x180" | "120x120" | "167x167" | "152x152",
-) => [`/info/icon/${iconSize}`] as const;
 
-export type IconGetQueryResult = NonNullable<
-  Awaited<ReturnType<typeof iconGet>>
->;
-export type IconGetQueryError = InternalServerErrorResponse;
+
+export const getIconGetKey = (iconSize: '512x512' | '32x32' | '180x180' | '120x120' | '167x167' | '152x152',) => [`/info/icon/${iconSize}`] as const;
+
+export type IconGetQueryResult = NonNullable<Awaited<ReturnType<typeof iconGet>>>
+export type IconGetQueryError = InternalServerErrorResponse
 
 export const useIconGet = <TError = InternalServerErrorResponse>(
-  iconSize: "512x512" | "32x32" | "180x180" | "120x120" | "167x167" | "152x152",
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof iconGet>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-  },
+  iconSize: '512x512' | '32x32' | '180x180' | '120x120' | '167x167' | '152x152', options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof iconGet>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
-  const { swr: swrOptions } = options ?? {};
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false && !!iconSize;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getIconGetKey(iconSize) : null));
-  const swrFn = () => iconGet(iconSize);
+  const isEnabled = swrOptions?.enabled !== false && !!(iconSize)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getIconGetKey(iconSize) : null);
+  const swrFn = () => iconGet(iconSize)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Upload and process the installation's logo image.
  */
-export const iconUpload = (assetUploadBody: AssetUploadBody) => {
-  return fetcher<void>({
-    url: `/info/icon`,
-    method: "POST",
-    headers: { "Content-Type": "application/octet-stream" },
-    data: assetUploadBody,
-  });
-};
+export const iconUpload = (
+    assetUploadBody: AssetUploadBody,
+ ) => {
+    return fetcher<void>(
+    {url: `/info/icon`, method: 'POST',
+      headers: {'Content-Type': 'application/octet-stream', },
+      data: assetUploadBody
+    },
+    );
+  }
 
-export const getIconUploadMutationFetcher = () => {
+
+
+export const getIconUploadMutationFetcher = ( ) => {
   return (_: Key, { arg }: { arg: AssetUploadBody }): Promise<void> => {
     return iconUpload(arg);
-  };
-};
+  }
+}
 export const getIconUploadMutationKey = () => [`/info/icon`] as const;
 
-export type IconUploadMutationResult = NonNullable<
-  Awaited<ReturnType<typeof iconUpload>>
->;
-export type IconUploadMutationError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type IconUploadMutationResult = NonNullable<Awaited<ReturnType<typeof iconUpload>>>
+export type IconUploadMutationError = UnauthorisedResponse | InternalServerErrorResponse
 
-export const useIconUpload = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof iconUpload>>,
-    TError,
-    Key,
-    AssetUploadBody,
-    Awaited<ReturnType<typeof iconUpload>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useIconUpload = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof iconUpload>>, TError, Key, AssetUploadBody, Awaited<ReturnType<typeof iconUpload>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getIconUploadMutationKey();
   const swrFn = getIconUploadMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Get the banner image.
  */
-export const bannerGet = () => {
-  return fetcher<AssetGetOKResponse>({ url: `/info/banner`, method: "GET" });
-};
+export const bannerGet = (
+    
+ ) => {
+    return fetcher<AssetGetOKResponse>(
+    {url: `/info/banner`, method: 'GET'
+    },
+    );
+  }
+
+
 
 export const getBannerGetKey = () => [`/info/banner`] as const;
 
-export type BannerGetQueryResult = NonNullable<
-  Awaited<ReturnType<typeof bannerGet>>
->;
-export type BannerGetQueryError = InternalServerErrorResponse;
+export type BannerGetQueryResult = NonNullable<Awaited<ReturnType<typeof bannerGet>>>
+export type BannerGetQueryError = InternalServerErrorResponse
 
-export const useBannerGet = <TError = InternalServerErrorResponse>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof bannerGet>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useBannerGet = <TError = InternalServerErrorResponse>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof bannerGet>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getBannerGetKey() : null));
-  const swrFn = () => bannerGet();
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getBannerGetKey() : null);
+  const swrFn = () => bannerGet()
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions,
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Upload and process the installation's banner image.
  */
-export const bannerUpload = (assetUploadBody: AssetUploadBody) => {
-  return fetcher<void>({
-    url: `/info/banner`,
-    method: "POST",
-    headers: { "Content-Type": "application/octet-stream" },
-    data: assetUploadBody,
-  });
-};
+export const bannerUpload = (
+    assetUploadBody: AssetUploadBody,
+ ) => {
+    return fetcher<void>(
+    {url: `/info/banner`, method: 'POST',
+      headers: {'Content-Type': 'application/octet-stream', },
+      data: assetUploadBody
+    },
+    );
+  }
 
-export const getBannerUploadMutationFetcher = () => {
+
+
+export const getBannerUploadMutationFetcher = ( ) => {
   return (_: Key, { arg }: { arg: AssetUploadBody }): Promise<void> => {
     return bannerUpload(arg);
-  };
-};
+  }
+}
 export const getBannerUploadMutationKey = () => [`/info/banner`] as const;
 
-export type BannerUploadMutationResult = NonNullable<
-  Awaited<ReturnType<typeof bannerUpload>>
->;
-export type BannerUploadMutationError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type BannerUploadMutationResult = NonNullable<Awaited<ReturnType<typeof bannerUpload>>>
+export type BannerUploadMutationError = UnauthorisedResponse | InternalServerErrorResponse
 
-export const useBannerUpload = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof bannerUpload>>,
-    TError,
-    Key,
-    AssetUploadBody,
-    Awaited<ReturnType<typeof bannerUpload>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useBannerUpload = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof bannerUpload>>, TError, Key, AssetUploadBody, Awaited<ReturnType<typeof bannerUpload>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getBannerUploadMutationKey();
   const swrFn = getBannerUploadMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * A catch-all endpoint for tracking read states and other things that are
 not critical to the functioning of the platform. This endpoint is fire
@@ -438,48 +400,45 @@ Library Page has been visited recently. It may queue the work for later
 processing and is not guaranteed to be processed immediately or at all.
 
  */
-export const sendBeacon = (beaconBody: BeaconBody) => {
-  return fetcher<void>({
-    url: `/beacon`,
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    data: beaconBody,
-  });
-};
+export const sendBeacon = (
+    beaconBody: BeaconBody,
+ ) => {
+    return fetcher<void>(
+    {url: `/beacon`, method: 'POST',
+      headers: {'Content-Type': 'text/plain', },
+      data: beaconBody
+    },
+    );
+  }
 
-export const getSendBeaconMutationFetcher = () => {
+
+
+export const getSendBeaconMutationFetcher = ( ) => {
   return (_: Key, { arg }: { arg: BeaconBody }): Promise<void> => {
     return sendBeacon(arg);
-  };
-};
+  }
+}
 export const getSendBeaconMutationKey = () => [`/beacon`] as const;
 
-export type SendBeaconMutationResult = NonNullable<
-  Awaited<ReturnType<typeof sendBeacon>>
->;
-export type SendBeaconMutationError = InternalServerErrorResponse;
+export type SendBeaconMutationResult = NonNullable<Awaited<ReturnType<typeof sendBeacon>>>
+export type SendBeaconMutationError = InternalServerErrorResponse
 
-export const useSendBeacon = <TError = InternalServerErrorResponse>(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof sendBeacon>>,
-    TError,
-    Key,
-    BeaconBody,
-    Awaited<ReturnType<typeof sendBeacon>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const useSendBeacon = <TError = InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof sendBeacon>>, TError, Key, BeaconBody, Awaited<ReturnType<typeof sendBeacon>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getSendBeaconMutationKey();
   const swrFn = getSendBeaconMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 /**
  * Marks the authenticated member as currently online, optionally within
 a category they are viewing, and returns how many members are online
@@ -488,53 +447,41 @@ Clients are expected to call this periodically while the page is open.
 
  */
 export const presenceHeartbeat = (
-  presenceHeartbeatBody: PresenceHeartbeatBody,
-) => {
-  return fetcher<PresenceHeartbeatOKResponse>({
-    url: `/presence`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: presenceHeartbeatBody,
-  });
-};
+    presenceHeartbeatBody: PresenceHeartbeatBody,
+ ) => {
+    return fetcher<PresenceHeartbeatOKResponse>(
+    {url: `/presence`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: presenceHeartbeatBody
+    },
+    );
+  }
 
-export const getPresenceHeartbeatMutationFetcher = () => {
-  return (
-    _: Key,
-    { arg }: { arg: PresenceHeartbeatBody },
-  ): Promise<PresenceHeartbeatOKResponse> => {
+
+
+export const getPresenceHeartbeatMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: PresenceHeartbeatBody }): Promise<PresenceHeartbeatOKResponse> => {
     return presenceHeartbeat(arg);
-  };
-};
+  }
+}
 export const getPresenceHeartbeatMutationKey = () => [`/presence`] as const;
 
-export type PresenceHeartbeatMutationResult = NonNullable<
-  Awaited<ReturnType<typeof presenceHeartbeat>>
->;
-export type PresenceHeartbeatMutationError =
-  | UnauthorisedResponse
-  | InternalServerErrorResponse;
+export type PresenceHeartbeatMutationResult = NonNullable<Awaited<ReturnType<typeof presenceHeartbeat>>>
+export type PresenceHeartbeatMutationError = UnauthorisedResponse | InternalServerErrorResponse
 
-export const usePresenceHeartbeat = <
-  TError = UnauthorisedResponse | InternalServerErrorResponse,
->(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof presenceHeartbeat>>,
-    TError,
-    Key,
-    PresenceHeartbeatBody,
-    Awaited<ReturnType<typeof presenceHeartbeat>>
-  > & { swrKey?: string };
-}) => {
-  const { swr: swrOptions } = options ?? {};
+export const usePresenceHeartbeat = <TError = UnauthorisedResponse | InternalServerErrorResponse>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof presenceHeartbeat>>, TError, Key, PresenceHeartbeatBody, Awaited<ReturnType<typeof presenceHeartbeat>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPresenceHeartbeatMutationKey();
   const swrFn = getPresenceHeartbeatMutationFetcher();
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}

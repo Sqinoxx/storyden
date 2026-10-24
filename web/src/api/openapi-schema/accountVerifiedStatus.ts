@@ -8,12 +8,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type AccountVerifiedStatus =
-  (typeof AccountVerifiedStatus)[keyof typeof AccountVerifiedStatus];
+export type AccountVerifiedStatus = typeof AccountVerifiedStatus[keyof typeof AccountVerifiedStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AccountVerifiedStatus = {
-  none: "none",
-  verified_email: "verified_email",
-  manual: "manual",
+  none: 'none',
+  verified_email: 'verified_email',
+  manual: 'manual',
 } as const;

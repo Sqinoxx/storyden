@@ -8,12 +8,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type CollectionItemMembershipType =
-  (typeof CollectionItemMembershipType)[keyof typeof CollectionItemMembershipType];
+export type CollectionItemMembershipType = typeof CollectionItemMembershipType[keyof typeof CollectionItemMembershipType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CollectionItemMembershipType = {
-  normal: "normal",
-  submission_review: "submission_review",
-  submission_accepted: "submission_accepted",
+  normal: 'normal',
+  submission_review: 'submission_review',
+  submission_accepted: 'submission_accepted',
 } as const;

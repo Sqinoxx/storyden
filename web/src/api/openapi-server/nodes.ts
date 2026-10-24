@@ -43,9 +43,10 @@ import type {
   NodeVersionUpdateBody,
   NodeVersionUpdateOKResponse,
   NodeVersionUpdateStatusBody,
-  VisibilityUpdateBody,
-} from "../openapi-schema";
-import { fetcher } from "../server";
+  VisibilityUpdateBody
+} from '../openapi-schema'
+import { fetcher } from '../server';
+
 
 /**
  * Create a node for curating structured knowledge together.
@@ -54,23 +55,26 @@ import { fetcher } from "../server";
 export type nodeCreateResponse = {
   data: NodeCreateOKResponse;
   status: number;
-};
+}
 
 export const getNodeCreateUrl = () => {
-  return `/nodes`;
-};
 
-export const nodeCreate = async (
-  nodeCreateBody: NodeCreateBody,
-  options?: RequestInit,
-): Promise<nodeCreateResponse> => {
-  return fetcher<Promise<nodeCreateResponse>>(getNodeCreateUrl(), {
+
+  return `/nodes`
+}
+
+export const nodeCreate = async (nodeCreateBody: NodeCreateBody, options?: RequestInit): Promise<nodeCreateResponse> => {
+  
+  return fetcher<Promise<nodeCreateResponse>>(getNodeCreateUrl(),
+  {      
     ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(nodeCreateBody),
-  });
-};
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeCreateBody,)
+  }
+);}
+
 
 /**
  * List nodes using the given filters. Can be used to get a full tree.
@@ -79,40 +83,38 @@ export const nodeCreate = async (
 export type nodeListResponse = {
   data: NodeListOKResponse;
   status: number;
-};
+}
 
-export const getNodeListUrl = (params?: NodeListParams) => {
+export const getNodeListUrl = (params?: NodeListParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
     const explodeParameters = ["visibility"];
-
+      
     if (value instanceof Array && explodeParameters.includes(key)) {
-      value.forEach((v) =>
-        normalizedParams.append(key, v === null ? "null" : v.toString()),
-      );
+      value.forEach((v) => normalizedParams.append(key, v === null ? 'null' : v.toString()));
       return;
     }
-
+      
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/nodes?${normalizedParams.toString()}`
-    : `/nodes`;
-};
+  return normalizedParams.size ? `/nodes?${normalizedParams.toString()}` : `/nodes`
+}
 
-export const nodeList = async (
-  params?: NodeListParams,
-  options?: RequestInit,
-): Promise<nodeListResponse> => {
-  return fetcher<Promise<nodeListResponse>>(getNodeListUrl(params), {
+export const nodeList = async (params?: NodeListParams, options?: RequestInit): Promise<nodeListResponse> => {
+  
+  return fetcher<Promise<nodeListResponse>>(getNodeListUrl(params),
+  {      
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * List all draft versions across all nodes visible to the caller.
@@ -133,31 +135,32 @@ appear first.
 export type nodeDraftListResponse = {
   data: NodeDraftListOKResponse;
   status: number;
-};
+}
 
-export const getNodeDraftListUrl = (params?: NodeDraftListParams) => {
+export const getNodeDraftListUrl = (params?: NodeDraftListParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/nodes/drafts?${normalizedParams.toString()}`
-    : `/nodes/drafts`;
-};
+  return normalizedParams.size ? `/nodes/drafts?${normalizedParams.toString()}` : `/nodes/drafts`
+}
 
-export const nodeDraftList = async (
-  params?: NodeDraftListParams,
-  options?: RequestInit,
-): Promise<nodeDraftListResponse> => {
-  return fetcher<Promise<nodeDraftListResponse>>(getNodeDraftListUrl(params), {
+export const nodeDraftList = async (params?: NodeDraftListParams, options?: RequestInit): Promise<nodeDraftListResponse> => {
+  
+  return fetcher<Promise<nodeDraftListResponse>>(getNodeDraftListUrl(params),
+  {      
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Get a node by its URL slug.
@@ -165,32 +168,34 @@ export const nodeDraftList = async (
 export type nodeGetResponse = {
   data: NodeGetOKResponse;
   status: number;
-};
+}
 
-export const getNodeGetUrl = (nodeSlug: string, params?: NodeGetParams) => {
+export const getNodeGetUrl = (nodeSlug: string,
+    params?: NodeGetParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/nodes/${nodeSlug}?${normalizedParams.toString()}`
-    : `/nodes/${nodeSlug}`;
-};
+  return normalizedParams.size ? `/nodes/${nodeSlug}?${normalizedParams.toString()}` : `/nodes/${nodeSlug}`
+}
 
-export const nodeGet = async (
-  nodeSlug: string,
-  params?: NodeGetParams,
-  options?: RequestInit,
-): Promise<nodeGetResponse> => {
-  return fetcher<Promise<nodeGetResponse>>(getNodeGetUrl(nodeSlug, params), {
+export const nodeGet = async (nodeSlug: string,
+    params?: NodeGetParams, options?: RequestInit): Promise<nodeGetResponse> => {
+  
+  return fetcher<Promise<nodeGetResponse>>(getNodeGetUrl(nodeSlug,params),
+  {      
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Update a node directly.
@@ -207,24 +212,27 @@ checkpoint.
 export type nodeUpdateResponse = {
   data: NodeUpdateOKResponse;
   status: number;
-};
+}
 
-export const getNodeUpdateUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}`;
-};
+export const getNodeUpdateUrl = (nodeSlug: string,) => {
 
-export const nodeUpdate = async (
-  nodeSlug: string,
-  nodeUpdateBody: NodeUpdateBody,
-  options?: RequestInit,
-): Promise<nodeUpdateResponse> => {
-  return fetcher<Promise<nodeUpdateResponse>>(getNodeUpdateUrl(nodeSlug), {
+
+  return `/nodes/${nodeSlug}`
+}
+
+export const nodeUpdate = async (nodeSlug: string,
+    nodeUpdateBody: NodeUpdateBody, options?: RequestInit): Promise<nodeUpdateResponse> => {
+  
+  return fetcher<Promise<nodeUpdateResponse>>(getNodeUpdateUrl(nodeSlug),
+  {      
     ...options,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(nodeUpdateBody),
-  });
-};
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeUpdateBody,)
+  }
+);}
+
 
 /**
  * Delete a node and move all children to its parent or root.
@@ -232,38 +240,34 @@ export const nodeUpdate = async (
 export type nodeDeleteResponse = {
   data: NodeDeleteOKResponse;
   status: number;
-};
+}
 
-export const getNodeDeleteUrl = (
-  nodeSlug: string,
-  params?: NodeDeleteParams,
-) => {
+export const getNodeDeleteUrl = (nodeSlug: string,
+    params?: NodeDeleteParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/nodes/${nodeSlug}?${normalizedParams.toString()}`
-    : `/nodes/${nodeSlug}`;
-};
+  return normalizedParams.size ? `/nodes/${nodeSlug}?${normalizedParams.toString()}` : `/nodes/${nodeSlug}`
+}
 
-export const nodeDelete = async (
-  nodeSlug: string,
-  params?: NodeDeleteParams,
-  options?: RequestInit,
-): Promise<nodeDeleteResponse> => {
-  return fetcher<Promise<nodeDeleteResponse>>(
-    getNodeDeleteUrl(nodeSlug, params),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
+export const nodeDelete = async (nodeSlug: string,
+    params?: NodeDeleteParams, options?: RequestInit): Promise<nodeDeleteResponse> => {
+  
+  return fetcher<Promise<nodeDeleteResponse>>(getNodeDeleteUrl(nodeSlug,params),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
 
 /**
  * Generate a proposed title for the specified node. Will not actually
@@ -274,27 +278,27 @@ output from a language model call.
 export type nodeGenerateTitleResponse = {
   data: NodeGenerateTitleOKResponse;
   status: number;
-};
+}
 
-export const getNodeGenerateTitleUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}/title`;
-};
+export const getNodeGenerateTitleUrl = (nodeSlug: string,) => {
 
-export const nodeGenerateTitle = async (
-  nodeSlug: string,
-  nodeGenerateTitleBody: NodeGenerateTitleBody,
-  options?: RequestInit,
-): Promise<nodeGenerateTitleResponse> => {
-  return fetcher<Promise<nodeGenerateTitleResponse>>(
-    getNodeGenerateTitleUrl(nodeSlug),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(nodeGenerateTitleBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/title`
+}
+
+export const nodeGenerateTitle = async (nodeSlug: string,
+    nodeGenerateTitleBody: NodeGenerateTitleBody, options?: RequestInit): Promise<nodeGenerateTitleResponse> => {
+  
+  return fetcher<Promise<nodeGenerateTitleResponse>>(getNodeGenerateTitleUrl(nodeSlug),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeGenerateTitleBody,)
+  }
+);}
+
 
 /**
  * Generate proposed tags for the specified node. Will not actually mutate
@@ -305,27 +309,27 @@ from a language model call.
 export type nodeGenerateTagsResponse = {
   data: NodeGenerateTagsOKResponse;
   status: number;
-};
+}
 
-export const getNodeGenerateTagsUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}/tags`;
-};
+export const getNodeGenerateTagsUrl = (nodeSlug: string,) => {
 
-export const nodeGenerateTags = async (
-  nodeSlug: string,
-  nodeGenerateTagsBody: NodeGenerateTagsBody,
-  options?: RequestInit,
-): Promise<nodeGenerateTagsResponse> => {
-  return fetcher<Promise<nodeGenerateTagsResponse>>(
-    getNodeGenerateTagsUrl(nodeSlug),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(nodeGenerateTagsBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/tags`
+}
+
+export const nodeGenerateTags = async (nodeSlug: string,
+    nodeGenerateTagsBody: NodeGenerateTagsBody, options?: RequestInit): Promise<nodeGenerateTagsResponse> => {
+  
+  return fetcher<Promise<nodeGenerateTagsResponse>>(getNodeGenerateTagsUrl(nodeSlug),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeGenerateTagsBody,)
+  }
+);}
+
 
 /**
  * Generate proposed content for the specified node. Will not actually
@@ -336,27 +340,27 @@ output from a language model call.
 export type nodeGenerateContentResponse = {
   data: NodeGenerateContentOKResponse;
   status: number;
-};
+}
 
-export const getNodeGenerateContentUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}/content`;
-};
+export const getNodeGenerateContentUrl = (nodeSlug: string,) => {
 
-export const nodeGenerateContent = async (
-  nodeSlug: string,
-  nodeGenerateContentBody: NodeGenerateContentBody,
-  options?: RequestInit,
-): Promise<nodeGenerateContentResponse> => {
-  return fetcher<Promise<nodeGenerateContentResponse>>(
-    getNodeGenerateContentUrl(nodeSlug),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(nodeGenerateContentBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/content`
+}
+
+export const nodeGenerateContent = async (nodeSlug: string,
+    nodeGenerateContentBody: NodeGenerateContentBody, options?: RequestInit): Promise<nodeGenerateContentResponse> => {
+  
+  return fetcher<Promise<nodeGenerateContentResponse>>(getNodeGenerateContentUrl(nodeSlug),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeGenerateContentBody,)
+  }
+);}
+
 
 /**
  * Get all the children of a given node using the provided filters and page
@@ -367,38 +371,34 @@ node as an interactive table where properties can be used as columns.
 export type nodeListChildrenResponse = {
   data: NodeListOKResponse;
   status: number;
-};
+}
 
-export const getNodeListChildrenUrl = (
-  nodeSlug: string,
-  params?: NodeListChildrenParams,
-) => {
+export const getNodeListChildrenUrl = (nodeSlug: string,
+    params?: NodeListChildrenParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/nodes/${nodeSlug}/children?${normalizedParams.toString()}`
-    : `/nodes/${nodeSlug}/children`;
-};
+  return normalizedParams.size ? `/nodes/${nodeSlug}/children?${normalizedParams.toString()}` : `/nodes/${nodeSlug}/children`
+}
 
-export const nodeListChildren = async (
-  nodeSlug: string,
-  params?: NodeListChildrenParams,
-  options?: RequestInit,
-): Promise<nodeListChildrenResponse> => {
-  return fetcher<Promise<nodeListChildrenResponse>>(
-    getNodeListChildrenUrl(nodeSlug, params),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+export const nodeListChildren = async (nodeSlug: string,
+    params?: NodeListChildrenParams, options?: RequestInit): Promise<nodeListChildrenResponse> => {
+  
+  return fetcher<Promise<nodeListChildrenResponse>>(getNodeListChildrenUrl(nodeSlug,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Updates the property schema of the children of this node. All children
@@ -409,27 +409,27 @@ structure and behaviour. See also: NodeUpdatePropertySchema
 export type nodeUpdateChildrenPropertySchemaResponse = {
   data: NodeUpdatePropertySchemaOKResponse;
   status: number;
-};
+}
 
-export const getNodeUpdateChildrenPropertySchemaUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}/children/property-schema`;
-};
+export const getNodeUpdateChildrenPropertySchemaUrl = (nodeSlug: string,) => {
 
-export const nodeUpdateChildrenPropertySchema = async (
-  nodeSlug: string,
-  nodeUpdatePropertySchemaBody: NodeUpdatePropertySchemaBody,
-  options?: RequestInit,
-): Promise<nodeUpdateChildrenPropertySchemaResponse> => {
-  return fetcher<Promise<nodeUpdateChildrenPropertySchemaResponse>>(
-    getNodeUpdateChildrenPropertySchemaUrl(nodeSlug),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(nodeUpdatePropertySchemaBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/children/property-schema`
+}
+
+export const nodeUpdateChildrenPropertySchema = async (nodeSlug: string,
+    nodeUpdatePropertySchemaBody: NodeUpdatePropertySchemaBody, options?: RequestInit): Promise<nodeUpdateChildrenPropertySchemaResponse> => {
+  
+  return fetcher<Promise<nodeUpdateChildrenPropertySchemaResponse>>(getNodeUpdateChildrenPropertySchemaUrl(nodeSlug),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeUpdatePropertySchemaBody,)
+  }
+);}
+
 
 /**
  * Updates the property schema of this node and its siblings. All children
@@ -446,27 +446,27 @@ quick schema changes without the need to remove or update values before.
 export type nodeUpdatePropertySchemaResponse = {
   data: NodeUpdatePropertySchemaOKResponse;
   status: number;
-};
+}
 
-export const getNodeUpdatePropertySchemaUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}/property-schema`;
-};
+export const getNodeUpdatePropertySchemaUrl = (nodeSlug: string,) => {
 
-export const nodeUpdatePropertySchema = async (
-  nodeSlug: string,
-  nodeUpdatePropertySchemaBody: NodeUpdatePropertySchemaBody,
-  options?: RequestInit,
-): Promise<nodeUpdatePropertySchemaResponse> => {
-  return fetcher<Promise<nodeUpdatePropertySchemaResponse>>(
-    getNodeUpdatePropertySchemaUrl(nodeSlug),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(nodeUpdatePropertySchemaBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/property-schema`
+}
+
+export const nodeUpdatePropertySchema = async (nodeSlug: string,
+    nodeUpdatePropertySchemaBody: NodeUpdatePropertySchemaBody, options?: RequestInit): Promise<nodeUpdatePropertySchemaResponse> => {
+  
+  return fetcher<Promise<nodeUpdatePropertySchemaResponse>>(getNodeUpdatePropertySchemaUrl(nodeSlug),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeUpdatePropertySchemaBody,)
+  }
+);}
+
 
 /**
  * Update the properties of a node. New schema fields will result in the
@@ -477,27 +477,27 @@ also propagate to all sibling nodes as they all share the same schema.
 export type nodeUpdatePropertiesResponse = {
   data: NodeUpdatePropertiesOKResponse;
   status: number;
-};
+}
 
-export const getNodeUpdatePropertiesUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}/properties`;
-};
+export const getNodeUpdatePropertiesUrl = (nodeSlug: string,) => {
 
-export const nodeUpdateProperties = async (
-  nodeSlug: string,
-  nodeUpdatePropertiesBody: NodeUpdatePropertiesBody,
-  options?: RequestInit,
-): Promise<nodeUpdatePropertiesResponse> => {
-  return fetcher<Promise<nodeUpdatePropertiesResponse>>(
-    getNodeUpdatePropertiesUrl(nodeSlug),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(nodeUpdatePropertiesBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/properties`
+}
+
+export const nodeUpdateProperties = async (nodeSlug: string,
+    nodeUpdatePropertiesBody: NodeUpdatePropertiesBody, options?: RequestInit): Promise<nodeUpdatePropertiesResponse> => {
+  
+  return fetcher<Promise<nodeUpdatePropertiesResponse>>(getNodeUpdatePropertiesUrl(nodeSlug),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeUpdatePropertiesBody,)
+  }
+);}
+
 
 /**
  * Update the visibility of a node. When changed, this may trigger other
@@ -508,27 +508,27 @@ anything to "published" is often accompanied by some other side effects.
 export type nodeUpdateVisibilityResponse = {
   data: NodeUpdateOKResponse;
   status: number;
-};
+}
 
-export const getNodeUpdateVisibilityUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}/visibility`;
-};
+export const getNodeUpdateVisibilityUrl = (nodeSlug: string,) => {
 
-export const nodeUpdateVisibility = async (
-  nodeSlug: string,
-  visibilityUpdateBody: VisibilityUpdateBody,
-  options?: RequestInit,
-): Promise<nodeUpdateVisibilityResponse> => {
-  return fetcher<Promise<nodeUpdateVisibilityResponse>>(
-    getNodeUpdateVisibilityUrl(nodeSlug),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(visibilityUpdateBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/visibility`
+}
+
+export const nodeUpdateVisibility = async (nodeSlug: string,
+    visibilityUpdateBody: VisibilityUpdateBody, options?: RequestInit): Promise<nodeUpdateVisibilityResponse> => {
+  
+  return fetcher<Promise<nodeUpdateVisibilityResponse>>(getNodeUpdateVisibilityUrl(nodeSlug),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      visibilityUpdateBody,)
+  }
+);}
+
 
 /**
  * List edit versions for a node.
@@ -548,38 +548,34 @@ recently applied checkpoints appear before older history.
 export type nodeVersionListResponse = {
   data: NodeVersionListOKResponse;
   status: number;
-};
+}
 
-export const getNodeVersionListUrl = (
-  nodeSlug: string,
-  params?: NodeVersionListParams,
-) => {
+export const getNodeVersionListUrl = (nodeSlug: string,
+    params?: NodeVersionListParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/nodes/${nodeSlug}/versions?${normalizedParams.toString()}`
-    : `/nodes/${nodeSlug}/versions`;
-};
+  return normalizedParams.size ? `/nodes/${nodeSlug}/versions?${normalizedParams.toString()}` : `/nodes/${nodeSlug}/versions`
+}
 
-export const nodeVersionList = async (
-  nodeSlug: string,
-  params?: NodeVersionListParams,
-  options?: RequestInit,
-): Promise<nodeVersionListResponse> => {
-  return fetcher<Promise<nodeVersionListResponse>>(
-    getNodeVersionListUrl(nodeSlug, params),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+export const nodeVersionList = async (nodeSlug: string,
+    params?: NodeVersionListParams, options?: RequestInit): Promise<nodeVersionListResponse> => {
+  
+  return fetcher<Promise<nodeVersionListResponse>>(getNodeVersionListUrl(nodeSlug,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Create the single mutable draft checkpoint for a node.
@@ -599,27 +595,27 @@ member with `MANAGE_LIBRARY`.
 export type nodeVersionCreateResponse = {
   data: NodeVersionCreateOKResponse;
   status: number;
-};
+}
 
-export const getNodeVersionCreateUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}/versions`;
-};
+export const getNodeVersionCreateUrl = (nodeSlug: string,) => {
 
-export const nodeVersionCreate = async (
-  nodeSlug: string,
-  nodeVersionCreateBody: NodeVersionCreateBody,
-  options?: RequestInit,
-): Promise<nodeVersionCreateResponse> => {
-  return fetcher<Promise<nodeVersionCreateResponse>>(
-    getNodeVersionCreateUrl(nodeSlug),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(nodeVersionCreateBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/versions`
+}
+
+export const nodeVersionCreate = async (nodeSlug: string,
+    nodeVersionCreateBody: NodeVersionCreateBody, options?: RequestInit): Promise<nodeVersionCreateResponse> => {
+  
+  return fetcher<Promise<nodeVersionCreateResponse>>(getNodeVersionCreateUrl(nodeSlug),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeVersionCreateBody,)
+  }
+);}
+
 
 /**
  * Get the node's single working draft checkpoint.
@@ -636,24 +632,25 @@ The draft is visible only to its author and members with
 export type nodeVersionDraftGetResponse = {
   data: NodeVersionGetOKResponse;
   status: number;
-};
+}
 
-export const getNodeVersionDraftGetUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}/versions/draft`;
-};
+export const getNodeVersionDraftGetUrl = (nodeSlug: string,) => {
 
-export const nodeVersionDraftGet = async (
-  nodeSlug: string,
-  options?: RequestInit,
-): Promise<nodeVersionDraftGetResponse> => {
-  return fetcher<Promise<nodeVersionDraftGetResponse>>(
-    getNodeVersionDraftGetUrl(nodeSlug),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/versions/draft`
+}
+
+export const nodeVersionDraftGet = async (nodeSlug: string, options?: RequestInit): Promise<nodeVersionDraftGetResponse> => {
+  
+  return fetcher<Promise<nodeVersionDraftGetResponse>>(getNodeVersionDraftGetUrl(nodeSlug),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Update the node's single working draft checkpoint.
@@ -672,27 +669,27 @@ desired-state list for the target node properties.
 export type nodeVersionDraftUpdateResponse = {
   data: NodeVersionUpdateOKResponse;
   status: number;
-};
+}
 
-export const getNodeVersionDraftUpdateUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}/versions/draft`;
-};
+export const getNodeVersionDraftUpdateUrl = (nodeSlug: string,) => {
 
-export const nodeVersionDraftUpdate = async (
-  nodeSlug: string,
-  nodeVersionUpdateBody: NodeVersionUpdateBody,
-  options?: RequestInit,
-): Promise<nodeVersionDraftUpdateResponse> => {
-  return fetcher<Promise<nodeVersionDraftUpdateResponse>>(
-    getNodeVersionDraftUpdateUrl(nodeSlug),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(nodeVersionUpdateBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/versions/draft`
+}
+
+export const nodeVersionDraftUpdate = async (nodeSlug: string,
+    nodeVersionUpdateBody: NodeVersionUpdateBody, options?: RequestInit): Promise<nodeVersionDraftUpdateResponse> => {
+  
+  return fetcher<Promise<nodeVersionDraftUpdateResponse>>(getNodeVersionDraftUpdateUrl(nodeSlug),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeVersionUpdateBody,)
+  }
+);}
+
 
 /**
  * Get an edit version for a node.
@@ -706,25 +703,27 @@ author and members with `MANAGE_LIBRARY`.
 export type nodeVersionGetResponse = {
   data: NodeVersionGetOKResponse;
   status: number;
-};
+}
 
-export const getNodeVersionGetUrl = (nodeSlug: string, versionId: string) => {
-  return `/nodes/${nodeSlug}/versions/${versionId}`;
-};
+export const getNodeVersionGetUrl = (nodeSlug: string,
+    versionId: string,) => {
 
-export const nodeVersionGet = async (
-  nodeSlug: string,
-  versionId: string,
-  options?: RequestInit,
-): Promise<nodeVersionGetResponse> => {
-  return fetcher<Promise<nodeVersionGetResponse>>(
-    getNodeVersionGetUrl(nodeSlug, versionId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/versions/${versionId}`
+}
+
+export const nodeVersionGet = async (nodeSlug: string,
+    versionId: string, options?: RequestInit): Promise<nodeVersionGetResponse> => {
+  
+  return fetcher<Promise<nodeVersionGetResponse>>(getNodeVersionGetUrl(nodeSlug,versionId),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Update the node's single draft checkpoint.
@@ -744,31 +743,29 @@ rather than merging with it.
 export type nodeVersionUpdateResponse = {
   data: NodeVersionUpdateOKResponse;
   status: number;
-};
+}
 
-export const getNodeVersionUpdateUrl = (
-  nodeSlug: string,
-  versionId: string,
-) => {
-  return `/nodes/${nodeSlug}/versions/${versionId}`;
-};
+export const getNodeVersionUpdateUrl = (nodeSlug: string,
+    versionId: string,) => {
 
-export const nodeVersionUpdate = async (
-  nodeSlug: string,
-  versionId: string,
-  nodeVersionUpdateBody: NodeVersionUpdateBody,
-  options?: RequestInit,
-): Promise<nodeVersionUpdateResponse> => {
-  return fetcher<Promise<nodeVersionUpdateResponse>>(
-    getNodeVersionUpdateUrl(nodeSlug, versionId),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(nodeVersionUpdateBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/versions/${versionId}`
+}
+
+export const nodeVersionUpdate = async (nodeSlug: string,
+    versionId: string,
+    nodeVersionUpdateBody: NodeVersionUpdateBody, options?: RequestInit): Promise<nodeVersionUpdateResponse> => {
+  
+  return fetcher<Promise<nodeVersionUpdateResponse>>(getNodeVersionUpdateUrl(nodeSlug,versionId),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeVersionUpdateBody,)
+  }
+);}
+
 
 /**
  * Delete the working draft checkpoint.
@@ -782,28 +779,27 @@ be deleted through this endpoint.
 export type nodeVersionDeleteResponse = {
   data: NodeVersionDeleteOKResponse;
   status: number;
-};
+}
 
-export const getNodeVersionDeleteUrl = (
-  nodeSlug: string,
-  versionId: string,
-) => {
-  return `/nodes/${nodeSlug}/versions/${versionId}`;
-};
+export const getNodeVersionDeleteUrl = (nodeSlug: string,
+    versionId: string,) => {
 
-export const nodeVersionDelete = async (
-  nodeSlug: string,
-  versionId: string,
-  options?: RequestInit,
-): Promise<nodeVersionDeleteResponse> => {
-  return fetcher<Promise<nodeVersionDeleteResponse>>(
-    getNodeVersionDeleteUrl(nodeSlug, versionId),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/versions/${versionId}`
+}
+
+export const nodeVersionDelete = async (nodeSlug: string,
+    versionId: string, options?: RequestInit): Promise<nodeVersionDeleteResponse> => {
+  
+  return fetcher<Promise<nodeVersionDeleteResponse>>(getNodeVersionDeleteUrl(nodeSlug,versionId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
 
 /**
  * Update the lifecycle status of a checkpoint.
@@ -826,31 +822,29 @@ combine status changes with regular draft content updates.
 export type nodeVersionUpdateStatusResponse = {
   data: NodeVersionUpdateOKResponse;
   status: number;
-};
+}
 
-export const getNodeVersionUpdateStatusUrl = (
-  nodeSlug: string,
-  versionId: string,
-) => {
-  return `/nodes/${nodeSlug}/versions/${versionId}/status`;
-};
+export const getNodeVersionUpdateStatusUrl = (nodeSlug: string,
+    versionId: string,) => {
 
-export const nodeVersionUpdateStatus = async (
-  nodeSlug: string,
-  versionId: string,
-  nodeVersionUpdateStatusBody: NodeVersionUpdateStatusBody,
-  options?: RequestInit,
-): Promise<nodeVersionUpdateStatusResponse> => {
-  return fetcher<Promise<nodeVersionUpdateStatusResponse>>(
-    getNodeVersionUpdateStatusUrl(nodeSlug, versionId),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(nodeVersionUpdateStatusBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/versions/${versionId}/status`
+}
+
+export const nodeVersionUpdateStatus = async (nodeSlug: string,
+    versionId: string,
+    nodeVersionUpdateStatusBody: NodeVersionUpdateStatusBody, options?: RequestInit): Promise<nodeVersionUpdateStatusResponse> => {
+  
+  return fetcher<Promise<nodeVersionUpdateStatusResponse>>(getNodeVersionUpdateStatusUrl(nodeSlug,versionId),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeVersionUpdateStatusBody,)
+  }
+);}
+
 
 /**
  * Add an asset to a node.
@@ -858,25 +852,27 @@ export const nodeVersionUpdateStatus = async (
 export type nodeAddAssetResponse = {
   data: NodeUpdateOKResponse;
   status: number;
-};
+}
 
-export const getNodeAddAssetUrl = (nodeSlug: string, assetId: string) => {
-  return `/nodes/${nodeSlug}/assets/${assetId}`;
-};
+export const getNodeAddAssetUrl = (nodeSlug: string,
+    assetId: string,) => {
 
-export const nodeAddAsset = async (
-  nodeSlug: string,
-  assetId: string,
-  options?: RequestInit,
-): Promise<nodeAddAssetResponse> => {
-  return fetcher<Promise<nodeAddAssetResponse>>(
-    getNodeAddAssetUrl(nodeSlug, assetId),
-    {
-      ...options,
-      method: "PUT",
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/assets/${assetId}`
+}
+
+export const nodeAddAsset = async (nodeSlug: string,
+    assetId: string, options?: RequestInit): Promise<nodeAddAssetResponse> => {
+  
+  return fetcher<Promise<nodeAddAssetResponse>>(getNodeAddAssetUrl(nodeSlug,assetId),
+  {      
+    ...options,
+    method: 'PUT'
+    
+    
+  }
+);}
+
 
 /**
  * Remove an asset from a node.
@@ -884,25 +880,27 @@ export const nodeAddAsset = async (
 export type nodeRemoveAssetResponse = {
   data: NodeUpdateOKResponse;
   status: number;
-};
+}
 
-export const getNodeRemoveAssetUrl = (nodeSlug: string, assetId: string) => {
-  return `/nodes/${nodeSlug}/assets/${assetId}`;
-};
+export const getNodeRemoveAssetUrl = (nodeSlug: string,
+    assetId: string,) => {
 
-export const nodeRemoveAsset = async (
-  nodeSlug: string,
-  assetId: string,
-  options?: RequestInit,
-): Promise<nodeRemoveAssetResponse> => {
-  return fetcher<Promise<nodeRemoveAssetResponse>>(
-    getNodeRemoveAssetUrl(nodeSlug, assetId),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/assets/${assetId}`
+}
+
+export const nodeRemoveAsset = async (nodeSlug: string,
+    assetId: string, options?: RequestInit): Promise<nodeRemoveAssetResponse> => {
+  
+  return fetcher<Promise<nodeRemoveAssetResponse>>(getNodeRemoveAssetUrl(nodeSlug,assetId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
 
 /**
  * Set a node's parent to the specified node
@@ -910,25 +908,27 @@ export const nodeRemoveAsset = async (
 export type nodeAddNodeResponse = {
   data: NodeAddChildOKResponse;
   status: number;
-};
+}
 
-export const getNodeAddNodeUrl = (nodeSlug: string, nodeSlugChild: string) => {
-  return `/nodes/${nodeSlug}/nodes/${nodeSlugChild}`;
-};
+export const getNodeAddNodeUrl = (nodeSlug: string,
+    nodeSlugChild: string,) => {
 
-export const nodeAddNode = async (
-  nodeSlug: string,
-  nodeSlugChild: string,
-  options?: RequestInit,
-): Promise<nodeAddNodeResponse> => {
-  return fetcher<Promise<nodeAddNodeResponse>>(
-    getNodeAddNodeUrl(nodeSlug, nodeSlugChild),
-    {
-      ...options,
-      method: "PUT",
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/nodes/${nodeSlugChild}`
+}
+
+export const nodeAddNode = async (nodeSlug: string,
+    nodeSlugChild: string, options?: RequestInit): Promise<nodeAddNodeResponse> => {
+  
+  return fetcher<Promise<nodeAddNodeResponse>>(getNodeAddNodeUrl(nodeSlug,nodeSlugChild),
+  {      
+    ...options,
+    method: 'PUT'
+    
+    
+  }
+);}
+
 
 /**
  * Remove a node from its parent node and back to the top level.
@@ -937,28 +937,27 @@ export const nodeAddNode = async (
 export type nodeRemoveNodeResponse = {
   data: NodeRemoveChildOKResponse;
   status: number;
-};
+}
 
-export const getNodeRemoveNodeUrl = (
-  nodeSlug: string,
-  nodeSlugChild: string,
-) => {
-  return `/nodes/${nodeSlug}/nodes/${nodeSlugChild}`;
-};
+export const getNodeRemoveNodeUrl = (nodeSlug: string,
+    nodeSlugChild: string,) => {
 
-export const nodeRemoveNode = async (
-  nodeSlug: string,
-  nodeSlugChild: string,
-  options?: RequestInit,
-): Promise<nodeRemoveNodeResponse> => {
-  return fetcher<Promise<nodeRemoveNodeResponse>>(
-    getNodeRemoveNodeUrl(nodeSlug, nodeSlugChild),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/nodes/${nodeSlugChild}`
+}
+
+export const nodeRemoveNode = async (nodeSlug: string,
+    nodeSlugChild: string, options?: RequestInit): Promise<nodeRemoveNodeResponse> => {
+  
+  return fetcher<Promise<nodeRemoveNodeResponse>>(getNodeRemoveNodeUrl(nodeSlug,nodeSlugChild),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
 
 /**
  * Update the node's position in the tree, which optionally allows for 
@@ -972,24 +971,25 @@ draggable tree interface or a table interface.
 export type nodeUpdatePositionResponse = {
   data: NodeUpdateOKResponse;
   status: number;
-};
+}
 
-export const getNodeUpdatePositionUrl = (nodeSlug: string) => {
-  return `/nodes/${nodeSlug}/position`;
-};
+export const getNodeUpdatePositionUrl = (nodeSlug: string,) => {
 
-export const nodeUpdatePosition = async (
-  nodeSlug: string,
-  nodeUpdatePositionBody: NodeUpdatePositionBody,
-  options?: RequestInit,
-): Promise<nodeUpdatePositionResponse> => {
-  return fetcher<Promise<nodeUpdatePositionResponse>>(
-    getNodeUpdatePositionUrl(nodeSlug),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(nodeUpdatePositionBody),
-    },
-  );
-};
+
+  return `/nodes/${nodeSlug}/position`
+}
+
+export const nodeUpdatePosition = async (nodeSlug: string,
+    nodeUpdatePositionBody: NodeUpdatePositionBody, options?: RequestInit): Promise<nodeUpdatePositionResponse> => {
+  
+  return fetcher<Promise<nodeUpdatePositionResponse>>(getNodeUpdatePositionUrl(nodeSlug),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      nodeUpdatePositionBody,)
+  }
+);}
+
+

@@ -7,9 +7,9 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { CollectionAdditionalProps } from "./collectionAdditionalProps";
-import type { CollectionCommonProps } from "./collectionCommonProps";
-import type { CommonProperties } from "./commonProperties";
+import type { CommonProperties } from './commonProperties';
+import type { CollectionCommonProps } from './collectionCommonProps';
+import type { CollectionAdditionalProps } from './collectionAdditionalProps';
 
 /**
  * A collection is a group of threads owned by a user. It allows users to
@@ -17,6 +17,4 @@ curate their own lists of content from the site. Collections can only
 contain root level posts (threads) with titles and slugs to link to.
 
  */
-export type Collection = CommonProperties &
-  CollectionCommonProps &
-  CollectionAdditionalProps;
+export type Collection = CommonProperties & CollectionCommonProps & CollectionAdditionalProps;

@@ -15,9 +15,10 @@ import type {
   EventListParams,
   EventParticipantUpdateBody,
   EventUpdateBody,
-  EventUpdateOKResponse,
-} from "../openapi-schema";
-import { fetcher } from "../server";
+  EventUpdateOKResponse
+} from '../openapi-schema'
+import { fetcher } from '../server';
+
 
 /**
  * List all events using the filtering options.
@@ -25,31 +26,32 @@ import { fetcher } from "../server";
 export type eventListResponse = {
   data: EventListOKResponse;
   status: number;
-};
+}
 
-export const getEventListUrl = (params?: EventListParams) => {
+export const getEventListUrl = (params?: EventListParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
   });
 
-  return normalizedParams.size
-    ? `/events?${normalizedParams.toString()}`
-    : `/events`;
-};
+  return normalizedParams.size ? `/events?${normalizedParams.toString()}` : `/events`
+}
 
-export const eventList = async (
-  params?: EventListParams,
-  options?: RequestInit,
-): Promise<eventListResponse> => {
-  return fetcher<Promise<eventListResponse>>(getEventListUrl(params), {
+export const eventList = async (params?: EventListParams, options?: RequestInit): Promise<eventListResponse> => {
+  
+  return fetcher<Promise<eventListResponse>>(getEventListUrl(params),
+  {      
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Create a new event. When an event is created, a thread is also created
@@ -59,23 +61,26 @@ which provides the means for discussion via the thread and reply APIs.
 export type eventCreateResponse = {
   data: EventCreateOKResponse;
   status: number;
-};
+}
 
 export const getEventCreateUrl = () => {
-  return `/events`;
-};
 
-export const eventCreate = async (
-  eventCreateBody: EventCreateBody,
-  options?: RequestInit,
-): Promise<eventCreateResponse> => {
-  return fetcher<Promise<eventCreateResponse>>(getEventCreateUrl(), {
+
+  return `/events`
+}
+
+export const eventCreate = async (eventCreateBody: EventCreateBody, options?: RequestInit): Promise<eventCreateResponse> => {
+  
+  return fetcher<Promise<eventCreateResponse>>(getEventCreateUrl(),
+  {      
     ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(eventCreateBody),
-  });
-};
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      eventCreateBody,)
+  }
+);}
+
 
 /**
  * Get an event by its ID.
@@ -83,21 +88,25 @@ export const eventCreate = async (
 export type eventGetResponse = {
   data: EventGetOKResponse;
   status: number;
-};
+}
 
-export const getEventGetUrl = (eventMark: string) => {
-  return `/events/${eventMark}`;
-};
+export const getEventGetUrl = (eventMark: string,) => {
 
-export const eventGet = async (
-  eventMark: string,
-  options?: RequestInit,
-): Promise<eventGetResponse> => {
-  return fetcher<Promise<eventGetResponse>>(getEventGetUrl(eventMark), {
+
+  return `/events/${eventMark}`
+}
+
+export const eventGet = async (eventMark: string, options?: RequestInit): Promise<eventGetResponse> => {
+  
+  return fetcher<Promise<eventGetResponse>>(getEventGetUrl(eventMark),
+  {      
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+    
+    
+  }
+);}
+
 
 /**
  * Update an event. If the content field is updated, this is stored on the
@@ -108,24 +117,27 @@ possible to update that thread directly using `threads` operations.
 export type eventUpdateResponse = {
   data: EventUpdateOKResponse;
   status: number;
-};
+}
 
-export const getEventUpdateUrl = (eventMark: string) => {
-  return `/events/${eventMark}`;
-};
+export const getEventUpdateUrl = (eventMark: string,) => {
 
-export const eventUpdate = async (
-  eventMark: string,
-  eventUpdateBody: EventUpdateBody,
-  options?: RequestInit,
-): Promise<eventUpdateResponse> => {
-  return fetcher<Promise<eventUpdateResponse>>(getEventUpdateUrl(eventMark), {
+
+  return `/events/${eventMark}`
+}
+
+export const eventUpdate = async (eventMark: string,
+    eventUpdateBody: EventUpdateBody, options?: RequestInit): Promise<eventUpdateResponse> => {
+  
+  return fetcher<Promise<eventUpdateResponse>>(getEventUpdateUrl(eventMark),
+  {      
     ...options,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(eventUpdateBody),
-  });
-};
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      eventUpdateBody,)
+  }
+);}
+
 
 /**
  * Delete an event.
@@ -133,21 +145,25 @@ export const eventUpdate = async (
 export type eventDeleteResponse = {
   data: void;
   status: number;
-};
+}
 
-export const getEventDeleteUrl = (eventMark: string) => {
-  return `/events/${eventMark}`;
-};
+export const getEventDeleteUrl = (eventMark: string,) => {
 
-export const eventDelete = async (
-  eventMark: string,
-  options?: RequestInit,
-): Promise<eventDeleteResponse> => {
-  return fetcher<Promise<eventDeleteResponse>>(getEventDeleteUrl(eventMark), {
+
+  return `/events/${eventMark}`
+}
+
+export const eventDelete = async (eventMark: string, options?: RequestInit): Promise<eventDeleteResponse> => {
+  
+  return fetcher<Promise<eventDeleteResponse>>(getEventDeleteUrl(eventMark),
+  {      
     ...options,
-    method: "DELETE",
-  });
-};
+    method: 'DELETE'
+    
+    
+  }
+);}
+
 
 /**
  * Add a participant to an event or change an existing participant's state.
@@ -179,31 +195,29 @@ It acts as a create-or-update action as participation is account-unique.
 export type eventParticipantUpdateResponse = {
   data: void;
   status: number;
-};
+}
 
-export const getEventParticipantUpdateUrl = (
-  eventMark: string,
-  accountId: string,
-) => {
-  return `/events/${eventMark}/participants/${accountId}`;
-};
+export const getEventParticipantUpdateUrl = (eventMark: string,
+    accountId: string,) => {
 
-export const eventParticipantUpdate = async (
-  eventMark: string,
-  accountId: string,
-  eventParticipantUpdateBody: EventParticipantUpdateBody,
-  options?: RequestInit,
-): Promise<eventParticipantUpdateResponse> => {
-  return fetcher<Promise<eventParticipantUpdateResponse>>(
-    getEventParticipantUpdateUrl(eventMark, accountId),
-    {
-      ...options,
-      method: "PUT",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(eventParticipantUpdateBody),
-    },
-  );
-};
+
+  return `/events/${eventMark}/participants/${accountId}`
+}
+
+export const eventParticipantUpdate = async (eventMark: string,
+    accountId: string,
+    eventParticipantUpdateBody: EventParticipantUpdateBody, options?: RequestInit): Promise<eventParticipantUpdateResponse> => {
+  
+  return fetcher<Promise<eventParticipantUpdateResponse>>(getEventParticipantUpdateUrl(eventMark,accountId),
+  {      
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      eventParticipantUpdateBody,)
+  }
+);}
+
 
 /**
  * Remove a participant from an event. Same rules as EventParticipantUpdate
@@ -213,25 +227,25 @@ where non-managing members may only remove themselves. Not soft-delete.
 export type eventParticipantRemoveResponse = {
   data: void;
   status: number;
-};
+}
 
-export const getEventParticipantRemoveUrl = (
-  eventMark: string,
-  accountId: string,
-) => {
-  return `/events/${eventMark}/participants/${accountId}`;
-};
+export const getEventParticipantRemoveUrl = (eventMark: string,
+    accountId: string,) => {
 
-export const eventParticipantRemove = async (
-  eventMark: string,
-  accountId: string,
-  options?: RequestInit,
-): Promise<eventParticipantRemoveResponse> => {
-  return fetcher<Promise<eventParticipantRemoveResponse>>(
-    getEventParticipantRemoveUrl(eventMark, accountId),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
+
+  return `/events/${eventMark}/participants/${accountId}`
+}
+
+export const eventParticipantRemove = async (eventMark: string,
+    accountId: string, options?: RequestInit): Promise<eventParticipantRemoveResponse> => {
+  
+  return fetcher<Promise<eventParticipantRemoveResponse>>(getEventParticipantRemoveUrl(eventMark,accountId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
+

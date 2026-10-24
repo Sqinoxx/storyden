@@ -7,10 +7,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { CategoryAdditional } from "./categoryAdditional";
-import type { CategoryCommonProps } from "./categoryCommonProps";
-import type { CommonProperties } from "./commonProperties";
+import type { CommonProperties } from './commonProperties';
+import type { CategoryCommonProps } from './categoryCommonProps';
+import type { CategoryAdditional } from './categoryAdditional';
 
-export type Category = CommonProperties &
-  CategoryCommonProps &
-  CategoryAdditional;
+export type Category = CommonProperties & CategoryCommonProps & CategoryAdditional;

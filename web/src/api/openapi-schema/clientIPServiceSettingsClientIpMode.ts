@@ -18,12 +18,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
   IP from the right of the list in `X-Forwarded-For`.
 
  */
-export type ClientIPServiceSettingsClientIpMode =
-  (typeof ClientIPServiceSettingsClientIpMode)[keyof typeof ClientIPServiceSettingsClientIpMode];
+export type ClientIPServiceSettingsClientIpMode = typeof ClientIPServiceSettingsClientIpMode[keyof typeof ClientIPServiceSettingsClientIpMode];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ClientIPServiceSettingsClientIpMode = {
-  remote_addr: "remote_addr",
-  single_header: "single_header",
-  xff_trusted_proxies: "xff_trusted_proxies",
+  remote_addr: 'remote_addr',
+  single_header: 'single_header',
+  xff_trusted_proxies: 'xff_trusted_proxies',
 } as const;

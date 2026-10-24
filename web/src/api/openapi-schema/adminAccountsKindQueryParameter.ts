@@ -8,11 +8,11 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type AdminAccountsKindQueryParameter =
-  (typeof AdminAccountsKindQueryParameter)[keyof typeof AdminAccountsKindQueryParameter];
+export type AdminAccountsKindQueryParameter = typeof AdminAccountsKindQueryParameter[keyof typeof AdminAccountsKindQueryParameter];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AdminAccountsKindQueryParameter = {
-  human: "human",
-  bot: "bot",
+  human: 'human',
+  bot: 'bot',
 } as const;

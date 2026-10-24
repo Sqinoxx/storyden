@@ -7,8 +7,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { LikeStatus } from './likeStatus';
-import type { LikeCount } from './likeCount';
+import type { LikeCount } from "./likeCount";
+import type { LikeStatus } from "./likeStatus";
 
 export interface LikeData {
   liked: LikeStatus;

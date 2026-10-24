@@ -7,9 +7,9 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { CollectionItemMembershipType } from "./collectionItemMembershipType";
-import type { ProfileReference } from "./profileReference";
-import type { RelevanceScore } from "./relevanceScore";
+import type { CollectionItemMembershipType } from './collectionItemMembershipType';
+import type { ProfileReference } from './profileReference';
+import type { RelevanceScore } from './relevanceScore';
 
 export interface CollectionItemMetadata {
   /** The time that the item was added to the collection. */

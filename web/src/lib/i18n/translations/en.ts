@@ -1099,7 +1099,7 @@ export const en = {
       createTitle: "Create listing",
       editTitle: "Edit listing",
       images: "Images",
-      imagesHelp: "Up to {max} images. The first image is the cover.",
+      imagesHelp: "Up to {max} images. The first image is the cover. Drag to reorder.",
       addImage: "Add image",
       makeCover: "Make cover",
       removeImage: "Remove image",
@@ -1170,6 +1170,7 @@ export const en = {
       title: "Contact",
       phone: "Phone",
       whatsapp: "Chat on WhatsApp",
+      copyPhone: "Copy phone number",
       whatsappMessage:
         'Hi! I saw your listing "{title}" on the flea market and offered {amount}.',
       whatsappSellerMessage: 'Hi! Thanks for your offer on "{title}".',

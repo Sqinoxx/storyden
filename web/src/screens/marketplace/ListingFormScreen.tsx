@@ -219,6 +219,7 @@ export function ListingFormScreen(props: Props) {
                 borderColor="border.default"
                 borderRadius="l2"
                 bg="bg.default"
+                _placeholder={{ color: "fg.muted", opacity: "full" }}
                 placeholder={t.marketplace.form.descriptionPlaceholder}
                 {...form.register("description")}
               />

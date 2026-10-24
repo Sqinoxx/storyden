@@ -1,5 +1,23 @@
 "use client";
 
+import {
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { ChangeEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -79,62 +97,56 @@ export function ListingImagesField({
     onChange([target, ...value.filter((a) => a.id !== id)]);
   }
 
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  function handleDragEnd({ active, over }: DragEndEvent) {
+    if (!over || active.id === over.id) return;
+    const from = value.findIndex((a) => a.id === active.id);
+    const to = value.findIndex((a) => a.id === over.id);
+    if (from < 0 || to < 0) return;
+    onChange(arrayMove(value, from, to));
+  }
+
   return (
     <LStack gap="2" w="full">
       {value.length > 0 && (
-        <Grid
-          w="full"
-          gap="2"
-          gridTemplateColumns={{ base: "repeat(3, 1fr)", md: "repeat(5, 1fr)" }}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
         >
-          {value.map((a, i) => (
-            <Box
-              key={a.id}
-              position="relative"
-              borderRadius="md"
-              overflow="hidden"
-              borderWidth={i === 0 ? "medium" : "thin"}
-              borderStyle="solid"
-              borderColor={i === 0 ? "border.accent" : "border.subtle"}
-              data-testid="listing-image"
+          <SortableContext
+            items={value.map((a) => a.id)}
+            strategy={rectSortingStrategy}
+          >
+            <Grid
+              w="full"
+              gap="2"
+              gridTemplateColumns={{
+                base: "repeat(3, 1fr)",
+                md: "repeat(5, 1fr)",
+              }}
             >
-              <styled.img
-                src={getAssetURL(a.path)}
-                alt={a.filename}
-                w="full"
-                aspectRatio="1"
-                objectFit="cover"
-              />
-              <Box position="absolute" top="1" right="1">
-                <IconButton
-                  type="button"
-                  size="xs"
-                  variant="subtle"
-                  bg="bg.default"
-                  aria-label={t.marketplace.form.removeImage}
-                  title={t.marketplace.form.removeImage}
-                  onClick={() => handleRemove(a.id)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-              {i > 0 && (
-                <Box position="absolute" bottom="1" left="1" right="1">
-                  <Button
-                    type="button"
-                    size="xs"
-                    variant="subtle"
-                    bg="bg.default"
-                    w="full"
-                    onClick={() => handleMakeCover(a.id)}
-                  >
-                    {t.marketplace.form.makeCover}
-                  </Button>
-                </Box>
-              )}
-            </Box>
-          ))}
-        </Grid>
+              {value.map((a, i) => (
+                <SortableImage
+                  key={a.id}
+                  asset={a}
+                  isCover={i === 0}
+                  onRemove={handleRemove}
+                  onMakeCover={handleMakeCover}
+                />
+              ))}
+            </Grid>
+          </SortableContext>
+        </DndContext>
       )}
 
       <input
@@ -158,5 +170,89 @@ export function ListingImagesField({
         {t.marketplace.form.addImage}
       </Button>
     </LStack>
+  );
+}
+
+type SortableImageProps = {
+  asset: Asset;
+  isCover: boolean;
+  onRemove: (id: string) => void;
+  onMakeCover: (id: string) => void;
+};
+
+function SortableImage({
+  asset: a,
+  isCover,
+  onRemove,
+  onMakeCover,
+}: SortableImageProps) {
+  const t = useTranslation();
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: a.id });
+
+  return (
+    <Box
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      position="relative"
+      borderRadius="md"
+      overflow="hidden"
+      borderWidth={isCover ? "medium" : "thin"}
+      borderStyle="solid"
+      borderColor={isCover ? "border.accent" : "border.subtle"}
+      cursor={isDragging ? "grabbing" : "grab"}
+      opacity={isDragging ? "7" : "full"}
+      zIndex={isDragging ? "docked" : undefined}
+      touchAction="manipulation"
+      data-testid="listing-image"
+      {...attributes}
+      {...listeners}
+    >
+      <styled.img
+        src={getAssetURL(a.path)}
+        alt={a.filename}
+        w="full"
+        aspectRatio="1"
+        objectFit="cover"
+        draggable={false}
+        userSelect="none"
+      />
+      <Box position="absolute" top="1" right="1">
+        <IconButton
+          type="button"
+          size="xs"
+          variant="subtle"
+          bg="bg.default"
+          aria-label={t.marketplace.form.removeImage}
+          title={t.marketplace.form.removeImage}
+          onClick={() => onRemove(a.id)}
+        >
+          <DeleteIcon />
+        </IconButton>
+      </Box>
+      {!isCover && (
+        <Box position="absolute" bottom="1" left="1" right="1">
+          <Button
+            type="button"
+            size="xs"
+            variant="subtle"
+            bg="bg.default"
+            w="full"
+            onClick={() => onMakeCover(a.id)}
+          >
+            {t.marketplace.form.makeCover}
+          </Button>
+        </Box>
+      )}
+    </Box>
   );
 }

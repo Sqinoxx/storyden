@@ -1102,7 +1102,7 @@ export const de: Translations = {
       createTitle: "Inserat aufgeben",
       editTitle: "Inserat bearbeiten",
       images: "Bilder",
-      imagesHelp: "Bis zu {max} Bilder. Das erste Bild ist das Titelbild.",
+      imagesHelp: "Bis zu {max} Bilder. Das erste Bild ist das Titelbild. Zum Sortieren Bilder ziehen.",
       addImage: "Bild hinzufügen",
       makeCover: "Als Titelbild",
       removeImage: "Bild entfernen",
@@ -1172,6 +1172,7 @@ export const de: Translations = {
       title: "Kontakt",
       phone: "Telefon",
       whatsapp: "Auf WhatsApp schreiben",
+      copyPhone: "Telefonnummer kopieren",
       whatsappMessage:
         "Hallo! Ich habe dein Inserat „{title}“ auf dem Flohmarkt gesehen und dir {amount} angeboten.",
       whatsappSellerMessage: "Hallo! Danke für dein Angebot zu „{title}“.",

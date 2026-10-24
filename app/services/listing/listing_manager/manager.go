@@ -67,6 +67,7 @@ func New(
 type View struct {
 	*listing.Listing
 	IsOwn       bool
+	CanManage   bool
 	IsExpired   bool
 	HasOffered  bool
 	IsFavourite bool
@@ -248,6 +249,7 @@ const (
 	ScopeAll        Scope = "all"
 	ScopeMine       Scope = "mine"
 	ScopeFavourites Scope = "favourites"
+	ScopeManage     Scope = "manage"
 )
 
 type ListParams struct {
@@ -281,6 +283,11 @@ func (m *Manager) List(ctx context.Context, p ListParams) (*ListResult, error) {
 		filters = append(filters, listing_repo.WithOwner(acc.ID))
 	case ScopeFavourites:
 		filters = append(filters, listing_repo.WithFavouritedBy(acc.ID), listing_repo.WithActiveAt(time.Now()))
+	case ScopeManage:
+		if !isModerator(acc) {
+			return nil, fault.Wrap(ErrNotAuthorised, fctx.With(ctx),
+				fmsg.WithDesc("not moderator", "Nur Moderatoren dürfen alle Inserate verwalten."))
+		}
 	default:
 		filters = append(filters, listing_repo.WithActiveAt(time.Now()))
 	}
@@ -378,9 +385,8 @@ func (m *Manager) Renew(ctx context.Context, key listing.QueryKey) (*View, error
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	if l.Owner.ID != acc.ID {
-		return nil, fault.Wrap(ErrNotAuthorised, fctx.With(ctx),
-			fmsg.WithDesc("not owner", "Nur der Verkäufer darf dieses Inserat verlängern."))
+	if err := m.authoriseOwner(ctx, acc, l); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	now := time.Now()
@@ -504,9 +510,8 @@ func (m *Manager) Offers(ctx context.Context, key listing.QueryKey) ([]*OfferWit
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	if l.Owner.ID != acc.ID {
-		return nil, fault.Wrap(ErrNotAuthorised, fctx.With(ctx),
-			fmsg.WithDesc("not owner", "Nur der Verkäufer kann die Angebote sehen."))
+	if err := m.authoriseOwner(ctx, acc, l); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	offers, err := m.repo.ListOffers(ctx, l.ID)
@@ -563,12 +568,14 @@ func (m *Manager) annotateMany(ctx context.Context, acc *account.AccountWithEdge
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	ownIDs := dt.Map(dt.Filter(ls, func(l *listing.Listing) bool { return l.Owner.ID == acc.ID }),
+	mod := isModerator(acc)
+
+	manageIDs := dt.Map(dt.Filter(ls, func(l *listing.Listing) bool { return mod || l.Owner.ID == acc.ID }),
 		func(l *listing.Listing) listing.ID { return l.ID })
 
 	counts := map[listing.ID]int{}
-	if len(ownIDs) > 0 {
-		counts, err = m.repo.OfferCounts(ctx, ownIDs...)
+	if len(manageIDs) > 0 {
+		counts, err = m.repo.OfferCounts(ctx, manageIDs...)
 		if err != nil {
 			return nil, fault.Wrap(err, fctx.With(ctx))
 		}
@@ -581,10 +588,11 @@ func (m *Manager) annotateMany(ctx context.Context, acc *account.AccountWithEdge
 		return &View{
 			Listing:     l,
 			IsOwn:       own,
+			CanManage:   own || mod,
 			IsExpired:   l.IsExpired(now),
 			HasOffered:  offered[l.ID],
 			IsFavourite: favourites[l.ID],
-			OfferCount:  opt.NewSafe(counts[l.ID], own),
+			OfferCount:  opt.NewSafe(counts[l.ID], own || mod),
 		}
 	}), nil
 }

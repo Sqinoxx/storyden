@@ -1061,6 +1061,7 @@ export const de: Translations = {
     scopeAll: "Alle Inserate",
     scopeMine: "Meine Inserate",
     scopeFavourites: "Merkliste",
+    scopeManage: "Alle verwalten",
     allCategories: "Alle Kategorien",
     anyCondition: "Jeder Zustand",
     anyPriceType: "Jede Preisart",
@@ -1181,6 +1182,7 @@ export const de: Translations = {
     },
     owner: {
       title: "Inserat verwalten",
+      moderationTitle: "Moderation",
       edit: "Bearbeiten",
       delete: "Löschen",
       deleteConfirm: "Dieses Inserat endgültig löschen?",

@@ -16,4 +16,5 @@ export const ListingScopeQueryParameter = {
   all: "all",
   mine: "mine",
   favourites: "favourites",
+  manage: "manage",
 } as const;

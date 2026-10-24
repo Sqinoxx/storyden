@@ -131,7 +131,7 @@ $defs:
     type: string
     const: MANAGE_LISTINGS
     title: Manage Flohmarkt listings
-    description: Edit and remove any member's Flohmarkt listings.
+    description: Edit, renew, change the status of and remove any member's Flohmarkt listings, view their offers and browse expired listings.
 
   LIST_PROFILES:
     type: string

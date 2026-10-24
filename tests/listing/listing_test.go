@@ -483,6 +483,127 @@ func TestListingsAdminCategories(t *testing.T) {
 	}))
 }
 
+func TestListingsModerator(t *testing.T) {
+	t.Parallel()
+
+	integration.Test(t, nil, e2e.Setup(), fx.Invoke(func(
+		lc fx.Lifecycle,
+		root context.Context,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
+		repo *listing_repo.Repository,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+			a := assert.New(t)
+
+			sellerCtx, _ := e2e.WithAccount(root, aw, seed.Account_003_Baldur)
+			sellerSession := sh.WithSession(sellerCtx)
+			modCtx, mod := e2e.WithAccount(root, aw, seed.Account_004_Loki)
+			modSession := sh.WithSession(modCtx)
+			strangerCtx, _ := e2e.WithAccount(root, aw, seed.Account_005_Þórr)
+			strangerSession := sh.WithSession(strangerCtx)
+			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			adminSession := sh.WithSession(adminCtx)
+
+			tests.AssertRequest(cl.AdminSettingsUpdateWithResponse(root, openapi.AdminSettingsUpdateJSONRequestBody{
+				Services: &openapi.AdminSettingsServiceProps{
+					Market: &openapi.MarketServiceSettings{Enabled: opt.New(true).Ptr()},
+				},
+			}, adminSession))(t, http.StatusOK)
+
+			role := tests.AssertRequest(cl.RoleCreateWithResponse(root, openapi.RoleCreateJSONRequestBody{
+				Name:        "flohmarkt-mod",
+				Colour:      "blue",
+				Permissions: openapi.PermissionList{openapi.MANAGELISTINGS},
+			}, adminSession))(t, http.StatusOK)
+			tests.AssertRequest(cl.AccountAddRoleWithResponse(root, mod.Handle, role.JSON200.Id, adminSession))(t, http.StatusOK)
+
+			tests.AssertRequest(cl.AccountPhoneSetWithResponse(root, openapi.AccountPhoneSetProps{Phone: "+436641234569"}, sellerSession))(t, http.StatusOK)
+			tests.AssertRequest(cl.AccountPhoneSetWithResponse(root, openapi.AccountPhoneSetProps{Phone: "+436641234570"}, strangerSession))(t, http.StatusOK)
+
+			created := tests.AssertRequest(cl.ListingCreateWithResponse(root, openapi.ListingInitialProps{
+				Title:     "Anatomie Atlas",
+				Price:     3000,
+				PriceType: openapi.ListingPriceTypeFixed,
+				Category:  "books",
+				Condition: openapi.ListingConditionUsed,
+			}, sellerSession))(t, http.StatusOK).JSON200
+
+			tests.AssertRequest(cl.ListingOfferSubmitWithResponse(root, created.Slug, openapi.ListingOfferProps{Amount: 2500}, strangerSession))(t, http.StatusOK)
+
+			t.Run("can_manage_flag", func(t *testing.T) {
+				asMod := tests.AssertRequest(cl.ListingGetWithResponse(root, created.Slug, modSession))(t, http.StatusOK)
+				a.True(asMod.JSON200.CanManage)
+				a.False(asMod.JSON200.IsOwn)
+				r.NotNil(asMod.JSON200.OfferCount)
+				a.Equal(1, *asMod.JSON200.OfferCount)
+
+				asStranger := tests.AssertRequest(cl.ListingGetWithResponse(root, created.Slug, strangerSession))(t, http.StatusOK)
+				a.False(asStranger.JSON200.CanManage)
+				a.Nil(asStranger.JSON200.OfferCount)
+
+				asSeller := tests.AssertRequest(cl.ListingGetWithResponse(root, created.Slug, sellerSession))(t, http.StatusOK)
+				a.True(asSeller.JSON200.CanManage)
+			})
+
+			t.Run("update", func(t *testing.T) {
+				upd := tests.AssertRequest(cl.ListingUpdateWithResponse(root, created.Slug, openapi.ListingMutableProps{
+					Title:  opt.New("Anatomie Atlas (moderiert)").Ptr(),
+					Status: opt.New(openapi.ListingStatusReserved).Ptr(),
+				}, modSession))(t, http.StatusOK)
+				a.Equal("Anatomie Atlas (moderiert)", upd.JSON200.Title)
+				a.Equal(openapi.ListingStatusReserved, upd.JSON200.Status)
+			})
+
+			t.Run("offers", func(t *testing.T) {
+				denied, err := cl.ListingOfferListWithResponse(root, created.Slug, strangerSession)
+				tests.Status(t, err, denied, http.StatusForbidden)
+
+				offers := tests.AssertRequest(cl.ListingOfferListWithResponse(root, created.Slug, modSession))(t, http.StatusOK)
+				r.Len(offers.JSON200.Offers, 1)
+				a.Equal(2500, offers.JSON200.Offers[0].Amount)
+				r.NotNil(offers.JSON200.Offers[0].BuyerPhone)
+			})
+
+			_, err := repo.Update(root, listing.ID(openapi.ParseID(created.Id)), listing_repo.WithExpiresAt(time.Now().Add(-time.Hour)))
+			r.NoError(err)
+
+			t.Run("manage_scope", func(t *testing.T) {
+				manage := opt.New(openapi.ListingListParamsScopeManage).Ptr()
+
+				denied, err := cl.ListingListWithResponse(root, &openapi.ListingListParams{Scope: manage}, strangerSession)
+				tests.Status(t, err, denied, http.StatusForbidden)
+
+				list := tests.AssertRequest(cl.ListingListWithResponse(root, &openapi.ListingListParams{Scope: manage}, modSession))(t, http.StatusOK)
+				r.Len(list.JSON200.Listings, 1)
+				a.Equal(created.Id, list.JSON200.Listings[0].Id)
+				a.True(list.JSON200.Listings[0].IsExpired)
+				a.True(list.JSON200.Listings[0].CanManage)
+
+				all := tests.AssertRequest(cl.ListingListWithResponse(root, &openapi.ListingListParams{}, modSession))(t, http.StatusOK)
+				a.Len(all.JSON200.Listings, 0)
+			})
+
+			t.Run("renew", func(t *testing.T) {
+				denied, err := cl.ListingRenewWithResponse(root, created.Slug, strangerSession)
+				tests.Status(t, err, denied, http.StatusForbidden)
+
+				renewed := tests.AssertRequest(cl.ListingRenewWithResponse(root, created.Slug, modSession))(t, http.StatusOK)
+				a.False(renewed.JSON200.IsExpired)
+			})
+
+			t.Run("delete", func(t *testing.T) {
+				tests.AssertRequest(cl.ListingDeleteWithResponse(root, created.Slug, modSession))(t, http.StatusOK)
+
+				gone, err := cl.ListingGetWithResponse(root, created.Slug, sellerSession)
+				tests.Status(t, err, gone, http.StatusNotFound)
+			})
+		}))
+	}))
+}
+
 func uploadPNG(t *testing.T, ctx context.Context, cl *openapi.ClientWithResponses, session openapi.RequestEditorFn, filename string) openapi.Asset {
 	t.Helper()
 

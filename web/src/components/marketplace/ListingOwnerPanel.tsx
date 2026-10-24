@@ -36,7 +36,7 @@ export function ListingOwnerPanel({ listing, onChange }: Props) {
   const t = useTranslation();
   const router = useRouter();
   const offers = useListingOfferList(listing.slug, {
-    swr: { enabled: listing.is_own },
+    swr: { enabled: listing.can_manage },
   });
 
   const canRenew =
@@ -79,7 +79,9 @@ export function ListingOwnerPanel({ listing, onChange }: Props) {
     await handle(
       async () => {
         await listingDelete(listing.slug);
-        router.push("/flohmarkt?scope=mine");
+        router.push(
+          listing.is_own ? "/flohmarkt?scope=mine" : "/flohmarkt?scope=manage",
+        );
       },
       {
         promiseToast: {
@@ -99,9 +101,13 @@ export function ListingOwnerPanel({ listing, onChange }: Props) {
     <LStack gap="4" w="full">
       <CardBox w="full">
         <LStack gap="3">
-          <Heading size="sm">{t.marketplace.owner.title}</Heading>
+          <Heading size="sm">
+            {listing.is_own
+              ? t.marketplace.owner.title
+              : t.marketplace.owner.moderationTitle}
+          </Heading>
 
-          {listing.is_own && (
+          {listing.can_manage && (
             <FormControl>
               <FormLabel>{t.marketplace.owner.setStatus}</FormLabel>
               <NativeSelect
@@ -113,7 +119,7 @@ export function ListingOwnerPanel({ listing, onChange }: Props) {
           )}
 
           <HStack gap="2" flexWrap="wrap">
-            {listing.is_own && (
+            {listing.can_manage && (
               <LinkButton
                 href={`/flohmarkt/${listing.slug}/edit`}
                 size="sm"
@@ -122,7 +128,7 @@ export function ListingOwnerPanel({ listing, onChange }: Props) {
                 {t.marketplace.owner.edit}
               </LinkButton>
             )}
-            {listing.is_own && (
+            {listing.can_manage && (
               <Button
                 type="button"
                 size="sm"
@@ -143,13 +149,13 @@ export function ListingOwnerPanel({ listing, onChange }: Props) {
               {t.marketplace.owner.delete}
             </Button>
           </HStack>
-          {listing.is_own && !canRenew && (
+          {listing.can_manage && !canRenew && (
             <FormHelperText>{t.marketplace.owner.renewHelp}</FormHelperText>
           )}
         </LStack>
       </CardBox>
 
-      {listing.is_own && (
+      {listing.can_manage && (
         <CardBox w="full" data-testid="listing-offers">
           <LStack gap="3">
             <Heading size="sm">{t.marketplace.owner.offersTitle}</Heading>

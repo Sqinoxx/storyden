@@ -88,7 +88,7 @@ export function ListingCard({ listing, onChange }: Props) {
         <styled.span fontSize="xs" color="fg.muted">
           {formatDate(listing.createdAt)}
         </styled.span>
-        {listing.is_own && !listing.is_expired && (
+        {listing.can_manage && !listing.is_expired && (
           <styled.span
             fontSize="xs"
             color="fg.muted"
@@ -97,7 +97,7 @@ export function ListingCard({ listing, onChange }: Props) {
             {formatRemaining(t, listing.expires_at)}
           </styled.span>
         )}
-        {listing.is_own && listing.offer_count !== undefined && (
+        {listing.offer_count !== undefined && (
           <styled.span fontSize="xs" color="fg.muted">
             {t.marketplace.offers.replace(
               "{count}",

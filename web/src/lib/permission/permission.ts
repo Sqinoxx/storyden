@@ -88,7 +88,8 @@ export const PermissionDetails: Record<Permission, PermissionDetail> = {
   [Permission.MANAGE_LISTINGS]: {
     value: Permission.MANAGE_LISTINGS,
     name: "Manage Flohmarkt listings",
-    description: "Edit and remove any member's Flohmarkt listings.",
+    description:
+      "Edit, renew, change the status of and remove any member's Flohmarkt listings, view their offers and browse expired listings.",
   },
   [Permission.LIST_PROFILES]: {
     value: Permission.LIST_PROFILES,

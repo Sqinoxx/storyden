@@ -279,6 +279,7 @@ func serialiseListing(v *listing_manager.View) openapi.Listing {
 		Assets:      dt.Map(v.Assets, serialiseAssetPtr),
 		Owner:       serialiseProfileReference(v.Owner),
 		IsOwn:       v.IsOwn,
+		CanManage:   v.CanManage,
 		IsExpired:   v.IsExpired,
 		HasOffered:  v.HasOffered,
 		IsFavourite: v.IsFavourite,

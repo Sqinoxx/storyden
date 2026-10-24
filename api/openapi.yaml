@@ -5959,13 +5959,15 @@ components:
     ListingScopeQuery:
       description: |
         Restrict the results to the authenticated account's own listings
-        (including expired ones) or to its watch list.
+        (including expired ones) or to its watch list. The `manage` scope
+        returns every listing including expired ones and requires the
+        MANAGE_LISTINGS permission.
       name: scope
       in: query
       required: false
       schema:
         type: string
-        enum: [all, mine, favourites]
+        enum: [all, mine, favourites, manage]
 
     EventMarkParam:
       description: |
@@ -13627,6 +13629,7 @@ components:
         - assets
         - owner
         - is_own
+        - can_manage
         - is_expired
         - has_offered
         - is_favourite
@@ -13652,6 +13655,11 @@ components:
         is_own:
           type: boolean
           description: Whether the authenticated account owns this listing.
+        can_manage:
+          type: boolean
+          description: |
+            Whether the authenticated account may edit, renew, delete and view
+            offers of this listing, either as owner or via MANAGE_LISTINGS.
         is_expired:
           type: boolean
         has_offered:

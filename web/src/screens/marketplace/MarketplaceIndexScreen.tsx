@@ -7,7 +7,9 @@ import { useListingList } from "@/api/openapi-client/listings";
 import {
   ListingScopeQueryParameter,
   ListingSortQueryParameter,
+  Permission,
 } from "@/api/openapi-schema";
+import { useSession } from "@/auth";
 import { ListingCard } from "@/components/marketplace/ListingCard";
 import { NativeSelect } from "@/components/marketplace/NativeSelect";
 import { PriceRangeSlider } from "@/components/marketplace/PriceRangeSlider";
@@ -26,6 +28,7 @@ import { InputGroup } from "@/components/ui/input-group";
 import { LinkButton } from "@/components/ui/link-button";
 import { useTranslation } from "@/lib/i18n";
 import { Grid, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
+import { hasPermission } from "@/utils/permissions";
 
 import { useMarketplaceFilters } from "./useMarketplaceFilters";
 
@@ -34,6 +37,8 @@ export function MarketplaceIndexScreen() {
   const { filters, params, update } = useMarketplaceFilters();
   const { data, error, mutate } = useListingList(params);
   const categories = useMarketCategories();
+  const session = useSession();
+  const canManage = hasPermission(session, Permission.MANAGE_LISTINGS);
   const lastBounds = useRef({ min: 0, max: 0 });
   if (data) {
     lastBounds.current = {
@@ -78,6 +83,14 @@ export function MarketplaceIndexScreen() {
       value: ListingScopeQueryParameter.favourites,
       label: t.marketplace.scopeFavourites,
     },
+    ...(canManage
+      ? [
+          {
+            value: ListingScopeQueryParameter.manage,
+            label: t.marketplace.scopeManage,
+          },
+        ]
+      : []),
   ];
 
   const activeFilterCount = [
@@ -113,7 +126,7 @@ export function MarketplaceIndexScreen() {
       </WStack>
 
       <Grid
-        gridTemplateColumns="repeat(3, auto)"
+        gridTemplateColumns={canManage ? "repeat(4, auto)" : "repeat(3, auto)"}
         gap="1"
         p="1"
         w={{ base: "full", md: "fit" }}

@@ -1058,6 +1058,7 @@ export const en = {
     scopeAll: "All listings",
     scopeMine: "My listings",
     scopeFavourites: "Watch list",
+    scopeManage: "Manage all",
     allCategories: "All categories",
     anyCondition: "Any condition",
     anyPriceType: "Any price type",
@@ -1179,6 +1180,7 @@ export const en = {
     },
     owner: {
       title: "Manage listing",
+      moderationTitle: "Moderation",
       edit: "Edit",
       delete: "Delete",
       deleteConfirm: "Delete this listing permanently?",

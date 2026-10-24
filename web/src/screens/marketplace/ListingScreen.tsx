@@ -1,8 +1,7 @@
 "use client";
 
 import { useListingGet } from "@/api/openapi-client/listings";
-import { Listing, Permission } from "@/api/openapi-schema";
-import { useSession } from "@/auth";
+import { Listing } from "@/api/openapi-schema";
 import { ListingFavouriteButton } from "@/components/marketplace/ListingFavouriteButton";
 import { ListingGallery } from "@/components/marketplace/ListingGallery";
 import { ListingOfferPanel } from "@/components/marketplace/ListingOfferPanel";
@@ -30,7 +29,6 @@ import {
   WStack,
   styled,
 } from "@/styled-system/jsx";
-import { hasPermission } from "@/utils/permissions";
 import { useDisclosure } from "@/utils/useDisclosure";
 
 type Props = {
@@ -40,7 +38,6 @@ type Props = {
 
 export function ListingScreen({ slug, initialListing }: Props) {
   const t = useTranslation();
-  const session = useSession();
   const report = useDisclosure();
   const categories = useMarketCategories();
   const { data, error, mutate } = useListingGet(slug, {
@@ -52,7 +49,6 @@ export function ListingScreen({ slug, initialListing }: Props) {
   }
 
   const listing = data;
-  const isModerator = hasPermission(session, Permission.MANAGE_LISTINGS);
 
   const facts = [
     {
@@ -162,7 +158,7 @@ export function ListingScreen({ slug, initialListing }: Props) {
             <ListingOfferPanel listing={listing} onOffered={() => mutate()} />
           )}
 
-          {(listing.is_own || isModerator) && (
+          {listing.can_manage && (
             <ListingOwnerPanel listing={listing} onChange={() => mutate()} />
           )}
 

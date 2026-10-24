@@ -56,7 +56,9 @@ same as the page parameter.
   sort?: ListingSortQueryParameter;
   /**
  * Restrict the results to the authenticated account's own listings
-(including expired ones) or to its watch list.
+(including expired ones) or to its watch list. The `manage` scope
+returns every listing including expired ones and requires the
+MANAGE_LISTINGS permission.
 
  */
   scope?: ListingScopeQueryParameter;

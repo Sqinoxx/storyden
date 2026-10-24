@@ -1,7 +1,7 @@
 "use client";
 
 import { Maximize2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Asset } from "@/api/openapi-schema";
 import { MarketplaceIcon } from "@/components/ui/icons/Marketplace";
@@ -21,7 +21,28 @@ export function ListingGallery({
   const t = useTranslation();
   const [index, setIndex] = useState(0);
   const [open, setOpen] = useState(false);
+  const trackRef = useRef<HTMLDivElement>(null);
   const current = assets[index] ?? assets[0];
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || track.clientWidth === 0) return;
+
+    const visible = Math.round(track.scrollLeft / track.clientWidth);
+    if (visible !== index) {
+      track.scrollTo({ left: index * track.clientWidth, behavior: "smooth" });
+    }
+  }, [index]);
+
+  function handleScroll() {
+    const track = trackRef.current;
+    if (!track || track.clientWidth === 0) return;
+
+    const visible = Math.round(track.scrollLeft / track.clientWidth);
+    if (visible !== index && assets[visible]) {
+      setIndex(visible);
+    }
+  }
 
   if (!current) {
     return (
@@ -41,28 +62,74 @@ export function ListingGallery({
 
   return (
     <LStack gap="2" w="full">
-      <styled.button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label={t.marketplace.lightbox.open}
-        title={t.marketplace.lightbox.open}
+      <Box
         position="relative"
-        display="block"
         w="full"
         aspectRatio="[4/3]"
         bg="bg.muted"
         borderRadius="lg"
         overflow="hidden"
-        cursor="zoom-in"
         className="group"
       >
-        <styled.img
-          src={getAssetURL(current.path)}
-          alt={title}
+        <HStack
+          ref={trackRef}
+          onScroll={handleScroll}
+          gap="0"
           w="full"
           h="full"
-          objectFit="contain"
-        />
+          overflowX="auto"
+          overflowY="hidden"
+          scrollSnapType="x"
+          scrollSnapStrictness="mandatory"
+          overscrollBehaviorX="contain"
+          scrollbar="hidden"
+        >
+          {assets.map((a, i) => (
+            <styled.button
+              key={a.id}
+              type="button"
+              onClick={() => {
+                setIndex(i);
+                setOpen(true);
+              }}
+              aria-label={t.marketplace.lightbox.open}
+              title={t.marketplace.lightbox.open}
+              flexShrink="0"
+              w="full"
+              h="full"
+              scrollSnapAlign="center"
+              scrollSnapStop="always"
+              cursor="zoom-in"
+            >
+              <styled.img
+                src={getAssetURL(a.path)}
+                alt={`${title} ${i + 1}`}
+                loading={i === 0 ? "eager" : "lazy"}
+                draggable={false}
+                w="full"
+                h="full"
+                objectFit="contain"
+              />
+            </styled.button>
+          ))}
+        </HStack>
+        {assets.length > 1 && (
+          <styled.span
+            position="absolute"
+            left="2"
+            bottom="2"
+            px="2"
+            py="0.5"
+            borderRadius="full"
+            bg="black.a8"
+            color="white"
+            fontSize="xs"
+            fontWeight="medium"
+            pointerEvents="none"
+          >
+            {index + 1} / {assets.length}
+          </styled.span>
+        )}
         <Box
           position="absolute"
           right="2"
@@ -75,12 +142,13 @@ export function ListingGallery({
           borderRadius="full"
           bg="black.a8"
           color="white"
+          pointerEvents="none"
           opacity={{ base: "full", md: "7" }}
           _groupHover={{ opacity: "full" }}
         >
           <Maximize2 size={16} />
         </Box>
-      </styled.button>
+      </Box>
       {assets.length > 1 && (
         <HStack gap="2" w="full" overflowX="auto">
           {assets.map((a, i) => (

@@ -309,6 +309,8 @@ export function ListingLightbox({
           ref={stageRef}
           position="absolute"
           inset="0"
+          px={{ base: "2", md: "14" }}
+          py="12"
           display="flex"
           alignItems="center"
           justifyContent="center"
@@ -342,10 +344,10 @@ export function ListingLightbox({
           left="0"
           right="0"
           justify="space-between"
-          gap="2"
-          p="3"
+          gap="1.5"
+          p="2"
           pointerEvents="none"
-          style={{ paddingTop: "max(var(--spacing-3), env(safe-area-inset-top))" }}
+          style={{ paddingTop: "max(var(--spacing-2), env(safe-area-inset-top))" }}
         >
           <styled.span
             fontSize="sm"
@@ -400,7 +402,7 @@ export function ListingLightbox({
           <>
             <ControlButton
               position="absolute"
-              left="4"
+              left="2"
               top="1/2"
               transform="translateY(-50%)"
               display={{ base: "none", md: "flex" }}
@@ -412,7 +414,7 @@ export function ListingLightbox({
             </ControlButton>
             <ControlButton
               position="absolute"
-              right="4"
+              right="2"
               top="1/2"
               transform="translateY(-50%)"
               display={{ base: "none", md: "flex" }}
@@ -436,8 +438,8 @@ const ControlButton = styled(
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      w: "10",
-      h: "10",
+      w: { base: "8", md: "9" },
+      h: { base: "8", md: "9" },
       flexShrink: "0",
       borderRadius: "full",
       bg: "black.a8",
@@ -450,7 +452,7 @@ const ControlButton = styled(
         outlineStyle: "solid",
         outlineColor: "white",
       },
-      "& svg": { w: "5", h: "5" },
+      "& svg": { w: "4", h: "4" },
     },
   },
   { defaultProps: { type: "button" } },

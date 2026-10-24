@@ -9,6 +9,7 @@ import {
 import { useSession } from "@/auth";
 import Link from "next/link";
 
+import { CategoryBreadcrumbs } from "@/components/category/CategoryBreadcrumbs";
 import { CategoryLayout } from "@/components/category/CategoryIndex/CategoryCardLayout";
 import { CategoryMenu } from "@/components/category/CategoryMenu/CategoryMenu";
 import { UnreadyBanner } from "@/components/site/Unready";
@@ -81,6 +82,8 @@ export function CategoryScreen(props: ScreenProps) {
 
   return (
     <LStack>
+      <CategoryBreadcrumbs category={category} />
+
       {coverImageURL && (
         <Box height="auto" width="full">
           <styled.img

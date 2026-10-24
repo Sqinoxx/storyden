@@ -1,6 +1,6 @@
 "use client";
 
-import { Maximize2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Asset } from "@/api/openapi-schema";
@@ -131,6 +131,28 @@ export function ListingGallery({
             {index + 1} / {assets.length}
           </styled.span>
         )}
+        {assets.length > 1 && (
+          <>
+            <NavButton
+              left="2"
+              onClick={() =>
+                setIndex((i) => (i - 1 + assets.length) % assets.length)
+              }
+              aria-label={t.marketplace.lightbox.previous}
+              title={t.marketplace.lightbox.previous}
+            >
+              <ChevronLeft size={20} />
+            </NavButton>
+            <NavButton
+              right="2"
+              onClick={() => setIndex((i) => (i + 1) % assets.length)}
+              aria-label={t.marketplace.lightbox.next}
+              title={t.marketplace.lightbox.next}
+            >
+              <ChevronRight size={20} />
+            </NavButton>
+          </>
+        )}
         <Box
           position="absolute"
           right="2"
@@ -191,3 +213,31 @@ export function ListingGallery({
     </LStack>
   );
 }
+
+const NavButton = styled(
+  "button",
+  {
+    base: {
+      position: "absolute",
+      top: "0",
+      bottom: "0",
+      my: "auto",
+      display: { base: "none", md: "flex" },
+      alignItems: "center",
+      justifyContent: "center",
+      w: "9",
+      h: "9",
+      borderRadius: "full",
+      bg: "black.a8",
+      color: "white",
+      cursor: "pointer",
+      opacity: "0",
+      transition: "opacity",
+      transitionDuration: "fast",
+      _groupHover: { opacity: "full" },
+      _focusVisible: { opacity: "full" },
+      _hover: { bg: "black.a10" },
+    },
+  },
+  { defaultProps: { type: "button" } },
+);

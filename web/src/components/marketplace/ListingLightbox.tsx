@@ -277,8 +277,7 @@ export function ListingLightbox({
   function handleTap(event: Event, cx: number, cy: number) {
     const onImage = event.target === imageRef.current;
     const isMouse =
-      "pointerType" in event &&
-      (event as PointerEvent).pointerType === "mouse";
+      "pointerType" in event && (event as PointerEvent).pointerType === "mouse";
 
     if (isMouse) {
       if (!onImage) {
@@ -561,76 +560,78 @@ export function ListingLightbox({
           </HStack>
         </HStack>
 
-        <Box
-          ref={stageRef}
-          position="relative"
-          minH="0"
-          overflow="hidden"
-          touchAction="none"
-          userSelect="none"
-        >
+        <Box position="relative" minH="0">
           <Box
+            ref={stageRef}
             position="absolute"
             inset="0"
-            style={{
-              transform: `translate3d(calc(${-shift} * (100% + ${SLIDE_GAP}) + ${drag.x}px), ${drag.y}px, 0)`,
-              transition: sliding
-                ? `transform ${SLIDE_MS}ms ${SLIDE_EASING}`
-                : undefined,
-            }}
+            overflow="hidden"
+            touchAction="none"
+            userSelect="none"
           >
-            {slides.map((offset) => {
-              const position = virtual + offset;
-              const asset = assets[wrap(position, count)];
-              if (!asset) return null;
-              const isCurrent = offset === 0;
+            <Box
+              position="absolute"
+              inset="0"
+              style={{
+                transform: `translate3d(calc(${-shift} * (100% + ${SLIDE_GAP}) + ${drag.x}px), ${drag.y}px, 0)`,
+                transition: sliding
+                  ? `transform ${SLIDE_MS}ms ${SLIDE_EASING}`
+                  : undefined,
+              }}
+            >
+              {slides.map((offset) => {
+                const position = virtual + offset;
+                const asset = assets[wrap(position, count)];
+                if (!asset) return null;
+                const isCurrent = offset === 0;
 
-              return (
-                <Box
-                  key={position}
-                  position="absolute"
-                  inset="0"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  px={{ base: "0", md: "20" }}
-                  py={{ base: "0", md: "2" }}
-                  aria-hidden={!isCurrent}
-                  style={{
-                    transform: `translateX(calc(${offset} * (100% + ${SLIDE_GAP})))`,
-                  }}
-                >
-                  <styled.img
-                    ref={isCurrent ? imageRef : undefined}
-                    src={getAssetURL(asset.path)}
-                    alt={`${title} ${wrap(position, count) + 1}`}
-                    draggable={false}
-                    decoding="async"
-                    maxW="full"
-                    maxH="full"
-                    objectFit="contain"
-                    userSelect="none"
-                    borderRadius={{ base: "none", md: "md" }}
-                    shadow="2xl"
+                return (
+                  <Box
+                    key={position}
+                    position="absolute"
+                    inset="0"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    px={{ base: "0", md: "20" }}
+                    py={{ base: "0", md: "2" }}
+                    aria-hidden={!isCurrent}
                     style={{
-                      cursor: isCurrent
-                        ? zoomed
-                          ? "grab"
-                          : "zoom-in"
-                        : undefined,
-                      transform: isCurrent
-                        ? `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`
-                        : undefined,
-                      transition:
-                        isCurrent && smoothZoom
-                          ? "transform 0.22s ease-out"
-                          : undefined,
-                      willChange: isCurrent ? "transform" : undefined,
+                      transform: `translateX(calc(${offset} * (100% + ${SLIDE_GAP})))`,
                     }}
-                  />
-                </Box>
-              );
-            })}
+                  >
+                    <styled.img
+                      ref={isCurrent ? imageRef : undefined}
+                      src={getAssetURL(asset.path)}
+                      alt={`${title} ${wrap(position, count) + 1}`}
+                      draggable={false}
+                      decoding="async"
+                      maxW="full"
+                      maxH="full"
+                      objectFit="contain"
+                      userSelect="none"
+                      borderRadius={{ base: "none", md: "md" }}
+                      shadow="2xl"
+                      style={{
+                        cursor: isCurrent
+                          ? zoomed
+                            ? "grab"
+                            : "zoom-in"
+                          : undefined,
+                        transform: isCurrent
+                          ? `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`
+                          : undefined,
+                        transition:
+                          isCurrent && smoothZoom
+                            ? "transform 0.22s ease-out"
+                            : undefined,
+                        willChange: isCurrent ? "transform" : undefined,
+                      }}
+                    />
+                  </Box>
+                );
+              })}
+            </Box>
           </Box>
 
           {hasMultiple && (
@@ -641,7 +642,11 @@ export function ListingLightbox({
                   onClick={() => goTo(-1)}
                   aria-label={labels.previous}
                   title={labels.previous}
-                  style={chrome && !zoomed ? undefined : { opacity: 0, pointerEvents: "none" }}
+                  style={
+                    chrome && !zoomed
+                      ? undefined
+                      : { opacity: 0, pointerEvents: "none" }
+                  }
                 >
                   <ChevronLeft />
                 </ControlButton>
@@ -652,7 +657,11 @@ export function ListingLightbox({
                   onClick={() => goTo(1)}
                   aria-label={labels.next}
                   title={labels.next}
-                  style={chrome && !zoomed ? undefined : { opacity: 0, pointerEvents: "none" }}
+                  style={
+                    chrome && !zoomed
+                      ? undefined
+                      : { opacity: 0, pointerEvents: "none" }
+                  }
                 >
                   <ChevronRight />
                 </ControlButton>

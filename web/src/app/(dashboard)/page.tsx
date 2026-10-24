@@ -1,8 +1,10 @@
 import z from "zod";
 
 import { threadList } from "@/api/openapi-server/threads";
+import { MotdBanner } from "@/components/site/MotdBanner/MotdBanner";
 import { UnreadyBanner } from "@/components/site/Unready";
 import { categoryListCached } from "@/lib/category/server-category-list";
+import { getSettings } from "@/lib/settings/settings-server";
 import { CategoryIndexScreen } from "@/screens/category/CategoryIndexScreen";
 
 type Props = {
@@ -34,16 +36,21 @@ export default async function Page({ searchParams }: Props) {
       categories: ["null"],
     });
 
+    const settings = await getSettings();
+
     return (
-      <CategoryIndexScreen
-        layout={"list"}
-        threadListMode="uncategorised"
-        showQuickShare={true}
-        initialCategoryList={categories}
-        initialThreadList={threads}
-        initialThreadListPage={page}
-        paginationBasePath="/"
-      />
+      <>
+        <MotdBanner motd={settings.motd} />
+        <CategoryIndexScreen
+          layout={"list"}
+          threadListMode="uncategorised"
+          showQuickShare={true}
+          initialCategoryList={categories}
+          initialThreadList={threads}
+          initialThreadListPage={page}
+          paginationBasePath="/"
+        />
+      </>
     );
   } catch (e) {
     return <UnreadyBanner error={e} />;

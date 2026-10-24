@@ -56,6 +56,38 @@ func (h *Accounts) AccountEmailRemove(ctx context.Context, request openapi.Accou
 	return openapi.AccountEmailRemove200Response{}, nil
 }
 
+func (h *Accounts) AccountManageUpdateEmail(ctx context.Context, request openapi.AccountManageUpdateEmailRequestObject) (openapi.AccountManageUpdateEmailResponseObject, error) {
+	if err := session.Authorise(ctx, nil, rbac.PermissionManageAccounts); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.PermissionDenied))
+	}
+
+	accountID, err := xid.FromString(request.AccountId)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	emailAddressID, err := xid.FromString(request.EmailAddressId)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	emailAddress, err := mail.ParseAddress(strings.ToLower(request.Body.EmailAddress))
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	verified := request.Body.Verified != nil && *request.Body.Verified
+
+	ae, err := h.accountEmail.UpdateAddress(ctx, account.AccountID(accountID), emailAddressID, *emailAddress, verified)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AccountManageUpdateEmail200JSONResponse{
+		AccountEmailUpdateOKJSONResponse: openapi.AccountEmailUpdateOKJSONResponse(serialiseEmailAddressPtr(ae)),
+	}, nil
+}
+
 func (h *Accounts) AccountManageUpdateEmailVerifiedStatus(ctx context.Context, request openapi.AccountManageUpdateEmailVerifiedStatusRequestObject) (openapi.AccountManageUpdateEmailVerifiedStatusResponseObject, error) {
 	if err := session.Authorise(ctx, nil, rbac.PermissionManageAccounts); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.PermissionDenied))

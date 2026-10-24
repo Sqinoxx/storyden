@@ -16,10 +16,9 @@ import type {
   ListingOfferListOKResponse,
   ListingOfferOKResponse,
   ListingOfferSubmitBody,
-  ListingUpdateBody
-} from '../openapi-schema'
-import { fetcher } from '../server';
-
+  ListingUpdateBody,
+} from "../openapi-schema";
+import { fetcher } from "../server";
 
 /**
  * Search Flohmarkt listings. Expired listings are hidden unless the
@@ -29,32 +28,31 @@ import { fetcher } from '../server';
 export type listingListResponse = {
   data: ListingListOKResponse;
   status: number;
-}
+};
 
-export const getListingListUrl = (params?: ListingListParams,) => {
+export const getListingListUrl = (params?: ListingListParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      normalizedParams.append(key, value === null ? "null" : value.toString());
     }
   });
 
-  return normalizedParams.size ? `/listings?${normalizedParams.toString()}` : `/listings`
-}
+  return normalizedParams.size
+    ? `/listings?${normalizedParams.toString()}`
+    : `/listings`;
+};
 
-export const listingList = async (params?: ListingListParams, options?: RequestInit): Promise<listingListResponse> => {
-  
-  return fetcher<Promise<listingListResponse>>(getListingListUrl(params),
-  {      
+export const listingList = async (
+  params?: ListingListParams,
+  options?: RequestInit,
+): Promise<listingListResponse> => {
+  return fetcher<Promise<listingListResponse>>(getListingListUrl(params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
+    method: "GET",
+  });
+};
 
 /**
  * Create a new listing. The account must have a phone number set. The
@@ -64,26 +62,23 @@ listing is visible for the number of days configured by the admin.
 export type listingCreateResponse = {
   data: ListingGetOKResponse;
   status: number;
-}
+};
 
 export const getListingCreateUrl = () => {
+  return `/listings`;
+};
 
-
-  return `/listings`
-}
-
-export const listingCreate = async (listingCreateBody: ListingCreateBody, options?: RequestInit): Promise<listingCreateResponse> => {
-  
-  return fetcher<Promise<listingCreateResponse>>(getListingCreateUrl(),
-  {      
+export const listingCreate = async (
+  listingCreateBody: ListingCreateBody,
+  options?: RequestInit,
+): Promise<listingCreateResponse> => {
+  return fetcher<Promise<listingCreateResponse>>(getListingCreateUrl(), {
     ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      listingCreateBody,)
-  }
-);}
-
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(listingCreateBody),
+  });
+};
 
 /**
  * Get a listing by its ID or slug.
@@ -91,25 +86,21 @@ export const listingCreate = async (listingCreateBody: ListingCreateBody, option
 export type listingGetResponse = {
   data: ListingGetOKResponse;
   status: number;
-}
+};
 
-export const getListingGetUrl = (listingMark: string,) => {
+export const getListingGetUrl = (listingMark: string) => {
+  return `/listings/${listingMark}`;
+};
 
-
-  return `/listings/${listingMark}`
-}
-
-export const listingGet = async (listingMark: string, options?: RequestInit): Promise<listingGetResponse> => {
-  
-  return fetcher<Promise<listingGetResponse>>(getListingGetUrl(listingMark),
-  {      
+export const listingGet = async (
+  listingMark: string,
+  options?: RequestInit,
+): Promise<listingGetResponse> => {
+  return fetcher<Promise<listingGetResponse>>(getListingGetUrl(listingMark), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
+    method: "GET",
+  });
+};
 
 /**
  * Update a listing. Only the owner or a moderator may do this.
@@ -117,27 +108,27 @@ export const listingGet = async (listingMark: string, options?: RequestInit): Pr
 export type listingUpdateResponse = {
   data: ListingGetOKResponse;
   status: number;
-}
+};
 
-export const getListingUpdateUrl = (listingMark: string,) => {
+export const getListingUpdateUrl = (listingMark: string) => {
+  return `/listings/${listingMark}`;
+};
 
-
-  return `/listings/${listingMark}`
-}
-
-export const listingUpdate = async (listingMark: string,
-    listingUpdateBody: ListingUpdateBody, options?: RequestInit): Promise<listingUpdateResponse> => {
-  
-  return fetcher<Promise<listingUpdateResponse>>(getListingUpdateUrl(listingMark),
-  {      
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      listingUpdateBody,)
-  }
-);}
-
+export const listingUpdate = async (
+  listingMark: string,
+  listingUpdateBody: ListingUpdateBody,
+  options?: RequestInit,
+): Promise<listingUpdateResponse> => {
+  return fetcher<Promise<listingUpdateResponse>>(
+    getListingUpdateUrl(listingMark),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(listingUpdateBody),
+    },
+  );
+};
 
 /**
  * Delete a listing. Only the owner or a moderator may do this.
@@ -145,25 +136,24 @@ export const listingUpdate = async (listingMark: string,
 export type listingDeleteResponse = {
   data: void;
   status: number;
-}
+};
 
-export const getListingDeleteUrl = (listingMark: string,) => {
+export const getListingDeleteUrl = (listingMark: string) => {
+  return `/listings/${listingMark}`;
+};
 
-
-  return `/listings/${listingMark}`
-}
-
-export const listingDelete = async (listingMark: string, options?: RequestInit): Promise<listingDeleteResponse> => {
-  
-  return fetcher<Promise<listingDeleteResponse>>(getListingDeleteUrl(listingMark),
-  {      
-    ...options,
-    method: 'DELETE'
-    
-    
-  }
-);}
-
+export const listingDelete = async (
+  listingMark: string,
+  options?: RequestInit,
+): Promise<listingDeleteResponse> => {
+  return fetcher<Promise<listingDeleteResponse>>(
+    getListingDeleteUrl(listingMark),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
 
 /**
  * Extend the visibility of a listing by the configured duration starting
@@ -173,25 +163,24 @@ from now. Only the owner may renew a listing.
 export type listingRenewResponse = {
   data: ListingGetOKResponse;
   status: number;
-}
+};
 
-export const getListingRenewUrl = (listingMark: string,) => {
+export const getListingRenewUrl = (listingMark: string) => {
+  return `/listings/${listingMark}/renew`;
+};
 
-
-  return `/listings/${listingMark}/renew`
-}
-
-export const listingRenew = async (listingMark: string, options?: RequestInit): Promise<listingRenewResponse> => {
-  
-  return fetcher<Promise<listingRenewResponse>>(getListingRenewUrl(listingMark),
-  {      
-    ...options,
-    method: 'POST'
-    
-    
-  }
-);}
-
+export const listingRenew = async (
+  listingMark: string,
+  options?: RequestInit,
+): Promise<listingRenewResponse> => {
+  return fetcher<Promise<listingRenewResponse>>(
+    getListingRenewUrl(listingMark),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
 
 /**
  * Make or update an offer on a listing. The buyer must have a phone
@@ -202,27 +191,27 @@ phone number and the seller can see the buyer's phone number.
 export type listingOfferSubmitResponse = {
   data: ListingOfferOKResponse;
   status: number;
-}
+};
 
-export const getListingOfferSubmitUrl = (listingMark: string,) => {
+export const getListingOfferSubmitUrl = (listingMark: string) => {
+  return `/listings/${listingMark}/offer`;
+};
 
-
-  return `/listings/${listingMark}/offer`
-}
-
-export const listingOfferSubmit = async (listingMark: string,
-    listingOfferSubmitBody: ListingOfferSubmitBody, options?: RequestInit): Promise<listingOfferSubmitResponse> => {
-  
-  return fetcher<Promise<listingOfferSubmitResponse>>(getListingOfferSubmitUrl(listingMark),
-  {      
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      listingOfferSubmitBody,)
-  }
-);}
-
+export const listingOfferSubmit = async (
+  listingMark: string,
+  listingOfferSubmitBody: ListingOfferSubmitBody,
+  options?: RequestInit,
+): Promise<listingOfferSubmitResponse> => {
+  return fetcher<Promise<listingOfferSubmitResponse>>(
+    getListingOfferSubmitUrl(listingMark),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(listingOfferSubmitBody),
+    },
+  );
+};
 
 /**
  * Get the seller's contact details. Only available after the requesting
@@ -232,25 +221,24 @@ account has made an offer on the listing.
 export type listingContactGetResponse = {
   data: ListingContactOKResponse;
   status: number;
-}
+};
 
-export const getListingContactGetUrl = (listingMark: string,) => {
+export const getListingContactGetUrl = (listingMark: string) => {
+  return `/listings/${listingMark}/contact`;
+};
 
-
-  return `/listings/${listingMark}/contact`
-}
-
-export const listingContactGet = async (listingMark: string, options?: RequestInit): Promise<listingContactGetResponse> => {
-  
-  return fetcher<Promise<listingContactGetResponse>>(getListingContactGetUrl(listingMark),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
+export const listingContactGet = async (
+  listingMark: string,
+  options?: RequestInit,
+): Promise<listingContactGetResponse> => {
+  return fetcher<Promise<listingContactGetResponse>>(
+    getListingContactGetUrl(listingMark),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
 
 /**
  * List all offers made on a listing including the buyers' phone numbers.
@@ -260,25 +248,24 @@ Only the owner of the listing may see this.
 export type listingOfferListResponse = {
   data: ListingOfferListOKResponse;
   status: number;
-}
+};
 
-export const getListingOfferListUrl = (listingMark: string,) => {
+export const getListingOfferListUrl = (listingMark: string) => {
+  return `/listings/${listingMark}/offers`;
+};
 
-
-  return `/listings/${listingMark}/offers`
-}
-
-export const listingOfferList = async (listingMark: string, options?: RequestInit): Promise<listingOfferListResponse> => {
-  
-  return fetcher<Promise<listingOfferListResponse>>(getListingOfferListUrl(listingMark),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
+export const listingOfferList = async (
+  listingMark: string,
+  options?: RequestInit,
+): Promise<listingOfferListResponse> => {
+  return fetcher<Promise<listingOfferListResponse>>(
+    getListingOfferListUrl(listingMark),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
 
 /**
  * Add a listing to the authenticated account's watch list.
@@ -286,25 +273,24 @@ export const listingOfferList = async (listingMark: string, options?: RequestIni
 export type listingFavouriteAddResponse = {
   data: void;
   status: number;
-}
+};
 
-export const getListingFavouriteAddUrl = (listingMark: string,) => {
+export const getListingFavouriteAddUrl = (listingMark: string) => {
+  return `/listings/${listingMark}/favourite`;
+};
 
-
-  return `/listings/${listingMark}/favourite`
-}
-
-export const listingFavouriteAdd = async (listingMark: string, options?: RequestInit): Promise<listingFavouriteAddResponse> => {
-  
-  return fetcher<Promise<listingFavouriteAddResponse>>(getListingFavouriteAddUrl(listingMark),
-  {      
-    ...options,
-    method: 'PUT'
-    
-    
-  }
-);}
-
+export const listingFavouriteAdd = async (
+  listingMark: string,
+  options?: RequestInit,
+): Promise<listingFavouriteAddResponse> => {
+  return fetcher<Promise<listingFavouriteAddResponse>>(
+    getListingFavouriteAddUrl(listingMark),
+    {
+      ...options,
+      method: "PUT",
+    },
+  );
+};
 
 /**
  * Remove a listing from the authenticated account's watch list.
@@ -312,23 +298,21 @@ export const listingFavouriteAdd = async (listingMark: string, options?: Request
 export type listingFavouriteRemoveResponse = {
   data: void;
   status: number;
-}
+};
 
-export const getListingFavouriteRemoveUrl = (listingMark: string,) => {
+export const getListingFavouriteRemoveUrl = (listingMark: string) => {
+  return `/listings/${listingMark}/favourite`;
+};
 
-
-  return `/listings/${listingMark}/favourite`
-}
-
-export const listingFavouriteRemove = async (listingMark: string, options?: RequestInit): Promise<listingFavouriteRemoveResponse> => {
-  
-  return fetcher<Promise<listingFavouriteRemoveResponse>>(getListingFavouriteRemoveUrl(listingMark),
-  {      
-    ...options,
-    method: 'DELETE'
-    
-    
-  }
-);}
-
-
+export const listingFavouriteRemove = async (
+  listingMark: string,
+  options?: RequestInit,
+): Promise<listingFavouriteRemoveResponse> => {
+  return fetcher<Promise<listingFavouriteRemoveResponse>>(
+    getListingFavouriteRemoveUrl(listingMark),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};

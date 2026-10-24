@@ -7,10 +7,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { RobotWorkspacePropsConfig } from './robotWorkspacePropsConfig';
-import type { ProfileReference } from './profileReference';
-import type { Metadata } from './metadata';
-import type { RobotWorkspaceProvider } from './robotWorkspaceProvider';
+import type { Metadata } from "./metadata";
+import type { ProfileReference } from "./profileReference";
+import type { RobotWorkspacePropsConfig } from "./robotWorkspacePropsConfig";
+import type { RobotWorkspaceProvider } from "./robotWorkspaceProvider";
 
 export interface RobotWorkspaceProps {
   /** Allow robots using this workspace template to run arbitrary shell commands. */

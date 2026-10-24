@@ -101,6 +101,24 @@ func (m *Manager) Remove(ctx context.Context, accountID account.AccountID, id xi
 	return nil
 }
 
+func (m *Manager) UpdateAddress(ctx context.Context, accountID account.AccountID, id xid.ID, address mail.Address, verified bool) (*account.EmailAddress, error) {
+	err := m.profileCache.Invalidate(ctx, xid.ID(accountID))
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	ae, err := m.emailRepo.UpdateAddress(ctx, accountID, id, address, verified)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	m.bus.Publish(ctx, &rpc.EventAccountUpdated{
+		ID: accountID,
+	})
+
+	return ae, nil
+}
+
 func (m *Manager) SetVerifiedStatus(ctx context.Context, accountID account.AccountID, id xid.ID, verified bool) (*account.EmailAddress, error) {
 	err := m.profileCache.Invalidate(ctx, xid.ID(accountID))
 	if err != nil {

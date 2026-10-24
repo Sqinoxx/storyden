@@ -12,10 +12,9 @@ import type {
   LinkCreateOKResponse,
   LinkGetOKResponse,
   LinkListOKResponse,
-  LinkListParams
-} from '../openapi-schema'
-import { fetcher } from '../server';
-
+  LinkListParams,
+} from "../openapi-schema";
+import { fetcher } from "../server";
 
 /**
  * Add a link to the community bookmarks. This will also scrape the content
@@ -33,26 +32,23 @@ When a link is submitted, it is first "cleaned" to remove any fragments.
 export type linkCreateResponse = {
   data: LinkCreateOKResponse;
   status: number;
-}
+};
 
 export const getLinkCreateUrl = () => {
+  return `/links`;
+};
 
-
-  return `/links`
-}
-
-export const linkCreate = async (linkCreateBody: LinkCreateBody, options?: RequestInit): Promise<linkCreateResponse> => {
-  
-  return fetcher<Promise<linkCreateResponse>>(getLinkCreateUrl(),
-  {      
+export const linkCreate = async (
+  linkCreateBody: LinkCreateBody,
+  options?: RequestInit,
+): Promise<linkCreateResponse> => {
+  return fetcher<Promise<linkCreateResponse>>(getLinkCreateUrl(), {
     ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      linkCreateBody,)
-  }
-);}
-
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(linkCreateBody),
+  });
+};
 
 /**
  * List all links using the filtering options.
@@ -60,32 +56,31 @@ export const linkCreate = async (linkCreateBody: LinkCreateBody, options?: Reque
 export type linkListResponse = {
   data: LinkListOKResponse;
   status: number;
-}
+};
 
-export const getLinkListUrl = (params?: LinkListParams,) => {
+export const getLinkListUrl = (params?: LinkListParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      normalizedParams.append(key, value === null ? "null" : value.toString());
     }
   });
 
-  return normalizedParams.size ? `/links?${normalizedParams.toString()}` : `/links`
-}
+  return normalizedParams.size
+    ? `/links?${normalizedParams.toString()}`
+    : `/links`;
+};
 
-export const linkList = async (params?: LinkListParams, options?: RequestInit): Promise<linkListResponse> => {
-  
-  return fetcher<Promise<linkListResponse>>(getLinkListUrl(params),
-  {      
+export const linkList = async (
+  params?: LinkListParams,
+  options?: RequestInit,
+): Promise<linkListResponse> => {
+  return fetcher<Promise<linkListResponse>>(getLinkListUrl(params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
+    method: "GET",
+  });
+};
 
 /**
  * Get the details for a specific link. Such as where it's been posted,
@@ -95,23 +90,18 @@ which resources it's linked to and how many times it's been opened.
 export type linkGetResponse = {
   data: LinkGetOKResponse;
   status: number;
-}
+};
 
-export const getLinkGetUrl = (linkSlug: string,) => {
+export const getLinkGetUrl = (linkSlug: string) => {
+  return `/links/${linkSlug}`;
+};
 
-
-  return `/links/${linkSlug}`
-}
-
-export const linkGet = async (linkSlug: string, options?: RequestInit): Promise<linkGetResponse> => {
-  
-  return fetcher<Promise<linkGetResponse>>(getLinkGetUrl(linkSlug),
-  {      
+export const linkGet = async (
+  linkSlug: string,
+  options?: RequestInit,
+): Promise<linkGetResponse> => {
+  return fetcher<Promise<linkGetResponse>>(getLinkGetUrl(linkSlug), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
+    method: "GET",
+  });
+};

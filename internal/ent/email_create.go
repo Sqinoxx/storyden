@@ -358,6 +358,18 @@ func (u *EmailUpsert) ClearAccountID() *EmailUpsert {
 	return u
 }
 
+// SetEmailAddress sets the "email_address" field.
+func (u *EmailUpsert) SetEmailAddress(v string) *EmailUpsert {
+	u.Set(email.FieldEmailAddress, v)
+	return u
+}
+
+// UpdateEmailAddress sets the "email_address" field to the value that was provided on create.
+func (u *EmailUpsert) UpdateEmailAddress() *EmailUpsert {
+	u.SetExcluded(email.FieldEmailAddress)
+	return u
+}
+
 // SetVerificationCode sets the "verification_code" field.
 func (u *EmailUpsert) SetVerificationCode(v string) *EmailUpsert {
 	u.Set(email.FieldVerificationCode, v)
@@ -438,9 +450,6 @@ func (u *EmailUpsertOne) UpdateNewValues() *EmailUpsertOne {
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(email.FieldCreatedAt)
 		}
-		if _, exists := u.create.mutation.EmailAddress(); exists {
-			s.SetIgnore(email.FieldEmailAddress)
-		}
 	}))
 	return u
 }
@@ -490,6 +499,20 @@ func (u *EmailUpsertOne) UpdateAccountID() *EmailUpsertOne {
 func (u *EmailUpsertOne) ClearAccountID() *EmailUpsertOne {
 	return u.Update(func(s *EmailUpsert) {
 		s.ClearAccountID()
+	})
+}
+
+// SetEmailAddress sets the "email_address" field.
+func (u *EmailUpsertOne) SetEmailAddress(v string) *EmailUpsertOne {
+	return u.Update(func(s *EmailUpsert) {
+		s.SetEmailAddress(v)
+	})
+}
+
+// UpdateEmailAddress sets the "email_address" field to the value that was provided on create.
+func (u *EmailUpsertOne) UpdateEmailAddress() *EmailUpsertOne {
+	return u.Update(func(s *EmailUpsert) {
+		s.UpdateEmailAddress()
 	})
 }
 
@@ -749,9 +772,6 @@ func (u *EmailUpsertBulk) UpdateNewValues() *EmailUpsertBulk {
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(email.FieldCreatedAt)
 			}
-			if _, exists := b.mutation.EmailAddress(); exists {
-				s.SetIgnore(email.FieldEmailAddress)
-			}
 		}
 	}))
 	return u
@@ -802,6 +822,20 @@ func (u *EmailUpsertBulk) UpdateAccountID() *EmailUpsertBulk {
 func (u *EmailUpsertBulk) ClearAccountID() *EmailUpsertBulk {
 	return u.Update(func(s *EmailUpsert) {
 		s.ClearAccountID()
+	})
+}
+
+// SetEmailAddress sets the "email_address" field.
+func (u *EmailUpsertBulk) SetEmailAddress(v string) *EmailUpsertBulk {
+	return u.Update(func(s *EmailUpsert) {
+		s.SetEmailAddress(v)
+	})
+}
+
+// UpdateEmailAddress sets the "email_address" field to the value that was provided on create.
+func (u *EmailUpsertBulk) UpdateEmailAddress() *EmailUpsertBulk {
+	return u.Update(func(s *EmailUpsert) {
+		s.UpdateEmailAddress()
 	})
 }
 

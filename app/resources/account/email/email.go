@@ -223,6 +223,34 @@ func (r *Repository) SetVerifiedStatus(ctx context.Context, accountID account.Ac
 	return account.MapEmail(result), nil
 }
 
+func (r *Repository) UpdateAddress(ctx context.Context, accountID account.AccountID, emailID xid.ID, address mail.Address, verified bool) (*account.EmailAddress, error) {
+	result, err := r.db.Email.UpdateOneID(emailID).
+		Where(email_ent.AccountID(xid.ID(accountID))).
+		SetEmailAddress(address.Address).
+		SetVerified(verified).
+		SetVerificationCode("").
+		ClearCodeExpiresAt().
+		SetCodeAttempts(0).
+		Save(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.NotFound))
+		}
+
+		if ent.IsConstraintError(err) {
+			return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.AlreadyExists))
+		}
+
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := r.syncVerifiedStatus(ctx, accountID); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return account.MapEmail(result), nil
+}
+
 func (r *Repository) lookupEmail(ctx context.Context, emailAddress mail.Address) (*ent.Email, bool, error) {
 	result, err := r.db.Email.Query().
 		Where(email_ent.EmailAddress(emailAddress.Address)).

@@ -13,10 +13,9 @@ import type {
   PostReactAddBody,
   PostReactAddOKResponse,
   PostUpdateBody,
-  PostUpdateOKResponse
-} from '../openapi-schema'
-import { fetcher } from '../server';
-
+  PostUpdateOKResponse,
+} from "../openapi-schema";
+import { fetcher } from "../server";
 
 /**
  * Publish changes to a single post.
@@ -24,27 +23,24 @@ import { fetcher } from '../server';
 export type postUpdateResponse = {
   data: PostUpdateOKResponse;
   status: number;
-}
+};
 
-export const getPostUpdateUrl = (postId: string,) => {
+export const getPostUpdateUrl = (postId: string) => {
+  return `/posts/${postId}`;
+};
 
-
-  return `/posts/${postId}`
-}
-
-export const postUpdate = async (postId: string,
-    postUpdateBody: PostUpdateBody, options?: RequestInit): Promise<postUpdateResponse> => {
-  
-  return fetcher<Promise<postUpdateResponse>>(getPostUpdateUrl(postId),
-  {      
+export const postUpdate = async (
+  postId: string,
+  postUpdateBody: PostUpdateBody,
+  options?: RequestInit,
+): Promise<postUpdateResponse> => {
+  return fetcher<Promise<postUpdateResponse>>(getPostUpdateUrl(postId), {
     ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      postUpdateBody,)
-  }
-);}
-
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(postUpdateBody),
+  });
+};
 
 /**
  * Archive a post using soft-delete.
@@ -52,25 +48,21 @@ export const postUpdate = async (postId: string,
 export type postDeleteResponse = {
   data: void;
   status: number;
-}
+};
 
-export const getPostDeleteUrl = (postId: string,) => {
+export const getPostDeleteUrl = (postId: string) => {
+  return `/posts/${postId}`;
+};
 
-
-  return `/posts/${postId}`
-}
-
-export const postDelete = async (postId: string, options?: RequestInit): Promise<postDeleteResponse> => {
-  
-  return fetcher<Promise<postDeleteResponse>>(getPostDeleteUrl(postId),
-  {      
+export const postDelete = async (
+  postId: string,
+  options?: RequestInit,
+): Promise<postDeleteResponse> => {
+  return fetcher<Promise<postDeleteResponse>>(getPostDeleteUrl(postId), {
     ...options,
-    method: 'DELETE'
-    
-    
-  }
-);}
-
+    method: "DELETE",
+  });
+};
 
 /**
  * Add a reaction to a post.
@@ -78,27 +70,24 @@ export const postDelete = async (postId: string, options?: RequestInit): Promise
 export type postReactAddResponse = {
   data: PostReactAddOKResponse;
   status: number;
-}
+};
 
-export const getPostReactAddUrl = (postId: string,) => {
+export const getPostReactAddUrl = (postId: string) => {
+  return `/posts/${postId}/reacts`;
+};
 
-
-  return `/posts/${postId}/reacts`
-}
-
-export const postReactAdd = async (postId: string,
-    postReactAddBody: PostReactAddBody, options?: RequestInit): Promise<postReactAddResponse> => {
-  
-  return fetcher<Promise<postReactAddResponse>>(getPostReactAddUrl(postId),
-  {      
+export const postReactAdd = async (
+  postId: string,
+  postReactAddBody: PostReactAddBody,
+  options?: RequestInit,
+): Promise<postReactAddResponse> => {
+  return fetcher<Promise<postReactAddResponse>>(getPostReactAddUrl(postId), {
     ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      postReactAddBody,)
-  }
-);}
-
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(postReactAddBody),
+  });
+};
 
 /**
  * Remove a reaction from a post.
@@ -106,27 +95,25 @@ export const postReactAdd = async (postId: string,
 export type postReactRemoveResponse = {
   data: void;
   status: number;
-}
+};
 
-export const getPostReactRemoveUrl = (postId: string,
-    reactId: string,) => {
+export const getPostReactRemoveUrl = (postId: string, reactId: string) => {
+  return `/posts/${postId}/reacts/${reactId}`;
+};
 
-
-  return `/posts/${postId}/reacts/${reactId}`
-}
-
-export const postReactRemove = async (postId: string,
-    reactId: string, options?: RequestInit): Promise<postReactRemoveResponse> => {
-  
-  return fetcher<Promise<postReactRemoveResponse>>(getPostReactRemoveUrl(postId,reactId),
-  {      
-    ...options,
-    method: 'DELETE'
-    
-    
-  }
-);}
-
+export const postReactRemove = async (
+  postId: string,
+  reactId: string,
+  options?: RequestInit,
+): Promise<postReactRemoveResponse> => {
+  return fetcher<Promise<postReactRemoveResponse>>(
+    getPostReactRemoveUrl(postId, reactId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
 
 /**
  * Locate a post just from its ID. This will tell you what kind of post it
@@ -138,30 +125,31 @@ within the thread: the index, the page and the position on the page.
 export type postLocationGetResponse = {
   data: PostLocationGetOKResponse;
   status: number;
-}
+};
 
-export const getPostLocationGetUrl = (params: PostLocationGetParams,) => {
+export const getPostLocationGetUrl = (params: PostLocationGetParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      normalizedParams.append(key, value === null ? "null" : value.toString());
     }
   });
 
-  return normalizedParams.size ? `/posts/location?${normalizedParams.toString()}` : `/posts/location`
-}
+  return normalizedParams.size
+    ? `/posts/location?${normalizedParams.toString()}`
+    : `/posts/location`;
+};
 
-export const postLocationGet = async (params: PostLocationGetParams, options?: RequestInit): Promise<postLocationGetResponse> => {
-  
-  return fetcher<Promise<postLocationGetResponse>>(getPostLocationGetUrl(params),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
+export const postLocationGet = async (
+  params: PostLocationGetParams,
+  options?: RequestInit,
+): Promise<postLocationGetResponse> => {
+  return fetcher<Promise<postLocationGetResponse>>(
+    getPostLocationGetUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};

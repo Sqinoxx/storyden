@@ -230,6 +230,70 @@ func TestAccountEmails(t *testing.T) {
 				tests.Ok(t, err, acc)
 				a.Equal(openapi.AccountVerifiedStatusNone, acc.JSON200.VerifiedStatus)
 			})
+
+			t.Run("manage_accounts_can_update_email_address", func(t *testing.T) {
+				r := require.New(t)
+				a := assert.New(t)
+
+				adminCtx, _ := e2e.WithAccount(root, accountWrite, seed.Account_001_Odin)
+				adminSession := sh.WithSession(adminCtx)
+
+				password := "password"
+				oldEmail := xid.New().String() + "old@example.com"
+				newEmail := xid.New().String() + "new@example.com"
+				takenEmail := xid.New().String() + "taken@example.com"
+
+				signup, err := cl.AuthEmailPasswordSignupWithResponse(root, nil, openapi.AuthEmailPasswordSignupJSONRequestBody{
+					Email:    oldEmail,
+					Password: password,
+				})
+				tests.Ok(t, err, signup)
+				session := e2e.WithSessionFromHeader(t, root, signup.HTTPResponse.Header)
+
+				other, err := cl.AuthEmailPasswordSignupWithResponse(root, nil, openapi.AuthEmailPasswordSignupJSONRequestBody{
+					Email:    takenEmail,
+					Password: password,
+				})
+				tests.Ok(t, err, other)
+
+				acc, err := cl.AccountGetWithResponse(root, session)
+				tests.Ok(t, err, acc)
+				r.Len(acc.JSON200.EmailAddresses, 1)
+				emailID := acc.JSON200.EmailAddresses[0].Id
+
+				forbidden, err := cl.AccountManageUpdateEmailWithResponse(root, acc.JSON200.Id, emailID, openapi.AccountEmailMutableProps{
+					EmailAddress: newEmail,
+				}, session)
+				tests.Status(t, err, forbidden, http.StatusForbidden)
+
+				conflict, err := cl.AccountManageUpdateEmailWithResponse(root, acc.JSON200.Id, emailID, openapi.AccountEmailMutableProps{
+					EmailAddress: takenEmail,
+				}, adminSession)
+				tests.Status(t, err, conflict, http.StatusConflict)
+
+				verified := true
+				updated := tests.AssertRequest(
+					cl.AccountManageUpdateEmailWithResponse(root, acc.JSON200.Id, emailID, openapi.AccountEmailMutableProps{
+						EmailAddress: newEmail,
+						Verified:     &verified,
+					}, adminSession),
+				)(t, http.StatusOK)
+				r.NotNil(updated.JSON200)
+				a.Equal(newEmail, updated.JSON200.EmailAddress)
+				a.True(updated.JSON200.Verified)
+
+				login, err := cl.AuthEmailPasswordSigninWithResponse(root, openapi.AuthEmailPasswordSigninJSONRequestBody{
+					Email:    newEmail,
+					Password: password,
+				})
+				tests.Ok(t, err, login)
+
+				oldLogin, err := cl.AuthEmailPasswordSigninWithResponse(root, openapi.AuthEmailPasswordSigninJSONRequestBody{
+					Email:    oldEmail,
+					Password: password,
+				})
+				tests.Status(t, err, oldLogin, http.StatusUnauthorized)
+			})
 		}))
 	}))
 }

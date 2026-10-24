@@ -2427,6 +2427,29 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "204": { description: OK }
 
+  /accounts/{account_id}/emails/{email_address_id}:
+    patch:
+      operationId: AccountManageUpdateEmail
+      description: |
+        Replace the address of an existing email record belonging to the
+        account. This is intended for admin account management and does not
+        trigger any verification emails. The new address is marked unverified
+        unless `verified` is explicitly provided.
+      tags: [accounts]
+      parameters:
+        - { $ref: "#/components/parameters/AccountIDParam" }
+        - { $ref: "#/components/parameters/EmailAddressIDParam" }
+      requestBody:
+        $ref: "#/components/requestBodies/AccountEmailUpdate"
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "200": { $ref: "#/components/responses/AccountEmailUpdateOK" }
+
   /accounts/{account_id}/emails/{email_address_id}/verified:
     patch:
       operationId: AccountManageUpdateEmailVerifiedStatus
@@ -6288,6 +6311,12 @@ components:
       content:
         application/json:
           schema: { $ref: "#/components/schemas/AccountEmailInitialProps" }
+
+    AccountEmailUpdate:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AccountEmailMutableProps"
 
     AccountEmailVerifiedStatusUpdate:
       content:
@@ -11442,6 +11471,14 @@ components:
       required: [email_address]
       properties:
         email_address: { $ref: "#/components/schemas/EmailAddress" }
+
+    AccountEmailMutableProps:
+      type: object
+      required: [email_address]
+      properties:
+        email_address: { $ref: "#/components/schemas/EmailAddress" }
+        verified:
+          type: boolean
 
     AccountEmailVerifiedStatusMutableProps:
       type: object

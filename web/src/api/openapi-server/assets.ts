@@ -12,10 +12,9 @@ import type {
   AssetDownloadPartialResponse,
   AssetUploadBody,
   AssetUploadOKResponse,
-  AssetUploadParams
-} from '../openapi-schema'
-import { fetcher } from '../server';
-
+  AssetUploadParams,
+} from "../openapi-schema";
+import { fetcher } from "../server";
 
 /**
  * Upload and process a media file.
@@ -23,34 +22,37 @@ import { fetcher } from '../server';
 export type assetUploadResponse = {
   data: AssetUploadOKResponse;
   status: number;
-}
+};
 
-export const getAssetUploadUrl = (params?: AssetUploadParams,) => {
+export const getAssetUploadUrl = (params?: AssetUploadParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      normalizedParams.append(key, value === null ? "null" : value.toString());
     }
   });
 
-  return normalizedParams.size ? `/assets?${normalizedParams.toString()}` : `/assets`
-}
+  return normalizedParams.size
+    ? `/assets?${normalizedParams.toString()}`
+    : `/assets`;
+};
 
-export const assetUpload = async (assetUploadBody: AssetUploadBody,
-    params?: AssetUploadParams, options?: RequestInit): Promise<assetUploadResponse> => {
-  
-  return fetcher<Promise<assetUploadResponse>>(getAssetUploadUrl(params),
-  {      
+export const assetUpload = async (
+  assetUploadBody: AssetUploadBody,
+  params?: AssetUploadParams,
+  options?: RequestInit,
+): Promise<assetUploadResponse> => {
+  return fetcher<Promise<assetUploadResponse>>(getAssetUploadUrl(params), {
     ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/octet-stream', ...options?.headers },
-    body: JSON.stringify(
-      assetUploadBody,)
-  }
-);}
-
+    method: "POST",
+    headers: {
+      "Content-Type": "application/octet-stream",
+      ...options?.headers,
+    },
+    body: JSON.stringify(assetUploadBody),
+  });
+};
 
 /**
  * Download an asset by its ID.
@@ -58,23 +60,18 @@ export const assetUpload = async (assetUploadBody: AssetUploadBody,
 export type assetGetResponse = {
   data: AssetDownloadOKResponse | AssetDownloadPartialResponse;
   status: number;
-}
+};
 
-export const getAssetGetUrl = (assetFilename: string,) => {
+export const getAssetGetUrl = (assetFilename: string) => {
+  return `/assets/${assetFilename}`;
+};
 
-
-  return `/assets/${assetFilename}`
-}
-
-export const assetGet = async (assetFilename: string, options?: RequestInit): Promise<assetGetResponse> => {
-  
-  return fetcher<Promise<assetGetResponse>>(getAssetGetUrl(assetFilename),
-  {      
+export const assetGet = async (
+  assetFilename: string,
+  options?: RequestInit,
+): Promise<assetGetResponse> => {
+  return fetcher<Promise<assetGetResponse>>(getAssetGetUrl(assetFilename), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
+    method: "GET",
+  });
+};

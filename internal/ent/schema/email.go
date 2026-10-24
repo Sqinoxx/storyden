@@ -28,7 +28,6 @@ func (Email) Fields() []ent.Field {
 
 		field.String("email_address").
 			NotEmpty().
-			Immutable().
 			Unique().
 			MinLen(3).
 			MaxLen(254).Validate(func(s string) error {

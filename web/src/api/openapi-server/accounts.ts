@@ -11,6 +11,7 @@ import type {
   AccountAuthProviderListOKResponse,
   AccountEmailAddBody,
   AccountEmailPasswordResetBody,
+  AccountEmailUpdateBody,
   AccountEmailUpdateOKResponse,
   AccountEmailVerifiedStatusUpdateBody,
   AccountGetAvatarResponse,
@@ -291,6 +292,42 @@ export const accountEmailPasswordReset = async (
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
       body: JSON.stringify(accountEmailPasswordResetBody),
+    },
+  );
+};
+
+/**
+ * Replace the address of an existing email record belonging to the
+account. This is intended for admin account management and does not
+trigger any verification emails. The new address is marked unverified
+unless `verified` is explicitly provided.
+
+ */
+export type accountManageUpdateEmailResponse = {
+  data: AccountEmailUpdateOKResponse;
+  status: number;
+};
+
+export const getAccountManageUpdateEmailUrl = (
+  accountId: string,
+  emailAddressId: string,
+) => {
+  return `/accounts/${accountId}/emails/${emailAddressId}`;
+};
+
+export const accountManageUpdateEmail = async (
+  accountId: string,
+  emailAddressId: string,
+  accountEmailUpdateBody: AccountEmailUpdateBody,
+  options?: RequestInit,
+): Promise<accountManageUpdateEmailResponse> => {
+  return fetcher<Promise<accountManageUpdateEmailResponse>>(
+    getAccountManageUpdateEmailUrl(accountId, emailAddressId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(accountEmailUpdateBody),
     },
   );
 };

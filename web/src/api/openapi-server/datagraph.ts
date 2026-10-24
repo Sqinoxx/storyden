@@ -11,10 +11,9 @@ import type {
   DatagraphMatchesOKResponse,
   DatagraphMatchesParams,
   DatagraphSearchOKResponse,
-  DatagraphSearchParams
-} from '../openapi-schema'
-import { fetcher } from '../server';
-
+  DatagraphSearchParams,
+} from "../openapi-schema";
+import { fetcher } from "../server";
 
 /**
  * Query and search content.
@@ -22,38 +21,43 @@ import { fetcher } from '../server';
 export type datagraphSearchResponse = {
   data: DatagraphSearchOKResponse;
   status: number;
-}
+};
 
-export const getDatagraphSearchUrl = (params?: DatagraphSearchParams,) => {
+export const getDatagraphSearchUrl = (params?: DatagraphSearchParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    const explodeParameters = ["kind","authors","categories"];
-      
+    const explodeParameters = ["kind", "authors", "categories"];
+
     if (value instanceof Array && explodeParameters.includes(key)) {
-      value.forEach((v) => normalizedParams.append(key, v === null ? 'null' : v.toString()));
+      value.forEach((v) =>
+        normalizedParams.append(key, v === null ? "null" : v.toString()),
+      );
       return;
     }
-      
+
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      normalizedParams.append(key, value === null ? "null" : value.toString());
     }
   });
 
-  return normalizedParams.size ? `/datagraph?${normalizedParams.toString()}` : `/datagraph`
-}
+  return normalizedParams.size
+    ? `/datagraph?${normalizedParams.toString()}`
+    : `/datagraph`;
+};
 
-export const datagraphSearch = async (params?: DatagraphSearchParams, options?: RequestInit): Promise<datagraphSearchResponse> => {
-  
-  return fetcher<Promise<datagraphSearchResponse>>(getDatagraphSearchUrl(params),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
+export const datagraphSearch = async (
+  params?: DatagraphSearchParams,
+  options?: RequestInit,
+): Promise<datagraphSearchResponse> => {
+  return fetcher<Promise<datagraphSearchResponse>>(
+    getDatagraphSearchUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
 
 /**
  * Query the datagraph optimised for typeahead scenarios. This endpoint is
@@ -73,36 +77,40 @@ of the underlying search index and to keep payload sizes smaller.
 export type datagraphMatchesResponse = {
   data: DatagraphMatchesOKResponse;
   status: number;
-}
+};
 
-export const getDatagraphMatchesUrl = (params: DatagraphMatchesParams,) => {
+export const getDatagraphMatchesUrl = (params: DatagraphMatchesParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
     const explodeParameters = ["kind"];
-      
+
     if (value instanceof Array && explodeParameters.includes(key)) {
-      value.forEach((v) => normalizedParams.append(key, v === null ? 'null' : v.toString()));
+      value.forEach((v) =>
+        normalizedParams.append(key, v === null ? "null" : v.toString()),
+      );
       return;
     }
-      
+
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
+      normalizedParams.append(key, value === null ? "null" : value.toString());
     }
   });
 
-  return normalizedParams.size ? `/datagraph/matches?${normalizedParams.toString()}` : `/datagraph/matches`
-}
+  return normalizedParams.size
+    ? `/datagraph/matches?${normalizedParams.toString()}`
+    : `/datagraph/matches`;
+};
 
-export const datagraphMatches = async (params: DatagraphMatchesParams, options?: RequestInit): Promise<datagraphMatchesResponse> => {
-  
-  return fetcher<Promise<datagraphMatchesResponse>>(getDatagraphMatchesUrl(params),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
+export const datagraphMatches = async (
+  params: DatagraphMatchesParams,
+  options?: RequestInit,
+): Promise<datagraphMatchesResponse> => {
+  return fetcher<Promise<datagraphMatchesResponse>>(
+    getDatagraphMatchesUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};

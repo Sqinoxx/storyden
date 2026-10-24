@@ -482,6 +482,10 @@ func (m *Mapping) AccountManageUpdate() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageAccounts
 }
 
+func (m *Mapping) AccountManageUpdateEmail() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccounts
+}
+
 func (m *Mapping) AccountManageUpdateEmailVerifiedStatus() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageAccounts
 }

@@ -7,7 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
-import type { CommonProperties } from './commonProperties';
-import type { RoleProps } from './roleProps';
+import type { CommonProperties } from "./commonProperties";
+import type { RoleProps } from "./roleProps";
 
 export type Role = CommonProperties & RoleProps;

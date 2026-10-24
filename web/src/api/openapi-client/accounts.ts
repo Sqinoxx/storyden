@@ -17,6 +17,7 @@ import type {
   AccountAuthProviderListOKResponse,
   AccountEmailAddBody,
   AccountEmailPasswordResetBody,
+  AccountEmailUpdateBody,
   AccountEmailUpdateOKResponse,
   AccountEmailVerifiedStatusUpdateBody,
   AccountGetAvatarResponse,
@@ -580,6 +581,91 @@ export const useAccountEmailPasswordReset = <
   const swrKey =
     swrOptions?.swrKey ?? getAccountEmailPasswordResetMutationKey(accountId);
   const swrFn = getAccountEmailPasswordResetMutationFetcher(accountId);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Replace the address of an existing email record belonging to the
+account. This is intended for admin account management and does not
+trigger any verification emails. The new address is marked unverified
+unless `verified` is explicitly provided.
+
+ */
+export const accountManageUpdateEmail = (
+  accountId: string,
+  emailAddressId: string,
+  accountEmailUpdateBody: AccountEmailUpdateBody,
+) => {
+  return fetcher<AccountEmailUpdateOKResponse>({
+    url: `/accounts/${accountId}/emails/${emailAddressId}`,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    data: accountEmailUpdateBody,
+  });
+};
+
+export const getAccountManageUpdateEmailMutationFetcher = (
+  accountId: string,
+  emailAddressId: string,
+) => {
+  return (
+    _: Key,
+    { arg }: { arg: AccountEmailUpdateBody },
+  ): Promise<AccountEmailUpdateOKResponse> => {
+    return accountManageUpdateEmail(accountId, emailAddressId, arg);
+  };
+};
+export const getAccountManageUpdateEmailMutationKey = (
+  accountId: string,
+  emailAddressId: string,
+) => [`/accounts/${accountId}/emails/${emailAddressId}`] as const;
+
+export type AccountManageUpdateEmailMutationResult = NonNullable<
+  Awaited<ReturnType<typeof accountManageUpdateEmail>>
+>;
+export type AccountManageUpdateEmailMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+  | ConflictResponse
+  | InternalServerErrorResponse;
+
+export const useAccountManageUpdateEmail = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+    | ConflictResponse
+    | InternalServerErrorResponse,
+>(
+  accountId: string,
+  emailAddressId: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof accountManageUpdateEmail>>,
+      TError,
+      Key,
+      AccountEmailUpdateBody,
+      Awaited<ReturnType<typeof accountManageUpdateEmail>>
+    > & { swrKey?: string };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey =
+    swrOptions?.swrKey ??
+    getAccountManageUpdateEmailMutationKey(accountId, emailAddressId);
+  const swrFn = getAccountManageUpdateEmailMutationFetcher(
+    accountId,
+    emailAddressId,
+  );
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

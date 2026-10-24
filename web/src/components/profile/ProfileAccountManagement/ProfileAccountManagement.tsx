@@ -25,6 +25,7 @@ import { deriveError } from "@/utils/error";
 import { hasPermission } from "@/utils/permissions";
 
 import { AccountPurgeTrigger } from "./AccountPurgeModal/AccountPurgeTrigger";
+import { AdminEmailEditor } from "./AdminEmailEditor";
 import { ModeratorNotesPanel } from "./ModeratorNotesPanel";
 import { WarningsPanel } from "./WarningsPanel";
 
@@ -137,6 +138,7 @@ function ProfileAccountManagementTabs({
   const { language, t } = useLanguage();
   const dateLocale = language === "de" ? de : enUS;
   const session = useSession();
+  const canManageAccounts = hasPermission(session, Permission.MANAGE_ACCOUNTS);
   const canManageWarnings = hasPermission(session, Permission.MANAGE_WARNINGS);
   const isSelf = session?.id === account.id;
   const canViewWarnings = canManageWarnings || isSelf;
@@ -234,33 +236,12 @@ function ProfileAccountManagementTabs({
             {account.email_addresses.length > 0 ? (
               <LStack gap="2" minW="0">
                 {account.email_addresses.map((email) => (
-                  <HStack
+                  <AdminEmailEditor
                     key={email.id}
-                    gap="2"
-                    fontSize="sm"
-                    flexWrap="wrap"
-                    minW="0"
-                    width="full"
-                  >
-                    <styled.code
-                      fontFamily="mono"
-                      w="full"
-                      minW="0"
-                      textOverflow="ellipsis"
-                      overflow="hidden"
-                    >
-                      {email.email_address}
-                    </styled.code>
-                    {email.verified ? (
-                      <Badge colorPalette="green" size="sm">
-                        {t.profile.verified}
-                      </Badge>
-                    ) : (
-                      <Badge colorPalette="gray" size="sm">
-                        {t.profile.unverified}
-                      </Badge>
-                    )}
-                  </HStack>
+                    accountId={account.id}
+                    email={email}
+                    canEdit={canManageAccounts}
+                  />
                 ))}
               </LStack>
             ) : (

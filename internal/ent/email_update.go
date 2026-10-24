@@ -51,6 +51,20 @@ func (_u *EmailUpdate) ClearAccountID() *EmailUpdate {
 	return _u
 }
 
+// SetEmailAddress sets the "email_address" field.
+func (_u *EmailUpdate) SetEmailAddress(v string) *EmailUpdate {
+	_u.mutation.SetEmailAddress(v)
+	return _u
+}
+
+// SetNillableEmailAddress sets the "email_address" field if the given value is not nil.
+func (_u *EmailUpdate) SetNillableEmailAddress(v *string) *EmailUpdate {
+	if v != nil {
+		_u.SetEmailAddress(*v)
+	}
+	return _u
+}
+
 // SetVerificationCode sets the "verification_code" field.
 func (_u *EmailUpdate) SetVerificationCode(v string) *EmailUpdate {
 	_u.mutation.SetVerificationCode(v)
@@ -165,6 +179,11 @@ func (_u *EmailUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *EmailUpdate) check() error {
+	if v, ok := _u.mutation.EmailAddress(); ok {
+		if err := email.EmailAddressValidator(v); err != nil {
+			return &ValidationError{Name: "email_address", err: fmt.Errorf(`ent: validator failed for field "Email.email_address": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.VerificationCode(); ok {
 		if err := email.VerificationCodeValidator(v); err != nil {
 			return &ValidationError{Name: "verification_code", err: fmt.Errorf(`ent: validator failed for field "Email.verification_code": %w`, err)}
@@ -190,6 +209,9 @@ func (_u *EmailUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.EmailAddress(); ok {
+		_spec.SetField(email.FieldEmailAddress, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.VerificationCode(); ok {
 		_spec.SetField(email.FieldVerificationCode, field.TypeString, value)
@@ -277,6 +299,20 @@ func (_u *EmailUpdateOne) SetNillableAccountID(v *xid.ID) *EmailUpdateOne {
 // ClearAccountID clears the value of the "account_id" field.
 func (_u *EmailUpdateOne) ClearAccountID() *EmailUpdateOne {
 	_u.mutation.ClearAccountID()
+	return _u
+}
+
+// SetEmailAddress sets the "email_address" field.
+func (_u *EmailUpdateOne) SetEmailAddress(v string) *EmailUpdateOne {
+	_u.mutation.SetEmailAddress(v)
+	return _u
+}
+
+// SetNillableEmailAddress sets the "email_address" field if the given value is not nil.
+func (_u *EmailUpdateOne) SetNillableEmailAddress(v *string) *EmailUpdateOne {
+	if v != nil {
+		_u.SetEmailAddress(*v)
+	}
 	return _u
 }
 
@@ -407,6 +443,11 @@ func (_u *EmailUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *EmailUpdateOne) check() error {
+	if v, ok := _u.mutation.EmailAddress(); ok {
+		if err := email.EmailAddressValidator(v); err != nil {
+			return &ValidationError{Name: "email_address", err: fmt.Errorf(`ent: validator failed for field "Email.email_address": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.VerificationCode(); ok {
 		if err := email.VerificationCodeValidator(v); err != nil {
 			return &ValidationError{Name: "verification_code", err: fmt.Errorf(`ent: validator failed for field "Email.verification_code": %w`, err)}
@@ -449,6 +490,9 @@ func (_u *EmailUpdateOne) sqlSave(ctx context.Context) (_node *Email, err error)
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.EmailAddress(); ok {
+		_spec.SetField(email.FieldEmailAddress, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.VerificationCode(); ok {
 		_spec.SetField(email.FieldVerificationCode, field.TypeString, value)

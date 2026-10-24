@@ -1038,6 +1038,8 @@ export const de: Translations = {
     anyPriceType: "Jede Preisart",
     priceFrom: "Preis ab (€)",
     priceTo: "Preis bis (€)",
+    priceLabel: "Preis",
+    anyPrice: "Jeder Preis",
     sortNewest: "Neueste zuerst",
     sortPriceAsc: "Preis aufsteigend",
     sortPriceDesc: "Preis absteigend",
@@ -1049,15 +1051,6 @@ export const de: Translations = {
     offers: "{count} Angebote",
     negotiableShort: "VB",
     free: "Zu verschenken",
-    categories: {
-      books: "Bücher & Skripten",
-      instruments: "Instrumente & Ausrüstung",
-      electronics: "Elektronik",
-      clothing: "Kleidung",
-      furniture: "Möbel & Wohnen",
-      tickets: "Tickets",
-      other: "Sonstiges",
-    },
     conditions: {
       new: "Neu",
       like_new: "Wie neu",
@@ -1179,6 +1172,14 @@ export const de: Translations = {
     durationLabel: "Laufzeit eines Inserats (Tage)",
     durationHelp:
       "Wie lange ein Inserat nach dem Erstellen oder Verlängern sichtbar bleibt. Gilt für neue und verlängerte Inserate.",
+    categoriesLabel: "Kategorien",
+    categoriesHelp: "Welche Kategorien Mitglieder beim Inserieren und Filtern wählen können. Umbenennen behält bestehende Inserate in der Kategorie; entfernte Kategorien bleiben an alten Inseraten sichtbar, sind aber nicht mehr wählbar.",
+    categoryNamePlaceholder: "Name der Kategorie",
+    categoryIdHelp: "Interne ID – bleibt beim Umbenennen gleich",
+    addCategory: "Kategorie hinzufügen",
+    removeCategory: "Kategorie entfernen",
+    moveUp: "Nach oben",
+    moveDown: "Nach unten",
   },
 };
 

@@ -862,6 +862,10 @@ func init() {
 	listingDescPriceCents := listingFields[3].Descriptor()
 	// listing.DefaultPriceCents holds the default value on creation for the price_cents field.
 	listing.DefaultPriceCents = listingDescPriceCents.Default.(int)
+	// listingDescCategory is the schema descriptor for category field.
+	listingDescCategory := listingFields[5].Descriptor()
+	// listing.DefaultCategory holds the default value on creation for the category field.
+	listing.DefaultCategory = listingDescCategory.Default.(string)
 	// listingDescID is the schema descriptor for id field.
 	listingDescID := listingMixinFields0[0].Descriptor()
 	// listing.DefaultID holds the default value on creation for the id field.

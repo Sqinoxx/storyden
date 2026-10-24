@@ -7,8 +7,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
+import type { MarketCategoryList } from "./marketCategoryList";
 
 export interface MarketServiceSettings {
+  categories?: MarketCategoryList;
   /** Whether the Flohmarkt is visible to all members. While false (the
 default, beta) only admins and listing moderators can use it.
  */

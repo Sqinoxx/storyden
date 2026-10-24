@@ -8,6 +8,7 @@ import { ListingGallery } from "@/components/marketplace/ListingGallery";
 import { ListingOfferPanel } from "@/components/marketplace/ListingOfferPanel";
 import { ListingOwnerPanel } from "@/components/marketplace/ListingOwnerPanel";
 import { ListingStatusBadge } from "@/components/marketplace/ListingStatusBadge";
+import { useMarketCategories } from "@/components/marketplace/useMarketCategories";
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import { ReportListingModal } from "@/components/report/ReportListingModal";
 import { UnreadyBanner } from "@/components/site/Unready";
@@ -37,6 +38,7 @@ export function ListingScreen({ slug, initialListing }: Props) {
   const t = useTranslation();
   const session = useSession();
   const report = useDisclosure();
+  const categories = useMarketCategories();
   const { data, error, mutate } = useListingGet(slug, {
     swr: { fallbackData: initialListing },
   });
@@ -51,7 +53,7 @@ export function ListingScreen({ slug, initialListing }: Props) {
   const facts = [
     {
       label: t.marketplace.detail.category,
-      value: t.marketplace.categories[listing.category],
+      value: categories.label(listing.category),
     },
     {
       label: t.marketplace.detail.condition,

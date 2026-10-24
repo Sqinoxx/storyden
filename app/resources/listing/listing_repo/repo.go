@@ -54,8 +54,8 @@ func WithPriceType(v listing.PriceType) Option {
 	return func(m *ent.ListingMutation) { m.SetPriceType(ent_listing.PriceType(v.String())) }
 }
 
-func WithCategory(v listing.Category) Option {
-	return func(m *ent.ListingMutation) { m.SetCategory(ent_listing.Category(v.String())) }
+func WithCategory(v string) Option {
+	return func(m *ent.ListingMutation) { m.SetCategory(v) }
 }
 
 func WithCondition(v listing.Condition) Option {
@@ -196,10 +196,8 @@ func WithQuery(q string) Filter {
 	}
 }
 
-func WithCategories(v ...listing.Category) Filter {
-	return func(lq *ent.ListingQuery) {
-		lq.Where(ent_listing.CategoryIn(dt.Map(v, func(c listing.Category) ent_listing.Category { return ent_listing.Category(c.String()) })...))
-	}
+func WithCategories(v ...string) Filter {
+	return func(lq *ent.ListingQuery) { lq.Where(ent_listing.CategoryIn(v...)) }
 }
 
 func WithConditions(v ...listing.Condition) Filter {
@@ -292,6 +290,27 @@ func (r *Repository) List(ctx context.Context, params pagination.Parameters, sor
 	result := pagination.NewPageResult(params, total, items)
 
 	return &result, nil
+}
+
+func (r *Repository) PriceBounds(ctx context.Context, filters ...Filter) (int, int, error) {
+	q := r.query()
+	for _, fn := range filters {
+		fn(q)
+	}
+
+	var rows []struct {
+		Min *int `json:"min"`
+		Max *int `json:"max"`
+	}
+	err := q.Aggregate(ent.Min(ent_listing.FieldPriceCents), ent.Max(ent_listing.FieldPriceCents)).Scan(ctx, &rows)
+	if err != nil {
+		return 0, 0, fault.Wrap(err, fctx.With(ctx))
+	}
+	if len(rows) == 0 || rows[0].Min == nil || rows[0].Max == nil {
+		return 0, 0, nil
+	}
+
+	return *rows[0].Min, *rows[0].Max, nil
 }
 
 func (r *Repository) ListExpiringUnnotified(ctx context.Context, now time.Time, before time.Time) ([]*listing.Listing, error) {

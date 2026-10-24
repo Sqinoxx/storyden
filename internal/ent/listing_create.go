@@ -131,13 +131,13 @@ func (_c *ListingCreate) SetNillablePriceType(v *listing.PriceType) *ListingCrea
 }
 
 // SetCategory sets the "category" field.
-func (_c *ListingCreate) SetCategory(v listing.Category) *ListingCreate {
+func (_c *ListingCreate) SetCategory(v string) *ListingCreate {
 	_c.mutation.SetCategory(v)
 	return _c
 }
 
 // SetNillableCategory sets the "category" field if the given value is not nil.
-func (_c *ListingCreate) SetNillableCategory(v *listing.Category) *ListingCreate {
+func (_c *ListingCreate) SetNillableCategory(v *string) *ListingCreate {
 	if v != nil {
 		_c.SetCategory(*v)
 	}
@@ -382,11 +382,6 @@ func (_c *ListingCreate) check() error {
 	if _, ok := _c.mutation.Category(); !ok {
 		return &ValidationError{Name: "category", err: errors.New(`ent: missing required field "Listing.category"`)}
 	}
-	if v, ok := _c.mutation.Category(); ok {
-		if err := listing.CategoryValidator(v); err != nil {
-			return &ValidationError{Name: "category", err: fmt.Errorf(`ent: validator failed for field "Listing.category": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Condition(); !ok {
 		return &ValidationError{Name: "condition", err: errors.New(`ent: missing required field "Listing.condition"`)}
 	}
@@ -487,7 +482,7 @@ func (_c *ListingCreate) createSpec() (*Listing, *sqlgraph.CreateSpec) {
 		_node.PriceType = value
 	}
 	if value, ok := _c.mutation.Category(); ok {
-		_spec.SetField(listing.FieldCategory, field.TypeEnum, value)
+		_spec.SetField(listing.FieldCategory, field.TypeString, value)
 		_node.Category = value
 	}
 	if value, ok := _c.mutation.Condition(); ok {
@@ -742,7 +737,7 @@ func (u *ListingUpsert) UpdatePriceType() *ListingUpsert {
 }
 
 // SetCategory sets the "category" field.
-func (u *ListingUpsert) SetCategory(v listing.Category) *ListingUpsert {
+func (u *ListingUpsert) SetCategory(v string) *ListingUpsert {
 	u.Set(listing.FieldCategory, v)
 	return u
 }
@@ -1028,7 +1023,7 @@ func (u *ListingUpsertOne) UpdatePriceType() *ListingUpsertOne {
 }
 
 // SetCategory sets the "category" field.
-func (u *ListingUpsertOne) SetCategory(v listing.Category) *ListingUpsertOne {
+func (u *ListingUpsertOne) SetCategory(v string) *ListingUpsertOne {
 	return u.Update(func(s *ListingUpsert) {
 		s.SetCategory(v)
 	})
@@ -1498,7 +1493,7 @@ func (u *ListingUpsertBulk) UpdatePriceType() *ListingUpsertBulk {
 }
 
 // SetCategory sets the "category" field.
-func (u *ListingUpsertBulk) SetCategory(v listing.Category) *ListingUpsertBulk {
+func (u *ListingUpsertBulk) SetCategory(v string) *ListingUpsertBulk {
 	return u.Update(func(s *ListingUpsert) {
 		s.SetCategory(v)
 	})

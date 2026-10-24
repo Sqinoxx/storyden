@@ -11,4 +11,12 @@ import type { ListingList } from "./listingList";
 
 export type ListingListResultAllOf = {
   listings: ListingList;
+  /** Highest price, in cents, among the listings matching every
+filter except the price range. Zero when nothing matches.
+ */
+  price_max: number;
+  /** Lowest price, in cents, among the listings matching every
+filter except the price range. Zero when nothing matches.
+ */
+  price_min: number;
 };

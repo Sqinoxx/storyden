@@ -21225,7 +21225,7 @@ type ListingMutation struct {
 	price_cents        *int
 	addprice_cents     *int
 	price_type         *listing.PriceType
-	category           *listing.Category
+	category           *string
 	condition          *listing.Condition
 	location           *string
 	status             *listing.Status
@@ -21724,12 +21724,12 @@ func (m *ListingMutation) ResetPriceType() {
 }
 
 // SetCategory sets the "category" field.
-func (m *ListingMutation) SetCategory(l listing.Category) {
-	m.category = &l
+func (m *ListingMutation) SetCategory(s string) {
+	m.category = &s
 }
 
 // Category returns the value of the "category" field in the mutation.
-func (m *ListingMutation) Category() (r listing.Category, exists bool) {
+func (m *ListingMutation) Category() (r string, exists bool) {
 	v := m.category
 	if v == nil {
 		return
@@ -21740,7 +21740,7 @@ func (m *ListingMutation) Category() (r listing.Category, exists bool) {
 // OldCategory returns the old "category" field's value of the Listing entity.
 // If the Listing object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ListingMutation) OldCategory(ctx context.Context) (v listing.Category, err error) {
+func (m *ListingMutation) OldCategory(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
 	}
@@ -22469,7 +22469,7 @@ func (m *ListingMutation) SetField(name string, value ent.Value) error {
 		m.SetPriceType(v)
 		return nil
 	case listing.FieldCategory:
-		v, ok := value.(listing.Category)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

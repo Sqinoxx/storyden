@@ -37,6 +37,7 @@ var (
 	ErrTooEarly      = fault.New("listing cannot be renewed yet", ftag.With(ftag.InvalidArgument))
 	ErrTooManyAssets = fault.New("too many images", ftag.With(ftag.InvalidArgument))
 	ErrDisabled      = fault.New("flohmarkt is not enabled", ftag.With(ftag.NotFound))
+	ErrBadCategory   = fault.New("unknown category", ftag.With(ftag.InvalidArgument))
 )
 
 type Manager struct {
@@ -77,7 +78,7 @@ type Partial struct {
 	Description opt.Optional[string]
 	PriceCents  opt.Optional[int]
 	PriceType   opt.Optional[listing.PriceType]
-	Category    opt.Optional[listing.Category]
+	Category    opt.Optional[string]
 	Condition   opt.Optional[listing.Condition]
 	Status      opt.Optional[listing.Status]
 	Location    opt.Optional[string]
@@ -90,7 +91,7 @@ func (p Partial) Opts() []listing_repo.Option {
 	p.Description.Call(func(v string) { opts = append(opts, listing_repo.WithDescription(v)) })
 	p.PriceCents.Call(func(v int) { opts = append(opts, listing_repo.WithPrice(v)) })
 	p.PriceType.Call(func(v listing.PriceType) { opts = append(opts, listing_repo.WithPriceType(v)) })
-	p.Category.Call(func(v listing.Category) { opts = append(opts, listing_repo.WithCategory(v)) })
+	p.Category.Call(func(v string) { opts = append(opts, listing_repo.WithCategory(v)) })
 	p.Condition.Call(func(v listing.Condition) { opts = append(opts, listing_repo.WithCondition(v)) })
 	p.Status.Call(func(v listing.Status) { opts = append(opts, listing_repo.WithStatus(v)) })
 	p.Location.Call(func(v string) { opts = append(opts, listing_repo.WithLocation(opt.New(v))) })
@@ -147,6 +148,24 @@ func (m *Manager) requirePhone(ctx context.Context, id account.AccountID) error 
 	return nil
 }
 
+func (m *Manager) validateCategory(ctx context.Context, category opt.Optional[string]) error {
+	c, ok := category.Get()
+	if !ok {
+		return nil
+	}
+
+	s, err := m.settings.Get(ctx)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if !s.HasMarketCategory(c) {
+		return fault.Wrap(ErrBadCategory, fctx.With(ctx),
+			fmsg.WithDesc("unknown category", "Diese Kategorie gibt es nicht."))
+	}
+	return nil
+}
+
 func (m *Manager) duration(ctx context.Context) (time.Duration, error) {
 	s, err := m.settings.Get(ctx)
 	if err != nil {
@@ -178,6 +197,10 @@ func (m *Manager) Create(ctx context.Context, title string, partial Partial) (*V
 	}
 
 	if err := validateAssets(ctx, partial.Assets); err != nil {
+		return nil, err
+	}
+
+	if err := m.validateCategory(ctx, partial.Category); err != nil {
 		return nil, err
 	}
 
@@ -232,14 +255,20 @@ type ListParams struct {
 	Sort      listing_repo.Sort
 	Scope     Scope
 	Query     opt.Optional[string]
-	Category  opt.Optional[listing.Category]
+	Category  opt.Optional[string]
 	Condition opt.Optional[listing.Condition]
 	PriceType opt.Optional[listing.PriceType]
 	PriceMin  opt.Optional[int]
 	PriceMax  opt.Optional[int]
 }
 
-func (m *Manager) List(ctx context.Context, p ListParams) (*pagination.Result[*View], error) {
+type ListResult struct {
+	*pagination.Result[*View]
+	PriceMin int
+	PriceMax int
+}
+
+func (m *Manager) List(ctx context.Context, p ListParams) (*ListResult, error) {
 	acc, err := m.viewer(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -261,9 +290,14 @@ func (m *Manager) List(ctx context.Context, p ListParams) (*pagination.Result[*V
 			filters = append(filters, listing_repo.WithQuery(v))
 		}
 	})
-	p.Category.Call(func(v listing.Category) { filters = append(filters, listing_repo.WithCategories(v)) })
+	p.Category.Call(func(v string) { filters = append(filters, listing_repo.WithCategories(v)) })
 	p.Condition.Call(func(v listing.Condition) { filters = append(filters, listing_repo.WithConditions(v)) })
 	p.PriceType.Call(func(v listing.PriceType) { filters = append(filters, listing_repo.WithPriceTypes(v)) })
+	priceMin, priceMax, err := m.repo.PriceBounds(ctx, filters...)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	p.PriceMin.Call(func(v int) { filters = append(filters, listing_repo.WithPriceMin(v)) })
 	p.PriceMax.Call(func(v int) { filters = append(filters, listing_repo.WithPriceMax(v)) })
 
@@ -279,7 +313,7 @@ func (m *Manager) List(ctx context.Context, p ListParams) (*pagination.Result[*V
 
 	out := pagination.ConvertPageResult(*result, views)
 
-	return &out, nil
+	return &ListResult{Result: &out, PriceMin: priceMin, PriceMax: priceMax}, nil
 }
 
 func (m *Manager) Update(ctx context.Context, key listing.QueryKey, partial Partial) (*View, error) {
@@ -299,6 +333,12 @@ func (m *Manager) Update(ctx context.Context, key listing.QueryKey, partial Part
 
 	if err := validateAssets(ctx, partial.Assets); err != nil {
 		return nil, err
+	}
+
+	if c, ok := partial.Category.Get(); ok && c != l.Category {
+		if err := m.validateCategory(ctx, partial.Category); err != nil {
+			return nil, err
+		}
 	}
 
 	l, err = m.repo.Update(ctx, l.ID, partial.Opts()...)

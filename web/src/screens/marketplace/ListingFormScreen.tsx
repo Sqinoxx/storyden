@@ -8,8 +8,8 @@ import {
 } from "@/components/marketplace/ListingImagesField";
 import { NativeSelect } from "@/components/marketplace/NativeSelect";
 import { PhoneRequiredNotice } from "@/components/marketplace/PhoneRequiredNotice";
+import { useMarketCategories } from "@/components/marketplace/useMarketCategories";
 import {
-  categoryOptions,
   conditionOptions,
   priceTypeOptions,
 } from "@/components/marketplace/options";
@@ -30,6 +30,7 @@ import { Props, useListingForm } from "./useListingForm";
 
 export function ListingFormScreen(props: Props) {
   const t = useTranslation();
+  const categories = useMarketCategories();
   const phone = useAccountPhoneGet();
   const {
     form,
@@ -131,7 +132,7 @@ export function ListingFormScreen(props: Props) {
               <FormControl>
                 <FormLabel>{t.marketplace.form.category}</FormLabel>
                 <NativeSelect
-                  options={categoryOptions(t)}
+                  options={categories.options}
                   {...form.register("category")}
                 />
               </FormControl>

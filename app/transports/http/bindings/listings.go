@@ -43,9 +43,7 @@ func (h *Listings) ListingList(ctx context.Context, request openapi.ListingListR
 	if params.PriceMax, err = deserialiseOptionalCents(p.PriceMax); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
-	if params.Category, err = deserialiseOptionalEnum(p.Category, listing.NewCategory); err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
-	}
+	params.Category = deserialiseOptionalCategory(p.Category)
 	if params.Condition, err = deserialiseOptionalEnum(p.Condition, listing.NewCondition); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -66,6 +64,8 @@ func (h *Listings) ListingList(ctx context.Context, request openapi.ListingListR
 			Results:     result.Results,
 			TotalPages:  result.TotalPages,
 			Listings:    dt.Map(result.Items, serialiseListing),
+			PriceMin:    result.PriceMin,
+			PriceMax:    result.PriceMax,
 		},
 	}, nil
 }
@@ -224,15 +224,20 @@ func deserialiseOptionalEnum[In ~string, Out any](in *In, parse func(string) (Ou
 	return opt.New(v), nil
 }
 
+func deserialiseOptionalCategory[In ~string](in *In) opt.Optional[string] {
+	if in == nil || *in == "" {
+		return opt.NewEmpty[string]()
+	}
+	return opt.New(string(*in))
+}
+
 func deserialiseListingPartial(in openapi.ListingMutableProps) (listing_manager.Partial, error) {
 	var (
 		p   listing_manager.Partial
 		err error
 	)
 
-	if p.Category, err = deserialiseOptionalEnum(in.Category, listing.NewCategory); err != nil {
-		return p, err
-	}
+	p.Category = deserialiseOptionalCategory(in.Category)
 	if p.Condition, err = deserialiseOptionalEnum(in.Condition, listing.NewCondition); err != nil {
 		return p, err
 	}
@@ -267,7 +272,7 @@ func serialiseListing(v *listing_manager.View) openapi.Listing {
 		Description: v.Description,
 		Price:       v.PriceCents,
 		PriceType:   openapi.ListingPriceType(v.PriceType.String()),
-		Category:    openapi.ListingCategory(v.Category.String()),
+		Category:    v.Category,
 		Condition:   openapi.ListingCondition(v.Condition.String()),
 		Status:      openapi.ListingStatus(v.Status.String()),
 		Location:    v.Location.Ptr(),

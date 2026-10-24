@@ -24,7 +24,7 @@ func (Listing) Fields() []ent.Field {
 		field.Text("description"),
 		field.Int("price_cents").Default(0),
 		field.Enum("price_type").Values("fixed", "negotiable", "free").Default("negotiable"),
-		field.Enum("category").Values("books", "instruments", "electronics", "clothing", "furniture", "tickets", "other").Default("other"),
+		field.String("category").Default("other"),
 		field.Enum("condition").Values("new", "like_new", "used", "defective").Default("used"),
 		field.String("location").Optional().Nillable(),
 		field.Enum("status").Values("active", "reserved", "sold").Default("active"),

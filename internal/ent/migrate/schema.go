@@ -642,7 +642,7 @@ var (
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
 		{Name: "price_cents", Type: field.TypeInt, Default: 0},
 		{Name: "price_type", Type: field.TypeEnum, Enums: []string{"fixed", "negotiable", "free"}, Default: "negotiable"},
-		{Name: "category", Type: field.TypeEnum, Enums: []string{"books", "instruments", "electronics", "clothing", "furniture", "tickets", "other"}, Default: "other"},
+		{Name: "category", Type: field.TypeString, Default: "other"},
 		{Name: "condition", Type: field.TypeEnum, Enums: []string{"new", "like_new", "used", "defective"}, Default: "used"},
 		{Name: "location", Type: field.TypeString, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "reserved", "sold"}, Default: "active"},

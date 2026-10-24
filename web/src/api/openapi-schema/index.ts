@@ -466,6 +466,8 @@ export * from "./listingStatus";
 export * from "./listingTitle";
 export * from "./listingUpdateBody";
 export * from "./mark";
+export * from "./marketCategory";
+export * from "./marketCategoryList";
 export * from "./marketServiceSettings";
 export * from "./mediaType";
 export * from "./memberJoinedDate";

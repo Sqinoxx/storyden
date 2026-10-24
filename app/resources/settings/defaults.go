@@ -43,6 +43,7 @@ var DefaultSettings = Settings{
 		}),
 		Market: opt.New(MarketServiceSettings{
 			ListingDurationDays: opt.New(DefaultListingDurationDays),
+			Categories:          opt.New(DefaultMarketCategories),
 		}),
 		Session: opt.New(SessionServiceSettings{
 			IdleTimeout:       opt.New(DefaultSessionIdleTimeout),
@@ -102,6 +103,35 @@ func (s *Settings) RememberMeDuration(requested opt.Optional[time.Duration]) tim
 // is in beta (unset or false) only admins and listing moderators can use it.
 func (s *Settings) MarketEnabled() bool {
 	return s.Services.OrZero().Market.OrZero().Enabled.OrZero()
+}
+
+var DefaultMarketCategories = []MarketCategory{
+	{ID: "books", Name: "Bücher & Skripten"},
+	{ID: "instruments", Name: "Instrumente & Ausrüstung"},
+	{ID: "electronics", Name: "Elektronik"},
+	{ID: "clothing", Name: "Kleidung"},
+	{ID: "furniture", Name: "Möbel & Wohnen"},
+	{ID: "tickets", Name: "Tickets"},
+	{ID: "other", Name: "Sonstiges"},
+}
+
+// MarketCategories resolves the admin-defined Flohmarkt categories, falling
+// back to the defaults when none are configured.
+func (s *Settings) MarketCategories() []MarketCategory {
+	c := s.Services.OrZero().Market.OrZero().Categories.OrZero()
+	if len(c) == 0 {
+		return DefaultMarketCategories
+	}
+	return c
+}
+
+func (s *Settings) HasMarketCategory(id string) bool {
+	for _, c := range s.MarketCategories() {
+		if c.ID == id {
+			return true
+		}
+	}
+	return false
 }
 
 // ListingDuration resolves how long a Flohmarkt listing stays visible.

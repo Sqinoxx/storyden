@@ -7,7 +7,6 @@ import {
 } from "nuqs";
 
 import {
-  ListingCategory,
   ListingCondition,
   ListingListParams,
   ListingPriceType,
@@ -18,7 +17,7 @@ import { eurosToCents } from "@/lib/marketplace/marketplace";
 
 export const filterParsers = {
   q: parseAsString.withDefault(""),
-  category: parseAsStringEnum(Object.values(ListingCategory)),
+  category: parseAsString,
   condition: parseAsStringEnum(Object.values(ListingCondition)),
   price_type: parseAsStringEnum(Object.values(ListingPriceType)),
   price_min: parseAsFloat,

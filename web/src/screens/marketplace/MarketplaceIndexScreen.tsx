@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent } from "react";
+import { FormEvent, useRef } from "react";
 
 import { useListingList } from "@/api/openapi-client/listings";
 import {
@@ -9,11 +9,12 @@ import {
 } from "@/api/openapi-schema";
 import { ListingCard } from "@/components/marketplace/ListingCard";
 import { NativeSelect } from "@/components/marketplace/NativeSelect";
+import { PriceRangeSlider } from "@/components/marketplace/PriceRangeSlider";
 import {
-  categoryOptions,
   conditionOptions,
   priceTypeOptions,
 } from "@/components/marketplace/options";
+import { useMarketCategories } from "@/components/marketplace/useMarketCategories";
 import { PaginationControls } from "@/components/site/PaginationControls/PaginationControls";
 import { UnreadyBanner } from "@/components/site/Unready";
 import { Button } from "@/components/ui/button";
@@ -29,21 +30,22 @@ export function MarketplaceIndexScreen() {
   const t = useTranslation();
   const { filters, params, update } = useMarketplaceFilters();
   const { data, error, mutate } = useListingList(params);
+  const categories = useMarketCategories();
+  const lastBounds = useRef({ min: 0, max: 0 });
+  if (data) {
+    lastBounds.current = {
+      min: Math.floor(data.price_min / 100),
+      max: Math.ceil(data.price_max / 100),
+    };
+  }
+  const bounds = lastBounds.current;
 
   const scope = filters.scope ?? ListingScopeQueryParameter.all;
 
   function handleSearch(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-    const num = (key: string) => {
-      const v = String(form.get(key) ?? "").replace(",", ".");
-      return v === "" || Number.isNaN(Number(v)) ? null : Number(v);
-    };
-    update({
-      q: String(form.get("q") ?? ""),
-      price_min: num("price_min"),
-      price_max: num("price_max"),
-    });
+    update({ q: String(form.get("q") ?? "") });
   }
 
   const scopes = [
@@ -92,7 +94,7 @@ export function MarketplaceIndexScreen() {
         flexDir="column"
         gap="2"
         onSubmit={handleSearch}
-        key={`${filters.q}-${filters.price_min}-${filters.price_max}`}
+        key={filters.q}
       >
         <HStack w="full" gap="2">
           <Input
@@ -120,14 +122,10 @@ export function MarketplaceIndexScreen() {
           <NativeSelect
             aria-label={t.marketplace.form.category}
             value={filters.category ?? ""}
-            onChange={(e) =>
-              update({
-                category: (e.target.value || null) as typeof filters.category,
-              })
-            }
+            onChange={(e) => update({ category: e.target.value || null })}
             options={[
               { value: "", label: t.marketplace.allCategories },
-              ...categoryOptions(t),
+              ...categories.options,
             ]}
           />
           <NativeSelect
@@ -157,24 +155,18 @@ export function MarketplaceIndexScreen() {
               ...priceTypeOptions(t),
             ]}
           />
-          <Input
-            name="price_min"
-            size="sm"
-            inputMode="decimal"
-            placeholder={t.marketplace.priceFrom}
-            aria-label={t.marketplace.priceFrom}
-            defaultValue={filters.price_min ?? ""}
-            onBlur={(e) => e.currentTarget.form?.requestSubmit()}
-          />
-          <Input
-            name="price_max"
-            size="sm"
-            inputMode="decimal"
-            placeholder={t.marketplace.priceTo}
-            aria-label={t.marketplace.priceTo}
-            defaultValue={filters.price_max ?? ""}
-            onBlur={(e) => e.currentTarget.form?.requestSubmit()}
-          />
+          <styled.div gridColumn="span 2">
+            <PriceRangeSlider
+              key={`${bounds.min}-${bounds.max}-${filters.price_min}-${filters.price_max}`}
+              boundsMin={bounds.min}
+              boundsMax={bounds.max}
+              min={filters.price_min}
+              max={filters.price_max}
+              onChange={(price_min, price_max) =>
+                update({ price_min, price_max })
+              }
+            />
+          </styled.div>
           <NativeSelect
             aria-label={t.marketplace.sortNewest}
             value={filters.sort ?? ListingSortQueryParameter.newest}

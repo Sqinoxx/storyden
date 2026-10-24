@@ -61,7 +61,7 @@ func TestListings(t *testing.T) {
 				Description: opt.New("Kaum gespielt, mit Tasche.").Ptr(),
 				Price:       12000,
 				PriceType:   openapi.ListingPriceTypeNegotiable,
-				Category:    openapi.ListingCategoryInstruments,
+				Category:    "instruments",
 				Condition:   openapi.ListingConditionLikeNew,
 				Location:    opt.New("Wien").Ptr(),
 			}
@@ -131,7 +131,7 @@ func TestListings(t *testing.T) {
 					Title:     "Physiologie Lehrbuch",
 					Price:     0,
 					PriceType: openapi.ListingPriceTypeFree,
-					Category:  openapi.ListingCategoryBooks,
+					Category:  "books",
 					Condition: openapi.ListingConditionUsed,
 				}, buyerSession))(t, http.StatusOK)
 
@@ -147,10 +147,18 @@ func TestListings(t *testing.T) {
 				a.ElementsMatch([]string{"Akustikgitarre Yamaha", "Physiologie Lehrbuch"}, ids(openapi.ListingListParams{}))
 				a.Equal([]string{"Akustikgitarre Yamaha"}, ids(openapi.ListingListParams{Q: opt.New("gitarre").Ptr()}))
 				a.Equal([]string{"Akustikgitarre Yamaha"}, ids(openapi.ListingListParams{Q: opt.New("wien").Ptr()}))
-				a.Equal([]string{"Physiologie Lehrbuch"}, ids(openapi.ListingListParams{Category: opt.New(openapi.ListingCategoryBooks).Ptr()}))
+				a.Equal([]string{"Physiologie Lehrbuch"}, ids(openapi.ListingListParams{Category: opt.New[openapi.ListingCategoryQuery]("books").Ptr()}))
 				a.Equal([]string{"Akustikgitarre Yamaha"}, ids(openapi.ListingListParams{PriceMin: opt.New("5000").Ptr()}))
 				a.Equal([]string{"Physiologie Lehrbuch"}, ids(openapi.ListingListParams{PriceMax: opt.New("100").Ptr()}))
 				a.Equal([]string{"Physiologie Lehrbuch", "Akustikgitarre Yamaha"}, ids(openapi.ListingListParams{Sort: opt.New(openapi.ListingListParamsSortPriceAsc).Ptr()}))
+
+				bounds := tests.AssertRequest(cl.ListingListWithResponse(root, &openapi.ListingListParams{PriceMin: opt.New("5000").Ptr()}, strangerSession))(t, http.StatusOK)
+				a.Equal(0, bounds.JSON200.PriceMin)
+				a.Equal(12000, bounds.JSON200.PriceMax)
+
+				books := tests.AssertRequest(cl.ListingListWithResponse(root, &openapi.ListingListParams{Category: opt.New[openapi.ListingCategoryQuery]("books").Ptr()}, strangerSession))(t, http.StatusOK)
+				a.Equal(0, books.JSON200.PriceMin)
+				a.Equal(0, books.JSON200.PriceMax)
 			})
 
 			t.Run("contact_hidden_without_offer", func(t *testing.T) {
@@ -345,7 +353,7 @@ func TestListingsBetaVisibility(t *testing.T) {
 				Title:     "Beta Testinserat",
 				Price:     100,
 				PriceType: openapi.ListingPriceTypeFixed,
-				Category:  openapi.ListingCategoryOther,
+				Category:  "other",
 				Condition: openapi.ListingConditionNew,
 			}, adminSession))(t, http.StatusOK)
 
@@ -377,6 +385,92 @@ func TestListingsBetaVisibility(t *testing.T) {
 			settings := tests.AssertRequest(cl.AdminSettingsGetWithResponse(root, adminSession))(t, http.StatusOK)
 			a.True(*settings.JSON200.Services.Market.Enabled)
 			a.Equal(90, *settings.JSON200.Services.Market.ListingDurationDays)
+		}))
+	}))
+}
+
+func TestListingsAdminCategories(t *testing.T) {
+	t.Parallel()
+
+	integration.Test(t, nil, e2e.Setup(), fx.Invoke(func(
+		lc fx.Lifecycle,
+		root context.Context,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+			a := assert.New(t)
+
+			memberCtx, _ := e2e.WithAccount(root, aw, seed.Account_003_Baldur)
+			memberSession := sh.WithSession(memberCtx)
+			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			adminSession := sh.WithSession(adminCtx)
+
+			info := tests.AssertRequest(cl.GetInfoWithResponse(root))(t, http.StatusOK)
+			r.NotNil(info.JSON200.MarketplaceCategories)
+			a.Len(*info.JSON200.MarketplaceCategories, len(settings.DefaultMarketCategories))
+
+			categories := openapi.MarketCategoryList{
+				{Id: "instruments", Name: "Instrumente"},
+				{Id: "skripten", Name: "Skripten"},
+			}
+			tests.AssertRequest(cl.AdminSettingsUpdateWithResponse(root, openapi.AdminSettingsUpdateJSONRequestBody{
+				Services: &openapi.AdminSettingsServiceProps{
+					Market: &openapi.MarketServiceSettings{Enabled: opt.New(true).Ptr(), Categories: &categories},
+				},
+			}, adminSession))(t, http.StatusOK)
+
+			info = tests.AssertRequest(cl.GetInfoWithResponse(root))(t, http.StatusOK)
+			a.Equal(categories, *info.JSON200.MarketplaceCategories)
+
+			got := tests.AssertRequest(cl.AdminSettingsGetWithResponse(root, adminSession))(t, http.StatusOK)
+			a.Equal(categories, *got.JSON200.Services.Market.Categories)
+
+			tests.AssertRequest(cl.AccountPhoneSetWithResponse(root, openapi.AccountPhoneSetProps{Phone: "+436641234568"}, memberSession))(t, http.StatusOK)
+
+			props := openapi.ListingInitialProps{
+				Title:     "Histologie Skript",
+				Price:     500,
+				PriceType: openapi.ListingPriceTypeFixed,
+				Category:  "skripten",
+				Condition: openapi.ListingConditionUsed,
+			}
+			created := tests.AssertRequest(cl.ListingCreateWithResponse(root, props, memberSession))(t, http.StatusOK)
+			a.Equal("skripten", created.JSON200.Category)
+
+			filtered := tests.AssertRequest(cl.ListingListWithResponse(root, &openapi.ListingListParams{Category: opt.New[openapi.ListingCategoryQuery]("skripten").Ptr()}, memberSession))(t, http.StatusOK)
+			a.Len(filtered.JSON200.Listings, 1)
+
+			props.Category = "books"
+			unknown, err := cl.ListingCreateWithResponse(root, props, memberSession)
+			tests.Status(t, err, unknown, http.StatusBadRequest)
+
+			renamed := openapi.MarketCategoryList{{Id: "instruments", Name: "Instrumente"}}
+			tests.AssertRequest(cl.AdminSettingsUpdateWithResponse(root, openapi.AdminSettingsUpdateJSONRequestBody{
+				Services: &openapi.AdminSettingsServiceProps{
+					Market: &openapi.MarketServiceSettings{Categories: &renamed},
+				},
+			}, adminSession))(t, http.StatusOK)
+
+			kept := tests.AssertRequest(cl.ListingGetWithResponse(root, created.JSON200.Slug, memberSession))(t, http.StatusOK)
+			a.Equal("skripten", kept.JSON200.Category)
+
+			tests.AssertRequest(cl.ListingUpdateWithResponse(root, created.JSON200.Slug, openapi.ListingMutableProps{Title: opt.New("Histologie Skript v2").Ptr(), Category: opt.New[openapi.ListingCategory]("skripten").Ptr()}, memberSession))(t, http.StatusOK)
+
+			for _, bad := range []openapi.MarketCategoryList{
+				{},
+				{{Id: "a", Name: "A"}, {Id: "a", Name: "B"}},
+				{{Id: "Bad Id", Name: "A"}},
+			} {
+				resp, err := cl.AdminSettingsUpdateWithResponse(root, openapi.AdminSettingsUpdateJSONRequestBody{
+					Services: &openapi.AdminSettingsServiceProps{
+						Market: &openapi.MarketServiceSettings{Categories: &bad},
+					},
+				}, adminSession)
+				tests.Status(t, err, resp, http.StatusBadRequest)
+			}
 		}))
 	}))
 }

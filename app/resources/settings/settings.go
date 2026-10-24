@@ -75,6 +75,12 @@ type ServiceSettings struct {
 type MarketServiceSettings struct {
 	Enabled             opt.Optional[bool]
 	ListingDurationDays opt.Optional[int]
+	Categories          opt.Optional[[]MarketCategory]
+}
+
+type MarketCategory struct {
+	ID   string
+	Name string
 }
 
 // AssetServiceSettings controls limits applied to file/asset uploads.

@@ -27,18 +27,6 @@ const (
 	priceTypeFree       priceTypeEnum = "free"
 )
 
-type categoryEnum string
-
-const (
-	categoryBooks       categoryEnum = "books"
-	categoryInstruments categoryEnum = "instruments"
-	categoryElectronics categoryEnum = "electronics"
-	categoryClothing    categoryEnum = "clothing"
-	categoryFurniture   categoryEnum = "furniture"
-	categoryTickets     categoryEnum = "tickets"
-	categoryOther       categoryEnum = "other"
-)
-
 type conditionEnum string
 
 const (
@@ -86,7 +74,7 @@ type Listing struct {
 	Description string
 	PriceCents  int
 	PriceType   PriceType
-	Category    Category
+	Category    string
 	Condition   Condition
 	Status      Status
 	Location    opt.Optional[string]
@@ -127,10 +115,6 @@ func Map(in *ent.Listing) (*Listing, error) {
 	if err != nil {
 		return nil, fault.Wrap(err)
 	}
-	category, err := NewCategory(in.Category.String())
-	if err != nil {
-		return nil, fault.Wrap(err)
-	}
 	condition, err := NewCondition(in.Condition.String())
 	if err != nil {
 		return nil, fault.Wrap(err)
@@ -158,7 +142,7 @@ func Map(in *ent.Listing) (*Listing, error) {
 		Description: in.Description,
 		PriceCents:  in.PriceCents,
 		PriceType:   priceType,
-		Category:    category,
+		Category:    in.Category,
 		Condition:   condition,
 		Status:      status,
 		Location:    opt.NewPtr(in.Location),

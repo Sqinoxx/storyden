@@ -7915,6 +7915,8 @@ components:
           description: |
             Whether the Flohmarkt is open to all members. When false, only
             admins and listing moderators can access it.
+        marketplace_categories:
+          $ref: "#/components/schemas/MarketCategoryList"
         web_address:
           type: string
           format: uri
@@ -8771,6 +8773,8 @@ components:
           description: |
             How many days a Flohmarkt listing stays visible after it was
             created or renewed.
+        categories:
+          $ref: "#/components/schemas/MarketCategoryList"
 
     ContentServiceSettings:
       type: object
@@ -13334,16 +13338,31 @@ components:
 
     ListingCategory:
       type: string
-      enum:
-        [books, instruments, electronics, clothing, furniture, tickets, other]
-      x-enum-varnames:
-        - ListingCategoryBooks
-        - ListingCategoryInstruments
-        - ListingCategoryElectronics
-        - ListingCategoryClothing
-        - ListingCategoryFurniture
-        - ListingCategoryTickets
-        - ListingCategoryOther
+      description: |
+        The ID of one of the admin-defined Flohmarkt categories, see
+        `MarketCategory`.
+
+    MarketCategory:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: "^[a-z0-9]+(?:[-_][a-z0-9]+)*$"
+          description: |
+            Stable identifier stored on listings. Renaming a category keeps
+            its ID so existing listings stay assigned to it.
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: Display name of the category.
+
+    MarketCategoryList:
+      type: array
+      items: { $ref: "#/components/schemas/MarketCategory" }
 
     ListingCondition:
       type: string
@@ -13488,9 +13507,19 @@ components:
       allOf:
         - { $ref: "#/components/schemas/PaginatedResult" }
         - type: object
-          required: [listings]
+          required: [listings, price_min, price_max]
           properties:
             listings: { $ref: "#/components/schemas/ListingList" }
+            price_min:
+              type: integer
+              description: |
+                Lowest price, in cents, among the listings matching every
+                filter except the price range. Zero when nothing matches.
+            price_max:
+              type: integer
+              description: |
+                Highest price, in cents, among the listings matching every
+                filter except the price range. Zero when nothing matches.
 
     ListingOfferProps:
       type: object

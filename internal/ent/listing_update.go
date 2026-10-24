@@ -159,13 +159,13 @@ func (_u *ListingUpdate) SetNillablePriceType(v *listing.PriceType) *ListingUpda
 }
 
 // SetCategory sets the "category" field.
-func (_u *ListingUpdate) SetCategory(v listing.Category) *ListingUpdate {
+func (_u *ListingUpdate) SetCategory(v string) *ListingUpdate {
 	_u.mutation.SetCategory(v)
 	return _u
 }
 
 // SetNillableCategory sets the "category" field if the given value is not nil.
-func (_u *ListingUpdate) SetNillableCategory(v *listing.Category) *ListingUpdate {
+func (_u *ListingUpdate) SetNillableCategory(v *string) *ListingUpdate {
 	if v != nil {
 		_u.SetCategory(*v)
 	}
@@ -445,11 +445,6 @@ func (_u *ListingUpdate) check() error {
 			return &ValidationError{Name: "price_type", err: fmt.Errorf(`ent: validator failed for field "Listing.price_type": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Category(); ok {
-		if err := listing.CategoryValidator(v); err != nil {
-			return &ValidationError{Name: "category", err: fmt.Errorf(`ent: validator failed for field "Listing.category": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Condition(); ok {
 		if err := listing.ConditionValidator(v); err != nil {
 			return &ValidationError{Name: "condition", err: fmt.Errorf(`ent: validator failed for field "Listing.condition": %w`, err)}
@@ -518,7 +513,7 @@ func (_u *ListingUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		_spec.SetField(listing.FieldPriceType, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Category(); ok {
-		_spec.SetField(listing.FieldCategory, field.TypeEnum, value)
+		_spec.SetField(listing.FieldCategory, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Condition(); ok {
 		_spec.SetField(listing.FieldCondition, field.TypeEnum, value)
@@ -859,13 +854,13 @@ func (_u *ListingUpdateOne) SetNillablePriceType(v *listing.PriceType) *ListingU
 }
 
 // SetCategory sets the "category" field.
-func (_u *ListingUpdateOne) SetCategory(v listing.Category) *ListingUpdateOne {
+func (_u *ListingUpdateOne) SetCategory(v string) *ListingUpdateOne {
 	_u.mutation.SetCategory(v)
 	return _u
 }
 
 // SetNillableCategory sets the "category" field if the given value is not nil.
-func (_u *ListingUpdateOne) SetNillableCategory(v *listing.Category) *ListingUpdateOne {
+func (_u *ListingUpdateOne) SetNillableCategory(v *string) *ListingUpdateOne {
 	if v != nil {
 		_u.SetCategory(*v)
 	}
@@ -1158,11 +1153,6 @@ func (_u *ListingUpdateOne) check() error {
 			return &ValidationError{Name: "price_type", err: fmt.Errorf(`ent: validator failed for field "Listing.price_type": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Category(); ok {
-		if err := listing.CategoryValidator(v); err != nil {
-			return &ValidationError{Name: "category", err: fmt.Errorf(`ent: validator failed for field "Listing.category": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Condition(); ok {
 		if err := listing.ConditionValidator(v); err != nil {
 			return &ValidationError{Name: "condition", err: fmt.Errorf(`ent: validator failed for field "Listing.condition": %w`, err)}
@@ -1248,7 +1238,7 @@ func (_u *ListingUpdateOne) sqlSave(ctx context.Context) (_node *Listing, err er
 		_spec.SetField(listing.FieldPriceType, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Category(); ok {
-		_spec.SetField(listing.FieldCategory, field.TypeEnum, value)
+		_spec.SetField(listing.FieldCategory, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Condition(); ok {
 		_spec.SetField(listing.FieldCondition, field.TypeEnum, value)

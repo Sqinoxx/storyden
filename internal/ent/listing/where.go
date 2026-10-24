@@ -96,6 +96,11 @@ func PriceCents(v int) predicate.Listing {
 	return predicate.Listing(sql.FieldEQ(FieldPriceCents, v))
 }
 
+// Category applies equality check predicate on the "category" field. It's identical to CategoryEQ.
+func Category(v string) predicate.Listing {
+	return predicate.Listing(sql.FieldEQ(FieldCategory, v))
+}
+
 // Location applies equality check predicate on the "location" field. It's identical to LocationEQ.
 func Location(v string) predicate.Listing {
 	return predicate.Listing(sql.FieldEQ(FieldLocation, v))
@@ -547,23 +552,68 @@ func PriceTypeNotIn(vs ...PriceType) predicate.Listing {
 }
 
 // CategoryEQ applies the EQ predicate on the "category" field.
-func CategoryEQ(v Category) predicate.Listing {
+func CategoryEQ(v string) predicate.Listing {
 	return predicate.Listing(sql.FieldEQ(FieldCategory, v))
 }
 
 // CategoryNEQ applies the NEQ predicate on the "category" field.
-func CategoryNEQ(v Category) predicate.Listing {
+func CategoryNEQ(v string) predicate.Listing {
 	return predicate.Listing(sql.FieldNEQ(FieldCategory, v))
 }
 
 // CategoryIn applies the In predicate on the "category" field.
-func CategoryIn(vs ...Category) predicate.Listing {
+func CategoryIn(vs ...string) predicate.Listing {
 	return predicate.Listing(sql.FieldIn(FieldCategory, vs...))
 }
 
 // CategoryNotIn applies the NotIn predicate on the "category" field.
-func CategoryNotIn(vs ...Category) predicate.Listing {
+func CategoryNotIn(vs ...string) predicate.Listing {
 	return predicate.Listing(sql.FieldNotIn(FieldCategory, vs...))
+}
+
+// CategoryGT applies the GT predicate on the "category" field.
+func CategoryGT(v string) predicate.Listing {
+	return predicate.Listing(sql.FieldGT(FieldCategory, v))
+}
+
+// CategoryGTE applies the GTE predicate on the "category" field.
+func CategoryGTE(v string) predicate.Listing {
+	return predicate.Listing(sql.FieldGTE(FieldCategory, v))
+}
+
+// CategoryLT applies the LT predicate on the "category" field.
+func CategoryLT(v string) predicate.Listing {
+	return predicate.Listing(sql.FieldLT(FieldCategory, v))
+}
+
+// CategoryLTE applies the LTE predicate on the "category" field.
+func CategoryLTE(v string) predicate.Listing {
+	return predicate.Listing(sql.FieldLTE(FieldCategory, v))
+}
+
+// CategoryContains applies the Contains predicate on the "category" field.
+func CategoryContains(v string) predicate.Listing {
+	return predicate.Listing(sql.FieldContains(FieldCategory, v))
+}
+
+// CategoryHasPrefix applies the HasPrefix predicate on the "category" field.
+func CategoryHasPrefix(v string) predicate.Listing {
+	return predicate.Listing(sql.FieldHasPrefix(FieldCategory, v))
+}
+
+// CategoryHasSuffix applies the HasSuffix predicate on the "category" field.
+func CategoryHasSuffix(v string) predicate.Listing {
+	return predicate.Listing(sql.FieldHasSuffix(FieldCategory, v))
+}
+
+// CategoryEqualFold applies the EqualFold predicate on the "category" field.
+func CategoryEqualFold(v string) predicate.Listing {
+	return predicate.Listing(sql.FieldEqualFold(FieldCategory, v))
+}
+
+// CategoryContainsFold applies the ContainsFold predicate on the "category" field.
+func CategoryContainsFold(v string) predicate.Listing {
+	return predicate.Listing(sql.FieldContainsFold(FieldCategory, v))
 }
 
 // ConditionEQ applies the EQ predicate on the "condition" field.

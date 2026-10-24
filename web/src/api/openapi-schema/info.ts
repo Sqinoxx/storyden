@@ -9,6 +9,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  */
 import type { AuthMode } from "./authMode";
 import type { InstanceCapabilityList } from "./instanceCapabilityList";
+import type { MarketCategoryList } from "./marketCategoryList";
 import type { MessageOfTheDay } from "./messageOfTheDay";
 import type { Metadata } from "./metadata";
 import type { OnboardingStatus } from "./onboardingStatus";
@@ -27,6 +28,7 @@ export interface Info {
   capabilities: InstanceCapabilityList;
   content: PostContent;
   description: string;
+  marketplace_categories?: MarketCategoryList;
   /** Whether the Flohmarkt is open to all members. When false, only
 admins and listing moderators can access it.
  */

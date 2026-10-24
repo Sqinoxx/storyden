@@ -8,16 +8,9 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 
-export type ListingCategory =
-  (typeof ListingCategory)[keyof typeof ListingCategory];
+/**
+ * The ID of one of the admin-defined Flohmarkt categories, see
+`MarketCategory`.
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ListingCategory = {
-  books: "books",
-  instruments: "instruments",
-  electronics: "electronics",
-  clothing: "clothing",
-  furniture: "furniture",
-  tickets: "tickets",
-  other: "other",
-} as const;
+ */
+export type ListingCategory = string;

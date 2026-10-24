@@ -39,7 +39,7 @@ type Listing struct {
 	// PriceType holds the value of the "price_type" field.
 	PriceType listing.PriceType `json:"price_type,omitempty"`
 	// Category holds the value of the "category" field.
-	Category listing.Category `json:"category,omitempty"`
+	Category string `json:"category,omitempty"`
 	// Condition holds the value of the "condition" field.
 	Condition listing.Condition `json:"condition,omitempty"`
 	// Location holds the value of the "location" field.
@@ -207,7 +207,7 @@ func (_m *Listing) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field category", values[i])
 			} else if value.Valid {
-				_m.Category = listing.Category(value.String)
+				_m.Category = value.String
 			}
 		case listing.FieldCondition:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -337,7 +337,7 @@ func (_m *Listing) String() string {
 	builder.WriteString(fmt.Sprintf("%v", _m.PriceType))
 	builder.WriteString(", ")
 	builder.WriteString("category=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Category))
+	builder.WriteString(_m.Category)
 	builder.WriteString(", ")
 	builder.WriteString("condition=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Condition))

@@ -132,6 +132,8 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// DefaultPriceCents holds the default value on creation for the "price_cents" field.
 	DefaultPriceCents int
+	// DefaultCategory holds the default value on creation for the "category" field.
+	DefaultCategory string
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() xid.ID
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -162,37 +164,6 @@ func PriceTypeValidator(pt PriceType) error {
 		return nil
 	default:
 		return fmt.Errorf("listing: invalid enum value for price_type field: %q", pt)
-	}
-}
-
-// Category defines the type for the "category" enum field.
-type Category string
-
-// CategoryOther is the default value of the Category enum.
-const DefaultCategory = CategoryOther
-
-// Category values.
-const (
-	CategoryBooks       Category = "books"
-	CategoryInstruments Category = "instruments"
-	CategoryElectronics Category = "electronics"
-	CategoryClothing    Category = "clothing"
-	CategoryFurniture   Category = "furniture"
-	CategoryTickets     Category = "tickets"
-	CategoryOther       Category = "other"
-)
-
-func (c Category) String() string {
-	return string(c)
-}
-
-// CategoryValidator is a validator for the "category" field enum values. It is called by the builders before save.
-func CategoryValidator(c Category) error {
-	switch c {
-	case CategoryBooks, CategoryInstruments, CategoryElectronics, CategoryClothing, CategoryFurniture, CategoryTickets, CategoryOther:
-		return nil
-	default:
-		return fmt.Errorf("listing: invalid enum value for category field: %q", c)
 	}
 }
 

@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -9,10 +9,10 @@ import { listingCreate, listingUpdate } from "@/api/openapi-client/listings";
 import {
   Asset,
   Listing,
-  ListingCategory,
   ListingCondition,
   ListingPriceType,
 } from "@/api/openapi-schema";
+import { useMarketCategories } from "@/components/marketplace/useMarketCategories";
 import { useTranslation } from "@/lib/i18n";
 import {
   centsToEuros,
@@ -25,7 +25,7 @@ export const FormSchema = z.object({
   description: z.string().max(5000),
   price: z.coerce.number().min(0).max(1000000),
   price_type: z.nativeEnum(ListingPriceType),
-  category: z.nativeEnum(ListingCategory),
+  category: z.string().min(1),
   condition: z.nativeEnum(ListingCondition),
   location: z.string().trim().max(100),
 });
@@ -37,6 +37,7 @@ export type Props = {
 
 export function useListingForm({ listing }: Props) {
   const t = useTranslation();
+  const { categories } = useMarketCategories();
   const router = useRouter();
   const [assets, setAssets] = useState<Asset[]>(listing?.assets ?? []);
   const [uploading, setUploading] = useState(false);
@@ -48,13 +49,20 @@ export function useListingForm({ listing }: Props) {
       description: listing?.description ?? "",
       price: listing ? centsToEuros(listing.price) : 0,
       price_type: listing?.price_type ?? ListingPriceType.negotiable,
-      category: listing?.category ?? ListingCategory.other,
+      category: listing?.category ?? categories[0]?.id ?? "",
       condition: listing?.condition ?? ListingCondition.used,
       location: listing?.location ?? "",
     },
   });
 
   const priceType = form.watch("price_type");
+
+  const firstCategory = categories[0]?.id;
+  useEffect(() => {
+    if (firstCategory && !form.getValues("category")) {
+      form.setValue("category", firstCategory);
+    }
+  }, [firstCategory, form]);
 
   const onSubmit = form.handleSubmit(async (data) => {
     const body = {

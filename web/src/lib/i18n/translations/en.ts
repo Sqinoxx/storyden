@@ -1035,6 +1035,8 @@ export const en = {
     anyPriceType: "Any price type",
     priceFrom: "Price from (€)",
     priceTo: "Price to (€)",
+    priceLabel: "Price",
+    anyPrice: "Any price",
     sortNewest: "Newest first",
     sortPriceAsc: "Price ascending",
     sortPriceDesc: "Price descending",
@@ -1046,15 +1048,6 @@ export const en = {
     offers: "{count} offers",
     negotiableShort: "VB",
     free: "Free",
-    categories: {
-      books: "Books & scripts",
-      instruments: "Instruments & equipment",
-      electronics: "Electronics",
-      clothing: "Clothing",
-      furniture: "Furniture & home",
-      tickets: "Tickets",
-      other: "Other",
-    },
     conditions: {
       new: "New",
       like_new: "Like new",
@@ -1177,6 +1170,14 @@ export const en = {
     durationLabel: "Listing duration (days)",
     durationHelp:
       "How long a listing stays visible after it was created or renewed. Changes apply to new and renewed listings.",
+    categoriesLabel: "Categories",
+    categoriesHelp: "Which categories members can pick when posting and filtering. Renaming keeps existing listings in the category; removed categories stay visible on old listings but can no longer be selected.",
+    categoryNamePlaceholder: "Category name",
+    categoryIdHelp: "Internal ID – stays the same when renamed",
+    addCategory: "Add category",
+    removeCategory: "Remove category",
+    moveUp: "Move up",
+    moveDown: "Move down",
   },
 };
 

@@ -1068,6 +1068,8 @@ export const de: Translations = {
     priceTo: "Preis bis (€)",
     priceLabel: "Preis",
     anyPrice: "Jeder Preis",
+    filters: "Filter",
+    resetFilters: "Filter zurücksetzen",
     sortNewest: "Neueste zuerst",
     sortPriceAsc: "Preis aufsteigend",
     sortPriceDesc: "Preis absteigend",

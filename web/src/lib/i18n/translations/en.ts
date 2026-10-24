@@ -1065,6 +1065,8 @@ export const en = {
     priceTo: "Price to (€)",
     priceLabel: "Price",
     anyPrice: "Any price",
+    filters: "Filters",
+    resetFilters: "Reset filters",
     sortNewest: "Newest first",
     sortPriceAsc: "Price ascending",
     sortPriceDesc: "Price descending",

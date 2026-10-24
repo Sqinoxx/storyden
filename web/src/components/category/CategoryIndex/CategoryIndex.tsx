@@ -8,7 +8,7 @@ import { CategoryTree } from "@/lib/category/tree";
 import { Settings } from "@/lib/settings/settings";
 import { ThreadFeedScreen } from "@/screens/feed/ThreadFeedScreen/ThreadFeedScreen";
 import { css } from "@/styled-system/css";
-import { HStack, LStack, WStack } from "@/styled-system/jsx";
+import { Box, HStack, LStack, WStack } from "@/styled-system/jsx";
 
 import { CategoryBadge } from "../CategoryBadge";
 import { CategoryCreateTrigger } from "../CategoryCreate/CategoryCreateTrigger";
@@ -56,16 +56,18 @@ export function CategoryIndex({
     <LStack gap="8">
       <LStack>
         <WStack alignItems="center">
-          <SiteLogo
-            initialSettings={initialSettings}
-            alt={t.category.discussionCategories}
-            className={css({
-              h: { base: "16", md: "12" },
-              w: "auto",
-              maxW: "full",
-              objectFit: "contain",
-            })}
-          />
+          <Box>
+            <SiteLogo
+              initialSettings={initialSettings}
+              alt={t.category.discussionCategories}
+              className={css({
+                h: { base: "16", md: "12" },
+                w: "auto",
+                maxW: "full",
+                objectFit: "contain",
+              })}
+            />
+          </Box>
 
           <CategoryCreateTrigger />
         </WStack>

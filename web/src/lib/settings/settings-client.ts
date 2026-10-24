@@ -20,7 +20,8 @@ export function useSettings(
   const { data, error } = useGetInfo({
     swr: {
       fallbackData,
-      revalidateOnMount,
+      revalidateOnMount: revalidateOnMount || undefined,
+      revalidateIfStale: revalidateOnMount,
     },
   });
   if (!data) {

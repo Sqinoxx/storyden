@@ -2,8 +2,6 @@ import { z } from "zod";
 
 import { getAssetURL } from "@/utils/asset";
 
-export const FALLBACK_LOGO_URL = "/Unidentists-transparent.png";
-
 export const LogoSettingsSchema = z.object({
   light: z.string().default(""),
   dark: z.string().default(""),
@@ -22,7 +20,7 @@ export function getLogoURLs(logo?: LogoSettings): LogoSettings {
   const dark = logo?.dark || logo?.light;
 
   return {
-    light: light ? getAssetURL(light) : FALLBACK_LOGO_URL,
-    dark: dark ? getAssetURL(dark) : FALLBACK_LOGO_URL,
+    light: getAssetURL(light),
+    dark: getAssetURL(dark),
   };
 }

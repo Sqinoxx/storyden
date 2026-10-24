@@ -1,17 +1,11 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 
-import { FALLBACK_LOGO_URL, getLogoURLs } from "./logo";
+import { getLogoURLs } from "./logo";
 
-test("getLogoURLs falls back to the bundled logo when nothing is set", () => {
-  assert.equal(getLogoURLs({ light: "", dark: "" }), {
-    light: FALLBACK_LOGO_URL,
-    dark: FALLBACK_LOGO_URL,
-  });
-  assert.equal(getLogoURLs(undefined), {
-    light: FALLBACK_LOGO_URL,
-    dark: FALLBACK_LOGO_URL,
-  });
+test("getLogoURLs returns no logo when nothing is set", () => {
+  assert.equal(getLogoURLs({ light: "", dark: "" }), { light: "", dark: "" });
+  assert.equal(getLogoURLs(undefined), { light: "", dark: "" });
 });
 
 test("getLogoURLs uses a single uploaded logo for both modes", () => {

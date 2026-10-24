@@ -39,6 +39,33 @@ export function isLeafCategory(node: CategoryTree): boolean {
   return node.children.length === 0;
 }
 
+// Zero-based level from which members without POST_IN_ANY_CATEGORY may post
+// even when the category has sub-categories. Mirrors MemberPostableDepth in
+// the backend category repository.
+export const MEMBER_POSTABLE_DEPTH = 2;
+
+export function isMemberPostableCategory(
+  depth: number,
+  hasChildren: boolean,
+): boolean {
+  return !hasChildren || depth >= MEMBER_POSTABLE_DEPTH;
+}
+
+export function categoryDepths(nodes: CategoryTree[]): Map<string, number> {
+  const depths = new Map<string, number>();
+
+  const walk = (items: CategoryTree[], depth: number) => {
+    items.forEach((node) => {
+      depths.set(node.id, depth);
+      walk(node.children, depth + 1);
+    });
+  };
+
+  walk(nodes, 0);
+
+  return depths;
+}
+
 export function findCategoryPath(
   nodes: CategoryTree[],
   id: string | undefined,

@@ -412,9 +412,31 @@ func (d *Repository) DeleteCategory(ctx context.Context, slug string, moveto Cat
 	return FromModel(c), nil
 }
 
-// IsLeaf returns true if the category with the given ID has no children.
-// Normal users may only create threads in leaf categories.
-func (d *Repository) IsLeaf(ctx context.Context, id CategoryID) (bool, error) {
+// MemberPostableDepth is the shallowest level (0 = root) at which members
+// without PostInAnyCategory may create threads, even if it has sub-categories.
+const MemberPostableDepth = 2
+
+// AllowsMemberThreads reports whether members without PostInAnyCategory may
+// create threads in the category: leaves always, and anything at or below
+// MemberPostableDepth.
+func (d *Repository) AllowsMemberThreads(ctx context.Context, id CategoryID) (bool, error) {
+	c, err := d.db.Category.Get(ctx, xid.ID(id))
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return false, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.NotFound))
+		}
+		return false, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	depth, err := categoryDepth(ctx, d.db.Category, c)
+	if err != nil {
+		return false, err
+	}
+
+	if depth >= MemberPostableDepth {
+		return true, nil
+	}
+
 	count, err := d.db.Category.
 		Query().
 		Where(category.ParentCategoryID(xid.ID(id))).

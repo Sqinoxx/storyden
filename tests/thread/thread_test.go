@@ -970,6 +970,47 @@ func TestThreads(t *testing.T) {
 				)(t, http.StatusBadRequest)
 			})
 
+			t.Run("member_postable_depth", func(t *testing.T) {
+				createCat := func(name string, parent *openapi.Identifier) openapi.Identifier {
+					return tests.AssertRequest(
+						cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{
+							Colour:      "#0f0f0f",
+							Description: name,
+							Name:        name + " " + uuid.NewString(),
+							Parent:      parent,
+						}, session1),
+					)(t, http.StatusOK).JSON200.Id
+				}
+
+				topCat := createCat("Depth Top", nil)
+				semesterCat := createCat("Depth Semester", &topCat)
+				subjectCat := createCat("Depth Subject", &semesterCat)
+				createCat("Depth Summaries", &subjectCat)
+
+				createIn := func(cat openapi.Identifier) *openapi.ThreadCreateResponse {
+					resp, err := cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+						Body:       opt.New("<p>depth rule</p>").Ptr(),
+						Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+						Title:      "Depth rule thread " + uuid.NewString(),
+						Category:   opt.New(cat).Ptr(),
+					}, session2)
+					require.NoError(t, err)
+					return resp
+				}
+
+				assert.Equal(t, http.StatusBadRequest, createIn(topCat).StatusCode())
+				assert.Equal(t, http.StatusBadRequest, createIn(semesterCat).StatusCode())
+
+				subjectThread := createIn(subjectCat)
+				require.Equal(t, http.StatusOK, subjectThread.StatusCode())
+
+				tests.AssertRequest(
+					cl.ThreadUpdateWithResponse(root, subjectThread.JSON200.Slug, openapi.ThreadMutableProps{
+						Category: lo.ToPtr(semesterCat),
+					}, session2),
+				)(t, http.StatusBadRequest)
+			})
+
 			t.Run("thread_meta_round_trip", func(t *testing.T) {
 				r := require.New(t)
 				a := assert.New(t)

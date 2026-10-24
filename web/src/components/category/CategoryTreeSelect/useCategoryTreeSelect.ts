@@ -6,8 +6,9 @@ import { useSession } from "@/auth";
 import {
   CategoryTree,
   buildCategoryTree,
+  categoryDepths,
   findCategoryNode,
-  isLeafCategory,
+  isMemberPostableCategory,
 } from "@/lib/category/tree";
 import { hasPermission } from "@/utils/permissions";
 
@@ -32,13 +33,26 @@ export function useCategoryTreeSelect({
     Permission.POST_IN_ANY_CATEGORY,
   );
 
-  const tree = useMemo(() => {
-    if (!data) {
-      return [];
+  const full = useMemo(
+    () => (data ? buildCategoryTree(data.categories) : []),
+    [data],
+  );
+
+  const isSelectable = useMemo(() => {
+    if (selectable === "all" || canPostAnywhere) {
+      return () => true;
     }
 
-    const full = buildCategoryTree(data.categories);
+    const depths = categoryDepths(full);
 
+    return (node: CategoryTree) =>
+      isMemberPostableCategory(
+        depths.get(node.id) ?? 0,
+        node.children.length > 0,
+      );
+  }, [full, selectable, canPostAnywhere]);
+
+  const tree = useMemo(() => {
     if (!rootId) {
       return full;
     }
@@ -48,24 +62,15 @@ export function useCategoryTreeSelect({
       return full;
     }
 
-    // A user allowed to post in non-leaf categories must have the root
-    // category itself available to pick, not just its children - otherwise
-    // they're forced into a subcategory despite having permission to post
-    // directly into the category they're viewing.
-    if (selectable === "all" || canPostAnywhere) {
+    // When the viewed category itself may be posted into, it must be
+    // available to pick, not just its children - otherwise the user is forced
+    // into a subcategory despite being allowed to post directly into it.
+    if (isSelectable(rootNode)) {
       return [rootNode];
     }
 
     return rootNode.children;
-  }, [data, rootId, selectable, canPostAnywhere]);
-
-  const isSelectable = useMemo(() => {
-    if (selectable === "all" || canPostAnywhere) {
-      return () => true;
-    }
-
-    return (node: CategoryTree) => isLeafCategory(node);
-  }, [selectable, canPostAnywhere]);
+  }, [full, rootId, isSelectable]);
 
   return {
     ready: data !== undefined,

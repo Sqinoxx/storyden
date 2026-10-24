@@ -5,10 +5,12 @@ import type { Category } from "@/api/openapi-schema";
 
 import {
   buildCategoryTree,
+  categoryDepths,
   findCategoryNode,
   findCategoryPath,
   isDescendant,
   isLeafCategory,
+  isMemberPostableCategory,
 } from "./tree";
 
 function category(
@@ -87,6 +89,30 @@ test("isLeafCategory only accepts nodes without children", () => {
 
   assert.not.ok(isLeafCategory(tree[0]!));
   assert.ok(isLeafCategory(tree[0]!.children[0]!));
+});
+
+test("members may post in leaves and from the third level down", () => {
+  const tree = buildCategoryTree([
+    category("klinik", 1),
+    category("semester-6", 1, "klinik"),
+    category("chirpro", 1, "semester-6"),
+    category("mkg", 1, "chirpro"),
+    category("flohmarkt", 2),
+  ]);
+  const depths = categoryDepths(tree);
+  const postable = (id: string) => {
+    const node = findCategoryNode(tree, id)!;
+    return isMemberPostableCategory(
+      depths.get(id)!,
+      node.children.length > 0,
+    );
+  };
+
+  assert.not.ok(postable("klinik"));
+  assert.not.ok(postable("semester-6"));
+  assert.ok(postable("chirpro"));
+  assert.ok(postable("mkg"));
+  assert.ok(postable("flohmarkt"));
 });
 
 test("findCategoryPath returns the full ancestor chain", () => {

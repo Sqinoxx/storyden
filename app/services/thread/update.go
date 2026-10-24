@@ -160,7 +160,7 @@ func (s *service) Update(ctx context.Context, threadID post.ID, partial Partial)
 	return thr, nil
 }
 
-// authoriseCategoryForUpdate enforces the same leaf-category rule as thread
+// authoriseCategoryForUpdate enforces the same category rule as thread
 // creation (see authoriseCategoryForCreate) so that a non-privileged user
 // cannot bypass the "category required" rule by removing the category from
 // an already-created thread during an update.
@@ -183,17 +183,17 @@ func (s *service) authoriseCategoryForUpdate(ctx context.Context, thr *thread.Th
 		)
 	}
 
-	isLeaf, err := s.categoryRepo.IsLeaf(ctx, category.CategoryID(catID))
+	allowed, err := s.categoryRepo.AllowsMemberThreads(ctx, category.CategoryID(catID))
 	if err != nil {
 		return fault.Wrap(err, fctx.With(ctx))
 	}
 
-	if !isLeaf {
+	if !allowed {
 		return fault.New(
-			"category is not a leaf category",
+			"category does not allow member threads",
 			fctx.With(ctx),
 			ftag.With(ftag.InvalidArgument),
-			fmsg.WithDesc("not a leaf category", "Threads can only be created in the deepest subcategory. Please select a subcategory that has no further sub-categories."),
+			fmsg.WithDesc("category not postable", "Threads cannot be created in this top-level category. Please select a more specific subcategory."),
 		)
 	}
 

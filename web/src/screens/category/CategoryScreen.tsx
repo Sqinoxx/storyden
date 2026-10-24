@@ -9,12 +9,16 @@ import {
 import { useSession } from "@/auth";
 import Link from "next/link";
 
-import { CategoryBreadcrumbs } from "@/components/category/CategoryBreadcrumbs";
+import {
+  CategoryBreadcrumbs,
+  useCategoryAncestors,
+} from "@/components/category/CategoryBreadcrumbs";
 import { CategoryLayout } from "@/components/category/CategoryIndex/CategoryCardLayout";
 import { CategoryMenu } from "@/components/category/CategoryMenu/CategoryMenu";
 import { UnreadyBanner } from "@/components/site/Unready";
 import { Heading } from "@/components/ui/heading";
 import { LinkIcon } from "@/components/ui/icons/Link";
+import { isMemberPostableCategory } from "@/lib/category/tree";
 import { useTranslation } from "@/lib/i18n";
 import { usePresenceCategory } from "@/lib/presence/presence-category";
 import { Box, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
@@ -35,6 +39,7 @@ export function useCategoryScreen({ initialCategory, slug }: Props) {
   const { data, error } = useCategoryGet(slug, {
     swr: { fallbackData: initialCategory },
   });
+  const ancestors = useCategoryAncestors(data);
 
   if (!data) {
     return {
@@ -49,11 +54,12 @@ export function useCategoryScreen({ initialCategory, slug }: Props) {
     Permission.POST_IN_ANY_CATEGORY,
   );
 
-  // MANAGE_CATEGORIES no longer implies POST_IN_ANY_CATEGORY — the two are
-  // granted independently, so normal users may only post in leaf categories.
-  const isLeafCategory = !data.children || data.children.length === 0;
-
-  const showQuickShare = canPostAnywhere || isLeafCategory;
+  const showQuickShare =
+    canPostAnywhere ||
+    isMemberPostableCategory(
+      ancestors.length,
+      (data.children?.length ?? 0) > 0,
+    );
 
   return {
     ready: true as const,

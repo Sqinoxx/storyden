@@ -150,11 +150,11 @@ func isPinOnlyMutation(partial Partial) bool {
 		!partial.Assets.Ok()
 }
 
-// authoriseCategoryForCreate enforces the leaf-category rule for normal users:
+// authoriseCategoryForCreate enforces the category rule for normal users:
 //   - Users with PostInAnyCategory permission may post in any category
 //     (including parent categories) or without a category.
 //   - All other authenticated users MUST supply a category, and that category
-//     must be a leaf (i.e. it has no child categories).
+//     must be a leaf or sit at least category.MemberPostableDepth levels deep.
 func (s *service) authoriseCategoryForCreate(ctx context.Context, partial Partial) error {
 	if err := session.Authorise(ctx, nil, rbac.PermissionPostInAnyCategory); err == nil {
 		return nil
@@ -171,18 +171,17 @@ func (s *service) authoriseCategoryForCreate(ctx context.Context, partial Partia
 		)
 	}
 
-	// The chosen category must be a leaf (no sub-categories).
-	isLeaf, err := s.categoryRepo.IsLeaf(ctx, category.CategoryID(catID))
+	allowed, err := s.categoryRepo.AllowsMemberThreads(ctx, category.CategoryID(catID))
 	if err != nil {
 		return fault.Wrap(err, fctx.With(ctx))
 	}
 
-	if !isLeaf {
+	if !allowed {
 		return fault.New(
-			"category is not a leaf category",
+			"category does not allow member threads",
 			fctx.With(ctx),
 			ftag.With(ftag.InvalidArgument),
-			fmsg.WithDesc("not a leaf category", "Threads can only be created in the deepest subcategory. Please select a subcategory that has no further sub-categories."),
+			fmsg.WithDesc("category not postable", "Threads cannot be created in this top-level category. Please select a more specific subcategory."),
 		)
 	}
 

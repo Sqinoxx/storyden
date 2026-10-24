@@ -413,18 +413,52 @@ bash backup.sh
 ```
 
 Schreibt Datenbank-Dump und Uploads nach `./backups` und loescht
-Sicherungen, die aelter als 14 Tage sind. Taeglich per cron:
+Sicherungen, die aelter als 14 Tage sind (`KEEP_DAYS`). Der Ordner `backups`
+gehoert root, deshalb laeuft der taegliche Job in der root-Crontab:
 
 ```bash
-crontab -e
+sudo crontab -e
 ```
 
 ```
 30 3 * * * cd /home/unidentist/storyden && bash backup.sh >> backup.log 2>&1
 ```
 
-Zusaetzlich woanders ablegen (z.B. `rsync` auf den PC), Backups auf demselben
-Server schuetzen nicht vor einem Hardware-Defekt dort.
+Zusaetzlich woanders ablegen, Backups auf demselben Server schuetzen nicht vor
+einem Hardware-Defekt dort.
+
+### Backups woanders ablegen (Nextcloud am Pi)
+
+`offsite-sync.sh` kopiert nach dem Backup per rsync in die Nextcloud am Pi
+(Benutzer `admin`, Ordner `Storyden-Backup`). Dort liegt immer nur das
+Neueste, die Historie bleibt auf dem Server:
+
+- `db/` — die zwei neuesten Datenbank-Dumps (`OFFSITE_KEEP`), aeltere werden
+  dort automatisch entfernt
+- `uploads/` — Spiegel von `./data` (nur Aenderungen werden uebertragen)
+
+Einmalig eingerichtet:
+
+1. Auf dem Server: eigener Schluessel `~/.ssh/offsite_backup`
+   (`ssh-keygen -t ed25519 -N "" -f ~/.ssh/offsite_backup`).
+2. Auf dem Pi in `~/.ssh/authorized_keys`, beschraenkt auf rsync in den
+   Backup-Ordner:
+   ```
+   command="/usr/bin/rrsync /portainer/Files/AppData/Config/Nextcloud/Data/admin/files/Storyden-Backup",restrict ssh-ed25519 AAAA... storyden-offsite-backup
+   ```
+3. Crontab von `unidentist` auf dem Server (`crontab -e`, nach dem Backup und
+   vor dem Reboot um 04:00):
+   ```
+   45 3 * * * cd /home/unidentist/storyden && bash offsite-sync.sh >> offsite.log 2>&1
+   ```
+4. Crontab des Users `pi` auf dem Pi, damit Nextcloud die neuen Dateien zeigt:
+   ```
+   15 4 * * * docker exec nextcloud occ files:scan --path=admin/files/Storyden-Backup -q
+   ```
+
+Wiederherstellen von dort: Dump aus `db/` bzw. Ordner `uploads/` auf den
+Server kopieren (`scp`/`rsync`) und wie unten einspielen; `uploads/` entspricht
+direkt `./data`.
 
 Wiederherstellen:
 

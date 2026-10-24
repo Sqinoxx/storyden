@@ -1,124 +1,33 @@
-import { Fragment } from "react";
-
-import {
-  CategoryReference,
-  Thread,
-  ThreadReference,
-} from "@/api/openapi-schema";
+import { Thread } from "@/api/openapi-schema";
 
 import { useCategoryAncestors } from "@/components/category/CategoryBreadcrumbs";
-import { BreadcrumbIcon } from "@/components/ui/icons/Breadcrumb";
-import { LinkButton } from "@/components/ui/link-button";
-import { Box, HStack, styled } from "@/styled-system/jsx";
+import { BreadcrumbLink, BreadcrumbTrail } from "@/components/ui/breadcrumb-trail";
+import { useTranslation } from "@/lib/i18n";
 
 import { DiscussionRoute } from "../site/Navigation/Anchors/Discussion";
-import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   thread?: Thread;
 };
 
-type Breadcrumb =
-  | {
-      type: "category";
-      key: string;
-      category: CategoryReference;
-    }
-  | {
-      type: "thread";
-      key: string;
-      thread: ThreadReference;
-    };
-
 export function Breadcrumbs({ thread }: Props) {
   const t = useTranslation();
   const ancestors = useCategoryAncestors(thread?.category);
-  const category = thread?.category
-    ? [...ancestors, thread.category].map((c) => ({
-        type: "category" as const,
-        key: c.id,
-        category: c,
-      }))
-    : [];
-
-  const crumbs: Breadcrumb[] = thread
-    ? [
-        ...category,
-        {
-          type: "thread",
-          key: thread.id,
-          thread: thread,
-        },
-      ]
-    : [];
+  const categories = thread?.category ? [...ancestors, thread.category] : [];
 
   return (
-    <HStack
-      w="full"
-      color="fg.subtle"
-      overflowX="hidden"
-      justifyContent="flex-end"
-    >
-      <LinkButton
-        size="xs"
-        variant="subtle"
-        flexShrink="0"
-        minW="min"
-        href={DiscussionRoute}
-      >
-        {t.nav.discussion}
-      </LinkButton>
-      {crumbs.map((c) => {
-        return (
-          <Fragment key={c.key}>
-            <Box flexShrink="0">
-              <BreadcrumbIcon />
-            </Box>
-
-            <BreadcrumbButton breadcrumb={c} />
-          </Fragment>
-        );
-      })}
-      <Box flex="1" />
-    </HStack>
+    <BreadcrumbTrail>
+      <BreadcrumbLink href={DiscussionRoute}>{t.nav.discussion}</BreadcrumbLink>
+      {categories.map((c) => (
+        <BreadcrumbLink key={c.id} href={`/d/${c.slug}`}>
+          {c.name}
+        </BreadcrumbLink>
+      ))}
+      {thread && (
+        <BreadcrumbLink href={`/t/${thread.slug}`} current>
+          {thread.title}
+        </BreadcrumbLink>
+      )}
+    </BreadcrumbTrail>
   );
-}
-
-function BreadcrumbButton({ breadcrumb }: { breadcrumb: Breadcrumb }) {
-  switch (breadcrumb.type) {
-    case "category":
-      // TODO: Explore using the CategoryBadge component with subtle colour.
-      return (
-        <LinkButton
-          size="xs"
-          variant="subtle"
-          flexShrink="0"
-          maxW="64"
-          overflow="hidden"
-          href={`/d/${breadcrumb.category.slug}`}
-        >
-          {breadcrumb.category.name}
-        </LinkButton>
-      );
-
-    case "thread":
-      return (
-        <LinkButton
-          size="xs"
-          variant="subtle"
-          flexShrink="0"
-          maxW="64"
-          overflow="hidden"
-          href={`/t/${breadcrumb.thread.slug}`}
-        >
-          <styled.span
-            overflowX="hidden"
-            textWrap="nowrap"
-            textOverflow="ellipsis"
-          >
-            {breadcrumb.thread.title}
-          </styled.span>
-        </LinkButton>
-      );
-  }
 }

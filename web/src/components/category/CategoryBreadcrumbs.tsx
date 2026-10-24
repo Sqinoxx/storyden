@@ -1,15 +1,13 @@
 "use client";
 
-import { Fragment, useMemo } from "react";
+import { useMemo } from "react";
 
 import { useCategoryList } from "@/api/openapi-client/categories";
 import { Category } from "@/api/openapi-schema";
 
 import { DiscussionRoute } from "@/components/site/Navigation/Anchors/Discussion";
-import { BreadcrumbIcon } from "@/components/ui/icons/Breadcrumb";
-import { LinkButton } from "@/components/ui/link-button";
+import { BreadcrumbLink, BreadcrumbTrail } from "@/components/ui/breadcrumb-trail";
 import { useTranslation } from "@/lib/i18n";
-import { Box, HStack, styled } from "@/styled-system/jsx";
 
 type Props = {
   category: Category;
@@ -44,48 +42,17 @@ export function CategoryBreadcrumbs({ category }: Props) {
   const t = useTranslation();
   const ancestors = useCategoryAncestors(category);
 
-  const crumbs = [...ancestors, category];
-
   return (
-    <HStack
-      w="full"
-      color="fg.subtle"
-      overflowX="hidden"
-      justifyContent="flex-end"
-    >
-      <LinkButton
-        size="xs"
-        variant="subtle"
-        flexShrink="0"
-        minW="min"
-        href={DiscussionRoute}
-      >
-        {t.nav.discussion}
-      </LinkButton>
-      {crumbs.map((c) => (
-        <Fragment key={c.id}>
-          <Box flexShrink="0">
-            <BreadcrumbIcon />
-          </Box>
-          <LinkButton
-            size="xs"
-            variant="subtle"
-            flexShrink="0"
-            maxW="64"
-            overflow="hidden"
-            href={`/d/${c.slug}`}
-          >
-            <styled.span
-              overflowX="hidden"
-              textWrap="nowrap"
-              textOverflow="ellipsis"
-            >
-              {c.name}
-            </styled.span>
-          </LinkButton>
-        </Fragment>
+    <BreadcrumbTrail>
+      <BreadcrumbLink href={DiscussionRoute}>{t.nav.discussion}</BreadcrumbLink>
+      {ancestors.map((c) => (
+        <BreadcrumbLink key={c.id} href={`/d/${c.slug}`}>
+          {c.name}
+        </BreadcrumbLink>
       ))}
-      <Box flex="1" />
-    </HStack>
+      <BreadcrumbLink href={`/d/${category.slug}`} current>
+        {category.name}
+      </BreadcrumbLink>
+    </BreadcrumbTrail>
   );
 }

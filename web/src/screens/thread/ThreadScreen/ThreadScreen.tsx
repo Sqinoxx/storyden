@@ -73,19 +73,25 @@ export function ThreadScreen(props: Props) {
 
   return (
     <ReplyProvider>
-      <LStack gap="4" pb="12">
+      <LStack gap="6" pb="12">
         <styled.form
           display="flex"
           flexDirection="column"
           alignItems="start"
-          gap="1"
+          gap="4"
           width="full"
           onSubmit={handlers.handleSave}
         >
-          <WStack alignItems="start">
+          <HStack
+            w="full"
+            gap="3"
+            pb="3"
+            borderBottomWidth="thin"
+            borderBottomColor="border.subtle"
+          >
             <Breadcrumbs thread={thread} />
 
-            <HStack>
+            <HStack gap="1" flexShrink="0">
               {isEditing && (
                 <>
                   <CancelAction
@@ -102,63 +108,72 @@ export function ThreadScreen(props: Props) {
 
               <ThreadMenu thread={thread} editingEnabled movingEnabled />
             </HStack>
-          </WStack>
+          </HStack>
 
           {thread.deletedAt !== undefined && (
             <ThreadDeletedAlert thread={thread} />
           )}
-          <WStack justifyContent="space-between">
-            <HStack>
-              <Byline
-                href={`#${thread.id}`}
-                author={thread.author}
-                time={new Date(thread.createdAt)}
-                updated={new Date(thread.updatedAt)}
-              />
 
-              {thread.category && <CategoryBadge category={thread.category} />}
-            </HStack>
-
-            {match(thread.visibility)
-              .with(Visibility.published, () => null)
-              .with(Visibility.review, () => (
-                <PostReviewBadge
-                  isModerator={isModerator}
-                  postId={thread.id}
-                  onAccept={handlers.handleAcceptThread}
-                  onEditAndAccept={handlers.handleEditAndAccept}
-                  onDelete={handlers.handleConfirmDelete}
-                  isConfirmingDelete={isConfirmingDelete}
-                  onCancelDelete={handlers.handleCancelDelete}
+          <LStack gap="3">
+            <WStack alignItems="center" flexWrap="wrap" rowGap="2">
+              <HStack gap="2" flexWrap="wrap" minW="0">
+                <Byline
+                  href={`#${thread.id}`}
+                  author={thread.author}
+                  time={new Date(thread.createdAt)}
+                  updated={new Date(thread.updatedAt)}
                 />
-              ))
-              .otherwise(() => (
-                <VisibilityBadge visibility={thread.visibility} />
-              ))}
-          </WStack>
-          <FormErrorText>{form.formState.errors.root?.message}</FormErrorText>
 
-          {isEditing ? (
-            <TitleInput name="title" control={form.control} />
-          ) : (
-            <Heading fontSize="heading.variable.1" fontWeight="bold">
-              {thread.title}
-            </Heading>
-          )}
+                {thread.category && (
+                  <CategoryBadge category={thread.category} />
+                )}
+              </HStack>
 
-          {isEditing ? (
-            <HStack gap="2" flexWrap="wrap">
-              <SemesterSelect control={form.control} name="semester" />
-              <TagListField
-                name="tags"
-                control={form.control}
-                initialTags={thread.tags}
-                attachments={thread.assets}
-              />
-            </HStack>
-          ) : (
-            <TagBadgeList tags={thread.tags} />
-          )}
+              {match(thread.visibility)
+                .with(Visibility.published, () => null)
+                .with(Visibility.review, () => (
+                  <PostReviewBadge
+                    isModerator={isModerator}
+                    postId={thread.id}
+                    onAccept={handlers.handleAcceptThread}
+                    onEditAndAccept={handlers.handleEditAndAccept}
+                    onDelete={handlers.handleConfirmDelete}
+                    isConfirmingDelete={isConfirmingDelete}
+                    onCancelDelete={handlers.handleCancelDelete}
+                  />
+                ))
+                .otherwise(() => (
+                  <VisibilityBadge visibility={thread.visibility} />
+                ))}
+            </WStack>
+            <FormErrorText>{form.formState.errors.root?.message}</FormErrorText>
+
+            {isEditing ? (
+              <TitleInput name="title" control={form.control} />
+            ) : (
+              <Heading
+                fontSize="heading.variable.1"
+                fontWeight="bold"
+                lineHeight="tight"
+              >
+                {thread.title}
+              </Heading>
+            )}
+
+            {isEditing ? (
+              <HStack gap="2" flexWrap="wrap">
+                <SemesterSelect control={form.control} name="semester" />
+                <TagListField
+                  name="tags"
+                  control={form.control}
+                  initialTags={thread.tags}
+                  attachments={thread.assets}
+                />
+              </HStack>
+            ) : (
+              <TagBadgeList tags={thread.tags} />
+            )}
+          </LStack>
 
           {thread.link && <LinkCard link={thread.link} />}
 
@@ -322,7 +337,16 @@ function ThreadStats({
   const replyLabel = replyCount === 1 ? t.thread.reply : t.thread.replies;
 
   return (
-    <WStack justifyContent="space-between" width="full" color="fg.muted">
+    <WStack
+      justifyContent="space-between"
+      alignItems="center"
+      width="full"
+      py="2"
+      borderTopWidth="thin"
+      borderTopColor="border.subtle"
+      color="fg.muted"
+      fontSize="sm"
+    >
       <HStack gap="4">
         <styled.span
           display="flex"

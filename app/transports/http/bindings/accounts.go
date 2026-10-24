@@ -117,7 +117,9 @@ func (i *Accounts) AccountGet(ctx context.Context, request openapi.AccountGetReq
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	etag, notModified := i.profile_cache.Check(ctx, reqinfo.GetCacheQuery(ctx), xid.ID(accountID))
+	cacheQuery := reqinfo.GetCacheQuery(ctx).Scoped(accountID.String())
+
+	etag, notModified := i.profile_cache.Check(ctx, cacheQuery, xid.ID(accountID))
 	if notModified {
 		return openapi.AccountGet304Response{
 			Headers: openapi.NotModifiedResponseHeaders{
@@ -135,7 +137,7 @@ func (i *Accounts) AccountGet(ctx context.Context, request openapi.AccountGetReq
 
 	if etag == nil {
 		i.profile_cache.Store(ctx, xid.ID(accountID), acc.UpdatedAt)
-		etag = cachecontrol.NewETag(acc.UpdatedAt)
+		etag = cachecontrol.NewScopedETag(accountID.String(), acc.UpdatedAt)
 	}
 
 	return openapi.AccountGet200JSONResponse{

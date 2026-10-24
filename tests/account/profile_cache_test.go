@@ -158,3 +158,67 @@ func TestAccountCacheWithProfileUpdate(t *testing.T) {
 		}))
 	}))
 }
+
+func TestAccountCacheNotSharedBetweenAccounts(t *testing.T) {
+	t.Parallel()
+
+	integration.Test(t, nil, e2e.Setup(), fx.Invoke(func(
+		lc fx.Lifecycle,
+		root context.Context,
+		cl *openapi.ClientWithResponses,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+			a := assert.New(t)
+
+			signupNew, err := cl.AuthEmailPasswordSignupWithResponse(root, nil, openapi.AuthEmailPasswordSignupJSONRequestBody{
+				Email:    uuid.NewString() + "@example.com",
+				Password: "password",
+			})
+			tests.Ok(t, err, signupNew)
+			newSession := e2e.WithSessionFromHeader(t, root, signupNew.HTTPResponse.Header)
+
+			accNew, err := cl.AccountGetWithResponse(root, newSession)
+			tests.Ok(t, err, accNew)
+
+			signupOld, err := cl.AuthEmailPasswordSignupWithResponse(root, nil, openapi.AuthEmailPasswordSignupJSONRequestBody{
+				Email:    uuid.NewString() + "@example.com",
+				Password: "password",
+			})
+			tests.Ok(t, err, signupOld)
+			oldSession := e2e.WithSessionFromHeader(t, root, signupOld.HTTPResponse.Header)
+
+			accOld, err := cl.AccountGetWithResponse(root, oldSession)
+			tests.Ok(t, err, accOld)
+
+			oldETag := accOld.HTTPResponse.Header.Get("ETag")
+			oldLastModified := accOld.HTTPResponse.Header.Get("Last-Modified")
+			r.NotEmpty(oldETag)
+			r.NotEmpty(oldLastModified)
+
+			sameAccount, err := cl.AccountGetWithResponse(root, oldSession, func(ctx context.Context, req *http.Request) error {
+				req.Header.Set("If-None-Match", oldETag)
+				return nil
+			})
+			tests.Status(t, err, sameAccount, 304)
+
+			// Browser revalidating the previous account's cached response after
+			// switching accounts must not get a 304 for the stale body.
+			switched, err := cl.AccountGetWithResponse(root, newSession, func(ctx context.Context, req *http.Request) error {
+				req.Header.Set("If-None-Match", oldETag)
+				req.Header.Set("If-Modified-Since", oldLastModified)
+				return nil
+			})
+			tests.Ok(t, err, switched)
+			r.NotNil(switched.JSON200)
+			a.Equal(accNew.JSON200.Id, switched.JSON200.Id)
+
+			switchedModifiedSince, err := cl.AccountGetWithResponse(root, newSession, func(ctx context.Context, req *http.Request) error {
+				req.Header.Set("If-Modified-Since", oldLastModified)
+				return nil
+			})
+			tests.Ok(t, err, switchedModifiedSince)
+			a.Equal(accNew.JSON200.Id, switchedModifiedSince.JSON200.Id)
+		}))
+	}))
+}

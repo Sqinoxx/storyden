@@ -15,6 +15,7 @@ import type {
   ProfileGetOKResponse,
   ProfileListOKResponse,
   ProfileListParams,
+  ProfileStatsOKResponse,
 } from "../openapi-schema";
 import { fetcher } from "../server";
 
@@ -54,6 +55,31 @@ export const profileList = async (
   options?: RequestInit,
 ): Promise<profileListResponse> => {
   return fetcher<Promise<profileListResponse>>(getProfileListUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+/**
+ * Aggregate member counts for the member directory: total members,
+members who joined in the last 30 days, members who posted in the
+last 30 days and members per study semester (Fachsemester).
+Deleted accounts and bots are excluded.
+
+ */
+export type profileStatsResponse = {
+  data: ProfileStatsOKResponse;
+  status: number;
+};
+
+export const getProfileStatsUrl = () => {
+  return `/profiles/stats`;
+};
+
+export const profileStats = async (
+  options?: RequestInit,
+): Promise<profileStatsResponse> => {
+  return fetcher<Promise<profileStatsResponse>>(getProfileStatsUrl(), {
     ...options,
     method: "GET",
   });

@@ -3032,6 +3032,20 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorised" }
         "200": { $ref: "#/components/responses/ProfileListOK" }
 
+  /profiles/stats:
+    get:
+      operationId: ProfileStats
+      description: |
+        Aggregate member counts for the member directory: total members,
+        members who joined in the last 30 days, members who posted in the
+        last 30 days and members per study semester (Fachsemester).
+        Deleted accounts and bots are excluded.
+      tags: [profiles]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ProfileStatsOK" }
+
   /profiles/{account_handle}:
     get:
       operationId: ProfileGet
@@ -7245,6 +7259,13 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/PublicProfileListResult"
+
+    ProfileStatsOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ProfileStatsResult"
 
     ProfileGetOK:
       description: OK
@@ -11926,6 +11947,26 @@ components:
           required: [profiles]
           properties:
             profiles: { $ref: "#/components/schemas/PublicProfileList" }
+
+    ProfileStatsResult:
+      type: object
+      required: [total, joined_30d, active_30d, by_semester]
+      properties:
+        total:
+          type: integer
+          description: Total number of members.
+        joined_30d:
+          type: integer
+          description: Members who joined in the last 30 days.
+        active_30d:
+          type: integer
+          description: Members who authored a post in the last 30 days.
+        by_semester:
+          description: |
+            Members per currently recorded study semester, in the order
+            unknown (0), 1-11, finished (-1).
+          type: array
+          items: { $ref: "#/components/schemas/StatisticsFachsemesterPoint" }
 
     PublicProfileList:
       type: array

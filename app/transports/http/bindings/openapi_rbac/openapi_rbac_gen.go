@@ -160,6 +160,7 @@ type OperationPermissions interface {
 	AdminBugReportUpdate() (bool, *rbac.Permission)
 	AdminBugReportDelete() (bool, *rbac.Permission)
 	ProfileList() (bool, *rbac.Permission)
+	ProfileStats() (bool, *rbac.Permission)
 	ProfileGet() (bool, *rbac.Permission)
 	ProfileFollowersGet() (bool, *rbac.Permission)
 	ProfileFollowersAdd() (bool, *rbac.Permission)
@@ -599,6 +600,8 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.AdminBugReportDelete()
 	case "ProfileList":
 		return optable.ProfileList()
+	case "ProfileStats":
+		return optable.ProfileStats()
 	case "ProfileGet":
 		return optable.ProfileGet()
 	case "ProfileFollowersGet":

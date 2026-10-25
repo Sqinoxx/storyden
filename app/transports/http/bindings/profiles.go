@@ -17,13 +17,14 @@ import (
 	"github.com/Southclaws/storyden/app/resources/datagraph"
 	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/profile"
-	"github.com/Southclaws/storyden/app/services/account/semester"
 	"github.com/Southclaws/storyden/app/resources/profile/follow_querier"
 	"github.com/Southclaws/storyden/app/resources/profile/profile_cache"
 	"github.com/Southclaws/storyden/app/resources/profile/profile_querier"
 	"github.com/Southclaws/storyden/app/resources/profile/profile_search"
+	"github.com/Southclaws/storyden/app/resources/profile/profile_stats"
 	"github.com/Southclaws/storyden/app/resources/sortrule"
 	"github.com/Southclaws/storyden/app/resources/timerange"
+	"github.com/Southclaws/storyden/app/services/account/semester"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/profile/following"
 	"github.com/Southclaws/storyden/app/services/reqinfo"
@@ -35,6 +36,7 @@ type Profiles struct {
 	profileQuery  *profile_querier.Querier
 	profile_cache *profile_cache.Cache
 	ps            *profile_search.Querier
+	stats         *profile_stats.Querier
 	followQuerier *follow_querier.Querier
 	followManager *following.FollowManager
 }
@@ -44,6 +46,7 @@ func NewProfiles(
 	profileQuery *profile_querier.Querier,
 	profile_cache *profile_cache.Cache,
 	ps *profile_search.Querier,
+	stats *profile_stats.Querier,
 	followQuerier *follow_querier.Querier,
 	followManager *following.FollowManager,
 ) Profiles {
@@ -51,6 +54,7 @@ func NewProfiles(
 		profileQuery:  profileQuery,
 		profile_cache: profile_cache,
 		ps:            ps,
+		stats:         stats,
 		followQuerier: followQuerier,
 		followManager: followManager,
 	}
@@ -133,6 +137,24 @@ func (p *Profiles) ProfileList(ctx context.Context, request openapi.ProfileListR
 			CurrentPage: result.CurrentPage,
 			NextPage:    result.NextPage.Ptr(),
 			Profiles:    dt.Map(result.Items, serialiseProfile),
+		},
+	}, nil
+}
+
+func (p *Profiles) ProfileStats(ctx context.Context, request openapi.ProfileStatsRequestObject) (openapi.ProfileStatsResponseObject, error) {
+	s, err := p.stats.Get(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.ProfileStats200JSONResponse{
+		ProfileStatsOKJSONResponse: openapi.ProfileStatsOKJSONResponse{
+			Total:     s.Total,
+			Joined30d: s.Joined30d,
+			Active30d: s.Active30d,
+			BySemester: dt.Map(s.BySemester, func(c profile_stats.SemesterCount) openapi.StatisticsFachsemesterPoint {
+				return openapi.StatisticsFachsemesterPoint{Semester: c.Semester, Count: c.Count}
+			}),
 		},
 	}, nil
 }

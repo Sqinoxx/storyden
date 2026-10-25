@@ -343,6 +343,14 @@ export const de: Translations = {
     hideDeleted: "Gelöschte ausblenden",
     showDeleted: "Gelöschte anzeigen",
     deletedAccounts: "Gelöschte Konten",
+    stats: {
+      total: "Mitglieder",
+      joined30d: "neu in 30 Tagen",
+      active30d: "aktiv in 30 Tagen",
+      bySemester: "Nach Fachsemester",
+      unknownSemester: "k. A.",
+      finishedSemester: "Fertig",
+    },
   },
   library: {
     importFailed: "Import von URL fehlgeschlagen",

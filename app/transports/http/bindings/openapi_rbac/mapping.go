@@ -626,6 +626,10 @@ func (m *Mapping) ProfileList() (bool, *rbac.Permission) {
 	return false, &rbac.PermissionListProfiles
 }
 
+func (m *Mapping) ProfileStats() (bool, *rbac.Permission) {
+	return false, &rbac.PermissionListProfiles
+}
+
 func (m *Mapping) ProfileGet() (bool, *rbac.Permission) {
 	return false, &rbac.PermissionReadProfile
 }

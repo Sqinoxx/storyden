@@ -341,6 +341,14 @@ export const en = {
     hideDeleted: "Hide deleted",
     showDeleted: "Show deleted",
     deletedAccounts: "Deleted accounts",
+    stats: {
+      total: "Members",
+      joined30d: "joined in 30 days",
+      active30d: "active in 30 days",
+      bySemester: "By study semester",
+      unknownSemester: "n/a",
+      finishedSemester: "Done",
+    },
   },
   library: {
     importFailed: "Failed to import from URL",

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { Permission } from "@/api/openapi-schema";
 import { accountList } from "@/api/openapi-server/accounts";
-import { profileList } from "@/api/openapi-server/profiles";
+import { profileList, profileStats } from "@/api/openapi-server/profiles";
 import { getServerSession } from "@/auth/server-session";
 import { UnreadyBanner } from "@/components/site/Unready";
 import { AdminMemberIndexScreen } from "@/screens/library/members/AdminMemberIndexScreen/AdminMemberIndexScreen";
@@ -72,18 +72,22 @@ export default async function Page(props: Props) {
       );
     }
 
-    const { data } = await profileList({
-      q: params.q,
-      page: params.page?.toString(),
-      roles: params.roles,
-      invited_by: params.invited_by,
-      joined: params.joined,
-      sort: params.sort,
-    });
+    const [{ data }, stats] = await Promise.all([
+      profileList({
+        q: params.q,
+        page: params.page?.toString(),
+        roles: params.roles,
+        invited_by: params.invited_by,
+        joined: params.joined,
+        sort: params.sort,
+      }),
+      profileStats().catch(() => undefined),
+    ]);
 
     return (
       <MemberIndexScreen
         initialResult={data}
+        initialStats={stats?.data}
         query={params.q}
         page={params.page}
         adminModeAvailable={canUseAdminMode}

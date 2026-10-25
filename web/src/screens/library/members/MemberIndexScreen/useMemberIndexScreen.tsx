@@ -6,10 +6,14 @@ import {
 } from "nuqs";
 
 import { useProfileList } from "@/api/openapi-client/profiles";
-import { PublicProfileListResult } from "@/api/openapi-schema";
+import {
+  ProfileStatsResult,
+  PublicProfileListResult,
+} from "@/api/openapi-schema";
 
 export type Props = {
   initialResult: PublicProfileListResult;
+  initialStats?: ProfileStatsResult;
   query?: string;
   page?: number;
   adminModeAvailable?: boolean;

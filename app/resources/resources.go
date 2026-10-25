@@ -30,6 +30,8 @@ import (
 	"github.com/Southclaws/storyden/app/resources/asset/asset_writer"
 	"github.com/Southclaws/storyden/app/resources/audit/audit_querier"
 	"github.com/Southclaws/storyden/app/resources/audit/audit_writer"
+	"github.com/Southclaws/storyden/app/resources/bug_report/bug_report_querier"
+	"github.com/Southclaws/storyden/app/resources/bug_report/bug_report_writer"
 	collection_items "github.com/Southclaws/storyden/app/resources/collection/collection_item"
 	"github.com/Southclaws/storyden/app/resources/collection/collection_querier"
 	"github.com/Southclaws/storyden/app/resources/collection/collection_writer"
@@ -77,10 +79,9 @@ import (
 	"github.com/Southclaws/storyden/app/resources/profile/profile_cache"
 	"github.com/Southclaws/storyden/app/resources/profile/profile_querier"
 	"github.com/Southclaws/storyden/app/resources/profile/profile_search"
+	"github.com/Southclaws/storyden/app/resources/profile/profile_stats"
 	"github.com/Southclaws/storyden/app/resources/report/report_querier"
 	"github.com/Southclaws/storyden/app/resources/report/report_writer"
-	"github.com/Southclaws/storyden/app/resources/bug_report/bug_report_querier"
-	"github.com/Southclaws/storyden/app/resources/bug_report/bug_report_writer"
 	"github.com/Southclaws/storyden/app/resources/robot/llm_provider"
 	robot_mcp "github.com/Southclaws/storyden/app/resources/robot/mcp"
 	"github.com/Southclaws/storyden/app/resources/robot/robot_model_cache"
@@ -165,6 +166,7 @@ func Build() fx.Option {
 			oauth_querier.New,
 			oauth_writer.New,
 			profile_search.New,
+			profile_stats.New,
 			profile_querier.New,
 			profile_cache.New,
 			follow_writer.New,

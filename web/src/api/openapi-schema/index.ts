@@ -834,6 +834,8 @@ export * from "./profileLikeListResultAllOf";
 export * from "./profileListOKResponse";
 export * from "./profileListParams";
 export * from "./profileReference";
+export * from "./profileStatsOKResponse";
+export * from "./profileStatsResult";
 export * from "./profilesInvitedByQueryParameter";
 export * from "./profilesJoinRangeQueryParameter";
 export * from "./profilesRoleFilterQueryParameter";

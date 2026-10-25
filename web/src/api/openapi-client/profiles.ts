@@ -24,6 +24,7 @@ import type {
   ProfileGetOKResponse,
   ProfileListOKResponse,
   ProfileListParams,
+  ProfileStatsOKResponse,
   UnauthorisedResponse,
 } from "../openapi-schema";
 
@@ -70,6 +71,55 @@ export const useProfileList = <
     swrOptions?.swrKey ??
     (() => (isEnabled ? getProfileListKey(params) : null));
   const swrFn = () => profileList(params);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Aggregate member counts for the member directory: total members,
+members who joined in the last 30 days, members who posted in the
+last 30 days and members per study semester (Fachsemester).
+Deleted accounts and bots are excluded.
+
+ */
+export const profileStats = () => {
+  return fetcher<ProfileStatsOKResponse>({
+    url: `/profiles/stats`,
+    method: "GET",
+  });
+};
+
+export const getProfileStatsKey = () => [`/profiles/stats`] as const;
+
+export type ProfileStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof profileStats>>
+>;
+export type ProfileStatsQueryError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useProfileStats = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRConfiguration<Awaited<ReturnType<typeof profileStats>>, TError> & {
+    swrKey?: Key;
+    enabled?: boolean;
+  };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey =
+    swrOptions?.swrKey ?? (() => (isEnabled ? getProfileStatsKey() : null));
+  const swrFn = () => profileStats();
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
     swrKey,

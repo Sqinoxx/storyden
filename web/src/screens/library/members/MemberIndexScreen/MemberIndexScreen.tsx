@@ -9,6 +9,7 @@ import { JoinedDateFilter } from "@/components/library/members/MemberFilters/Joi
 import { RoleFilter } from "@/components/library/members/MemberFilters/RoleFilter";
 import { SortMenu } from "@/components/library/members/MemberFilters/SortMenu";
 import { MemberList } from "@/components/library/members/MemberList";
+import { MemberStats } from "@/components/library/members/MemberStats";
 import { PaginationControls } from "@/components/site/PaginationControls/PaginationControls";
 import { Unready } from "@/components/site/Unready";
 import { Group } from "@/components/ui/group";
@@ -35,6 +36,8 @@ export function MemberIndexScreen(props: Props) {
 
   return (
     <VStack>
+      <MemberStats initialStats={props.initialStats} />
+
       <Group w="full">
         <SearchInput index="/m" initialQuery={props.query} />
         <HideDeletedFilter />

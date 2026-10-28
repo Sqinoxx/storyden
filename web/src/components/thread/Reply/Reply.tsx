@@ -4,6 +4,7 @@ import { Controller, ControllerProps } from "react-hook-form";
 
 import { Reply as ReplyType, Thread } from "@/api/openapi-schema";
 import { ContentComposer } from "@/components/content/ContentComposer/ContentComposer";
+import { blockSubmitWhileUploading } from "@/components/content/blockSubmitWhileUploading";
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import { CancelAction } from "@/components/site/Action/Cancel";
 import { SaveAction } from "@/components/site/Action/Save";
@@ -65,7 +66,7 @@ export function Reply(props: Props) {
         display="flex"
         flexDirection="column"
         gap="2"
-        onSubmit={handlers.handleSave}
+        onSubmit={blockSubmitWhileUploading(isUploading, handlers.handleSave)}
       >
         <WStack>
           <Byline
@@ -84,7 +85,12 @@ export function Reply(props: Props) {
                 >
                   {t.common.discard}
                 </CancelAction>
-                <SaveAction type="submit" disabled={isEmpty || isUploading}>
+                <SaveAction
+                  type="submit"
+                  disabled={isEmpty || isUploading}
+                  loading={isUploading}
+                  loadingText={t.toasts.uploading}
+                >
                   {isEditingInReview ? t.common.accept : t.common.save}
                 </SaveAction>
               </>

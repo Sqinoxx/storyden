@@ -5,6 +5,7 @@ import { FormProvider } from "react-hook-form";
 import { AssetUploadAction } from "@/components/asset/AssetUploadAction";
 import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/CategoryTreeSelect";
 import { ContentDragOverlay } from "@/components/content/ContentDragOverlay";
+import { blockSubmitWhileUploading } from "@/components/content/blockSubmitWhileUploading";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { DEFAULT_NEW_THREAD_TAGS } from "@/components/thread/useAutoTagDetection";
@@ -35,7 +36,10 @@ export function ComposeForm(props: Props) {
       w="full"
       h="full"
       gap="4"
-      onSubmit={handlers.handlePublish}
+      onSubmit={blockSubmitWhileUploading(
+        state.isUploading,
+        handlers.handlePublish,
+      )}
     >
       <FormProvider {...form}>
         {/* Outer Master Card Box surrounding both inner boxes */}
@@ -126,7 +130,10 @@ export function ComposeForm(props: Props) {
                     state.isPublishing ||
                     state.isUploading
                   }
-                  loading={state.isPublishing}
+                  loading={state.isPublishing || state.isUploading}
+                  loadingText={
+                    state.isUploading ? t.toasts.uploading : undefined
+                  }
                 >
                   {t.editor.post}
                 </Button>

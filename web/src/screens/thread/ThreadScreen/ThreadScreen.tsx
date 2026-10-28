@@ -7,6 +7,7 @@ import { Asset, Thread, Visibility } from "@/api/openapi-schema";
 import { CategoryBadge } from "@/components/category/CategoryBadge";
 import { Byline } from "@/components/content/Byline";
 import { ContentComposer } from "@/components/content/ContentComposer/ContentComposer";
+import { blockSubmitWhileUploading } from "@/components/content/blockSubmitWhileUploading";
 import { LinkPreviewCard } from "@/components/library/links/LinkPreviewCard";
 import { FileAttachmentList } from "@/components/post/FileAttachmentList";
 import { CancelAction } from "@/components/site/Action/Cancel";
@@ -96,6 +97,8 @@ export function ThreadScreen(props: Props) {
                   type="submit"
                   form={THREAD_EDIT_FORM_ID}
                   disabled={isEmpty || isUploading}
+                  loading={isUploading}
+                  loadingText={t.toasts.uploading}
                 >
                   {t.common.save}
                 </SaveAction>
@@ -114,7 +117,10 @@ export function ThreadScreen(props: Props) {
             alignItems="start"
             gap="4"
             width="full"
-            onSubmit={handlers.handleSave}
+            onSubmit={blockSubmitWhileUploading(
+              isUploading,
+              handlers.handleSave,
+            )}
           >
             {thread.deletedAt !== undefined && (
               <ThreadDeletedAlert thread={thread} />

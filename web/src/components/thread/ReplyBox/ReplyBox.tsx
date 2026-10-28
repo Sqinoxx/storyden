@@ -5,6 +5,7 @@ import { useId, useState } from "react";
 import { Controller, ControllerProps } from "react-hook-form";
 
 import { ContentComposer } from "@/components/content/ContentComposer/ContentComposer";
+import { blockSubmitWhileUploading } from "@/components/content/blockSubmitWhileUploading";
 import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
 import { MemberIdent } from "@/components/member/MemberBadge/MemberIdent";
 import { Anchor } from "@/components/site/Anchor";
@@ -94,7 +95,10 @@ export function ReplyBox(props: Props) {
         style={{ transitionProperty: "padding, box-shadow" }}
         onFocus={handlers.handleFocus}
         onBlur={handlers.handleBlur}
-        onSubmit={handlers.handleSubmit}
+        onSubmit={blockSubmitWhileUploading(
+          isUploading || isComposerUploading,
+          handlers.handleSubmit,
+        )}
       >
         {replyTo && (
           <WStack
@@ -195,10 +199,13 @@ export function ReplyBox(props: Props) {
               type="submit"
               size="sm"
               variant="subtle"
-              disabled={
-                isLoading || isEmpty || isUploading || isComposerUploading
+              disabled={isEmpty}
+              loading={isLoading || isUploading || isComposerUploading}
+              loadingText={
+                isUploading || isComposerUploading
+                  ? t.toasts.uploading
+                  : undefined
               }
-              loading={isLoading}
             >
               {t.thread.replyPost}
             </Button>

@@ -24,10 +24,10 @@ export function CommandDock({
     <Box
       id="command-dock__overlay"
       position="fixed"
+      top="safeAreaTop"
       left="0"
       bottom="safeBottom"
       width="screen"
-      height="dvh"
       pointerEvents="none"
       zIndex="overlay"
     >

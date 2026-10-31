@@ -19,6 +19,7 @@ import type {
   BugReportCreateBody,
   BugReportCreateOKResponse,
   BugReportListOKResponse,
+  BugReportListOwnParams,
   BugReportUpdateBody,
   BugReportUpdateOKResponse,
   ForbiddenResponse,
@@ -28,6 +29,59 @@ import type {
   UnauthorisedResponse,
 } from "../openapi-schema";
 
+/**
+ * List the bug reports and suggestions submitted by the current member,
+newest first.
+
+ */
+export const bugReportListOwn = (params?: BugReportListOwnParams) => {
+  return fetcher<BugReportListOKResponse>({
+    url: `/bug-reports`,
+    method: "GET",
+    params,
+  });
+};
+
+export const getBugReportListOwnKey = (params?: BugReportListOwnParams) =>
+  [`/bug-reports`, ...(params ? [params] : [])] as const;
+
+export type BugReportListOwnQueryResult = NonNullable<
+  Awaited<ReturnType<typeof bugReportListOwn>>
+>;
+export type BugReportListOwnQueryError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useBugReportListOwn = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(
+  params?: BugReportListOwnParams,
+  options?: {
+    swr?: SWRConfiguration<
+      Awaited<ReturnType<typeof bugReportListOwn>>,
+      TError
+    > & { swrKey?: Key; enabled?: boolean };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() => (isEnabled ? getBugReportListOwnKey(params) : null));
+  const swrFn = () => bugReportListOwn(params);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
 /**
  * Submit a bug report or feedback about the platform itself. Bug reports
 are only visible to administrators.

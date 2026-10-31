@@ -12,24 +12,27 @@ type Event struct {
 }
 
 var (
-	EventThreadReply          = Event{eventThreadReply}
-	EventReplyToReply         = Event{eventReplyToReply}
-	EventPostLike             = Event{eventPostLike}
-	EventFollow               = Event{eventFollow}
-	EventProfileMention       = Event{eventProfileMention}
-	EventEventHostAdded       = Event{eventEventHostAdded}
-	EventMemberAttendingEvent = Event{eventMemberAttendingEvent}
-	EventMemberDeclinedEvent  = Event{eventMemberDeclinedEvent}
-	EventAttendeeRemoved      = Event{eventAttendeeRemoved}
-	EventReportSubmitted      = Event{eventReportSubmitted}
-	EventReportUpdated        = Event{eventReportUpdated}
-	EventBugReportSubmitted   = Event{eventBugReportSubmitted}
-	EventWarningIssued        = Event{eventWarningIssued}
-	EventNodeVersionCreated   = Event{eventNodeVersionCreated}
-	EventNodeVersionApplied   = Event{eventNodeVersionApplied}
-	EventNodeVersionDeleted   = Event{eventNodeVersionDeleted}
-	EventListingOfferReceived = Event{eventListingOfferReceived}
-	EventListingExpiring      = Event{eventListingExpiring}
+	EventThreadReply           = Event{eventThreadReply}
+	EventReplyToReply          = Event{eventReplyToReply}
+	EventPostLike              = Event{eventPostLike}
+	EventFollow                = Event{eventFollow}
+	EventProfileMention        = Event{eventProfileMention}
+	EventEventHostAdded        = Event{eventEventHostAdded}
+	EventMemberAttendingEvent  = Event{eventMemberAttendingEvent}
+	EventMemberDeclinedEvent   = Event{eventMemberDeclinedEvent}
+	EventAttendeeRemoved       = Event{eventAttendeeRemoved}
+	EventReportSubmitted       = Event{eventReportSubmitted}
+	EventReportUpdated         = Event{eventReportUpdated}
+	EventBugReportSubmitted    = Event{eventBugReportSubmitted}
+	EventSuggestionPlanned     = Event{eventSuggestionPlanned}
+	EventSuggestionImplemented = Event{eventSuggestionImplemented}
+	EventSuggestionDeclined    = Event{eventSuggestionDeclined}
+	EventWarningIssued         = Event{eventWarningIssued}
+	EventNodeVersionCreated    = Event{eventNodeVersionCreated}
+	EventNodeVersionApplied    = Event{eventNodeVersionApplied}
+	EventNodeVersionDeleted    = Event{eventNodeVersionDeleted}
+	EventListingOfferReceived  = Event{eventListingOfferReceived}
+	EventListingExpiring       = Event{eventListingExpiring}
 )
 
 func (r Event) Format(f fmt.State, verb rune) {
@@ -93,6 +96,12 @@ func NewEvent(__iNpUt__ string) (Event, error) {
 		return EventReportUpdated, nil
 	case string(eventBugReportSubmitted):
 		return EventBugReportSubmitted, nil
+	case string(eventSuggestionPlanned):
+		return EventSuggestionPlanned, nil
+	case string(eventSuggestionImplemented):
+		return EventSuggestionImplemented, nil
+	case string(eventSuggestionDeclined):
+		return EventSuggestionDeclined, nil
 	case string(eventWarningIssued):
 		return EventWarningIssued, nil
 	case string(eventNodeVersionCreated):

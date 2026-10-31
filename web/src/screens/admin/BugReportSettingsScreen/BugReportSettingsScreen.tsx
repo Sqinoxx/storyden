@@ -26,11 +26,40 @@ import { CardBox as cardBox, lstack } from "@/styled-system/patterns";
 import { getAssetURL } from "@/utils/asset";
 
 type StatusFilter = BugReportStatus | "all";
+type CategoryFilter = BugReportCategory | "all";
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: BugReportStatus.open, label: "Offen" },
+  { value: BugReportStatus.planned, label: "Geplant" },
   { value: BugReportStatus.resolved, label: "Erledigt" },
+  { value: BugReportStatus.declined, label: "Abgelehnt" },
   { value: "all", label: "Alle" },
+];
+
+const CATEGORY_FILTERS: { value: CategoryFilter; label: string }[] = [
+  { value: "all", label: "Alle Arten" },
+  { value: BugReportCategory.bug, label: "Fehler" },
+  { value: BugReportCategory.suggestion, label: "Vorschläge" },
+  { value: BugReportCategory.other, label: "Sonstiges" },
+];
+
+const STATUS_LABELS: Record<BugReportStatus, string> = {
+  open: "Offen",
+  planned: "Geplant",
+  resolved: "Erledigt",
+  declined: "Abgelehnt",
+};
+
+const SUGGESTION_STATUS_LABELS: Record<BugReportStatus, string> = {
+  ...STATUS_LABELS,
+  resolved: "Umgesetzt",
+};
+
+const SUGGESTION_ACTIONS: { status: BugReportStatus; label: string }[] = [
+  { status: BugReportStatus.open, label: "Wieder öffnen" },
+  { status: BugReportStatus.planned, label: "Einplanen" },
+  { status: BugReportStatus.resolved, label: "Umgesetzt" },
+  { status: BugReportStatus.declined, label: "Ablehnen" },
 ];
 
 const CATEGORY_LABELS: Record<BugReportCategory, string> = {
@@ -47,11 +76,13 @@ const CATEGORY_COLOURS = {
 
 export function BugReportSettingsScreen() {
   const [status, setStatus] = useState<StatusFilter>(BugReportStatus.open);
+  const [category, setCategory] = useState<CategoryFilter>("all");
   const [page, setPage] = useState(1);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const { data, error, mutate } = useAdminBugReportList({
     status: status === "all" ? undefined : status,
+    category: category === "all" ? undefined : category,
     page: page.toString(),
   });
 
@@ -61,6 +92,11 @@ export function BugReportSettingsScreen() {
 
   function handleStatusFilter(next: StatusFilter) {
     setStatus(next);
+    setPage(1);
+  }
+
+  function handleCategoryFilter(next: CategoryFilter) {
+    setCategory(next);
     setPage(1);
   }
 
@@ -91,7 +127,7 @@ export function BugReportSettingsScreen() {
   return (
     <CardBox className={lstack()} gap="4">
       <WStack>
-        <Heading size="md">Fehlermeldungen</Heading>
+        <Heading size="md">Feedback</Heading>
         <Button
           type="button"
           size="xs"
@@ -102,8 +138,9 @@ export function BugReportSettingsScreen() {
         </Button>
       </WStack>
       <styled.p>
-        Fehler und Vorschläge, die Mitglieder über „Fehler melden“ im Kontomenü
-        eingereicht haben. Nur für Administratoren sichtbar.
+        Fehler und Verbesserungsvorschläge, die Mitglieder über das Kontomenü
+        eingereicht haben. Nur für Administratoren sichtbar. Ändert sich der
+        Status eines Vorschlags, wird das Mitglied benachrichtigt.
       </styled.p>
 
       <HStack gap="2" flexWrap="wrap">
@@ -114,6 +151,20 @@ export function BugReportSettingsScreen() {
             size="xs"
             variant={status === f.value ? "solid" : "outline"}
             onClick={() => handleStatusFilter(f.value)}
+          >
+            {f.label}
+          </Button>
+        ))}
+      </HStack>
+
+      <HStack gap="2" flexWrap="wrap">
+        {CATEGORY_FILTERS.map((f) => (
+          <Button
+            key={f.value}
+            type="button"
+            size="xs"
+            variant={category === f.value ? "solid" : "outline"}
+            onClick={() => handleCategoryFilter(f.value)}
           >
             {f.label}
           </Button>
@@ -163,6 +214,8 @@ function BugReportItem({
   onDelete: (report: BugReport) => Promise<void>;
 }) {
   const isOpen = report.status === BugReportStatus.open;
+  const isSuggestion = report.category === BugReportCategory.suggestion;
+  const statusLabels = isSuggestion ? SUGGESTION_STATUS_LABELS : STATUS_LABELS;
   const screenshotURL = report.screenshot
     ? getAssetURL(report.screenshot.path)
     : null;
@@ -178,7 +231,7 @@ function BugReportItem({
             >
               {CATEGORY_LABELS[report.category]}
             </Badge>
-            <Badge variant="outline">{isOpen ? "Offen" : "Erledigt"}</Badge>
+            <Badge variant="outline">{statusLabels[report.status]}</Badge>
             <MemberBadge
               profile={report.author}
               size="sm"
@@ -235,7 +288,7 @@ function BugReportItem({
           )}
         </LStack>
 
-        <HStack gap="2" justify="end">
+        <HStack gap="2" justify="end" flexWrap="wrap">
           <Button
             type="button"
             size="xs"
@@ -246,20 +299,37 @@ function BugReportItem({
           >
             Löschen
           </Button>
-          <Button
-            type="button"
-            size="xs"
-            variant={isOpen ? "solid" : "outline"}
-            loading={busy}
-            onClick={() =>
-              onSetStatus(
-                report,
-                isOpen ? BugReportStatus.resolved : BugReportStatus.open,
-              )
-            }
-          >
-            {isOpen ? "Als erledigt markieren" : "Wieder öffnen"}
-          </Button>
+          {isSuggestion ? (
+            SUGGESTION_ACTIONS.filter((a) => a.status !== report.status).map(
+              (a) => (
+                <Button
+                  key={a.status}
+                  type="button"
+                  size="xs"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => onSetStatus(report, a.status)}
+                >
+                  {a.label}
+                </Button>
+              ),
+            )
+          ) : (
+            <Button
+              type="button"
+              size="xs"
+              variant={isOpen ? "solid" : "outline"}
+              loading={busy}
+              onClick={() =>
+                onSetStatus(
+                  report,
+                  isOpen ? BugReportStatus.resolved : BugReportStatus.open,
+                )
+              }
+            >
+              {isOpen ? "Als erledigt markieren" : "Wieder öffnen"}
+            </Button>
+          )}
         </HStack>
       </LStack>
     </li>

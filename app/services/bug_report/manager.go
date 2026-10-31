@@ -71,7 +71,7 @@ func (m *Manager) Submit(ctx context.Context, p SubmitParams) (*bug_report.BugRe
 
 	description := strings.TrimSpace(p.Description)
 	if description == "" {
-		return nil, fault.New("description is required", fctx.With(ctx), ftag.With(ftag.InvalidArgument), fmsg.WithDesc("empty", "Please describe the problem."))
+		return nil, fault.New("description is required", fctx.With(ctx), ftag.With(ftag.InvalidArgument), fmsg.WithDesc("empty", "Please enter a description."))
 	}
 	if utf8.RuneCountInString(description) > maxDescriptionLength {
 		return nil, fault.New("description too long", fctx.With(ctx), ftag.With(ftag.InvalidArgument), fmsg.WithDesc("too long", "The description is too long."))
@@ -95,12 +95,65 @@ func (m *Manager) Submit(ctx context.Context, p SubmitParams) (*bug_report.BugRe
 	return rep, nil
 }
 
-func (m *Manager) List(ctx context.Context, page pagination.Parameters, status opt.Optional[bug_report.Status]) (pagination.Result[*bug_report.BugReport], error) {
-	return m.querier.List(ctx, page, status)
+func (m *Manager) List(ctx context.Context, page pagination.Parameters, filter bug_report_querier.Filter) (pagination.Result[*bug_report.BugReport], error) {
+	return m.querier.List(ctx, page, filter)
+}
+
+func (m *Manager) ListOwn(ctx context.Context, page pagination.Parameters, category opt.Optional[bug_report.Category]) (pagination.Result[*bug_report.BugReport], error) {
+	accountID, err := session.GetAccountID(ctx)
+	if err != nil {
+		return pagination.Result[*bug_report.BugReport]{}, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return m.querier.List(ctx, page, bug_report_querier.Filter{
+		Category: category,
+		Author:   opt.New(accountID),
+	})
 }
 
 func (m *Manager) UpdateStatus(ctx context.Context, id bug_report.ID, status bug_report.Status) (*bug_report.BugReport, error) {
-	return m.writer.UpdateStatus(ctx, id, status)
+	previous, err := m.querier.Get(ctx, id)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	updated, err := m.writer.UpdateStatus(ctx, id, status)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if previous.Status != status && updated.Category == bug_report.CategorySuggestion {
+		if err := m.notifyAuthor(ctx, updated); err != nil {
+			m.logger.Error("failed to notify author of suggestion status change", slog.String("error", err.Error()))
+		}
+	}
+
+	return updated, nil
+}
+
+func (m *Manager) notifyAuthor(ctx context.Context, r *bug_report.BugReport) error {
+	var event notification.Event
+	switch r.Status {
+	case bug_report.StatusPlanned:
+		event = notification.EventSuggestionPlanned
+	case bug_report.StatusResolved:
+		event = notification.EventSuggestionImplemented
+	case bug_report.StatusDeclined:
+		event = notification.EventSuggestionDeclined
+	default:
+		return nil
+	}
+
+	source, err := session.GetAccountID(ctx)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if source == r.Author.ID {
+		return nil
+	}
+
+	return m.notifier.Send(ctx, r.Author.ID, opt.New(source), event, nil)
 }
 
 func (m *Manager) Delete(ctx context.Context, id bug_report.ID) error {

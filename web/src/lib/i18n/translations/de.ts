@@ -27,6 +27,7 @@ export const de: Translations = {
     queue: "Warteschlange",
     reports: "Meldungen",
     reportBug: "Fehler melden",
+    suggestImprovement: "Verbesserung vorschlagen",
     roles: "Rollen",
     latest: "Neueste Beiträge",
     tags: "Tags",
@@ -809,6 +810,9 @@ export const de: Translations = {
       reportSubmitted: "hat eine Meldung eingereicht",
       reportUpdated: "Meldungsstatus aktualisiert",
       bugReportSubmitted: "hat einen Fehler gemeldet",
+      suggestionPlanned: "hat deinen Vorschlag eingeplant",
+      suggestionImplemented: "hat deinen Vorschlag umgesetzt",
+      suggestionDeclined: "hat deinen Vorschlag abgelehnt",
       warningIssued: "hat dich verwarnt",
       nodeVersionCreated: "hat einen Entwurf für deine Seite erstellt",
       nodeVersionApplied: "hat deinen Entwurf übernommen",
@@ -1044,7 +1048,7 @@ export const de: Translations = {
   bugReport: {
     title: "Fehler melden",
     description:
-      "Etwas funktioniert nicht oder du hast eine Idee? Deine Meldung geht direkt an die Administratoren.",
+      "Etwas funktioniert nicht? Deine Meldung geht direkt an die Administratoren.",
     category: "Art",
     categories: {
       bug: "Fehler",
@@ -1064,6 +1068,30 @@ export const de: Translations = {
     submit: "Meldung senden",
     sending: "Meldung wird gesendet...",
     sent: "Danke! Deine Meldung wurde an die Administratoren geschickt.",
+  },
+  suggestion: {
+    title: "Verbesserung vorschlagen",
+    description:
+      "Du hast eine Idee, wie wir die Seite besser machen können? Dein Vorschlag geht direkt an die Administratoren und du wirst benachrichtigt, sobald er eingeplant oder umgesetzt wird.",
+    descriptionLabel: "Was würdest du verbessern?",
+    descriptionPlaceholder:
+      "Beschreibe deine Idee und warum sie dir oder anderen helfen würde.",
+    descriptionRequired: "Bitte beschreibe deinen Vorschlag.",
+    submit: "Vorschlag senden",
+    sending: "Vorschlag wird gesendet...",
+    sent: "Danke für deinen Vorschlag!",
+    mySuggestions: "Meine Vorschläge",
+    pageTitle: "Meine Vorschläge",
+    pageDescription:
+      "Verbesserungen, die du vorgeschlagen hast, und was die Administratoren daraus gemacht haben.",
+    empty: "Du hast noch keine Vorschläge eingereicht.",
+    newSuggestion: "Neuer Vorschlag",
+    status: {
+      open: "Eingereicht",
+      planned: "Geplant",
+      resolved: "Umgesetzt",
+      declined: "Abgelehnt",
+    },
   },
   marketplace: {
     title: "Flohmarkt",

@@ -594,6 +594,10 @@ func (m *Mapping) NotificationUpdateMany() (bool, *rbac.Permission) {
 	return true, nil
 }
 
+func (m *Mapping) BugReportListOwn() (bool, *rbac.Permission) {
+	return true, nil
+}
+
 func (m *Mapping) BugReportCreate() (bool, *rbac.Permission) {
 	return true, nil
 }

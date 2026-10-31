@@ -14,5 +14,7 @@ type statusEnum string
 
 const (
 	statusOpen     statusEnum = "open"
+	statusPlanned  statusEnum = "planned"
 	statusResolved statusEnum = "resolved"
+	statusDeclined statusEnum = "declined"
 )

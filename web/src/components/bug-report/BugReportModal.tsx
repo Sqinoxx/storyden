@@ -16,6 +16,7 @@ import { FormControl } from "@/components/ui/form/FormControl";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { FormHelperText } from "@/components/ui/form/FormHelperText";
 import { FormLabel } from "@/components/ui/form/FormLabel";
+import { LinkButton } from "@/components/ui/link-button";
 import { useTranslation } from "@/lib/i18n";
 import { HStack, WStack, styled } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
@@ -25,11 +26,9 @@ import { UseDisclosureProps } from "@/utils/useDisclosure";
 
 const MAX_DESCRIPTION_LENGTH = 5000;
 
-const CATEGORIES = [
-  BugReportCategory.bug,
-  BugReportCategory.suggestion,
-  BugReportCategory.other,
-] as const;
+const CATEGORIES = [BugReportCategory.bug, BugReportCategory.other] as const;
+
+type Variant = "bug" | "suggestion";
 
 const FormSchema = z.object({
   category: z.nativeEnum(BugReportCategory),
@@ -37,13 +36,20 @@ const FormSchema = z.object({
 });
 type Form = z.infer<typeof FormSchema>;
 
-const defaultValues: Form = {
-  category: BugReportCategory.bug,
-  description: "",
+type Props = UseDisclosureProps & {
+  variant?: Variant;
 };
 
-export function BugReportModal(disclosure: UseDisclosureProps) {
+export function BugReportModal({ variant = "bug", ...disclosure }: Props) {
   const t = useTranslation();
+  const isSuggestion = variant === "suggestion";
+  const copy = isSuggestion ? t.suggestion : t.bugReport;
+  const defaultValues: Form = {
+    category: isSuggestion
+      ? BugReportCategory.suggestion
+      : BugReportCategory.bug,
+    description: "",
+  };
   const { upload } = useImageUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [screenshot, setScreenshot] = useState<Asset | null>(null);
@@ -92,8 +98,8 @@ export function BugReportModal(disclosure: UseDisclosureProps) {
           }),
         {
           promiseToast: {
-            loading: t.bugReport.sending,
-            success: t.bugReport.sent,
+            loading: copy.sending,
+            success: copy.sent,
           },
         },
       );
@@ -111,43 +117,55 @@ export function BugReportModal(disclosure: UseDisclosureProps) {
   }
 
   return (
-    <ModalDrawer title={t.bugReport.title} {...disclosure}>
+    <ModalDrawer title={copy.title} {...disclosure}>
       <styled.form
         gap="4"
         alignItems="stretch"
         onSubmit={handleSubmit}
         className={lstack()}
       >
-        <styled.p color="fg.muted">{t.bugReport.description}</styled.p>
+        <styled.p color="fg.muted">{copy.description}</styled.p>
+
+        {isSuggestion ? (
+          <LinkButton
+            href="/suggestions"
+            size="xs"
+            variant="subtle"
+            w="fit"
+            onClick={handleCancel}
+          >
+            {t.suggestion.mySuggestions}
+          </LinkButton>
+        ) : (
+          <FormControl>
+            <FormLabel>{t.bugReport.category}</FormLabel>
+            <Controller
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <HStack gap="2" flexWrap="wrap">
+                  {CATEGORIES.map((c) => (
+                    <Button
+                      key={c}
+                      type="button"
+                      size="sm"
+                      variant={field.value === c ? "solid" : "outline"}
+                      onClick={() => field.onChange(c)}
+                    >
+                      {t.bugReport.categories[c]}
+                    </Button>
+                  ))}
+                </HStack>
+              )}
+            />
+          </FormControl>
+        )}
 
         <FormControl>
-          <FormLabel>{t.bugReport.category}</FormLabel>
-          <Controller
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <HStack gap="2" flexWrap="wrap">
-                {CATEGORIES.map((c) => (
-                  <Button
-                    key={c}
-                    type="button"
-                    size="sm"
-                    variant={field.value === c ? "solid" : "outline"}
-                    onClick={() => field.onChange(c)}
-                  >
-                    {t.bugReport.categories[c]}
-                  </Button>
-                ))}
-              </HStack>
-            )}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel>{t.bugReport.descriptionLabel}</FormLabel>
+          <FormLabel>{copy.descriptionLabel}</FormLabel>
           <styled.textarea
             {...form.register("description")}
-            placeholder={t.bugReport.descriptionPlaceholder}
+            placeholder={copy.descriptionPlaceholder}
             maxLength={MAX_DESCRIPTION_LENGTH}
             minH="32"
             w="full"
@@ -161,8 +179,7 @@ export function BugReportModal(disclosure: UseDisclosureProps) {
             fontSize="sm"
           />
           <FormErrorText>
-            {form.formState.errors.description &&
-              t.bugReport.descriptionRequired}
+            {form.formState.errors.description && copy.descriptionRequired}
           </FormErrorText>
         </FormControl>
 
@@ -221,7 +238,7 @@ export function BugReportModal(disclosure: UseDisclosureProps) {
             loading={form.formState.isSubmitting}
             disabled={uploading}
           >
-            {t.bugReport.submit}
+            {copy.submit}
           </Button>
         </WStack>
       </styled.form>

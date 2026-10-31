@@ -12,6 +12,7 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/app/resources/bug_report"
+	"github.com/Southclaws/storyden/app/resources/bug_report/bug_report_querier"
 	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/rbac"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
@@ -56,6 +57,22 @@ func (h *BugReports) BugReportCreate(ctx context.Context, request openapi.BugRep
 	}, nil
 }
 
+func (h *BugReports) BugReportListOwn(ctx context.Context, request openapi.BugReportListOwnRequestObject) (openapi.BugReportListOwnResponseObject, error) {
+	category, err := opt.MapErr(opt.NewPtr(request.Params.Category), deserialiseBugReportCategory)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	result, err := h.manager.ListOwn(ctx, deserialisePageParams(request.Params.Page, 20), category)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.BugReportListOwn200JSONResponse{
+		BugReportListOKJSONResponse: openapi.BugReportListOKJSONResponse(serialiseBugReportList(result)),
+	}, nil
+}
+
 func (h *BugReports) AdminBugReportList(ctx context.Context, request openapi.AdminBugReportListRequestObject) (openapi.AdminBugReportListResponseObject, error) {
 	if err := session.Authorise(ctx, nil, rbac.PermissionAdministrator); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -68,7 +85,15 @@ func (h *BugReports) AdminBugReportList(ctx context.Context, request openapi.Adm
 		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
 	}
 
-	result, err := h.manager.List(ctx, deserialisePageParams(request.Params.Page, 20), status)
+	category, err := opt.MapErr(opt.NewPtr(request.Params.Category), deserialiseBugReportCategory)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	result, err := h.manager.List(ctx, deserialisePageParams(request.Params.Page, 20), bug_report_querier.Filter{
+		Status:   status,
+		Category: category,
+	})
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -118,6 +143,10 @@ func (h *BugReports) AdminBugReportDelete(ctx context.Context, request openapi.A
 	}
 
 	return openapi.AdminBugReportDelete204Response{}, nil
+}
+
+func deserialiseBugReportCategory(c openapi.BugReportCategoryQuery) (bug_report.Category, error) {
+	return bug_report.NewCategory(string(c))
 }
 
 func serialiseBugReport(in *bug_report.BugReport) openapi.BugReport {

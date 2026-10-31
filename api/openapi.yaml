@@ -2947,6 +2947,19 @@ paths:
         "200": { $ref: "#/components/responses/ReportUpdateOK" }
 
   /bug-reports:
+    get:
+      operationId: BugReportListOwn
+      description: |
+        List the bug reports and suggestions submitted by the current member,
+        newest first.
+      tags: [bug_reports]
+      parameters:
+        - $ref: "#/components/parameters/PaginationQuery"
+        - $ref: "#/components/parameters/BugReportCategoryQuery"
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/BugReportListOK" }
     post:
       operationId: BugReportCreate
       description: |
@@ -2968,6 +2981,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/PaginationQuery"
         - $ref: "#/components/parameters/BugReportStatusQuery"
+        - $ref: "#/components/parameters/BugReportCategoryQuery"
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "401": { $ref: "#/components/responses/Unauthorised" }
@@ -5403,6 +5417,14 @@ components:
       required: false
       schema:
         $ref: "#/components/schemas/BugReportStatus"
+
+    BugReportCategoryQuery:
+      description: Bug report category filter.
+      name: category
+      in: query
+      required: false
+      schema:
+        $ref: "#/components/schemas/BugReportCategory"
 
     ReportIDParam:
       description: Unique report ID.
@@ -11675,6 +11697,9 @@ components:
         - report_submitted
         - report_updated
         - bug_report_submitted
+        - suggestion_planned
+        - suggestion_implemented
+        - suggestion_declined
         - warning_issued
         - node_version_created
         - node_version_applied
@@ -11826,7 +11851,7 @@ components:
 
     BugReportStatus:
       type: string
-      enum: [open, resolved]
+      enum: [open, planned, resolved, declined]
 
     #
     # 8888888b.                   .d888 d8b 888

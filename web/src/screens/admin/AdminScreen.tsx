@@ -124,7 +124,7 @@ export function AdminScreen() {
           <Tabs.Trigger value="statistics">Statistiken</Tabs.Trigger>
         )}
         {canViewBugReports && (
-          <Tabs.Trigger value="bug_reports">Fehlermeldungen</Tabs.Trigger>
+          <Tabs.Trigger value="bug_reports">Feedback</Tabs.Trigger>
         )}
         <Tabs.Trigger value="audit">Audit Log</Tabs.Trigger>
         {canViewEmailLog && <Tabs.Trigger value="email">Email</Tabs.Trigger>}

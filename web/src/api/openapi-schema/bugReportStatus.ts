@@ -14,5 +14,7 @@ export type BugReportStatus =
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const BugReportStatus = {
   open: "open",
+  planned: "planned",
   resolved: "resolved",
+  declined: "declined",
 } as const;

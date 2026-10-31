@@ -92,6 +92,109 @@ func TestBugReports(t *testing.T) {
 				tests.Status(t, err, list, http.StatusForbidden)
 			})
 
+			t.Run("suggestion_feedback", func(t *testing.T) {
+				authorCtx, author := e2e.WithAccount(root, aw, seed.Account_004_Loki)
+				authorSession := sh.WithSession(authorCtx)
+
+				otherCtx, _ := e2e.WithAccount(root, aw, seed.Account_006_Freyja)
+				otherSession := sh.WithSession(otherCtx)
+
+				suggestion, err := cl.BugReportCreateWithResponse(root, openapi.BugReportInitialProps{
+					Category:    openapi.BugReportCategorySuggestion,
+					Description: "Add a dark mode for the calendar",
+				}, authorSession)
+				tests.Ok(t, err, suggestion)
+
+				bug, err := cl.BugReportCreateWithResponse(root, openapi.BugReportInitialProps{
+					Category:    openapi.BugReportCategoryBug,
+					Description: "Calendar crashes",
+				}, authorSession)
+				tests.Ok(t, err, bug)
+
+				suggestionCategory := openapi.BugReportCategorySuggestion
+
+				own, err := cl.BugReportListOwnWithResponse(root, &openapi.BugReportListOwnParams{}, authorSession)
+				tests.Ok(t, err, own)
+				a.Len(own.JSON200.BugReports, 2)
+
+				ownSuggestions, err := cl.BugReportListOwnWithResponse(root, &openapi.BugReportListOwnParams{Category: &suggestionCategory}, authorSession)
+				tests.Ok(t, err, ownSuggestions)
+				r.Len(ownSuggestions.JSON200.BugReports, 1)
+				a.Equal(suggestion.JSON200.Id, ownSuggestions.JSON200.BugReports[0].Id)
+
+				others, err := cl.BugReportListOwnWithResponse(root, &openapi.BugReportListOwnParams{}, otherSession)
+				tests.Ok(t, err, others)
+				a.Empty(others.JSON200.BugReports)
+
+				unauthenticated, err := cl.BugReportListOwnWithResponse(root, &openapi.BugReportListOwnParams{})
+				tests.Status(t, err, unauthenticated, http.StatusUnauthorized)
+
+				adminSuggestions, err := cl.AdminBugReportListWithResponse(root, &openapi.AdminBugReportListParams{Category: &suggestionCategory}, adminSession)
+				tests.Ok(t, err, adminSuggestions)
+				for _, rep := range adminSuggestions.JSON200.BugReports {
+					a.Equal(openapi.BugReportCategorySuggestion, rep.Category)
+				}
+
+				bugResolved, err := cl.AdminBugReportUpdateWithResponse(root, bug.JSON200.Id, openapi.BugReportMutableProps{
+					Status: openapi.BugReportStatusResolved,
+				}, adminSession)
+				tests.Ok(t, err, bugResolved)
+
+				authorEvents := func() []openapi.NotificationEvent {
+					notifications, err := cl.NotificationListWithResponse(root, &openapi.NotificationListParams{}, authorSession)
+					if err != nil || notifications.JSON200 == nil {
+						return nil
+					}
+					var events []openapi.NotificationEvent
+					for _, n := range notifications.JSON200.Notifications {
+						events = append(events, n.Event)
+					}
+					return events
+				}
+
+				for _, step := range []struct {
+					status openapi.BugReportStatus
+					event  openapi.NotificationEvent
+				}{
+					{openapi.BugReportStatusPlanned, openapi.SuggestionPlanned},
+					{openapi.BugReportStatusResolved, openapi.SuggestionImplemented},
+				} {
+					updated, err := cl.AdminBugReportUpdateWithResponse(root, suggestion.JSON200.Id, openapi.BugReportMutableProps{
+						Status: step.status,
+					}, adminSession)
+					tests.Ok(t, err, updated)
+					a.Equal(step.status, updated.JSON200.Status)
+
+					r.Eventually(func() bool {
+						for _, e := range authorEvents() {
+							if e == step.event {
+								return true
+							}
+						}
+						return false
+					}, 5*time.Second, 100*time.Millisecond, "expected author to be notified with %s", step.event)
+				}
+
+				unchanged, err := cl.AdminBugReportUpdateWithResponse(root, suggestion.JSON200.Id, openapi.BugReportMutableProps{
+					Status: openapi.BugReportStatusResolved,
+				}, adminSession)
+				tests.Ok(t, err, unchanged)
+
+				count := map[openapi.NotificationEvent]int{}
+				for _, e := range authorEvents() {
+					count[e]++
+				}
+				a.Equal(1, count[openapi.SuggestionPlanned])
+				a.Equal(1, count[openapi.SuggestionImplemented])
+				a.Zero(count[openapi.SuggestionDeclined])
+
+				final, err := cl.BugReportListOwnWithResponse(root, &openapi.BugReportListOwnParams{Category: &suggestionCategory}, authorSession)
+				tests.Ok(t, err, final)
+				r.Len(final.JSON200.BugReports, 1)
+				a.Equal(openapi.BugReportStatusResolved, final.JSON200.BugReports[0].Status)
+				a.Equal(author.ID.String(), final.JSON200.BugReports[0].Author.Id)
+			})
+
 			t.Run("lifecycle", func(t *testing.T) {
 				img := onePixelPNG()
 				filename := "screenshot.png"

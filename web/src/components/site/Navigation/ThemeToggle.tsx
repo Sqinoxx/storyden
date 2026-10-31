@@ -26,6 +26,7 @@ export function ThemeToggle() {
         justifyContent: "center",
         w: "9",
         h: "9",
+        flexShrink: "0",
         borderRadius: "md",
         border: "none",
         cursor: "pointer",

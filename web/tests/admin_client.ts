@@ -1,4 +1,8 @@
 import { buildRequest, buildResult } from "../src/api/common";
+import {
+  getAccessGrantSetMutationKey,
+  getAccessPassCreateMutationKey,
+} from "../src/api/openapi-client/access";
 import { getAccountAddRoleMutationKey } from "../src/api/openapi-client/accounts";
 import { getAdminSettingsUpdateMutationKey } from "../src/api/openapi-client/admin";
 import { getCategoryCreateMutationKey } from "../src/api/openapi-client/categories";
@@ -11,6 +15,10 @@ import {
 } from "../src/api/openapi-client/robots";
 import { getThreadCreateMutationKey } from "../src/api/openapi-client/threads";
 import {
+  AccessGrantMutableProps,
+  AccessGrantOKResponse,
+  AccessPassCreateBody,
+  AccessPassGetOKResponse,
   AccountUpdateOKResponse,
   AdminSettingsUpdateBody,
   AdminSettingsUpdateOKResponse,
@@ -30,6 +38,14 @@ import {
 } from "../src/api/openapi-schema";
 
 export type AccessKeyClient = {
+  accessPassCreate: (
+    accessPassCreateBody: AccessPassCreateBody,
+  ) => Promise<AccessPassGetOKResponse>;
+  accessGrantSet: (
+    accessPassId: string,
+    accountHandle: string,
+    accessGrantMutableProps: AccessGrantMutableProps,
+  ) => Promise<AccessGrantOKResponse>;
   accountAddRole: (
     accountHandle: string,
     roleId: string,
@@ -62,6 +78,22 @@ export type AccessKeyClient = {
 
 export function createAccessKeyClient(accessKey: string): AccessKeyClient {
   return {
+    accessPassCreate: async (accessPassCreateBody) => {
+      return await requestWithAccessKey<AccessPassGetOKResponse>({
+        accessKey,
+        key: getAccessPassCreateMutationKey(),
+        method: "POST",
+        data: accessPassCreateBody,
+      });
+    },
+    accessGrantSet: async (accessPassId, accountHandle, props) => {
+      return await requestWithAccessKey<AccessGrantOKResponse>({
+        accessKey,
+        key: getAccessGrantSetMutationKey(accessPassId, accountHandle),
+        method: "PUT",
+        data: props,
+      });
+    },
     accountAddRole: async (accountHandle, roleId) => {
       return await requestWithAccessKey<AccountUpdateOKResponse>({
         accessKey,

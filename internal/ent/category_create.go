@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Southclaws/storyden/internal/ent/accesspass"
 	"github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/ent/category"
 	"github.com/Southclaws/storyden/internal/ent/post"
@@ -266,6 +267,21 @@ func (_c *CategoryCreate) AddRelated(v ...*Category) *CategoryCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddRelatedIDs(ids...)
+}
+
+// AddAccessPassIDs adds the "access_passes" edge to the AccessPass entity by IDs.
+func (_c *CategoryCreate) AddAccessPassIDs(ids ...xid.ID) *CategoryCreate {
+	_c.mutation.AddAccessPassIDs(ids...)
+	return _c
+}
+
+// AddAccessPasses adds the "access_passes" edges to the AccessPass entity.
+func (_c *CategoryCreate) AddAccessPasses(v ...*AccessPass) *CategoryCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAccessPassIDs(ids...)
 }
 
 // Mutation returns the CategoryMutation object of the builder.
@@ -527,6 +543,22 @@ func (_c *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AccessPassesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.AccessPassesTable,
+			Columns: category.AccessPassesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accesspass.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

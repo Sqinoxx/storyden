@@ -49,6 +49,8 @@ const (
 	EdgeRelatedBy = "related_by"
 	// EdgeRelated holds the string denoting the related edge name in mutations.
 	EdgeRelated = "related"
+	// EdgeAccessPasses holds the string denoting the access_passes edge name in mutations.
+	EdgeAccessPasses = "access_passes"
 	// Table holds the table name of the category in the database.
 	Table = "categories"
 	// PostsTable is the table that holds the posts relation/edge.
@@ -77,6 +79,11 @@ const (
 	RelatedByTable = "category_related"
 	// RelatedTable is the table that holds the related relation/edge. The primary key declared below.
 	RelatedTable = "category_related"
+	// AccessPassesTable is the table that holds the access_passes relation/edge. The primary key declared below.
+	AccessPassesTable = "access_pass_categories"
+	// AccessPassesInverseTable is the table name for the AccessPass entity.
+	// It exists in this package in order to avoid circular dependency with the "accesspass" package.
+	AccessPassesInverseTable = "access_passes"
 )
 
 // Columns holds all SQL columns for category fields.
@@ -102,6 +109,9 @@ var (
 	// RelatedPrimaryKey and RelatedColumn2 are the table columns denoting the
 	// primary key for the related relation (M2M).
 	RelatedPrimaryKey = []string{"category_id", "related_by_id"}
+	// AccessPassesPrimaryKey and AccessPassesColumn2 are the table columns denoting the
+	// primary key for the access_passes relation (M2M).
+	AccessPassesPrimaryKey = []string{"access_pass_id", "category_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -262,6 +272,20 @@ func ByRelated(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newRelatedStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAccessPassesCount orders the results by access_passes count.
+func ByAccessPassesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAccessPassesStep(), opts...)
+	}
+}
+
+// ByAccessPasses orders the results by access_passes terms.
+func ByAccessPasses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAccessPassesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPostsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -302,5 +326,12 @@ func newRelatedStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, RelatedTable, RelatedPrimaryKey...),
+	)
+}
+func newAccessPassesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AccessPassesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, AccessPassesTable, AccessPassesPrimaryKey...),
 	)
 }

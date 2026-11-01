@@ -3,6 +3,7 @@ package services
 import (
 	"go.uber.org/fx"
 
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/account"
 	"github.com/Southclaws/storyden/app/services/account/account_auth"
 	"github.com/Southclaws/storyden/app/services/account/account_email"
@@ -27,11 +28,11 @@ import (
 	"github.com/Southclaws/storyden/app/services/drive/drive_credentials"
 	"github.com/Southclaws/storyden/app/services/drive/drive_manage"
 	"github.com/Southclaws/storyden/app/services/event"
-	"github.com/Southclaws/storyden/app/services/listing"
 	"github.com/Southclaws/storyden/app/services/generative"
 	"github.com/Southclaws/storyden/app/services/library"
 	"github.com/Southclaws/storyden/app/services/like/post_liker"
 	"github.com/Southclaws/storyden/app/services/link"
+	"github.com/Southclaws/storyden/app/services/listing"
 	"github.com/Southclaws/storyden/app/services/mention/mention_job"
 	"github.com/Southclaws/storyden/app/services/moderation"
 	"github.com/Southclaws/storyden/app/services/moderation/action_dispatcher"
@@ -106,6 +107,7 @@ func Build() fx.Option {
 		semester.Build(),
 		drive_credentials.Build(),
 		fx.Provide(drive_manage.New, drive_browse.New),
+		fx.Provide(access_check.New),
 		fx.Provide(account_auth.New, account_email.New),
 		fx.Provide(settings_manager.New),
 		fx.Provide(bug_report.New),

@@ -73,6 +73,10 @@ type OperationPermissions interface {
 	RoleGet() (bool, *rbac.Permission)
 	RoleUpdate() (bool, *rbac.Permission)
 	RoleDelete() (bool, *rbac.Permission)
+	AccessPassList() (bool, *rbac.Permission)
+	AccessPassCreate() (bool, *rbac.Permission)
+	AccessPassUpdate() (bool, *rbac.Permission)
+	AccessPassDelete() (bool, *rbac.Permission)
 	AuthProviderList() (bool, *rbac.Permission)
 	AuthPasswordSignup() (bool, *rbac.Permission)
 	AuthPasswordSignin() (bool, *rbac.Permission)
@@ -425,6 +429,14 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.RoleUpdate()
 	case "RoleDelete":
 		return optable.RoleDelete()
+	case "AccessPassList":
+		return optable.AccessPassList()
+	case "AccessPassCreate":
+		return optable.AccessPassCreate()
+	case "AccessPassUpdate":
+		return optable.AccessPassUpdate()
+	case "AccessPassDelete":
+		return optable.AccessPassDelete()
 	case "AuthProviderList":
 		return optable.AuthProviderList()
 	case "AuthPasswordSignup":

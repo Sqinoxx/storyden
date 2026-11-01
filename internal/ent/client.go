@@ -16,6 +16,8 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/Southclaws/storyden/internal/ent/accessgrant"
+	"github.com/Southclaws/storyden/internal/ent/accesspass"
 	"github.com/Southclaws/storyden/internal/ent/account"
 	"github.com/Southclaws/storyden/internal/ent/accountfollow"
 	"github.com/Southclaws/storyden/internal/ent/accountroles"
@@ -81,6 +83,10 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// AccessGrant is the client for interacting with the AccessGrant builders.
+	AccessGrant *AccessGrantClient
+	// AccessPass is the client for interacting with the AccessPass builders.
+	AccessPass *AccessPassClient
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
 	// AccountFollow is the client for interacting with the AccountFollow builders.
@@ -204,6 +210,8 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.AccessGrant = NewAccessGrantClient(c.config)
+	c.AccessPass = NewAccessPassClient(c.config)
 	c.Account = NewAccountClient(c.config)
 	c.AccountFollow = NewAccountFollowClient(c.config)
 	c.AccountRoles = NewAccountRolesClient(c.config)
@@ -352,6 +360,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                          ctx,
 		config:                       cfg,
+		AccessGrant:                  NewAccessGrantClient(cfg),
+		AccessPass:                   NewAccessPassClient(cfg),
 		Account:                      NewAccountClient(cfg),
 		AccountFollow:                NewAccountFollowClient(cfg),
 		AccountRoles:                 NewAccountRolesClient(cfg),
@@ -427,6 +437,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                          ctx,
 		config:                       cfg,
+		AccessGrant:                  NewAccessGrantClient(cfg),
+		AccessPass:                   NewAccessPassClient(cfg),
 		Account:                      NewAccountClient(cfg),
 		AccountFollow:                NewAccountFollowClient(cfg),
 		AccountRoles:                 NewAccountRolesClient(cfg),
@@ -489,7 +501,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Account.
+//		AccessGrant.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -512,10 +524,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Account, c.AccountFollow, c.AccountRoles, c.Asset, c.AuditLog,
-		c.Authentication, c.BugReport, c.Category, c.Collection, c.CollectionNode,
-		c.CollectionPost, c.DriveFolder, c.Email, c.EmailQueue, c.Event,
-		c.EventParticipant, c.Invitation, c.LikePost, c.Link, c.Listing,
+		c.AccessGrant, c.AccessPass, c.Account, c.AccountFollow, c.AccountRoles,
+		c.Asset, c.AuditLog, c.Authentication, c.BugReport, c.Category, c.Collection,
+		c.CollectionNode, c.CollectionPost, c.DriveFolder, c.Email, c.EmailQueue,
+		c.Event, c.EventParticipant, c.Invitation, c.LikePost, c.Link, c.Listing,
 		c.ListingFavourite, c.ListingOffer, c.MentionProfile, c.ModerationNote, c.Node,
 		c.NodeVersion, c.Notification, c.OAuthAuthorisationCode,
 		c.OAuthAuthorisationRequest, c.OAuthClient, c.OAuthDeviceAuthorisation,
@@ -534,10 +546,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Account, c.AccountFollow, c.AccountRoles, c.Asset, c.AuditLog,
-		c.Authentication, c.BugReport, c.Category, c.Collection, c.CollectionNode,
-		c.CollectionPost, c.DriveFolder, c.Email, c.EmailQueue, c.Event,
-		c.EventParticipant, c.Invitation, c.LikePost, c.Link, c.Listing,
+		c.AccessGrant, c.AccessPass, c.Account, c.AccountFollow, c.AccountRoles,
+		c.Asset, c.AuditLog, c.Authentication, c.BugReport, c.Category, c.Collection,
+		c.CollectionNode, c.CollectionPost, c.DriveFolder, c.Email, c.EmailQueue,
+		c.Event, c.EventParticipant, c.Invitation, c.LikePost, c.Link, c.Listing,
 		c.ListingFavourite, c.ListingOffer, c.MentionProfile, c.ModerationNote, c.Node,
 		c.NodeVersion, c.Notification, c.OAuthAuthorisationCode,
 		c.OAuthAuthorisationRequest, c.OAuthClient, c.OAuthDeviceAuthorisation,
@@ -555,6 +567,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AccessGrantMutation:
+		return c.AccessGrant.mutate(ctx, m)
+	case *AccessPassMutation:
+		return c.AccessPass.mutate(ctx, m)
 	case *AccountMutation:
 		return c.Account.mutate(ctx, m)
 	case *AccountFollowMutation:
@@ -669,6 +685,336 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Warning.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// AccessGrantClient is a client for the AccessGrant schema.
+type AccessGrantClient struct {
+	config
+}
+
+// NewAccessGrantClient returns a client for the AccessGrant from the given config.
+func NewAccessGrantClient(c config) *AccessGrantClient {
+	return &AccessGrantClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `accessgrant.Hooks(f(g(h())))`.
+func (c *AccessGrantClient) Use(hooks ...Hook) {
+	c.hooks.AccessGrant = append(c.hooks.AccessGrant, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `accessgrant.Intercept(f(g(h())))`.
+func (c *AccessGrantClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AccessGrant = append(c.inters.AccessGrant, interceptors...)
+}
+
+// Create returns a builder for creating a AccessGrant entity.
+func (c *AccessGrantClient) Create() *AccessGrantCreate {
+	mutation := newAccessGrantMutation(c.config, OpCreate)
+	return &AccessGrantCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AccessGrant entities.
+func (c *AccessGrantClient) CreateBulk(builders ...*AccessGrantCreate) *AccessGrantCreateBulk {
+	return &AccessGrantCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AccessGrantClient) MapCreateBulk(slice any, setFunc func(*AccessGrantCreate, int)) *AccessGrantCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AccessGrantCreateBulk{err: fmt.Errorf("calling to AccessGrantClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AccessGrantCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AccessGrantCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AccessGrant.
+func (c *AccessGrantClient) Update() *AccessGrantUpdate {
+	mutation := newAccessGrantMutation(c.config, OpUpdate)
+	return &AccessGrantUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AccessGrantClient) UpdateOne(_m *AccessGrant) *AccessGrantUpdateOne {
+	mutation := newAccessGrantMutation(c.config, OpUpdateOne, withAccessGrant(_m))
+	return &AccessGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AccessGrantClient) UpdateOneID(id xid.ID) *AccessGrantUpdateOne {
+	mutation := newAccessGrantMutation(c.config, OpUpdateOne, withAccessGrantID(id))
+	return &AccessGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AccessGrant.
+func (c *AccessGrantClient) Delete() *AccessGrantDelete {
+	mutation := newAccessGrantMutation(c.config, OpDelete)
+	return &AccessGrantDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AccessGrantClient) DeleteOne(_m *AccessGrant) *AccessGrantDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AccessGrantClient) DeleteOneID(id xid.ID) *AccessGrantDeleteOne {
+	builder := c.Delete().Where(accessgrant.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AccessGrantDeleteOne{builder}
+}
+
+// Query returns a query builder for AccessGrant.
+func (c *AccessGrantClient) Query() *AccessGrantQuery {
+	return &AccessGrantQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAccessGrant},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AccessGrant entity by its id.
+func (c *AccessGrantClient) Get(ctx context.Context, id xid.ID) (*AccessGrant, error) {
+	return c.Query().Where(accessgrant.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AccessGrantClient) GetX(ctx context.Context, id xid.ID) *AccessGrant {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAccount queries the account edge of a AccessGrant.
+func (c *AccessGrantClient) QueryAccount(_m *AccessGrant) *AccountQuery {
+	query := (&AccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(accessgrant.Table, accessgrant.FieldID, id),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, accessgrant.AccountTable, accessgrant.AccountColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPass queries the pass edge of a AccessGrant.
+func (c *AccessGrantClient) QueryPass(_m *AccessGrant) *AccessPassQuery {
+	query := (&AccessPassClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(accessgrant.Table, accessgrant.FieldID, id),
+			sqlgraph.To(accesspass.Table, accesspass.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, accessgrant.PassTable, accessgrant.PassColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AccessGrantClient) Hooks() []Hook {
+	return c.hooks.AccessGrant
+}
+
+// Interceptors returns the client interceptors.
+func (c *AccessGrantClient) Interceptors() []Interceptor {
+	return c.inters.AccessGrant
+}
+
+func (c *AccessGrantClient) mutate(ctx context.Context, m *AccessGrantMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AccessGrantCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AccessGrantUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AccessGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AccessGrantDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AccessGrant mutation op: %q", m.Op())
+	}
+}
+
+// AccessPassClient is a client for the AccessPass schema.
+type AccessPassClient struct {
+	config
+}
+
+// NewAccessPassClient returns a client for the AccessPass from the given config.
+func NewAccessPassClient(c config) *AccessPassClient {
+	return &AccessPassClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `accesspass.Hooks(f(g(h())))`.
+func (c *AccessPassClient) Use(hooks ...Hook) {
+	c.hooks.AccessPass = append(c.hooks.AccessPass, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `accesspass.Intercept(f(g(h())))`.
+func (c *AccessPassClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AccessPass = append(c.inters.AccessPass, interceptors...)
+}
+
+// Create returns a builder for creating a AccessPass entity.
+func (c *AccessPassClient) Create() *AccessPassCreate {
+	mutation := newAccessPassMutation(c.config, OpCreate)
+	return &AccessPassCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AccessPass entities.
+func (c *AccessPassClient) CreateBulk(builders ...*AccessPassCreate) *AccessPassCreateBulk {
+	return &AccessPassCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AccessPassClient) MapCreateBulk(slice any, setFunc func(*AccessPassCreate, int)) *AccessPassCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AccessPassCreateBulk{err: fmt.Errorf("calling to AccessPassClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AccessPassCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AccessPassCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AccessPass.
+func (c *AccessPassClient) Update() *AccessPassUpdate {
+	mutation := newAccessPassMutation(c.config, OpUpdate)
+	return &AccessPassUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AccessPassClient) UpdateOne(_m *AccessPass) *AccessPassUpdateOne {
+	mutation := newAccessPassMutation(c.config, OpUpdateOne, withAccessPass(_m))
+	return &AccessPassUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AccessPassClient) UpdateOneID(id xid.ID) *AccessPassUpdateOne {
+	mutation := newAccessPassMutation(c.config, OpUpdateOne, withAccessPassID(id))
+	return &AccessPassUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AccessPass.
+func (c *AccessPassClient) Delete() *AccessPassDelete {
+	mutation := newAccessPassMutation(c.config, OpDelete)
+	return &AccessPassDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AccessPassClient) DeleteOne(_m *AccessPass) *AccessPassDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AccessPassClient) DeleteOneID(id xid.ID) *AccessPassDeleteOne {
+	builder := c.Delete().Where(accesspass.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AccessPassDeleteOne{builder}
+}
+
+// Query returns a query builder for AccessPass.
+func (c *AccessPassClient) Query() *AccessPassQuery {
+	return &AccessPassQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAccessPass},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AccessPass entity by its id.
+func (c *AccessPassClient) Get(ctx context.Context, id xid.ID) (*AccessPass, error) {
+	return c.Query().Where(accesspass.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AccessPassClient) GetX(ctx context.Context, id xid.ID) *AccessPass {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCategories queries the categories edge of a AccessPass.
+func (c *AccessPassClient) QueryCategories(_m *AccessPass) *CategoryQuery {
+	query := (&CategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(accesspass.Table, accesspass.FieldID, id),
+			sqlgraph.To(category.Table, category.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, accesspass.CategoriesTable, accesspass.CategoriesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGrants queries the grants edge of a AccessPass.
+func (c *AccessPassClient) QueryGrants(_m *AccessPass) *AccessGrantQuery {
+	query := (&AccessGrantClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(accesspass.Table, accesspass.FieldID, id),
+			sqlgraph.To(accessgrant.Table, accessgrant.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, accesspass.GrantsTable, accesspass.GrantsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AccessPassClient) Hooks() []Hook {
+	return c.hooks.AccessPass
+}
+
+// Interceptors returns the client interceptors.
+func (c *AccessPassClient) Interceptors() []Interceptor {
+	return c.inters.AccessPass
+}
+
+func (c *AccessPassClient) mutate(ctx context.Context, m *AccessPassMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AccessPassCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AccessPassUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AccessPassUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AccessPassDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AccessPass mutation op: %q", m.Op())
 	}
 }
 
@@ -1381,6 +1727,22 @@ func (c *AccountClient) QueryWarnings(_m *Account) *WarningQuery {
 			sqlgraph.From(account.Table, account.FieldID, id),
 			sqlgraph.To(warning.Table, warning.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, account.WarningsTable, account.WarningsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAccessGrants queries the access_grants edge of a Account.
+func (c *AccountClient) QueryAccessGrants(_m *Account) *AccessGrantQuery {
+	query := (&AccessGrantClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(accessgrant.Table, accessgrant.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.AccessGrantsTable, account.AccessGrantsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -2856,6 +3218,22 @@ func (c *CategoryClient) QueryRelated(_m *Category) *CategoryQuery {
 			sqlgraph.From(category.Table, category.FieldID, id),
 			sqlgraph.To(category.Table, category.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, category.RelatedTable, category.RelatedPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAccessPasses queries the access_passes edge of a Category.
+func (c *CategoryClient) QueryAccessPasses(_m *Category) *AccessPassQuery {
+	query := (&AccessPassClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(category.Table, category.FieldID, id),
+			sqlgraph.To(accesspass.Table, accesspass.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, category.AccessPassesTable, category.AccessPassesPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -11321,30 +11699,32 @@ func (c *WarningClient) mutate(ctx context.Context, m *WarningMutation) (Value, 
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Account, AccountFollow, AccountRoles, Asset, AuditLog, Authentication,
-		BugReport, Category, Collection, CollectionNode, CollectionPost, DriveFolder,
-		Email, EmailQueue, Event, EventParticipant, Invitation, LikePost, Link,
-		Listing, ListingFavourite, ListingOffer, MentionProfile, ModerationNote, Node,
-		NodeVersion, Notification, OAuthAuthorisationCode, OAuthAuthorisationRequest,
-		OAuthClient, OAuthDeviceAuthorisation, OAuthRefreshToken,
-		OAuthRemoteAuthorisationFlow, OAuthRemoteConnection, PasswordResetToken,
-		Plugin, Post, PostRead, Property, PropertySchema, PropertySchemaField, React,
-		Report, Robot, RobotMCPServer, RobotMCPTool, RobotProviderModel, RobotSession,
-		RobotSessionMessage, RobotWorkspace, RobotWorkspaceInstance, Role, Session,
-		Setting, Tag, Warning []ent.Hook
+		AccessGrant, AccessPass, Account, AccountFollow, AccountRoles, Asset, AuditLog,
+		Authentication, BugReport, Category, Collection, CollectionNode,
+		CollectionPost, DriveFolder, Email, EmailQueue, Event, EventParticipant,
+		Invitation, LikePost, Link, Listing, ListingFavourite, ListingOffer,
+		MentionProfile, ModerationNote, Node, NodeVersion, Notification,
+		OAuthAuthorisationCode, OAuthAuthorisationRequest, OAuthClient,
+		OAuthDeviceAuthorisation, OAuthRefreshToken, OAuthRemoteAuthorisationFlow,
+		OAuthRemoteConnection, PasswordResetToken, Plugin, Post, PostRead, Property,
+		PropertySchema, PropertySchemaField, React, Report, Robot, RobotMCPServer,
+		RobotMCPTool, RobotProviderModel, RobotSession, RobotSessionMessage,
+		RobotWorkspace, RobotWorkspaceInstance, Role, Session, Setting, Tag,
+		Warning []ent.Hook
 	}
 	inters struct {
-		Account, AccountFollow, AccountRoles, Asset, AuditLog, Authentication,
-		BugReport, Category, Collection, CollectionNode, CollectionPost, DriveFolder,
-		Email, EmailQueue, Event, EventParticipant, Invitation, LikePost, Link,
-		Listing, ListingFavourite, ListingOffer, MentionProfile, ModerationNote, Node,
-		NodeVersion, Notification, OAuthAuthorisationCode, OAuthAuthorisationRequest,
-		OAuthClient, OAuthDeviceAuthorisation, OAuthRefreshToken,
-		OAuthRemoteAuthorisationFlow, OAuthRemoteConnection, PasswordResetToken,
-		Plugin, Post, PostRead, Property, PropertySchema, PropertySchemaField, React,
-		Report, Robot, RobotMCPServer, RobotMCPTool, RobotProviderModel, RobotSession,
-		RobotSessionMessage, RobotWorkspace, RobotWorkspaceInstance, Role, Session,
-		Setting, Tag, Warning []ent.Interceptor
+		AccessGrant, AccessPass, Account, AccountFollow, AccountRoles, Asset, AuditLog,
+		Authentication, BugReport, Category, Collection, CollectionNode,
+		CollectionPost, DriveFolder, Email, EmailQueue, Event, EventParticipant,
+		Invitation, LikePost, Link, Listing, ListingFavourite, ListingOffer,
+		MentionProfile, ModerationNote, Node, NodeVersion, Notification,
+		OAuthAuthorisationCode, OAuthAuthorisationRequest, OAuthClient,
+		OAuthDeviceAuthorisation, OAuthRefreshToken, OAuthRemoteAuthorisationFlow,
+		OAuthRemoteConnection, PasswordResetToken, Plugin, Post, PostRead, Property,
+		PropertySchema, PropertySchemaField, React, Report, Robot, RobotMCPServer,
+		RobotMCPTool, RobotProviderModel, RobotSession, RobotSessionMessage,
+		RobotWorkspace, RobotWorkspaceInstance, Role, Session, Setting, Tag,
+		Warning []ent.Interceptor
 	}
 )
 

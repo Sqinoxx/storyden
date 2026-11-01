@@ -6,6 +6,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AccessGrant is the predicate function for accessgrant builders.
+type AccessGrant func(*sql.Selector)
+
+// AccessPass is the predicate function for accesspass builders.
+type AccessPass func(*sql.Selector)
+
 // Account is the predicate function for account builders.
 type Account func(*sql.Selector)
 

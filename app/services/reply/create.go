@@ -25,6 +25,10 @@ func (s *Mutator) Create(
 	parentID post.ID,
 	partial Partial,
 ) (*reply.Reply, error) {
+	if err := s.access.RequirePost(ctx, xid.ID(parentID)); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	if content, ok := partial.Content.Get(); ok {
 		stable, err := datagraph.NewRichTextWithNewBlocks(content)
 		if err != nil {

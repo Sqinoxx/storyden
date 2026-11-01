@@ -8,11 +8,13 @@ import (
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/opt"
+	"github.com/Southclaws/storyden/app/resources/datagraph"
 	"github.com/Southclaws/storyden/app/resources/like"
 	"github.com/Southclaws/storyden/app/resources/like/item_like"
 	"github.com/Southclaws/storyden/app/resources/like/like_querier"
 	"github.com/Southclaws/storyden/app/resources/like/profile_like"
 	"github.com/Southclaws/storyden/app/resources/post"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/like/post_liker"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
@@ -21,15 +23,18 @@ import (
 type Likes struct {
 	likeQuerier *like_querier.LikeQuerier
 	postLiker   *post_liker.PostLiker
+	access      *access_check.Checker
 }
 
 func NewLikes(
 	likeQuerier *like_querier.LikeQuerier,
 	postLiker *post_liker.PostLiker,
+	access *access_check.Checker,
 ) Likes {
 	return Likes{
 		likeQuerier: likeQuerier,
 		postLiker:   postLiker,
+		access:      access,
 	}
 }
 
@@ -103,6 +108,11 @@ func (h *Likes) LikeProfileGet(ctx context.Context, request openapi.LikeProfileG
 	page = max(0, page-1)
 
 	result, err := h.likeQuerier.GetProfileLikes(ctx, accountID, page, pageSize)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	result.Likes, err = access_check.FilterWrapped(ctx, h.access, result.Likes, func(l *profile_like.Like) datagraph.Item { return l.Item })
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

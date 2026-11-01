@@ -270,6 +270,22 @@ func (m *Mapping) PluginUpdateConfiguration() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionAdministrator
 }
 
+func (m *Mapping) AccessPassList() (bool, *rbac.Permission) {
+	return false, nil // Public: guests see what they could unlock.
+}
+
+func (m *Mapping) AccessPassCreate() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
+func (m *Mapping) AccessPassUpdate() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
+func (m *Mapping) AccessPassDelete() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
 func (m *Mapping) RoleCreate() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageRoles
 }

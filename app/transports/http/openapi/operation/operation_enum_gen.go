@@ -82,6 +82,10 @@ var (
 	OperationIDRoleGet                                = OperationID{`RoleGet`}
 	OperationIDRoleUpdate                             = OperationID{`RoleUpdate`}
 	OperationIDRoleDelete                             = OperationID{`RoleDelete`}
+	OperationIDAccessPassList                         = OperationID{`AccessPassList`}
+	OperationIDAccessPassCreate                       = OperationID{`AccessPassCreate`}
+	OperationIDAccessPassUpdate                       = OperationID{`AccessPassUpdate`}
+	OperationIDAccessPassDelete                       = OperationID{`AccessPassDelete`}
 	OperationIDAuthProviderList                       = OperationID{`AuthProviderList`}
 	OperationIDAuthPasswordSignup                     = OperationID{`AuthPasswordSignup`}
 	OperationIDAuthPasswordSignin                     = OperationID{`AuthPasswordSignin`}
@@ -469,6 +473,14 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDRoleUpdate, nil
 	case string(`RoleDelete`):
 		return OperationIDRoleDelete, nil
+	case string(`AccessPassList`):
+		return OperationIDAccessPassList, nil
+	case string(`AccessPassCreate`):
+		return OperationIDAccessPassCreate, nil
+	case string(`AccessPassUpdate`):
+		return OperationIDAccessPassUpdate, nil
+	case string(`AccessPassDelete`):
+		return OperationIDAccessPassDelete, nil
 	case string(`AuthProviderList`):
 		return OperationIDAuthProviderList, nil
 	case string(`AuthPasswordSignup`):

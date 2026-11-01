@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Southclaws/storyden/internal/ent/accessgrant"
 	"github.com/Southclaws/storyden/internal/ent/account"
 	"github.com/Southclaws/storyden/internal/ent/accountfollow"
 	"github.com/Southclaws/storyden/internal/ent/accountroles"
@@ -104,6 +105,7 @@ type AccountQuery struct {
 	withModerationNotes                   *ModerationNoteQuery
 	withAuthoredModerationNotes           *ModerationNoteQuery
 	withWarnings                          *WarningQuery
+	withAccessGrants                      *AccessGrantQuery
 	withAuthoredWarnings                  *WarningQuery
 	withRobots                            *RobotQuery
 	withRobotWorkspaces                   *RobotWorkspaceQuery
@@ -988,6 +990,28 @@ func (_q *AccountQuery) QueryWarnings() *WarningQuery {
 	return query
 }
 
+// QueryAccessGrants chains the current query on the "access_grants" edge.
+func (_q *AccountQuery) QueryAccessGrants() *AccessGrantQuery {
+	query := (&AccessGrantClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, selector),
+			sqlgraph.To(accessgrant.Table, accessgrant.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.AccessGrantsTable, account.AccessGrantsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryAuthoredWarnings chains the current query on the "authored_warnings" edge.
 func (_q *AccountQuery) QueryAuthoredWarnings() *WarningQuery {
 	query := (&WarningClient{config: _q.config}).Query()
@@ -1460,6 +1484,7 @@ func (_q *AccountQuery) Clone() *AccountQuery {
 		withModerationNotes:                   _q.withModerationNotes.Clone(),
 		withAuthoredModerationNotes:           _q.withAuthoredModerationNotes.Clone(),
 		withWarnings:                          _q.withWarnings.Clone(),
+		withAccessGrants:                      _q.withAccessGrants.Clone(),
 		withAuthoredWarnings:                  _q.withAuthoredWarnings.Clone(),
 		withRobots:                            _q.withRobots.Clone(),
 		withRobotWorkspaces:                   _q.withRobotWorkspaces.Clone(),
@@ -1896,6 +1921,17 @@ func (_q *AccountQuery) WithWarnings(opts ...func(*WarningQuery)) *AccountQuery 
 	return _q
 }
 
+// WithAccessGrants tells the query-builder to eager-load the nodes that are connected to
+// the "access_grants" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AccountQuery) WithAccessGrants(opts ...func(*AccessGrantQuery)) *AccountQuery {
+	query := (&AccessGrantClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAccessGrants = query
+	return _q
+}
+
 // WithAuthoredWarnings tells the query-builder to eager-load the nodes that are connected to
 // the "authored_warnings" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *AccountQuery) WithAuthoredWarnings(opts ...func(*WarningQuery)) *AccountQuery {
@@ -2095,7 +2131,7 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 	var (
 		nodes       = []*Account{}
 		_spec       = _q.querySpec()
-		loadedTypes = [49]bool{
+		loadedTypes = [50]bool{
 			_q.withSessions != nil,
 			_q.withPlugins != nil,
 			_q.withEmails != nil,
@@ -2134,6 +2170,7 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 			_q.withModerationNotes != nil,
 			_q.withAuthoredModerationNotes != nil,
 			_q.withWarnings != nil,
+			_q.withAccessGrants != nil,
 			_q.withAuthoredWarnings != nil,
 			_q.withRobots != nil,
 			_q.withRobotWorkspaces != nil,
@@ -2448,6 +2485,13 @@ func (_q *AccountQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Acco
 		if err := _q.loadWarnings(ctx, query, nodes,
 			func(n *Account) { n.Edges.Warnings = []*Warning{} },
 			func(n *Account, e *Warning) { n.Edges.Warnings = append(n.Edges.Warnings, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAccessGrants; query != nil {
+		if err := _q.loadAccessGrants(ctx, query, nodes,
+			func(n *Account) { n.Edges.AccessGrants = []*AccessGrant{} },
+			func(n *Account, e *AccessGrant) { n.Edges.AccessGrants = append(n.Edges.AccessGrants, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -3752,6 +3796,36 @@ func (_q *AccountQuery) loadWarnings(ctx context.Context, query *WarningQuery, n
 	}
 	query.Where(predicate.Warning(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(account.WarningsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AccountID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "account_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *AccountQuery) loadAccessGrants(ctx context.Context, query *AccessGrantQuery, nodes []*Account, init func(*Account), assign func(*Account, *AccessGrant)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[xid.ID]*Account)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(accessgrant.FieldAccountID)
+	}
+	query.Where(predicate.AccessGrant(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(account.AccessGrantsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

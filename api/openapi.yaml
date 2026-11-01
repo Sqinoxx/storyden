@@ -70,6 +70,10 @@ tags:
     description: Management of plugins.
   - name: roles
     description: Roles for permissions and aesthetics.
+  - name: access
+    description: |
+      Access passes gate categories behind an offline payment. Members who hold
+      an active grant for a pass may read everything under its categories.
   - name: auth
     description: Authentication resources.
   - name: accounts
@@ -1483,6 +1487,55 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { description: OK }
+
+  /access/passes:
+    get:
+      operationId: AccessPassList
+      description: |
+        List every access pass along with the categories each one unlocks.
+      tags: [access]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "200": { $ref: "#/components/responses/AccessPassListOK" }
+    post:
+      operationId: AccessPassCreate
+      description: Create an access pass that unlocks a set of categories.
+      tags: [access]
+      requestBody: { $ref: "#/components/requestBodies/AccessPassCreate" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AccessPassGetOK" }
+
+  /access/passes/{access_pass_id}:
+    patch:
+      operationId: AccessPassUpdate
+      description: Update an access pass, including the categories it unlocks.
+      tags: [access]
+      parameters: [{ $ref: "#/components/parameters/AccessPassIDParam" }]
+      requestBody: { $ref: "#/components/requestBodies/AccessPassUpdate" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/AccessPassGetOK" }
+    delete:
+      operationId: AccessPassDelete
+      description: |
+        Delete an access pass and every grant for it. Its categories become
+        readable by everyone again unless another pass still covers them.
+      tags: [access]
+      parameters: [{ $ref: "#/components/parameters/AccessPassIDParam" }]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
         "200": { description: OK }
 
   #
@@ -5200,6 +5253,14 @@ components:
       schema:
         $ref: "#/components/schemas/Identifier"
 
+    AccessPassIDParam:
+      description: Access pass ID
+      in: path
+      name: access_pass_id
+      required: true
+      schema:
+        $ref: "#/components/schemas/Identifier"
+
     AccessKeyIDParam:
       description: Access key ID.
       in: path
@@ -6139,6 +6200,16 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/RoleInitialProps" }
 
+    AccessPassCreate:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AccessPassInitialProps" }
+
+    AccessPassUpdate:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AccessPassMutableProps" }
+
     RoleUpdate:
       content:
         application/json:
@@ -6776,6 +6847,20 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AuditEventProps"
+
+    AccessPassListOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AccessPassListResult"
+
+    AccessPassGetOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AccessPass"
 
     RoleCreateOK:
       description: OK
@@ -9832,6 +9917,97 @@ components:
         - $ref: "#/components/schemas/CommonProperties"
         - $ref: "#/components/schemas/RoleProps"
 
+    AccessPassReference:
+      type: object
+      required: [id, name, price_label, colour]
+      properties:
+        id: { $ref: "#/components/schemas/Identifier" }
+        name: { type: string }
+        price_label:
+          type: string
+          description: Display-only price, payment happens off-platform.
+        colour: { type: string }
+
+    AccessPass:
+      allOf:
+        - $ref: "#/components/schemas/AccessPassReference"
+        - type: object
+          required:
+            - description
+            - payment_info
+            - sort
+            - requestable
+            - category_ids
+            - createdAt
+            - updatedAt
+          properties:
+            description: { type: string }
+            payment_info:
+              type: string
+              description: Instructions for paying the student council offline.
+            sort: { type: integer }
+            requestable: { type: boolean }
+            category_ids:
+              type: array
+              description: |
+                Categories this pass unlocks. Every descendant category is
+                unlocked as well.
+              items: { $ref: "#/components/schemas/Identifier" }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+
+    AccessPassList:
+      type: array
+      items: { $ref: "#/components/schemas/AccessPass" }
+
+    AccessPassListResult:
+      type: object
+      required: [passes]
+      properties:
+        passes: { $ref: "#/components/schemas/AccessPassList" }
+
+    AccessPassInitialProps:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string }
+        price_label: { type: string }
+        payment_info: { type: string }
+        colour: { type: string }
+        sort: { type: integer }
+        requestable: { type: boolean }
+        category_ids:
+          type: array
+          items: { $ref: "#/components/schemas/Identifier" }
+
+    AccessPassMutableProps:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string }
+        price_label: { type: string }
+        payment_info: { type: string }
+        colour: { type: string }
+        sort: { type: integer }
+        requestable: { type: boolean }
+        category_ids:
+          type: array
+          items: { $ref: "#/components/schemas/Identifier" }
+
+    ContentAccess:
+      type: object
+      description: |
+        Present when the content is withheld because the requester holds none
+        of the access passes covering its category. Body, replies and assets
+        are omitted, the title and metadata remain as a preview.
+      required: [locked, passes]
+      properties:
+        locked: { type: boolean }
+        passes:
+          type: array
+          items: { $ref: "#/components/schemas/AccessPassReference" }
+
     RoleListResult:
       type: object
       required: [roles]
@@ -9986,6 +10162,7 @@ components:
         - "VIEW_ACCOUNTS"
         - "VIEW_MODERATION_NOTES"
         - "MANAGE_MODERATION_NOTES"
+        - "MANAGE_ACCESS"
         # Robots
         - "USE_ROBOTS"
         - "MANAGE_ROBOTS"
@@ -12371,6 +12548,7 @@ components:
           type: string
           format: date-time
           description: The time of the last reply to the thread.
+        access: { $ref: "#/components/schemas/ContentAccess" }
 
     ReadStatus:
       description: |

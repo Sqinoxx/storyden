@@ -9,6 +9,30 @@ import (
 	"github.com/Southclaws/storyden/internal/ent"
 )
 
+// The AccessGrantFunc type is an adapter to allow the use of ordinary
+// function as AccessGrant mutator.
+type AccessGrantFunc func(context.Context, *ent.AccessGrantMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AccessGrantFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AccessGrantMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccessGrantMutation", m)
+}
+
+// The AccessPassFunc type is an adapter to allow the use of ordinary
+// function as AccessPass mutator.
+type AccessPassFunc func(context.Context, *ent.AccessPassMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AccessPassFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AccessPassMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccessPassMutation", m)
+}
+
 // The AccountFunc type is an adapter to allow the use of ordinary
 // function as Account mutator.
 type AccountFunc func(context.Context, *ent.AccountMutation) (ent.Value, error)

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Southclaws/storyden/internal/ent/accesspass"
 	"github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/ent/category"
 	"github.com/Southclaws/storyden/internal/ent/post"
@@ -279,6 +280,21 @@ func (_u *CategoryUpdate) AddRelated(v ...*Category) *CategoryUpdate {
 	return _u.AddRelatedIDs(ids...)
 }
 
+// AddAccessPassIDs adds the "access_passes" edge to the AccessPass entity by IDs.
+func (_u *CategoryUpdate) AddAccessPassIDs(ids ...xid.ID) *CategoryUpdate {
+	_u.mutation.AddAccessPassIDs(ids...)
+	return _u
+}
+
+// AddAccessPasses adds the "access_passes" edges to the AccessPass entity.
+func (_u *CategoryUpdate) AddAccessPasses(v ...*AccessPass) *CategoryUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAccessPassIDs(ids...)
+}
+
 // Mutation returns the CategoryMutation object of the builder.
 func (_u *CategoryUpdate) Mutation() *CategoryMutation {
 	return _u.mutation
@@ -378,6 +394,27 @@ func (_u *CategoryUpdate) RemoveRelated(v ...*Category) *CategoryUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveRelatedIDs(ids...)
+}
+
+// ClearAccessPasses clears all "access_passes" edges to the AccessPass entity.
+func (_u *CategoryUpdate) ClearAccessPasses() *CategoryUpdate {
+	_u.mutation.ClearAccessPasses()
+	return _u
+}
+
+// RemoveAccessPassIDs removes the "access_passes" edge to AccessPass entities by IDs.
+func (_u *CategoryUpdate) RemoveAccessPassIDs(ids ...xid.ID) *CategoryUpdate {
+	_u.mutation.RemoveAccessPassIDs(ids...)
+	return _u
+}
+
+// RemoveAccessPasses removes "access_passes" edges to AccessPass entities.
+func (_u *CategoryUpdate) RemoveAccessPasses(v ...*AccessPass) *CategoryUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAccessPassIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -699,6 +736,51 @@ func (_u *CategoryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AccessPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.AccessPassesTable,
+			Columns: category.AccessPassesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accesspass.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAccessPassesIDs(); len(nodes) > 0 && !_u.mutation.AccessPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.AccessPassesTable,
+			Columns: category.AccessPassesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accesspass.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AccessPassesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.AccessPassesTable,
+			Columns: category.AccessPassesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accesspass.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(_u.modifiers...)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -968,6 +1050,21 @@ func (_u *CategoryUpdateOne) AddRelated(v ...*Category) *CategoryUpdateOne {
 	return _u.AddRelatedIDs(ids...)
 }
 
+// AddAccessPassIDs adds the "access_passes" edge to the AccessPass entity by IDs.
+func (_u *CategoryUpdateOne) AddAccessPassIDs(ids ...xid.ID) *CategoryUpdateOne {
+	_u.mutation.AddAccessPassIDs(ids...)
+	return _u
+}
+
+// AddAccessPasses adds the "access_passes" edges to the AccessPass entity.
+func (_u *CategoryUpdateOne) AddAccessPasses(v ...*AccessPass) *CategoryUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAccessPassIDs(ids...)
+}
+
 // Mutation returns the CategoryMutation object of the builder.
 func (_u *CategoryUpdateOne) Mutation() *CategoryMutation {
 	return _u.mutation
@@ -1067,6 +1164,27 @@ func (_u *CategoryUpdateOne) RemoveRelated(v ...*Category) *CategoryUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveRelatedIDs(ids...)
+}
+
+// ClearAccessPasses clears all "access_passes" edges to the AccessPass entity.
+func (_u *CategoryUpdateOne) ClearAccessPasses() *CategoryUpdateOne {
+	_u.mutation.ClearAccessPasses()
+	return _u
+}
+
+// RemoveAccessPassIDs removes the "access_passes" edge to AccessPass entities by IDs.
+func (_u *CategoryUpdateOne) RemoveAccessPassIDs(ids ...xid.ID) *CategoryUpdateOne {
+	_u.mutation.RemoveAccessPassIDs(ids...)
+	return _u
+}
+
+// RemoveAccessPasses removes "access_passes" edges to AccessPass entities.
+func (_u *CategoryUpdateOne) RemoveAccessPasses(v ...*AccessPass) *CategoryUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAccessPassIDs(ids...)
 }
 
 // Where appends a list predicates to the CategoryUpdate builder.
@@ -1411,6 +1529,51 @@ func (_u *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AccessPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.AccessPassesTable,
+			Columns: category.AccessPassesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accesspass.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAccessPassesIDs(); len(nodes) > 0 && !_u.mutation.AccessPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.AccessPassesTable,
+			Columns: category.AccessPassesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accesspass.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AccessPassesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   category.AccessPassesTable,
+			Columns: category.AccessPassesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accesspass.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

@@ -8,6 +8,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 import type { CategoryReference } from "./categoryReference";
+import type { ContentAccess } from "./contentAccess";
 import type { LinkReference } from "./linkReference";
 import type { PinnedRank } from "./pinnedRank";
 import type { ReadStatus } from "./readStatus";
@@ -15,6 +16,7 @@ import type { ReplyStatus } from "./replyStatus";
 import type { TagReferenceList } from "./tagReferenceList";
 
 export interface ThreadReferenceProps {
+  access?: ContentAccess;
   category?: CategoryReference;
   /** The time of the last reply to the thread. */
   last_reply_at?: string;

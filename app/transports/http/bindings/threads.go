@@ -23,6 +23,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/sortrule"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
 	"github.com/Southclaws/storyden/app/resources/visibility"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/reqinfo"
 	thread_service "github.com/Southclaws/storyden/app/services/thread"
@@ -38,6 +39,7 @@ type Threads struct {
 	accountQuery    *account_querier.Querier
 	profileQuery    *profile_querier.Querier
 	settings        *settings.SettingsRepository
+	access          *access_check.Checker
 }
 
 func NewThreads(
@@ -47,8 +49,9 @@ func NewThreads(
 	accountQuery *account_querier.Querier,
 	profileQuery *profile_querier.Querier,
 	settings *settings.SettingsRepository,
+	access *access_check.Checker,
 ) Threads {
-	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings}
+	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings, access}
 }
 
 func (i *Threads) pageSizes(ctx context.Context) (replies int, threads int) {
@@ -279,7 +282,16 @@ func (i *Threads) ThreadGet(ctx context.Context, request openapi.ThreadGetReques
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	etag, notModified := i.thread_cache.Check(ctx, reqinfo.GetCacheQuery(ctx), xid.ID(postID))
+	covered, err := i.access.Covered(ctx, xid.ID(postID))
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	var etag *cachecontrol.ETag
+	notModified := false
+	if !covered {
+		etag, notModified = i.thread_cache.Check(ctx, reqinfo.GetCacheQuery(ctx), xid.ID(postID))
+	}
 	if notModified {
 		return openapi.ThreadGet304Response{
 			Headers: openapi.NotModifiedResponseHeaders{

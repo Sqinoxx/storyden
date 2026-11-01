@@ -38,6 +38,7 @@ oneOf:
   - $ref: "#/$defs/VIEW_ACCOUNTS"
   - $ref: "#/$defs/VIEW_MODERATION_NOTES"
   - $ref: "#/$defs/MANAGE_MODERATION_NOTES"
+  - $ref: "#/$defs/MANAGE_ACCESS"
   - $ref: "#/$defs/USE_ROBOTS"
   - $ref: "#/$defs/MANAGE_ROBOTS"
   - $ref: "#/$defs/ADMINISTRATOR"
@@ -240,6 +241,12 @@ $defs:
     const: MANAGE_MODERATION_NOTES
     title: Manage moderation notes
     description: Create and delete internal staff-only moderation notes attached to member accounts.
+
+  MANAGE_ACCESS:
+    type: string
+    const: MANAGE_ACCESS
+    title: Manage access passes
+    description: Create access passes and grant or revoke members' access to paid categories.
 
   USE_ROBOTS:
     type: string

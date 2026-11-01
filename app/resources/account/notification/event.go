@@ -24,4 +24,8 @@ const (
 	eventNodeVersionDeleted   eventEnum = "node_version_deleted"
 	eventListingOfferReceived eventEnum = "listing_offer_received"
 	eventListingExpiring      eventEnum = "listing_expiring"
+	eventAccessRequested      eventEnum = "access_requested"
+	eventAccessGranted        eventEnum = "access_granted"
+	eventAccessRejected       eventEnum = "access_rejected"
+	eventAccessExpiring       eventEnum = "access_expiring"
 )

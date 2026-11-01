@@ -86,6 +86,11 @@ var (
 	OperationIDAccessPassCreate                       = OperationID{`AccessPassCreate`}
 	OperationIDAccessPassUpdate                       = OperationID{`AccessPassUpdate`}
 	OperationIDAccessPassDelete                       = OperationID{`AccessPassDelete`}
+	OperationIDAccessPassRequest                      = OperationID{`AccessPassRequest`}
+	OperationIDAccessPassRequestWithdraw              = OperationID{`AccessPassRequestWithdraw`}
+	OperationIDAccessGrantSet                         = OperationID{`AccessGrantSet`}
+	OperationIDAccessGrantRemove                      = OperationID{`AccessGrantRemove`}
+	OperationIDAccessGrantList                        = OperationID{`AccessGrantList`}
 	OperationIDAuthProviderList                       = OperationID{`AuthProviderList`}
 	OperationIDAuthPasswordSignup                     = OperationID{`AuthPasswordSignup`}
 	OperationIDAuthPasswordSignin                     = OperationID{`AuthPasswordSignin`}
@@ -481,6 +486,16 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAccessPassUpdate, nil
 	case string(`AccessPassDelete`):
 		return OperationIDAccessPassDelete, nil
+	case string(`AccessPassRequest`):
+		return OperationIDAccessPassRequest, nil
+	case string(`AccessPassRequestWithdraw`):
+		return OperationIDAccessPassRequestWithdraw, nil
+	case string(`AccessGrantSet`):
+		return OperationIDAccessGrantSet, nil
+	case string(`AccessGrantRemove`):
+		return OperationIDAccessGrantRemove, nil
+	case string(`AccessGrantList`):
+		return OperationIDAccessGrantList, nil
 	case string(`AuthProviderList`):
 		return OperationIDAuthProviderList, nil
 	case string(`AuthPasswordSignup`):

@@ -1538,6 +1538,100 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "200": { description: OK }
 
+  /access/passes/{access_pass_id}/request:
+    post:
+      operationId: AccessPassRequest
+      description: |
+        Ask for access to a pass. The member receives a reference code to put
+        on their offline payment, and everyone who manages access is notified.
+        Requesting a pass already held changes nothing.
+      tags: [access]
+      parameters: [{ $ref: "#/components/parameters/AccessPassIDParam" }]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/AccessPassGetOK" }
+    delete:
+      operationId: AccessPassRequestWithdraw
+      description: Withdraw a pending request for a pass.
+      tags: [access]
+      parameters: [{ $ref: "#/components/parameters/AccessPassIDParam" }]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/AccessPassGetOK" }
+
+  /access/passes/{access_pass_id}/grants/{account_handle}:
+    put:
+      operationId: AccessGrantSet
+      description: |
+        Activate a member's access to a pass, typically once their offline
+        payment has arrived. Works with or without a prior request and also
+        extends or shortens an existing grant. Omitting `expires_at` grants
+        access indefinitely.
+      tags: [access]
+      parameters:
+        - $ref: "#/components/parameters/AccessPassIDParam"
+        - $ref: "#/components/parameters/AccountHandleParam"
+      requestBody: { $ref: "#/components/requestBodies/AccessGrantSet" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/AccessGrantOK" }
+    delete:
+      operationId: AccessGrantRemove
+      description: |
+        Reject a pending request or revoke an active grant. The record is kept
+        so the history of who was granted what remains visible.
+      tags: [access]
+      parameters:
+        - $ref: "#/components/parameters/AccessPassIDParam"
+        - $ref: "#/components/parameters/AccountHandleParam"
+        - name: action
+          in: query
+          required: true
+          schema: { $ref: "#/components/schemas/AccessGrantRemoveAction" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/AccessGrantOK" }
+
+  /access/grants:
+    get:
+      operationId: AccessGrantList
+      description: |
+        List grants across all passes for people who manage access, newest
+        activity first. Filter by status to see open requests.
+      tags: [access]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/AccessGrantStatus" }
+        - name: pass_id
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/Identifier" }
+        - name: account_handle
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/AccountHandle" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AccessGrantListOK" }
+
   #
   #                   888    888
   #                   888    888
@@ -6210,6 +6304,11 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/AccessPassMutableProps" }
 
+    AccessGrantSet:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AccessGrantMutableProps" }
+
     RoleUpdate:
       content:
         application/json:
@@ -6861,6 +6960,20 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AccessPass"
+
+    AccessGrantOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AccessGrant"
+
+    AccessGrantListOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AccessGrantListResult"
 
     RoleCreateOK:
       description: OK
@@ -9260,6 +9373,7 @@ components:
         - account_warning_deleted
         - account_password_reset_token_issued
         - account_password_reset_email_sent
+        - access_grant_updated
 
     AuditEventProps:
       required: [id, type, timestamp]
@@ -9289,6 +9403,7 @@ components:
           account_warning_deleted: "#/components/schemas/AuditEventAccountWarningDeleted"
           account_password_reset_token_issued: "#/components/schemas/AuditEventAccountPasswordResetTokenIssued"
           account_password_reset_email_sent: "#/components/schemas/AuditEventAccountPasswordResetEmailSent"
+          access_grant_updated: "#/components/schemas/AuditEventAccessGrantUpdated"
       oneOf:
         - $ref: "#/components/schemas/AuditEventThreadDeleted"
         - $ref: "#/components/schemas/AuditEventThreadReplyDeleted"
@@ -9302,6 +9417,19 @@ components:
         - $ref: "#/components/schemas/AuditEventAccountWarningDeleted"
         - $ref: "#/components/schemas/AuditEventAccountPasswordResetTokenIssued"
         - $ref: "#/components/schemas/AuditEventAccountPasswordResetEmailSent"
+        - $ref: "#/components/schemas/AuditEventAccessGrantUpdated"
+
+    AuditEventAccessGrantUpdated:
+      type: object
+      required: [type, account_id, pass_id, pass_name, status]
+      properties:
+        type: { $ref: "#/components/schemas/AuditEventType" }
+        account_id: { $ref: "#/components/schemas/Identifier" }
+        pass_id: { $ref: "#/components/schemas/Identifier" }
+        pass_name: { type: string }
+        status: { $ref: "#/components/schemas/AccessGrantStatus" }
+        expires_at: { type: string, format: date-time }
+        note: { type: string }
 
     AuditEventThreadDeleted:
       type: object
@@ -9955,6 +10083,79 @@ components:
               items: { $ref: "#/components/schemas/Identifier" }
             createdAt: { type: string, format: date-time }
             updatedAt: { type: string, format: date-time }
+            membership: { $ref: "#/components/schemas/AccessPassMembership" }
+
+    AccessPassMembership:
+      type: object
+      description: |
+        The requesting member's own standing for a pass. Absent for guests and
+        for members who never requested or held it.
+      required: [status, reference_code]
+      properties:
+        status: { $ref: "#/components/schemas/AccessGrantStatus" }
+        reference_code:
+          type: string
+          description: Put this on the offline payment so it can be matched.
+        expires_at: { type: string, format: date-time }
+        requested_at: { type: string, format: date-time }
+        decided_at: { type: string, format: date-time }
+
+    AccessGrantStatus:
+      type: string
+      description: |
+        `expired` is never stored, it describes an active grant whose expiry
+        date has passed.
+      enum: [requested, active, expired, rejected, revoked]
+
+    AccessGrantRemoveAction:
+      type: string
+      enum: [reject, revoke]
+
+    AccessGrant:
+      type: object
+      required:
+        - id
+        - pass
+        - account
+        - status
+        - reference_code
+        - note
+        - createdAt
+        - updatedAt
+      properties:
+        id: { $ref: "#/components/schemas/Identifier" }
+        pass: { $ref: "#/components/schemas/AccessPassReference" }
+        account: { $ref: "#/components/schemas/ProfileReference" }
+        status: { $ref: "#/components/schemas/AccessGrantStatus" }
+        reference_code: { type: string }
+        expires_at: { type: string, format: date-time }
+        requested_at: { type: string, format: date-time }
+        decided_at: { type: string, format: date-time }
+        decided_by: { $ref: "#/components/schemas/ProfileReference" }
+        note:
+          type: string
+          description: Internal note for whoever manages access.
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    AccessGrantList:
+      type: array
+      items: { $ref: "#/components/schemas/AccessGrant" }
+
+    AccessGrantListResult:
+      type: object
+      required: [grants]
+      properties:
+        grants: { $ref: "#/components/schemas/AccessGrantList" }
+
+    AccessGrantMutableProps:
+      type: object
+      properties:
+        expires_at:
+          type: string
+          format: date-time
+          description: Leave out to grant access with no end date.
+        note: { type: string }
 
     AccessPassList:
       type: array
@@ -11858,6 +12059,10 @@ components:
         - node_version_deleted
         - listing_offer_received
         - listing_expiring
+        - access_requested
+        - access_granted
+        - access_rejected
+        - access_expiring
 
     NotificationStatus:
       type: string

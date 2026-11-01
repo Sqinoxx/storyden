@@ -17,4 +17,5 @@ const (
 	eventTypeAccountWarningDeleted           eventTypeEnum = "account_warning_deleted"
 	eventTypeAccountPasswordResetTokenIssued eventTypeEnum = "account_password_reset_token_issued"
 	eventTypeAccountPasswordResetEmailSent   eventTypeEnum = "account_password_reset_email_sent"
+	eventTypeAccessGrantUpdated              eventTypeEnum = "access_grant_updated"
 )

@@ -286,6 +286,26 @@ func (m *Mapping) AccessPassDelete() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageAccess
 }
 
+func (m *Mapping) AccessPassRequest() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) AccessPassRequestWithdraw() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) AccessGrantSet() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
+func (m *Mapping) AccessGrantRemove() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
+func (m *Mapping) AccessGrantList() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
 func (m *Mapping) RoleCreate() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageRoles
 }

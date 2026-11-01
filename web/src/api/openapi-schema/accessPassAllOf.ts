@@ -7,6 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
+import type { AccessPassMembership } from "./accessPassMembership";
 import type { Identifier } from "./identifier";
 
 export type AccessPassAllOf = {
@@ -16,6 +17,7 @@ unlocked as well.
   category_ids: Identifier[];
   createdAt: string;
   description: string;
+  membership?: AccessPassMembership;
   /** Instructions for paying the student council offline. */
   payment_info: string;
   requestable: boolean;

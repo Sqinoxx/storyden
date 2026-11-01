@@ -19,9 +19,11 @@ import (
 	"github.com/Southclaws/storyden/app/resources/access"
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/post/category"
+	"github.com/Southclaws/storyden/app/resources/profile"
 	"github.com/Southclaws/storyden/internal/ent"
 	"github.com/Southclaws/storyden/internal/ent/accessgrant"
 	"github.com/Southclaws/storyden/internal/ent/accesspass"
+	ent_account "github.com/Southclaws/storyden/internal/ent/account"
 	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	ent_category "github.com/Southclaws/storyden/internal/ent/category"
 	ent_post "github.com/Southclaws/storyden/internal/ent/post"
@@ -271,6 +273,151 @@ func (r *Repository) ListAccountGrants(ctx context.Context, accountID account.Ac
 	}
 
 	return dt.MapErr(gs, access.MapGrant)
+}
+
+type GrantFilter struct {
+	Status    opt.Optional[string]
+	PassID    opt.Optional[access.PassID]
+	AccountID opt.Optional[account.AccountID]
+}
+
+func withMember(aq *ent.AccountQuery) {
+	aq.WithAccountRoles(func(arq *ent.AccountRolesQuery) {
+		arq.WithRole()
+	})
+}
+
+func (r *Repository) ListGrants(ctx context.Context, filter GrantFilter, now time.Time) ([]*access.Grant, error) {
+	q := r.db.AccessGrant.Query().
+		WithAccount(withMember).
+		WithPass().
+		Order(ent.Desc(accessgrant.FieldUpdatedAt))
+
+	if status, ok := filter.Status.Get(); ok {
+		switch status {
+		case "expired":
+			q.Where(accessgrant.StatusEQ(accessgrant.StatusActive), accessgrant.ExpiresAtLTE(now))
+		case "active":
+			q.Where(accessgrant.StatusEQ(accessgrant.StatusActive), accessgrant.Or(
+				accessgrant.ExpiresAtIsNil(),
+				accessgrant.ExpiresAtGT(now),
+			))
+		default:
+			q.Where(accessgrant.StatusEQ(accessgrant.Status(status)))
+		}
+	}
+	filter.PassID.Call(func(id access.PassID) { q.Where(accessgrant.PassID(xid.ID(id))) })
+	filter.AccountID.Call(func(id account.AccountID) { q.Where(accessgrant.AccountID(xid.ID(id))) })
+
+	gs, err := q.All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return r.withDeciders(ctx, gs)
+}
+
+func (r *Repository) GetGrantDetailed(ctx context.Context, accountID account.AccountID, passID access.PassID) (*access.Grant, error) {
+	g, err := r.db.AccessGrant.Query().
+		Where(
+			accessgrant.AccountID(xid.ID(accountID)),
+			accessgrant.PassID(xid.ID(passID)),
+		).
+		WithAccount(withMember).
+		WithPass().
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.NotFound), fmsg.With("grant not found"))
+		}
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	gs, err := r.withDeciders(ctx, []*ent.AccessGrant{g})
+	if err != nil {
+		return nil, err
+	}
+
+	return gs[0], nil
+}
+
+// withDeciders maps grants and attaches the profile of whoever decided each
+// one. decided_by is a plain column rather than an edge so deleting a manager
+// does not wipe the history of what they granted.
+func (r *Repository) withDeciders(ctx context.Context, gs []*ent.AccessGrant) ([]*access.Grant, error) {
+	ids := []xid.ID{}
+	for _, g := range gs {
+		if g.DecidedBy != nil {
+			ids = append(ids, *g.DecidedBy)
+		}
+	}
+
+	deciders := map[xid.ID]profile.Ref{}
+	if len(ids) > 0 {
+		accs, err := r.db.Account.Query().
+			Where(ent_account.IDIn(ids...)).
+			WithAccountRoles(func(arq *ent.AccountRolesQuery) { arq.WithRole() }).
+			All(ctx)
+		if err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+		for _, a := range accs {
+			ref, err := profile.MapRef(a)
+			if err != nil {
+				return nil, fault.Wrap(err, fctx.With(ctx))
+			}
+			deciders[a.ID] = *ref
+		}
+	}
+
+	out := make([]*access.Grant, 0, len(gs))
+	for _, g := range gs {
+		mapped, err := access.MapGrant(g)
+		if err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+		if g.DecidedBy != nil {
+			if ref, ok := deciders[*g.DecidedBy]; ok {
+				mapped.DecidedByMember = opt.New(ref)
+			}
+		}
+		out = append(out, mapped)
+	}
+
+	return out, nil
+}
+
+func (r *Repository) DeleteGrant(ctx context.Context, id access.GrantID) error {
+	if err := r.db.AccessGrant.DeleteOneID(xid.ID(id)).Exec(ctx); err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+	return nil
+}
+
+// ListExpiringUnnotified finds active grants that lapse within the window and
+// whose holder has not been warned yet.
+func (r *Repository) ListExpiringUnnotified(ctx context.Context, now, until time.Time) ([]*access.Grant, error) {
+	gs, err := r.db.AccessGrant.Query().
+		Where(
+			accessgrant.StatusEQ(accessgrant.StatusActive),
+			accessgrant.ExpiresAtGT(now),
+			accessgrant.ExpiresAtLTE(until),
+			accessgrant.ExpiryNotifiedAtIsNil(),
+		).
+		WithPass().
+		All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return dt.MapErr(gs, access.MapGrant)
+}
+
+func (r *Repository) MarkExpiryNotified(ctx context.Context, id access.GrantID, at time.Time) error {
+	if err := r.db.AccessGrant.UpdateOneID(xid.ID(id)).SetExpiryNotifiedAt(at).Exec(ctx); err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+	return nil
 }
 
 // HeldPassIDs returns the passes the account currently holds an effective

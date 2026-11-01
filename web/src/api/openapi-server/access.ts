@@ -8,6 +8,11 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 import type {
+  AccessGrantListOKResponse,
+  AccessGrantListParams,
+  AccessGrantOKResponse,
+  AccessGrantRemoveParams,
+  AccessGrantSetBody,
   AccessPassCreateBody,
   AccessPassGetOKResponse,
   AccessPassListOKResponse,
@@ -112,6 +117,175 @@ export const accessPassDelete = async (
     {
       ...options,
       method: "DELETE",
+    },
+  );
+};
+
+/**
+ * Ask for access to a pass. The member receives a reference code to put
+on their offline payment, and everyone who manages access is notified.
+Requesting a pass already held changes nothing.
+
+ */
+export type accessPassRequestResponse = {
+  data: AccessPassGetOKResponse;
+  status: number;
+};
+
+export const getAccessPassRequestUrl = (accessPassId: string) => {
+  return `/access/passes/${accessPassId}/request`;
+};
+
+export const accessPassRequest = async (
+  accessPassId: string,
+  options?: RequestInit,
+): Promise<accessPassRequestResponse> => {
+  return fetcher<Promise<accessPassRequestResponse>>(
+    getAccessPassRequestUrl(accessPassId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+/**
+ * Withdraw a pending request for a pass.
+ */
+export type accessPassRequestWithdrawResponse = {
+  data: AccessPassGetOKResponse;
+  status: number;
+};
+
+export const getAccessPassRequestWithdrawUrl = (accessPassId: string) => {
+  return `/access/passes/${accessPassId}/request`;
+};
+
+export const accessPassRequestWithdraw = async (
+  accessPassId: string,
+  options?: RequestInit,
+): Promise<accessPassRequestWithdrawResponse> => {
+  return fetcher<Promise<accessPassRequestWithdrawResponse>>(
+    getAccessPassRequestWithdrawUrl(accessPassId),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+/**
+ * Activate a member's access to a pass, typically once their offline
+payment has arrived. Works with or without a prior request and also
+extends or shortens an existing grant. Omitting `expires_at` grants
+access indefinitely.
+
+ */
+export type accessGrantSetResponse = {
+  data: AccessGrantOKResponse;
+  status: number;
+};
+
+export const getAccessGrantSetUrl = (
+  accessPassId: string,
+  accountHandle: string,
+) => {
+  return `/access/passes/${accessPassId}/grants/${accountHandle}`;
+};
+
+export const accessGrantSet = async (
+  accessPassId: string,
+  accountHandle: string,
+  accessGrantSetBody: AccessGrantSetBody,
+  options?: RequestInit,
+): Promise<accessGrantSetResponse> => {
+  return fetcher<Promise<accessGrantSetResponse>>(
+    getAccessGrantSetUrl(accessPassId, accountHandle),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(accessGrantSetBody),
+    },
+  );
+};
+
+/**
+ * Reject a pending request or revoke an active grant. The record is kept
+so the history of who was granted what remains visible.
+
+ */
+export type accessGrantRemoveResponse = {
+  data: AccessGrantOKResponse;
+  status: number;
+};
+
+export const getAccessGrantRemoveUrl = (
+  accessPassId: string,
+  accountHandle: string,
+  params: AccessGrantRemoveParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  return normalizedParams.size
+    ? `/access/passes/${accessPassId}/grants/${accountHandle}?${normalizedParams.toString()}`
+    : `/access/passes/${accessPassId}/grants/${accountHandle}`;
+};
+
+export const accessGrantRemove = async (
+  accessPassId: string,
+  accountHandle: string,
+  params: AccessGrantRemoveParams,
+  options?: RequestInit,
+): Promise<accessGrantRemoveResponse> => {
+  return fetcher<Promise<accessGrantRemoveResponse>>(
+    getAccessGrantRemoveUrl(accessPassId, accountHandle, params),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+/**
+ * List grants across all passes for people who manage access, newest
+activity first. Filter by status to see open requests.
+
+ */
+export type accessGrantListResponse = {
+  data: AccessGrantListOKResponse;
+  status: number;
+};
+
+export const getAccessGrantListUrl = (params?: AccessGrantListParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  return normalizedParams.size
+    ? `/access/grants?${normalizedParams.toString()}`
+    : `/access/grants`;
+};
+
+export const accessGrantList = async (
+  params?: AccessGrantListParams,
+  options?: RequestInit,
+): Promise<accessGrantListResponse> => {
+  return fetcher<Promise<accessGrantListResponse>>(
+    getAccessGrantListUrl(params),
+    {
+      ...options,
+      method: "GET",
     },
   );
 };

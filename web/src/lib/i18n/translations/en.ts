@@ -812,6 +812,10 @@ export const en = {
       nodeVersionDeleted: "discarded your draft",
       listingOfferReceived: "made an offer on your listing",
       listingExpiring: "your listing expires in 3 days",
+      accessRequested: "requested access to a pass",
+      accessGranted: "unlocked your access",
+      accessRejected: "declined your access request",
+      accessExpiring: "your access expires in 14 days",
     },
   },
   toasts: {

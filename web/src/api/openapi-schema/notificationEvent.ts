@@ -36,4 +36,8 @@ export const NotificationEvent = {
   node_version_deleted: "node_version_deleted",
   listing_offer_received: "listing_offer_received",
   listing_expiring: "listing_expiring",
+  access_requested: "access_requested",
+  access_granted: "access_granted",
+  access_rejected: "access_rejected",
+  access_expiring: "access_expiring",
 } as const;

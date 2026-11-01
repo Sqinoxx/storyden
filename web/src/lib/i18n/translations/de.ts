@@ -815,6 +815,10 @@ export const de: Translations = {
       nodeVersionDeleted: "hat deinen Entwurf verworfen",
       listingOfferReceived: "hat ein Angebot für dein Inserat gemacht",
       listingExpiring: "dein Inserat läuft in 3 Tagen ab",
+      accessRequested: "hat Zugang zu einem Paket angefragt",
+      accessGranted: "hat deinen Zugang freigeschaltet",
+      accessRejected: "hat deine Zugangsanfrage abgelehnt",
+      accessExpiring: "dein Zugang läuft in 14 Tagen ab",
     },
   },
   toasts: {

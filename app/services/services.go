@@ -4,6 +4,8 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/Southclaws/storyden/app/services/access/access_check"
+	"github.com/Southclaws/storyden/app/services/access/access_expiry"
+	"github.com/Southclaws/storyden/app/services/access/access_manage"
 	"github.com/Southclaws/storyden/app/services/account"
 	"github.com/Southclaws/storyden/app/services/account/account_auth"
 	"github.com/Southclaws/storyden/app/services/account/account_email"
@@ -107,7 +109,8 @@ func Build() fx.Option {
 		semester.Build(),
 		drive_credentials.Build(),
 		fx.Provide(drive_manage.New, drive_browse.New),
-		fx.Provide(access_check.New),
+		fx.Provide(access_check.New, access_manage.New),
+		access_expiry.Build(),
 		fx.Provide(account_auth.New, account_email.New),
 		fx.Provide(settings_manager.New),
 		fx.Provide(bug_report.New),

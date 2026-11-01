@@ -9,6 +9,7 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/post/category"
+	"github.com/Southclaws/storyden/app/resources/profile"
 	"github.com/Southclaws/storyden/internal/ent"
 )
 
@@ -64,6 +65,19 @@ type Grant struct {
 	Note          string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+
+	Account         opt.Optional[profile.Ref]
+	Pass            opt.Optional[PassRef]
+	DecidedByMember opt.Optional[profile.Ref]
+}
+
+// DisplayStatus is what members and managers see: an active grant past its
+// expiry reads as expired even though nothing was written when it lapsed.
+func (g *Grant) DisplayStatus(now time.Time) string {
+	if g.Status == GrantStatusActive && !g.IsEffective(now) {
+		return "expired"
+	}
+	return g.Status.String()
 }
 
 func (g *Grant) IsEffective(now time.Time) bool {
@@ -114,7 +128,22 @@ func MapGrant(in *ent.AccessGrant) (*Grant, error) {
 		return nil, err
 	}
 
+	acc, err := opt.MapErr(opt.NewPtr(in.Edges.Account), func(a ent.Account) (profile.Ref, error) {
+		r, err := profile.MapRef(&a)
+		if err != nil {
+			return profile.Ref{}, err
+		}
+		return *r, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	pass := opt.Map(opt.NewPtr(in.Edges.Pass), func(p ent.AccessPass) PassRef { return MapPassRef(&p) })
+
 	return &Grant{
+		Account:       acc,
+		Pass:          pass,
 		ID:            GrantID(in.ID),
 		AccountID:     account.AccountID(in.AccountID),
 		PassID:        PassID(in.PassID),

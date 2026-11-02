@@ -562,6 +562,7 @@ export const en = {
     deletingNote: "Deleting note...",
     noteDeleted: "Moderator note deleted.",
     purgeTitle: "Purge account content: {handle}",
+    handleSuggestion: "Use \"{handle}\" instead",
   },
   tags: {
     indexTitle: "Tags",
@@ -878,6 +879,7 @@ export const en = {
     enterName: "Please enter a name.",
     enterHandle: "Please enter a handle",
     handleMaxLength: "Handle must be 30 characters or less",
+    handleFormat: "Handle may only contain lowercase letters, numbers, hyphens and underscores. No capital letters, spaces or special characters.",
     enterTitle: "Please enter a title.",
     passwordMismatch: "The provided password did not match the account.",
     tooManyRequests: "Too Many Requests",

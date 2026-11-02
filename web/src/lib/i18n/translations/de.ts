@@ -564,6 +564,7 @@ export const de: Translations = {
     deletingNote: "Notiz wird gelöscht...",
     noteDeleted: "Moderatoren-Notiz gelöscht.",
     purgeTitle: "Konto-Inhalte löschen: {handle}",
+    handleSuggestion: "Stattdessen „{handle}“ verwenden",
   },
   tags: {
     indexTitle: "Tags",
@@ -881,6 +882,7 @@ export const de: Translations = {
     enterName: "Bitte gib einen Namen ein.",
     enterHandle: "Bitte gib einen Benutzernamen ein",
     handleMaxLength: "Der Benutzername darf höchstens 30 Zeichen lang sein",
+    handleFormat: "Der Benutzername darf nur Kleinbuchstaben, Zahlen, Bindestriche und Unterstriche enthalten. Keine Großbuchstaben, Leerzeichen oder Sonderzeichen.",
     enterTitle: "Bitte gib einen Titel ein.",
     passwordMismatch: "Benutzername oder Passwort ist falsch.",
     tooManyRequests: "Zu viele fehlgeschlagene Anmeldeversuche. Bitte versuche es später erneut.",

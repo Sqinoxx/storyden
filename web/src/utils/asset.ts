@@ -1,12 +1,20 @@
 import { API_ADDRESS } from "@/config";
 
-export function getAssetURL(filename?: string) {
+/**
+ * With a downloadName, the API names the file that way in Content-Disposition,
+ * so a browser's own PDF viewer saves it under the same name as downloadAsset.
+ */
+export function getAssetURL(filename?: string, downloadName?: string) {
   if (!filename) return "";
   if (filename.startsWith("http://") || filename.startsWith("https://")) {
     return filename;
   }
   const prefix = filename.startsWith("/") ? "" : "/";
-  return `${API_ADDRESS}${prefix}${filename}`;
+  const url = `${API_ADDRESS}${prefix}${filename}`;
+  if (!downloadName) return url;
+
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}filename=${encodeURIComponent(downloadName)}`;
 }
 
 /**

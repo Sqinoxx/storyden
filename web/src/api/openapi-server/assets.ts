@@ -10,6 +10,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 import type {
   AssetDownloadOKResponse,
   AssetDownloadPartialResponse,
+  AssetGetParams,
   AssetUploadBody,
   AssetUploadOKResponse,
   AssetUploadParams,
@@ -62,16 +63,33 @@ export type assetGetResponse = {
   status: number;
 };
 
-export const getAssetGetUrl = (assetFilename: string) => {
-  return `/assets/${assetFilename}`;
+export const getAssetGetUrl = (
+  assetFilename: string,
+  params?: AssetGetParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  return normalizedParams.size
+    ? `/assets/${assetFilename}?${normalizedParams.toString()}`
+    : `/assets/${assetFilename}`;
 };
 
 export const assetGet = async (
   assetFilename: string,
+  params?: AssetGetParams,
   options?: RequestInit,
 ): Promise<assetGetResponse> => {
-  return fetcher<Promise<assetGetResponse>>(getAssetGetUrl(assetFilename), {
-    ...options,
-    method: "GET",
-  });
+  return fetcher<Promise<assetGetResponse>>(
+    getAssetGetUrl(assetFilename, params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
 };

@@ -46,3 +46,7 @@ func Detect(input io.Reader) (*Type, io.Reader, error) {
 
 	return mt, recycled, err
 }
+
+func (t Type) Extension() string {
+	return t.mt.Extension()
+}

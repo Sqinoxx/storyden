@@ -3483,7 +3483,9 @@ paths:
       operationId: AssetGet
       description: Download an asset by its ID.
       tags: [assets]
-      parameters: [$ref: "#/components/parameters/AssetPathParam"]
+      parameters:
+        - $ref: "#/components/parameters/AssetPathParam"
+        - $ref: "#/components/parameters/AssetDownloadNameQuery"
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -5690,6 +5692,18 @@ components:
       schema:
         type: string
         enum: [inline, attachment]
+
+    AssetDownloadNameQuery:
+      description: |
+        The name the browser should give the file when it is saved, such as
+        from a PDF viewer's own download button. The extension is always the
+        asset's own, whatever this ends with. Without it, a readable name is
+        derived from the stored filename.
+      name: filename
+      in: query
+      required: false
+      schema:
+        type: string
 
     AssetPathParam:
       description: Asset ID.

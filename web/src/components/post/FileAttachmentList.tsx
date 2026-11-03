@@ -32,8 +32,8 @@ export function FileAttachmentBadge({
   asset: Asset;
   onRemove?: () => void;
 }) {
-  const url = getAssetURL(asset.path);
   const displayName = getCleanFilename(asset.filename);
+  const url = getAssetURL(asset.path, displayName);
   const isImage = asset.mime_type?.startsWith("image/");
   const canPreview = isPreviewableAsset(asset.mime_type, asset.filename);
 

@@ -16,6 +16,7 @@ import { fetcher } from "../client";
 import type {
   AssetDownloadOKResponse,
   AssetDownloadPartialResponse,
+  AssetGetParams,
   AssetNotModifiedResponse,
   AssetRangeNotSatisfiableResponse,
   AssetUploadBody,
@@ -89,15 +90,18 @@ export const useAssetUpload = <
 /**
  * Download an asset by its ID.
  */
-export const assetGet = (assetFilename: string) => {
+export const assetGet = (assetFilename: string, params?: AssetGetParams) => {
   return fetcher<AssetDownloadOKResponse | AssetDownloadPartialResponse>({
     url: `/assets/${assetFilename}`,
     method: "GET",
+    params,
   });
 };
 
-export const getAssetGetKey = (assetFilename: string) =>
-  [`/assets/${assetFilename}`] as const;
+export const getAssetGetKey = (
+  assetFilename: string,
+  params?: AssetGetParams,
+) => [`/assets/${assetFilename}`, ...(params ? [params] : [])] as const;
 
 export type AssetGetQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetGet>>
@@ -118,6 +122,7 @@ export const useAssetGet = <
     | InternalServerErrorResponse,
 >(
   assetFilename: string,
+  params?: AssetGetParams,
   options?: {
     swr?: SWRConfiguration<Awaited<ReturnType<typeof assetGet>>, TError> & {
       swrKey?: Key;
@@ -130,8 +135,8 @@ export const useAssetGet = <
   const isEnabled = swrOptions?.enabled !== false && !!assetFilename;
   const swrKey =
     swrOptions?.swrKey ??
-    (() => (isEnabled ? getAssetGetKey(assetFilename) : null));
-  const swrFn = () => assetGet(assetFilename);
+    (() => (isEnabled ? getAssetGetKey(assetFilename, params) : null));
+  const swrFn = () => assetGet(assetFilename, params);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
     swrKey,

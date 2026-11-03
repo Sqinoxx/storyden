@@ -70,7 +70,7 @@ func TestAsset_UploadDownloadRoundTrip(t *testing.T) {
 			r.Contains(a.Filename, "holiday", "the requested filename should survive into the asset name")
 			r.Equal("/api/assets/"+a.Filename, a.Path)
 
-			get, err := cl.AssetGetWithResponse(root, a.Filename, session)
+			get, err := cl.AssetGetWithResponse(root, a.Filename, nil, session)
 			r.NoError(err)
 			r.Equal(http.StatusOK, get.StatusCode())
 
@@ -113,11 +113,11 @@ func TestAsset_DownloadRequiresLogin(t *testing.T) {
 
 			a := uploadNamedAsset(t, root, cl, session, "image/png", "secret.png", onePixelPNG)
 
-			anon, err := cl.AssetGetWithResponse(root, a.Filename)
+			anon, err := cl.AssetGetWithResponse(root, a.Filename, nil)
 			r.NoError(err)
 			r.Equal(http.StatusUnauthorized, anon.StatusCode(), "an anonymous request must not be able to download an asset")
 
-			authed, err := cl.AssetGetWithResponse(root, a.Filename, session)
+			authed, err := cl.AssetGetWithResponse(root, a.Filename, nil, session)
 			r.NoError(err)
 			r.Equal(http.StatusOK, authed.StatusCode(), "a logged-in request must still succeed")
 		}))
@@ -140,7 +140,7 @@ func TestAsset_DownloadUnknownFilename(t *testing.T) {
 			ctx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
 			session := sh.WithSession(ctx)
 
-			get, err := cl.AssetGetWithResponse(root, xid.New().String()+"-nothing-here", session)
+			get, err := cl.AssetGetWithResponse(root, xid.New().String()+"-nothing-here", nil, session)
 			r.NoError(err)
 			r.Equal(http.StatusNotFound, get.StatusCode())
 		}))
@@ -166,7 +166,7 @@ func TestAsset_UploadWithoutFilename(t *testing.T) {
 			a := uploadTestAsset(t, root, cl, session, "image/png", onePixelPNG)
 			r.Contains(a.Filename, "untitled")
 
-			get, err := cl.AssetGetWithResponse(root, a.Filename, session)
+			get, err := cl.AssetGetWithResponse(root, a.Filename, nil, session)
 			r.NoError(err)
 			r.Equal(http.StatusOK, get.StatusCode())
 		}))
@@ -211,7 +211,7 @@ func TestAsset_OverstatedContentLength(t *testing.T) {
 			r.NoError(err)
 			r.Equal(len(onePixelPNG), stored.Size, "recorded size must be the bytes actually stored")
 
-			get, err := cl.AssetGetWithResponse(root, resp.JSON200.Filename, session)
+			get, err := cl.AssetGetWithResponse(root, resp.JSON200.Filename, nil, session)
 			r.NoError(err)
 			r.Equal(http.StatusOK, get.StatusCode())
 			r.Equal(onePixelPNG, get.Body)
@@ -240,13 +240,58 @@ func TestAsset_NonRenderableIsForcedToDownload(t *testing.T) {
 			page := []byte("<html><body><script>alert(document.domain)</script></body></html>")
 			a := uploadNamedAsset(t, root, cl, session, "text/html", "payload.html", page)
 
-			get, err := cl.AssetGetWithResponse(root, a.Filename, session)
+			get, err := cl.AssetGetWithResponse(root, a.Filename, nil, session)
 			r.NoError(err)
 			r.Equal(http.StatusOK, get.StatusCode())
 
 			h := get.HTTPResponse.Header
 			r.Contains(h.Get("Content-Disposition"), "attachment")
 			r.Equal("nosniff", h.Get("X-Content-Type-Options"))
+		}))
+	}))
+}
+
+// TestAsset_DownloadNameSurvivesBrowserViewers covers the PDF viewer's own
+// download button, which saves under whatever the response says the file is
+// called. The stored slug has neither the original spacing nor a real
+// extension, so the header must carry a usable name.
+func TestAsset_DownloadNameSurvivesBrowserViewers(t *testing.T) {
+	integration.Test(t, noOCR(), e2e.Setup(), fx.Invoke(func(
+		root context.Context,
+		lc fx.Lifecycle,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+
+			ctx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			session := sh.WithSession(ctx)
+
+			pdf := []byte("%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n")
+			a := uploadNamedAsset(t, root, cl, session, "application/pdf", "2024 OSCE Zusammenfassung.pdf", pdf)
+			r.Equal("application/pdf", a.MimeType)
+
+			derived, err := cl.AssetGetWithResponse(root, a.Filename, nil, session)
+			r.NoError(err)
+			r.Equal(http.StatusOK, derived.StatusCode())
+			r.Equal(`inline; filename="2024 osce zusammenfassung.pdf"`, derived.HTTPResponse.Header.Get("Content-Disposition"))
+
+			named, err := cl.AssetGetWithResponse(root, a.Filename, &openapi.AssetGetParams{
+				Filename: ptr("2024 OSCE Zusammenfassung.pdf"),
+			}, session)
+			r.NoError(err)
+			r.Equal(http.StatusOK, named.StatusCode())
+			r.Equal(pdf, named.Body)
+			r.Equal(`inline; filename="2024 OSCE Zusammenfassung.pdf"`, named.HTTPResponse.Header.Get("Content-Disposition"))
+
+			spoofed, err := cl.AssetGetWithResponse(root, a.Filename, &openapi.AssetGetParams{
+				Filename: ptr("invoice.exe"),
+			}, session)
+			r.NoError(err)
+			r.Equal(`inline; filename=invoice.pdf`, spoofed.HTTPResponse.Header.Get("Content-Disposition"),
+				"the requested name must not be able to change the file type")
 		}))
 	}))
 }

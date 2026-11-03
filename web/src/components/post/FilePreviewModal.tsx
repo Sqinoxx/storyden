@@ -150,6 +150,8 @@ export function FilePreviewModal({
           transform: "translate(-50%, -50%) translateZ(0)",
           width: isMobilePdf ? "82vw" : "90vw",
           height: isMobilePdf ? "72vh" : "90vh",
+          maxHeight:
+            "calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--spacing-8))",
           animation: "previewZoomIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         }}
       >

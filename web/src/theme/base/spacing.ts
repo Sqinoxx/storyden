@@ -41,5 +41,6 @@ export const spacing = defineTokens.spacing({
   80: { value: "20rem" },
   96: { value: "24rem" },
   safeBottom: { value: "env(safe-area-inset-bottom)" },
+  safeAreaTop: { value: "env(safe-area-inset-top)" },
   scrollGutter: { value: "var(--spacing-2)" },
 });

@@ -2675,6 +2675,10 @@ const tokens = {
     "value": "env(safe-area-inset-bottom)",
     "variable": "var(--sizes-safe-bottom)"
   },
+  "sizes.safeAreaTop": {
+    "value": "env(safe-area-inset-top)",
+    "variable": "var(--sizes-safe-area-top)"
+  },
   "sizes.scrollGutter": {
     "value": "var(--spacing-2)",
     "variable": "var(--sizes-scroll-gutter)"
@@ -2926,6 +2930,10 @@ const tokens = {
   "spacing.safeBottom": {
     "value": "env(safe-area-inset-bottom)",
     "variable": "var(--spacing-safe-bottom)"
+  },
+  "spacing.safeAreaTop": {
+    "value": "env(safe-area-inset-top)",
+    "variable": "var(--spacing-safe-area-top)"
   },
   "spacing.scrollGutter": {
     "value": "var(--spacing-2)",
@@ -3294,6 +3302,10 @@ const tokens = {
   "spacing.-safeBottom": {
     "value": "calc(var(--spacing-safe-bottom) * -1)",
     "variable": "var(--spacing-safe-bottom)"
+  },
+  "spacing.-safeAreaTop": {
+    "value": "calc(var(--spacing-safe-area-top) * -1)",
+    "variable": "var(--spacing-safe-area-top)"
   },
   "spacing.-scrollGutter": {
     "value": "calc(var(--spacing-scroll-gutter) * -1)",

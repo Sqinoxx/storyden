@@ -2,6 +2,7 @@
 
 import { useAccountPhoneGet } from "@/api/openapi-client/accounts";
 import { ListingPriceType } from "@/api/openapi-schema";
+import { blockSubmitWhileUploading } from "@/components/content/blockSubmitWhileUploading";
 import {
   ListingImagesField,
   MAX_LISTING_IMAGES,
@@ -103,7 +104,11 @@ export function ListingFormScreen(props: Props) {
       {!phone.data.phone && !props.listing ? (
         <PhoneRequiredNotice />
       ) : (
-        <styled.form w="full" position="relative" onSubmit={onSubmit}>
+        <styled.form
+          w="full"
+          position="relative"
+          onSubmit={blockSubmitWhileUploading(uploading, onSubmit)}
+        >
           {publishing && (
             <Box
               position="absolute"
@@ -241,7 +246,8 @@ export function ListingFormScreen(props: Props) {
               <Button
                 type="submit"
                 flexShrink="0"
-                loading={publishing}
+                loading={publishing || uploading}
+                loadingText={uploading ? t.toasts.uploading : undefined}
                 disabled={uploading || publishing}
               >
                 {props.listing

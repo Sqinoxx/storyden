@@ -46,11 +46,13 @@ type AccessPass struct {
 type AccessPassEdges struct {
 	// Categories holds the value of the categories edge.
 	Categories []*Category `json:"categories,omitempty"`
+	// DriveFolders holds the value of the drive_folders edge.
+	DriveFolders []*DriveFolder `json:"drive_folders,omitempty"`
 	// Grants holds the value of the grants edge.
 	Grants []*AccessGrant `json:"grants,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // CategoriesOrErr returns the Categories value or an error if the edge
@@ -62,10 +64,19 @@ func (e AccessPassEdges) CategoriesOrErr() ([]*Category, error) {
 	return nil, &NotLoadedError{edge: "categories"}
 }
 
+// DriveFoldersOrErr returns the DriveFolders value or an error if the edge
+// was not loaded in eager-loading.
+func (e AccessPassEdges) DriveFoldersOrErr() ([]*DriveFolder, error) {
+	if e.loadedTypes[1] {
+		return e.DriveFolders, nil
+	}
+	return nil, &NotLoadedError{edge: "drive_folders"}
+}
+
 // GrantsOrErr returns the Grants value or an error if the edge
 // was not loaded in eager-loading.
 func (e AccessPassEdges) GrantsOrErr() ([]*AccessGrant, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Grants, nil
 	}
 	return nil, &NotLoadedError{edge: "grants"}
@@ -177,6 +188,11 @@ func (_m *AccessPass) Value(name string) (ent.Value, error) {
 // QueryCategories queries the "categories" edge of the AccessPass entity.
 func (_m *AccessPass) QueryCategories() *CategoryQuery {
 	return NewAccessPassClient(_m.config).QueryCategories(_m)
+}
+
+// QueryDriveFolders queries the "drive_folders" edge of the AccessPass entity.
+func (_m *AccessPass) QueryDriveFolders() *DriveFolderQuery {
+	return NewAccessPassClient(_m.config).QueryDriveFolders(_m)
 }
 
 // QueryGrants queries the "grants" edge of the AccessPass entity.

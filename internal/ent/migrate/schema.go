@@ -2094,6 +2094,31 @@ var (
 			},
 		},
 	}
+	// AccessPassDriveFoldersColumns holds the columns for the "access_pass_drive_folders" table.
+	AccessPassDriveFoldersColumns = []*schema.Column{
+		{Name: "access_pass_id", Type: field.TypeString, Size: 20},
+		{Name: "drive_folder_id", Type: field.TypeString, Size: 20},
+	}
+	// AccessPassDriveFoldersTable holds the schema information for the "access_pass_drive_folders" table.
+	AccessPassDriveFoldersTable = &schema.Table{
+		Name:       "access_pass_drive_folders",
+		Columns:    AccessPassDriveFoldersColumns,
+		PrimaryKey: []*schema.Column{AccessPassDriveFoldersColumns[0], AccessPassDriveFoldersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "access_pass_drive_folders_access_pass_id",
+				Columns:    []*schema.Column{AccessPassDriveFoldersColumns[0]},
+				RefColumns: []*schema.Column{AccessPassesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "access_pass_drive_folders_drive_folder_id",
+				Columns:    []*schema.Column{AccessPassDriveFoldersColumns[1]},
+				RefColumns: []*schema.Column{DriveFoldersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// AccountTagsColumns holds the columns for the "account_tags" table.
 	AccountTagsColumns = []*schema.Column{
 		{Name: "account_id", Type: field.TypeString, Size: 20},
@@ -2405,6 +2430,7 @@ var (
 		TagsTable,
 		WarningsTable,
 		AccessPassCategoriesTable,
+		AccessPassDriveFoldersTable,
 		AccountTagsTable,
 		CategoryRelatedTable,
 		LinkPostContentReferencesTable,
@@ -2516,6 +2542,8 @@ func init() {
 	WarningsTable.ForeignKeys[1].RefTable = AccountsTable
 	AccessPassCategoriesTable.ForeignKeys[0].RefTable = AccessPassesTable
 	AccessPassCategoriesTable.ForeignKeys[1].RefTable = CategoriesTable
+	AccessPassDriveFoldersTable.ForeignKeys[0].RefTable = AccessPassesTable
+	AccessPassDriveFoldersTable.ForeignKeys[1].RefTable = DriveFoldersTable
 	AccountTagsTable.ForeignKeys[0].RefTable = AccountsTable
 	AccountTagsTable.ForeignKeys[1].RefTable = TagsTable
 	CategoryRelatedTable.ForeignKeys[0].RefTable = CategoriesTable

@@ -32,6 +32,7 @@ function pass(
     sort: 0,
     requestable: true,
     category_ids: categoryIDs,
+    drive_folder_ids: [],
     createdAt: "2026-01-01T00:00:00Z",
     updatedAt: "2026-01-01T00:00:00Z",
     ...extra,

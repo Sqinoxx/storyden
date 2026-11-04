@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Southclaws/storyden/internal/ent/accesspass"
 	"github.com/Southclaws/storyden/internal/ent/account"
 	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/Southclaws/storyden/internal/ent/predicate"
@@ -20,12 +22,13 @@ import (
 // DriveFolderQuery is the builder for querying DriveFolder entities.
 type DriveFolderQuery struct {
 	config
-	ctx         *QueryContext
-	order       []drivefolder.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.DriveFolder
-	withAccount *AccountQuery
-	modifiers   []func(*sql.Selector)
+	ctx              *QueryContext
+	order            []drivefolder.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.DriveFolder
+	withAccount      *AccountQuery
+	withAccessPasses *AccessPassQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -77,6 +80,28 @@ func (_q *DriveFolderQuery) QueryAccount() *AccountQuery {
 			sqlgraph.From(drivefolder.Table, drivefolder.FieldID, selector),
 			sqlgraph.To(account.Table, account.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, drivefolder.AccountTable, drivefolder.AccountColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAccessPasses chains the current query on the "access_passes" edge.
+func (_q *DriveFolderQuery) QueryAccessPasses() *AccessPassQuery {
+	query := (&AccessPassClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(drivefolder.Table, drivefolder.FieldID, selector),
+			sqlgraph.To(accesspass.Table, accesspass.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, drivefolder.AccessPassesTable, drivefolder.AccessPassesPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -271,12 +296,13 @@ func (_q *DriveFolderQuery) Clone() *DriveFolderQuery {
 		return nil
 	}
 	return &DriveFolderQuery{
-		config:      _q.config,
-		ctx:         _q.ctx.Clone(),
-		order:       append([]drivefolder.OrderOption{}, _q.order...),
-		inters:      append([]Interceptor{}, _q.inters...),
-		predicates:  append([]predicate.DriveFolder{}, _q.predicates...),
-		withAccount: _q.withAccount.Clone(),
+		config:           _q.config,
+		ctx:              _q.ctx.Clone(),
+		order:            append([]drivefolder.OrderOption{}, _q.order...),
+		inters:           append([]Interceptor{}, _q.inters...),
+		predicates:       append([]predicate.DriveFolder{}, _q.predicates...),
+		withAccount:      _q.withAccount.Clone(),
+		withAccessPasses: _q.withAccessPasses.Clone(),
 		// clone intermediate query.
 		sql:       _q.sql.Clone(),
 		path:      _q.path,
@@ -292,6 +318,17 @@ func (_q *DriveFolderQuery) WithAccount(opts ...func(*AccountQuery)) *DriveFolde
 		opt(query)
 	}
 	_q.withAccount = query
+	return _q
+}
+
+// WithAccessPasses tells the query-builder to eager-load the nodes that are connected to
+// the "access_passes" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *DriveFolderQuery) WithAccessPasses(opts ...func(*AccessPassQuery)) *DriveFolderQuery {
+	query := (&AccessPassClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAccessPasses = query
 	return _q
 }
 
@@ -373,8 +410,9 @@ func (_q *DriveFolderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*DriveFolder{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withAccount != nil,
+			_q.withAccessPasses != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -401,6 +439,13 @@ func (_q *DriveFolderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if query := _q.withAccount; query != nil {
 		if err := _q.loadAccount(ctx, query, nodes, nil,
 			func(n *DriveFolder, e *Account) { n.Edges.Account = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAccessPasses; query != nil {
+		if err := _q.loadAccessPasses(ctx, query, nodes,
+			func(n *DriveFolder) { n.Edges.AccessPasses = []*AccessPass{} },
+			func(n *DriveFolder, e *AccessPass) { n.Edges.AccessPasses = append(n.Edges.AccessPasses, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -432,6 +477,67 @@ func (_q *DriveFolderQuery) loadAccount(ctx context.Context, query *AccountQuery
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *DriveFolderQuery) loadAccessPasses(ctx context.Context, query *AccessPassQuery, nodes []*DriveFolder, init func(*DriveFolder), assign func(*DriveFolder, *AccessPass)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[xid.ID]*DriveFolder)
+	nids := make(map[xid.ID]map[*DriveFolder]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(drivefolder.AccessPassesTable)
+		s.Join(joinT).On(s.C(accesspass.FieldID), joinT.C(drivefolder.AccessPassesPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(drivefolder.AccessPassesPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(drivefolder.AccessPassesPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(xid.ID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*xid.ID)
+				inValue := *values[1].(*xid.ID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*DriveFolder]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*AccessPass](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "access_passes" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
 		}
 	}
 	return nil

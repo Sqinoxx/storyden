@@ -8364,6 +8364,7 @@ components:
         drive_folder_id:
           type: string
           description: The folder's ID within Google Drive.
+        access: { $ref: "#/components/schemas/ContentAccess" }
 
     DriveFolder:
       type: object
@@ -10066,6 +10067,7 @@ components:
             - sort
             - requestable
             - category_ids
+            - drive_folder_ids
             - createdAt
             - updatedAt
           properties:
@@ -10080,6 +10082,10 @@ components:
               description: |
                 Categories this pass unlocks. Every descendant category is
                 unlocked as well.
+              items: { $ref: "#/components/schemas/Identifier" }
+            drive_folder_ids:
+              type: array
+              description: Registered Google Drive folders this pass unlocks.
               items: { $ref: "#/components/schemas/Identifier" }
             createdAt: { type: string, format: date-time }
             updatedAt: { type: string, format: date-time }
@@ -10181,6 +10187,9 @@ components:
         category_ids:
           type: array
           items: { $ref: "#/components/schemas/Identifier" }
+        drive_folder_ids:
+          type: array
+          items: { $ref: "#/components/schemas/Identifier" }
 
     AccessPassMutableProps:
       type: object
@@ -10193,6 +10202,9 @@ components:
         sort: { type: integer }
         requestable: { type: boolean }
         category_ids:
+          type: array
+          items: { $ref: "#/components/schemas/Identifier" }
+        drive_folder_ids:
           type: array
           items: { $ref: "#/components/schemas/Identifier" }
 

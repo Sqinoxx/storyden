@@ -14,6 +14,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/accessgrant"
 	"github.com/Southclaws/storyden/internal/ent/accesspass"
 	"github.com/Southclaws/storyden/internal/ent/category"
+	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/Southclaws/storyden/internal/ent/predicate"
 	"github.com/rs/xid"
 )
@@ -158,6 +159,21 @@ func (_u *AccessPassUpdate) AddCategories(v ...*Category) *AccessPassUpdate {
 	return _u.AddCategoryIDs(ids...)
 }
 
+// AddDriveFolderIDs adds the "drive_folders" edge to the DriveFolder entity by IDs.
+func (_u *AccessPassUpdate) AddDriveFolderIDs(ids ...xid.ID) *AccessPassUpdate {
+	_u.mutation.AddDriveFolderIDs(ids...)
+	return _u
+}
+
+// AddDriveFolders adds the "drive_folders" edges to the DriveFolder entity.
+func (_u *AccessPassUpdate) AddDriveFolders(v ...*DriveFolder) *AccessPassUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDriveFolderIDs(ids...)
+}
+
 // AddGrantIDs adds the "grants" edge to the AccessGrant entity by IDs.
 func (_u *AccessPassUpdate) AddGrantIDs(ids ...xid.ID) *AccessPassUpdate {
 	_u.mutation.AddGrantIDs(ids...)
@@ -197,6 +213,27 @@ func (_u *AccessPassUpdate) RemoveCategories(v ...*Category) *AccessPassUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCategoryIDs(ids...)
+}
+
+// ClearDriveFolders clears all "drive_folders" edges to the DriveFolder entity.
+func (_u *AccessPassUpdate) ClearDriveFolders() *AccessPassUpdate {
+	_u.mutation.ClearDriveFolders()
+	return _u
+}
+
+// RemoveDriveFolderIDs removes the "drive_folders" edge to DriveFolder entities by IDs.
+func (_u *AccessPassUpdate) RemoveDriveFolderIDs(ids ...xid.ID) *AccessPassUpdate {
+	_u.mutation.RemoveDriveFolderIDs(ids...)
+	return _u
+}
+
+// RemoveDriveFolders removes "drive_folders" edges to DriveFolder entities.
+func (_u *AccessPassUpdate) RemoveDriveFolders(v ...*DriveFolder) *AccessPassUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDriveFolderIDs(ids...)
 }
 
 // ClearGrants clears all "grants" edges to the AccessGrant entity.
@@ -349,6 +386,51 @@ func (_u *AccessPassUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DriveFoldersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   accesspass.DriveFoldersTable,
+			Columns: accesspass.DriveFoldersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDriveFoldersIDs(); len(nodes) > 0 && !_u.mutation.DriveFoldersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   accesspass.DriveFoldersTable,
+			Columns: accesspass.DriveFoldersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DriveFoldersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   accesspass.DriveFoldersTable,
+			Columns: accesspass.DriveFoldersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -549,6 +631,21 @@ func (_u *AccessPassUpdateOne) AddCategories(v ...*Category) *AccessPassUpdateOn
 	return _u.AddCategoryIDs(ids...)
 }
 
+// AddDriveFolderIDs adds the "drive_folders" edge to the DriveFolder entity by IDs.
+func (_u *AccessPassUpdateOne) AddDriveFolderIDs(ids ...xid.ID) *AccessPassUpdateOne {
+	_u.mutation.AddDriveFolderIDs(ids...)
+	return _u
+}
+
+// AddDriveFolders adds the "drive_folders" edges to the DriveFolder entity.
+func (_u *AccessPassUpdateOne) AddDriveFolders(v ...*DriveFolder) *AccessPassUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDriveFolderIDs(ids...)
+}
+
 // AddGrantIDs adds the "grants" edge to the AccessGrant entity by IDs.
 func (_u *AccessPassUpdateOne) AddGrantIDs(ids ...xid.ID) *AccessPassUpdateOne {
 	_u.mutation.AddGrantIDs(ids...)
@@ -588,6 +685,27 @@ func (_u *AccessPassUpdateOne) RemoveCategories(v ...*Category) *AccessPassUpdat
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCategoryIDs(ids...)
+}
+
+// ClearDriveFolders clears all "drive_folders" edges to the DriveFolder entity.
+func (_u *AccessPassUpdateOne) ClearDriveFolders() *AccessPassUpdateOne {
+	_u.mutation.ClearDriveFolders()
+	return _u
+}
+
+// RemoveDriveFolderIDs removes the "drive_folders" edge to DriveFolder entities by IDs.
+func (_u *AccessPassUpdateOne) RemoveDriveFolderIDs(ids ...xid.ID) *AccessPassUpdateOne {
+	_u.mutation.RemoveDriveFolderIDs(ids...)
+	return _u
+}
+
+// RemoveDriveFolders removes "drive_folders" edges to DriveFolder entities.
+func (_u *AccessPassUpdateOne) RemoveDriveFolders(v ...*DriveFolder) *AccessPassUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDriveFolderIDs(ids...)
 }
 
 // ClearGrants clears all "grants" edges to the AccessGrant entity.
@@ -770,6 +888,51 @@ func (_u *AccessPassUpdateOne) sqlSave(ctx context.Context) (_node *AccessPass, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DriveFoldersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   accesspass.DriveFoldersTable,
+			Columns: accesspass.DriveFoldersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDriveFoldersIDs(); len(nodes) > 0 && !_u.mutation.DriveFoldersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   accesspass.DriveFoldersTable,
+			Columns: accesspass.DriveFoldersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DriveFoldersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   accesspass.DriveFoldersTable,
+			Columns: accesspass.DriveFoldersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

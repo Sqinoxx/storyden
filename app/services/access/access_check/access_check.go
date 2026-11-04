@@ -50,34 +50,95 @@ func (c *Checker) Resolve(ctx context.Context) (*Decision, error) {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	if len(locks) == 0 {
+	if len(locks) == 0 || bypasses(ctx) {
 		return &Decision{bypass: true}, nil
 	}
 
-	// Without a session the caller is an internal job, which is trusted.
-	if !session.HasContext(ctx) {
-		return &Decision{bypass: true}, nil
+	accountID, held, err := c.held(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	if session.Authorise(ctx, nil, rbac.PermissionManageAccess, rbac.PermissionManagePosts) == nil {
-		return &Decision{bypass: true}, nil
-	}
-
-	d := &Decision{
-		account: session.GetOptAccountID(ctx),
+	return &Decision{
+		account: accountID,
 		locks:   locks,
-		held:    map[access.PassID]struct{}{},
+		held:    held,
+	}, nil
+}
+
+// bypasses covers internal jobs, which carry no session and are trusted, and
+// staff who must be able to moderate or manage locked content.
+func bypasses(ctx context.Context) bool {
+	if !session.HasContext(ctx) {
+		return true
+	}
+	return session.Authorise(ctx, nil, rbac.PermissionManageAccess, rbac.PermissionManagePosts) == nil
+}
+
+func (c *Checker) held(ctx context.Context) (opt.Optional[account.AccountID], map[access.PassID]struct{}, error) {
+	accountID := session.GetOptAccountID(ctx)
+
+	id, ok := accountID.Get()
+	if !ok {
+		return accountID, map[access.PassID]struct{}{}, nil
 	}
 
-	if accountID, ok := d.account.Get(); ok {
-		held, err := c.repo.HeldPassIDs(ctx, accountID, time.Now())
-		if err != nil {
-			return nil, fault.Wrap(err, fctx.With(ctx))
+	held, err := c.repo.HeldPassIDs(ctx, id, time.Now())
+	if err != nil {
+		return accountID, nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return accountID, held, nil
+}
+
+type DriveDecision struct {
+	bypass bool
+	locks  map[xid.ID][]access.PassRef
+	held   map[access.PassID]struct{}
+}
+
+func (c *Checker) ResolveDrive(ctx context.Context) (*DriveDecision, error) {
+	locks, err := c.repo.DriveFolderLocks(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if len(locks) == 0 || bypasses(ctx) {
+		return &DriveDecision{bypass: true}, nil
+	}
+
+	_, held, err := c.held(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &DriveDecision{locks: locks, held: held}, nil
+}
+
+func (d *DriveDecision) FolderLock(id xid.ID) opt.Optional[access.Lock] {
+	if d.bypass {
+		return opt.NewEmpty[access.Lock]()
+	}
+
+	passes, ok := d.locks[id]
+	if !ok {
+		return opt.NewEmpty[access.Lock]()
+	}
+
+	for _, p := range passes {
+		if _, held := d.held[p.ID]; held {
+			return opt.NewEmpty[access.Lock]()
 		}
-		d.held = held
 	}
 
-	return d, nil
+	return opt.New(access.Lock{Passes: passes})
+}
+
+func (d *DriveDecision) RequireFolder(ctx context.Context, id xid.ID) error {
+	if lock, locked := d.FolderLock(id).Get(); locked {
+		return lockedError(ctx, lock)
+	}
+	return nil
 }
 
 // CategoryLock reports the passes that would unlock a category the requester

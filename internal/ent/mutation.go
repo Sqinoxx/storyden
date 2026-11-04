@@ -1271,29 +1271,32 @@ func (m *AccessGrantMutation) ResetEdge(name string) error {
 // AccessPassMutation represents an operation that mutates the AccessPass nodes in the graph.
 type AccessPassMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *xid.ID
-	created_at        *time.Time
-	updated_at        *time.Time
-	name              *string
-	description       *string
-	price_label       *string
-	payment_info      *string
-	colour            *string
-	sort              *int
-	addsort           *int
-	requestable       *bool
-	clearedFields     map[string]struct{}
-	categories        map[xid.ID]struct{}
-	removedcategories map[xid.ID]struct{}
-	clearedcategories bool
-	grants            map[xid.ID]struct{}
-	removedgrants     map[xid.ID]struct{}
-	clearedgrants     bool
-	done              bool
-	oldValue          func(context.Context) (*AccessPass, error)
-	predicates        []predicate.AccessPass
+	op                   Op
+	typ                  string
+	id                   *xid.ID
+	created_at           *time.Time
+	updated_at           *time.Time
+	name                 *string
+	description          *string
+	price_label          *string
+	payment_info         *string
+	colour               *string
+	sort                 *int
+	addsort              *int
+	requestable          *bool
+	clearedFields        map[string]struct{}
+	categories           map[xid.ID]struct{}
+	removedcategories    map[xid.ID]struct{}
+	clearedcategories    bool
+	drive_folders        map[xid.ID]struct{}
+	removeddrive_folders map[xid.ID]struct{}
+	cleareddrive_folders bool
+	grants               map[xid.ID]struct{}
+	removedgrants        map[xid.ID]struct{}
+	clearedgrants        bool
+	done                 bool
+	oldValue             func(context.Context) (*AccessPass, error)
+	predicates           []predicate.AccessPass
 }
 
 var _ ent.Mutation = (*AccessPassMutation)(nil)
@@ -1798,6 +1801,60 @@ func (m *AccessPassMutation) ResetCategories() {
 	m.removedcategories = nil
 }
 
+// AddDriveFolderIDs adds the "drive_folders" edge to the DriveFolder entity by ids.
+func (m *AccessPassMutation) AddDriveFolderIDs(ids ...xid.ID) {
+	if m.drive_folders == nil {
+		m.drive_folders = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.drive_folders[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDriveFolders clears the "drive_folders" edge to the DriveFolder entity.
+func (m *AccessPassMutation) ClearDriveFolders() {
+	m.cleareddrive_folders = true
+}
+
+// DriveFoldersCleared reports if the "drive_folders" edge to the DriveFolder entity was cleared.
+func (m *AccessPassMutation) DriveFoldersCleared() bool {
+	return m.cleareddrive_folders
+}
+
+// RemoveDriveFolderIDs removes the "drive_folders" edge to the DriveFolder entity by IDs.
+func (m *AccessPassMutation) RemoveDriveFolderIDs(ids ...xid.ID) {
+	if m.removeddrive_folders == nil {
+		m.removeddrive_folders = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.drive_folders, ids[i])
+		m.removeddrive_folders[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDriveFolders returns the removed IDs of the "drive_folders" edge to the DriveFolder entity.
+func (m *AccessPassMutation) RemovedDriveFoldersIDs() (ids []xid.ID) {
+	for id := range m.removeddrive_folders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DriveFoldersIDs returns the "drive_folders" edge IDs in the mutation.
+func (m *AccessPassMutation) DriveFoldersIDs() (ids []xid.ID) {
+	for id := range m.drive_folders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDriveFolders resets all changes to the "drive_folders" edge.
+func (m *AccessPassMutation) ResetDriveFolders() {
+	m.drive_folders = nil
+	m.cleareddrive_folders = false
+	m.removeddrive_folders = nil
+}
+
 // AddGrantIDs adds the "grants" edge to the AccessGrant entity by ids.
 func (m *AccessPassMutation) AddGrantIDs(ids ...xid.ID) {
 	if m.grants == nil {
@@ -2136,9 +2193,12 @@ func (m *AccessPassMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AccessPassMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.categories != nil {
 		edges = append(edges, accesspass.EdgeCategories)
+	}
+	if m.drive_folders != nil {
+		edges = append(edges, accesspass.EdgeDriveFolders)
 	}
 	if m.grants != nil {
 		edges = append(edges, accesspass.EdgeGrants)
@@ -2156,6 +2216,12 @@ func (m *AccessPassMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case accesspass.EdgeDriveFolders:
+		ids := make([]ent.Value, 0, len(m.drive_folders))
+		for id := range m.drive_folders {
+			ids = append(ids, id)
+		}
+		return ids
 	case accesspass.EdgeGrants:
 		ids := make([]ent.Value, 0, len(m.grants))
 		for id := range m.grants {
@@ -2168,9 +2234,12 @@ func (m *AccessPassMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AccessPassMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedcategories != nil {
 		edges = append(edges, accesspass.EdgeCategories)
+	}
+	if m.removeddrive_folders != nil {
+		edges = append(edges, accesspass.EdgeDriveFolders)
 	}
 	if m.removedgrants != nil {
 		edges = append(edges, accesspass.EdgeGrants)
@@ -2188,6 +2257,12 @@ func (m *AccessPassMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case accesspass.EdgeDriveFolders:
+		ids := make([]ent.Value, 0, len(m.removeddrive_folders))
+		for id := range m.removeddrive_folders {
+			ids = append(ids, id)
+		}
+		return ids
 	case accesspass.EdgeGrants:
 		ids := make([]ent.Value, 0, len(m.removedgrants))
 		for id := range m.removedgrants {
@@ -2200,9 +2275,12 @@ func (m *AccessPassMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AccessPassMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedcategories {
 		edges = append(edges, accesspass.EdgeCategories)
+	}
+	if m.cleareddrive_folders {
+		edges = append(edges, accesspass.EdgeDriveFolders)
 	}
 	if m.clearedgrants {
 		edges = append(edges, accesspass.EdgeGrants)
@@ -2216,6 +2294,8 @@ func (m *AccessPassMutation) EdgeCleared(name string) bool {
 	switch name {
 	case accesspass.EdgeCategories:
 		return m.clearedcategories
+	case accesspass.EdgeDriveFolders:
+		return m.cleareddrive_folders
 	case accesspass.EdgeGrants:
 		return m.clearedgrants
 	}
@@ -2236,6 +2316,9 @@ func (m *AccessPassMutation) ResetEdge(name string) error {
 	switch name {
 	case accesspass.EdgeCategories:
 		m.ResetCategories()
+		return nil
+	case accesspass.EdgeDriveFolders:
+		m.ResetDriveFolders()
 		return nil
 	case accesspass.EdgeGrants:
 		m.ResetGrants()
@@ -16757,24 +16840,27 @@ func (m *CollectionPostMutation) ResetEdge(name string) error {
 // DriveFolderMutation represents an operation that mutates the DriveFolder nodes in the graph.
 type DriveFolderMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *xid.ID
-	created_at      *time.Time
-	updated_at      *time.Time
-	deleted_at      *time.Time
-	name            *string
-	description     *string
-	drive_folder_id *string
-	visibility      *drivefolder.Visibility
-	sort            *int
-	addsort         *int
-	clearedFields   map[string]struct{}
-	account         *xid.ID
-	clearedaccount  bool
-	done            bool
-	oldValue        func(context.Context) (*DriveFolder, error)
-	predicates      []predicate.DriveFolder
+	op                   Op
+	typ                  string
+	id                   *xid.ID
+	created_at           *time.Time
+	updated_at           *time.Time
+	deleted_at           *time.Time
+	name                 *string
+	description          *string
+	drive_folder_id      *string
+	visibility           *drivefolder.Visibility
+	sort                 *int
+	addsort              *int
+	clearedFields        map[string]struct{}
+	account              *xid.ID
+	clearedaccount       bool
+	access_passes        map[xid.ID]struct{}
+	removedaccess_passes map[xid.ID]struct{}
+	clearedaccess_passes bool
+	done                 bool
+	oldValue             func(context.Context) (*DriveFolder, error)
+	predicates           []predicate.DriveFolder
 }
 
 var _ ent.Mutation = (*DriveFolderMutation)(nil)
@@ -17291,6 +17377,60 @@ func (m *DriveFolderMutation) ResetAccount() {
 	m.clearedaccount = false
 }
 
+// AddAccessPassIDs adds the "access_passes" edge to the AccessPass entity by ids.
+func (m *DriveFolderMutation) AddAccessPassIDs(ids ...xid.ID) {
+	if m.access_passes == nil {
+		m.access_passes = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.access_passes[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAccessPasses clears the "access_passes" edge to the AccessPass entity.
+func (m *DriveFolderMutation) ClearAccessPasses() {
+	m.clearedaccess_passes = true
+}
+
+// AccessPassesCleared reports if the "access_passes" edge to the AccessPass entity was cleared.
+func (m *DriveFolderMutation) AccessPassesCleared() bool {
+	return m.clearedaccess_passes
+}
+
+// RemoveAccessPassIDs removes the "access_passes" edge to the AccessPass entity by IDs.
+func (m *DriveFolderMutation) RemoveAccessPassIDs(ids ...xid.ID) {
+	if m.removedaccess_passes == nil {
+		m.removedaccess_passes = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.access_passes, ids[i])
+		m.removedaccess_passes[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAccessPasses returns the removed IDs of the "access_passes" edge to the AccessPass entity.
+func (m *DriveFolderMutation) RemovedAccessPassesIDs() (ids []xid.ID) {
+	for id := range m.removedaccess_passes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AccessPassesIDs returns the "access_passes" edge IDs in the mutation.
+func (m *DriveFolderMutation) AccessPassesIDs() (ids []xid.ID) {
+	for id := range m.access_passes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAccessPasses resets all changes to the "access_passes" edge.
+func (m *DriveFolderMutation) ResetAccessPasses() {
+	m.access_passes = nil
+	m.clearedaccess_passes = false
+	m.removedaccess_passes = nil
+}
+
 // Where appends a list predicates to the DriveFolderMutation builder.
 func (m *DriveFolderMutation) Where(ps ...predicate.DriveFolder) {
 	m.predicates = append(m.predicates, ps...)
@@ -17590,9 +17730,12 @@ func (m *DriveFolderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DriveFolderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.account != nil {
 		edges = append(edges, drivefolder.EdgeAccount)
+	}
+	if m.access_passes != nil {
+		edges = append(edges, drivefolder.EdgeAccessPasses)
 	}
 	return edges
 }
@@ -17605,27 +17748,47 @@ func (m *DriveFolderMutation) AddedIDs(name string) []ent.Value {
 		if id := m.account; id != nil {
 			return []ent.Value{*id}
 		}
+	case drivefolder.EdgeAccessPasses:
+		ids := make([]ent.Value, 0, len(m.access_passes))
+		for id := range m.access_passes {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DriveFolderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedaccess_passes != nil {
+		edges = append(edges, drivefolder.EdgeAccessPasses)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *DriveFolderMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case drivefolder.EdgeAccessPasses:
+		ids := make([]ent.Value, 0, len(m.removedaccess_passes))
+		for id := range m.removedaccess_passes {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DriveFolderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedaccount {
 		edges = append(edges, drivefolder.EdgeAccount)
+	}
+	if m.clearedaccess_passes {
+		edges = append(edges, drivefolder.EdgeAccessPasses)
 	}
 	return edges
 }
@@ -17636,6 +17799,8 @@ func (m *DriveFolderMutation) EdgeCleared(name string) bool {
 	switch name {
 	case drivefolder.EdgeAccount:
 		return m.clearedaccount
+	case drivefolder.EdgeAccessPasses:
+		return m.clearedaccess_passes
 	}
 	return false
 }
@@ -17657,6 +17822,9 @@ func (m *DriveFolderMutation) ResetEdge(name string) error {
 	switch name {
 	case drivefolder.EdgeAccount:
 		m.ResetAccount()
+		return nil
+	case drivefolder.EdgeAccessPasses:
+		m.ResetAccessPasses()
 		return nil
 	}
 	return fmt.Errorf("unknown DriveFolder edge %s", name)

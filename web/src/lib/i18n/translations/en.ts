@@ -1016,6 +1016,8 @@ export const en = {
       fieldPaymentHint: "Where and how to pay, e.g. \"Cash in the council room, Tue 12–1pm\".",
       fieldCategories: "Unlocked categories",
       fieldCategoriesHint: "Subcategories are included automatically.",
+      fieldDriveFolders: "Unlocked Google Drive folders",
+      fieldDriveFoldersHint: "Only folders set up under Google Drive.",
       fieldRequestable: "Members may request it",
       members: "{count} unlocked",
       memberMenu: "Access",

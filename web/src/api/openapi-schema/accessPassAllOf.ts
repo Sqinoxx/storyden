@@ -17,6 +17,8 @@ unlocked as well.
   category_ids: Identifier[];
   createdAt: string;
   description: string;
+  /** Registered Google Drive folders this pass unlocks. */
+  drive_folder_ids: Identifier[];
   membership?: AccessPassMembership;
   /** Instructions for paying the student council offline. */
   payment_info: string;

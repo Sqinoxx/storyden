@@ -26,6 +26,7 @@ import (
 	ent_account "github.com/Southclaws/storyden/internal/ent/account"
 	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	ent_category "github.com/Southclaws/storyden/internal/ent/category"
+	ent_drivefolder "github.com/Southclaws/storyden/internal/ent/drivefolder"
 	ent_post "github.com/Southclaws/storyden/internal/ent/post"
 )
 
@@ -74,6 +75,21 @@ func WithCategories(ids []category.CategoryID) PassOption {
 		m.ClearCategories()
 		m.AddCategoryIDs(dt.Map(ids, func(id category.CategoryID) xid.ID { return xid.ID(id) })...)
 	}
+}
+
+func WithDriveFolders(ids []xid.ID) PassOption {
+	return func(m *ent.AccessPassMutation) {
+		m.ClearDriveFolders()
+		m.AddDriveFolderIDs(ids...)
+	}
+}
+
+func withPassEdges(q *ent.AccessPassQuery) *ent.AccessPassQuery {
+	return q.
+		WithCategories(func(cq *ent.CategoryQuery) { cq.Select(ent_category.FieldID) }).
+		WithDriveFolders(func(dq *ent.DriveFolderQuery) {
+			dq.Where(ent_drivefolder.DeletedAtIsNil()).Select(ent_drivefolder.FieldID)
+		})
 }
 
 func (r *Repository) CreatePass(ctx context.Context, name string, opts ...PassOption) (*access.Pass, error) {
@@ -125,9 +141,8 @@ func (r *Repository) DeletePass(ctx context.Context, id access.PassID) error {
 }
 
 func (r *Repository) GetPass(ctx context.Context, id access.PassID) (*access.Pass, error) {
-	p, err := r.db.AccessPass.Query().
-		Where(accesspass.ID(xid.ID(id))).
-		WithCategories(func(cq *ent.CategoryQuery) { cq.Select(ent_category.FieldID) }).
+	p, err := withPassEdges(r.db.AccessPass.Query().
+		Where(accesspass.ID(xid.ID(id)))).
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -140,8 +155,7 @@ func (r *Repository) GetPass(ctx context.Context, id access.PassID) (*access.Pas
 }
 
 func (r *Repository) ListPasses(ctx context.Context) (access.Passes, error) {
-	ps, err := r.db.AccessPass.Query().
-		WithCategories(func(cq *ent.CategoryQuery) { cq.Select(ent_category.FieldID) }).
+	ps, err := withPassEdges(r.db.AccessPass.Query()).
 		Order(ent.Asc(accesspass.FieldSort), ent.Asc(accesspass.FieldCreatedAt)).
 		All(ctx)
 	if err != nil {
@@ -483,6 +497,28 @@ func (r *Repository) CategoryLocks(ctx context.Context) (map[category.CategoryID
 	}
 
 	return ResolveCategoryLocks(parents, direct), nil
+}
+
+// DriveFolderLocks maps each registered Drive folder covered by a pass to the
+// passes that unlock it. Folders have no hierarchy here, so nothing inherits.
+func (r *Repository) DriveFolderLocks(ctx context.Context) (map[xid.ID][]access.PassRef, error) {
+	passes, err := r.db.AccessPass.Query().
+		Where(accesspass.HasDriveFolders()).
+		WithDriveFolders(func(dq *ent.DriveFolderQuery) { dq.Select(ent_drivefolder.FieldID) }).
+		All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	out := map[xid.ID][]access.PassRef{}
+	for _, p := range passes {
+		ref := access.MapPassRef(p)
+		for _, f := range p.Edges.DriveFolders {
+			out[f.ID] = append(out[f.ID], ref)
+		}
+	}
+
+	return out, nil
 }
 
 // ResolveCategoryLocks walks each category up to its root and collects the

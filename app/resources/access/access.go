@@ -41,13 +41,14 @@ type PassRef struct {
 
 type Pass struct {
 	PassRef
-	Description string
-	PaymentInfo string
-	Sort        int
-	Requestable bool
-	Categories  []category.CategoryID
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	Description  string
+	PaymentInfo  string
+	Sort         int
+	Requestable  bool
+	Categories   []category.CategoryID
+	DriveFolders []xid.ID
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type Passes []*Pass
@@ -116,6 +117,9 @@ func MapPass(in *ent.AccessPass) *Pass {
 		Requestable: in.Requestable,
 		Categories: dt.Map(in.Edges.Categories, func(c *ent.Category) category.CategoryID {
 			return category.CategoryID(c.ID)
+		}),
+		DriveFolders: dt.Map(in.Edges.DriveFolders, func(f *ent.DriveFolder) xid.ID {
+			return f.ID
 		}),
 		CreatedAt: in.CreatedAt,
 		UpdatedAt: in.UpdatedAt,

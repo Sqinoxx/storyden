@@ -30,6 +30,7 @@ func (AccessPass) Fields() []ent.Field {
 func (AccessPass) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("categories", Category.Type),
+		edge.To("drive_folders", DriveFolder.Type),
 		edge.To("grants", AccessGrant.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}

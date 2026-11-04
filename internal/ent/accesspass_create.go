@@ -15,6 +15,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent/accessgrant"
 	"github.com/Southclaws/storyden/internal/ent/accesspass"
 	"github.com/Southclaws/storyden/internal/ent/category"
+	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/rs/xid"
 )
 
@@ -171,6 +172,21 @@ func (_c *AccessPassCreate) AddCategories(v ...*Category) *AccessPassCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddCategoryIDs(ids...)
+}
+
+// AddDriveFolderIDs adds the "drive_folders" edge to the DriveFolder entity by IDs.
+func (_c *AccessPassCreate) AddDriveFolderIDs(ids ...xid.ID) *AccessPassCreate {
+	_c.mutation.AddDriveFolderIDs(ids...)
+	return _c
+}
+
+// AddDriveFolders adds the "drive_folders" edges to the DriveFolder entity.
+func (_c *AccessPassCreate) AddDriveFolders(v ...*DriveFolder) *AccessPassCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDriveFolderIDs(ids...)
 }
 
 // AddGrantIDs adds the "grants" edge to the AccessGrant entity by IDs.
@@ -381,6 +397,22 @@ func (_c *AccessPassCreate) createSpec() (*AccessPass, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DriveFoldersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   accesspass.DriveFoldersTable,
+			Columns: accesspass.DriveFoldersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(drivefolder.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

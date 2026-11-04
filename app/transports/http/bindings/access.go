@@ -8,6 +8,7 @@ import (
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/opt"
+	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/access"
 	"github.com/Southclaws/storyden/app/resources/access/access_repo"
@@ -116,7 +117,7 @@ func (h *Access) AccessGrantList(ctx context.Context, request openapi.AccessGran
 func (h *Access) AccessPassCreate(ctx context.Context, request openapi.AccessPassCreateRequestObject) (openapi.AccessPassCreateResponseObject, error) {
 	b := request.Body
 
-	opts := accessPassOptions(b.Description, b.PriceLabel, b.PaymentInfo, b.Colour, b.Sort, b.Requestable, b.CategoryIds)
+	opts := accessPassOptions(b.Description, b.PriceLabel, b.PaymentInfo, b.Colour, b.Sort, b.Requestable, b.CategoryIds, b.DriveFolderIds)
 
 	p, err := h.repo.CreatePass(ctx, b.Name, opts...)
 	if err != nil {
@@ -131,7 +132,7 @@ func (h *Access) AccessPassCreate(ctx context.Context, request openapi.AccessPas
 func (h *Access) AccessPassUpdate(ctx context.Context, request openapi.AccessPassUpdateRequestObject) (openapi.AccessPassUpdateResponseObject, error) {
 	b := request.Body
 
-	opts := accessPassOptions(b.Description, b.PriceLabel, b.PaymentInfo, b.Colour, b.Sort, b.Requestable, b.CategoryIds)
+	opts := accessPassOptions(b.Description, b.PriceLabel, b.PaymentInfo, b.Colour, b.Sort, b.Requestable, b.CategoryIds, b.DriveFolderIds)
 	if b.Name != nil {
 		opts = append(opts, access_repo.WithName(*b.Name))
 	}
@@ -159,6 +160,7 @@ func accessPassOptions(
 	sort *int,
 	requestable *bool,
 	categoryIDs *[]openapi.Identifier,
+	driveFolderIDs *[]openapi.Identifier,
 ) []access_repo.PassOption {
 	opts := []access_repo.PassOption{}
 
@@ -185,6 +187,11 @@ func accessPassOptions(
 			return category.CategoryID(openapi.ParseID(id))
 		})))
 	}
+	if driveFolderIDs != nil {
+		opts = append(opts, access_repo.WithDriveFolders(dt.Map(*driveFolderIDs, func(id openapi.Identifier) xid.ID {
+			return openapi.ParseID(id)
+		})))
+	}
 
 	return opts
 }
@@ -209,6 +216,9 @@ func serialiseAccessPass(in *access.Pass) openapi.AccessPass {
 		Sort:        in.Sort,
 		Requestable: in.Requestable,
 		CategoryIds: dt.Map(in.Categories, func(id category.CategoryID) openapi.Identifier {
+			return openapi.Identifier(id.String())
+		}),
+		DriveFolderIds: dt.Map(in.DriveFolders, func(id xid.ID) openapi.Identifier {
 			return openapi.Identifier(id.String())
 		}),
 		CreatedAt: in.CreatedAt,

@@ -3,8 +3,10 @@ package drive
 import (
 	"time"
 
+	"github.com/Southclaws/opt"
 	"github.com/rs/xid"
 
+	"github.com/Southclaws/storyden/app/resources/access"
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/internal/ent"
 )
@@ -25,6 +27,8 @@ type Folder struct {
 	Visibility  DriveVisibility
 	Sort        int
 	AddedBy     account.AccountID
+
+	Access opt.Optional[access.Lock]
 }
 
 type Folders []*Folder

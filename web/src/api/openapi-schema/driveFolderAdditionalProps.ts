@@ -7,8 +7,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
+import type { ContentAccess } from "./contentAccess";
 
 export interface DriveFolderAdditionalProps {
+  access?: ContentAccess;
   /** The folder's ID within Google Drive. */
   drive_folder_id: string;
 }

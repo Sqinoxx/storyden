@@ -3,10 +3,10 @@
 import { useMemo, useState } from "react";
 
 import { useAccessGrantList } from "@/api/openapi-client/access";
-import { useCategoryList } from "@/api/openapi-client/categories";
 import { AccessPass } from "@/api/openapi-schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useIncludedNames } from "@/lib/access/useIncludedNames";
 import { useTranslation } from "@/lib/i18n";
 import { HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { CardBox } from "@/styled-system/patterns";
@@ -16,14 +16,9 @@ import { PassEditor } from "./PassEditor";
 export function PassesTab({ passes }: { passes: AccessPass[] }) {
   const t = useTranslation();
   const m = t.access.manage;
-  const { data: categories } = useCategoryList();
+  const includedNames = useIncludedNames();
   const { data: active } = useAccessGrantList({ status: "active" });
   const [editing, setEditing] = useState<{ pass?: AccessPass } | undefined>();
-
-  const names = useMemo(
-    () => new Map((categories?.categories ?? []).map((c) => [c.id, c.name])),
-    [categories],
-  );
 
   const counts = useMemo(() => {
     const c = new Map<string, number>();
@@ -65,10 +60,7 @@ export function PassesTab({ passes }: { passes: AccessPass[] }) {
                 </Badge>
               </HStack>
               <styled.p fontSize="sm" color="fg.muted">
-                {p.category_ids
-                  .map((id) => names.get(id))
-                  .filter(Boolean)
-                  .join(", ")}
+                {includedNames(p).join(", ")}
               </styled.p>
             </LStack>
             <Button

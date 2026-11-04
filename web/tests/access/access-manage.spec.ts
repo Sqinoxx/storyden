@@ -79,7 +79,9 @@ test("managers confirm payment, extend and revoke access", async ({
   });
 
   await page.getByRole("tab", { name: "Unlocked" }).click();
-  await page.getByRole("textbox", { name: "Search by name" }).fill(memberHandle);
+  await page
+    .getByRole("textbox", { name: "Search by name" })
+    .fill(memberHandle);
   const granted = page
     .getByTestId("access-grant-row")
     .filter({ hasText: `@${memberHandle}` });
@@ -137,9 +139,9 @@ test("managers create a pass for a category", async ({ page }) => {
   await editor.getByText(category.name, { exact: true }).click();
   await editor.getByRole("button", { name: "Save" }).click();
 
-  const row = page.getByRole("group", { name }).or(
-    page.locator(`[aria-label="${name}"]`),
-  );
+  const row = page
+    .getByRole("group", { name })
+    .or(page.locator(`[aria-label="${name}"]`));
   await expect(row.first()).toBeVisible({ timeout: 10000 });
   await expect(row.first().getByText(category.name)).toBeVisible();
 

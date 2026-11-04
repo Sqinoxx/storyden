@@ -977,6 +977,22 @@ func (c *AccessPassClient) QueryCategories(_m *AccessPass) *CategoryQuery {
 	return query
 }
 
+// QueryDriveFolders queries the drive_folders edge of a AccessPass.
+func (c *AccessPassClient) QueryDriveFolders(_m *AccessPass) *DriveFolderQuery {
+	query := (&DriveFolderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(accesspass.Table, accesspass.FieldID, id),
+			sqlgraph.To(drivefolder.Table, drivefolder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, accesspass.DriveFoldersTable, accesspass.DriveFoldersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryGrants queries the grants edge of a AccessPass.
 func (c *AccessPassClient) QueryGrants(_m *AccessPass) *AccessGrantQuery {
 	query := (&AccessGrantClient{config: c.config}).Query()
@@ -3844,6 +3860,22 @@ func (c *DriveFolderClient) QueryAccount(_m *DriveFolder) *AccountQuery {
 			sqlgraph.From(drivefolder.Table, drivefolder.FieldID, id),
 			sqlgraph.To(account.Table, account.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, drivefolder.AccountTable, drivefolder.AccountColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAccessPasses queries the access_passes edge of a DriveFolder.
+func (c *DriveFolderClient) QueryAccessPasses(_m *DriveFolder) *AccessPassQuery {
+	query := (&AccessPassClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(drivefolder.Table, drivefolder.FieldID, id),
+			sqlgraph.To(accesspass.Table, accesspass.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, drivefolder.AccessPassesTable, drivefolder.AccessPassesPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

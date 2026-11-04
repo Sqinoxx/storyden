@@ -35,6 +35,8 @@ const (
 	FieldRequestable = "requestable"
 	// EdgeCategories holds the string denoting the categories edge name in mutations.
 	EdgeCategories = "categories"
+	// EdgeDriveFolders holds the string denoting the drive_folders edge name in mutations.
+	EdgeDriveFolders = "drive_folders"
 	// EdgeGrants holds the string denoting the grants edge name in mutations.
 	EdgeGrants = "grants"
 	// Table holds the table name of the accesspass in the database.
@@ -44,6 +46,11 @@ const (
 	// CategoriesInverseTable is the table name for the Category entity.
 	// It exists in this package in order to avoid circular dependency with the "category" package.
 	CategoriesInverseTable = "categories"
+	// DriveFoldersTable is the table that holds the drive_folders relation/edge. The primary key declared below.
+	DriveFoldersTable = "access_pass_drive_folders"
+	// DriveFoldersInverseTable is the table name for the DriveFolder entity.
+	// It exists in this package in order to avoid circular dependency with the "drivefolder" package.
+	DriveFoldersInverseTable = "drive_folders"
 	// GrantsTable is the table that holds the grants relation/edge.
 	GrantsTable = "access_grants"
 	// GrantsInverseTable is the table name for the AccessGrant entity.
@@ -71,6 +78,9 @@ var (
 	// CategoriesPrimaryKey and CategoriesColumn2 are the table columns denoting the
 	// primary key for the categories relation (M2M).
 	CategoriesPrimaryKey = []string{"access_pass_id", "category_id"}
+	// DriveFoldersPrimaryKey and DriveFoldersColumn2 are the table columns denoting the
+	// primary key for the drive_folders relation (M2M).
+	DriveFoldersPrimaryKey = []string{"access_pass_id", "drive_folder_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -177,6 +187,20 @@ func ByCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByDriveFoldersCount orders the results by drive_folders count.
+func ByDriveFoldersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDriveFoldersStep(), opts...)
+	}
+}
+
+// ByDriveFolders orders the results by drive_folders terms.
+func ByDriveFolders(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDriveFoldersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByGrantsCount orders the results by grants count.
 func ByGrantsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -195,6 +219,13 @@ func newCategoriesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CategoriesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, CategoriesTable, CategoriesPrimaryKey...),
+	)
+}
+func newDriveFoldersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DriveFoldersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, DriveFoldersTable, DriveFoldersPrimaryKey...),
 	)
 }
 func newGrantsStep() *sqlgraph.Step {

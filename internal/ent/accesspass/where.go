@@ -579,6 +579,29 @@ func HasCategoriesWith(preds ...predicate.Category) predicate.AccessPass {
 	})
 }
 
+// HasDriveFolders applies the HasEdge predicate on the "drive_folders" edge.
+func HasDriveFolders() predicate.AccessPass {
+	return predicate.AccessPass(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, DriveFoldersTable, DriveFoldersPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDriveFoldersWith applies the HasEdge predicate on the "drive_folders" edge with a given conditions (other predicates).
+func HasDriveFoldersWith(preds ...predicate.DriveFolder) predicate.AccessPass {
+	return predicate.AccessPass(func(s *sql.Selector) {
+		step := newDriveFoldersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasGrants applies the HasEdge predicate on the "grants" edge.
 func HasGrants() predicate.AccessPass {
 	return predicate.AccessPass(func(s *sql.Selector) {

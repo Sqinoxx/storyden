@@ -13,6 +13,7 @@ export interface AccessPassInitialProps {
   category_ids?: Identifier[];
   colour?: string;
   description?: string;
+  drive_folder_ids?: Identifier[];
   /**
    * @minLength 1
    * @maxLength 200

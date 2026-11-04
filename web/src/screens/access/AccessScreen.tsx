@@ -2,10 +2,8 @@
 
 import { Lock } from "lucide-react";
 import { useQueryState } from "nuqs";
-import { useMemo } from "react";
 
 import { useAccessPassList } from "@/api/openapi-client/access";
-import { useCategoryList } from "@/api/openapi-client/categories";
 import {
   AccessPass,
   AccessPassListResult,
@@ -24,6 +22,7 @@ import { Unready } from "@/components/site/Unready";
 import { Badge } from "@/components/ui/badge";
 import { Heading } from "@/components/ui/heading";
 import * as Tabs from "@/components/ui/tabs";
+import { useIncludedNames } from "@/lib/access/useIncludedNames";
 import { useTranslation } from "@/lib/i18n";
 import { LStack, styled } from "@/styled-system/jsx";
 import { hasPermission } from "@/utils/permissions";
@@ -107,12 +106,7 @@ function ManagerTabs({ passes }: { passes: AccessPass[] }) {
 
 function MyPasses({ passes }: { passes: AccessPass[] }) {
   const t = useTranslation();
-  const { data: categories } = useCategoryList();
-
-  const namesByID = useMemo(
-    () => new Map((categories?.categories ?? []).map((c) => [c.id, c.name])),
-    [categories],
-  );
+  const includedNames = useIncludedNames();
 
   if (passes.length === 0) {
     return (
@@ -130,13 +124,7 @@ function MyPasses({ passes }: { passes: AccessPass[] }) {
   return (
     <LStack gap="3" w="full">
       {passes.map((p) => (
-        <AccessPassCard
-          key={p.id}
-          pass={p}
-          categoryNames={p.category_ids
-            .map((id) => namesByID.get(id))
-            .filter((n): n is string => Boolean(n))}
-        />
+        <AccessPassCard key={p.id} pass={p} categoryNames={includedNames(p)} />
       ))}
     </LStack>
   );

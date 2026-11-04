@@ -1019,6 +1019,8 @@ export const de: Translations = {
       fieldPaymentHint: "Wo und wie bezahlt wird, z. B. „Bar im Fachschaftsraum Di 12–13 Uhr“.",
       fieldCategories: "Freigeschaltete Kategorien",
       fieldCategoriesHint: "Unterkategorien sind automatisch enthalten.",
+      fieldDriveFolders: "Freigeschaltete Google-Drive-Ordner",
+      fieldDriveFoldersHint: "Nur Ordner, die unter Google Drive eingerichtet sind.",
       fieldRequestable: "Mitglieder dürfen anfragen",
       members: "{count} freigeschaltet",
       memberMenu: "Zugänge",

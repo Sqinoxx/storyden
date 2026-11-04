@@ -10,6 +10,7 @@ import {
   accessPassUpdate,
 } from "@/api/openapi-client/access";
 import { useCategoryList } from "@/api/openapi-client/categories";
+import { useDriveFolderList } from "@/api/openapi-client/drive";
 import { AccessPass } from "@/api/openapi-schema";
 import { DeleteWithConfirmationButton } from "@/components/site/DeleteConfirmationButton";
 import { ModalDrawer } from "@/components/site/Modaldrawer/Modaldrawer";
@@ -58,6 +59,7 @@ function PassEditorContent({ isOpen, onClose, pass }: Props) {
   const m = t.access.manage;
   const revalidate = useAccessRevalidate();
   const { data: categoryData } = useCategoryList();
+  const { data: driveData } = useDriveFolderList();
 
   const [name, setName] = useState(pass?.name ?? "");
   const [description, setDescription] = useState(pass?.description ?? "");
@@ -66,6 +68,9 @@ function PassEditorContent({ isOpen, onClose, pass }: Props) {
   const [requestable, setRequestable] = useState(pass?.requestable ?? true);
   const [categoryIDs, setCategoryIDs] = useState<Set<string>>(
     () => new Set(pass?.category_ids ?? []),
+  );
+  const [driveFolderIDs, setDriveFolderIDs] = useState<Set<string>>(
+    () => new Set(pass?.drive_folder_ids ?? []),
   );
   const [busy, setBusy] = useState(false);
 
@@ -108,6 +113,7 @@ function PassEditorContent({ isOpen, onClose, pass }: Props) {
       payment_info: paymentInfo,
       requestable,
       category_ids: [...categoryIDs].filter((id) => !coveredByParent.has(id)),
+      drive_folder_ids: [...driveFolderIDs],
     };
 
     setBusy(true);
@@ -224,6 +230,32 @@ function PassEditorContent({ isOpen, onClose, pass }: Props) {
             })}
           </LStack>
         </FormControl>
+
+        {(driveData?.folders.length ?? 0) > 0 && (
+          <FormControl>
+            <FormLabel>{m.fieldDriveFolders}</FormLabel>
+            <FormHelperText>{m.fieldDriveFoldersHint}</FormHelperText>
+            <LStack gap="1">
+              {driveData?.folders.map((f) => (
+                <Checkbox
+                  key={f.id}
+                  size="sm"
+                  checked={driveFolderIDs.has(f.id)}
+                  onCheckedChange={({ checked }) =>
+                    setDriveFolderIDs((prev) => {
+                      const next = new Set(prev);
+                      if (checked === true) next.add(f.id);
+                      else next.delete(f.id);
+                      return next;
+                    })
+                  }
+                >
+                  {f.name}
+                </Checkbox>
+              ))}
+            </LStack>
+          </FormControl>
+        )}
 
         <Checkbox
           size="sm"

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useSession } from "@/auth";
 
 import { Permission, ProfileReference } from "@/api/openapi-schema";
+import { MemberAccessTrigger } from "@/components/access/manage/MemberAccessTrigger";
 import { ReportMemberMenuItem } from "@/components/report/ReportMemberMenuItem";
 import * as Menu from "@/components/ui/menu";
 import { WEB_ADDRESS } from "@/config";
@@ -48,6 +49,7 @@ export function MemberOptionsMenu({
   const canDelete = !isSelf && isAdmin && profile.suspended;
 
   const isRoleChangeEnabled = hasPermission(session, "MANAGE_ROLES");
+  const canManageAccess = hasPermission(session, Permission.MANAGE_ACCESS);
 
   function handleSelect(value: MenuSelectionDetails) {
     switch (value.value) {
@@ -91,6 +93,14 @@ export function MemberOptionsMenu({
               <ReportMemberMenuItem profile={profile} />
 
               {isRoleChangeEnabled && <MemberRoleMenu profile={profile} />}
+
+              {canManageAccess && (
+                <MemberAccessTrigger profile={profile}>
+                  <Menu.Item value="access">
+                    {t.access.manage.memberMenu}
+                  </Menu.Item>
+                </MemberAccessTrigger>
+              )}
 
               {canResetPassword && (
                 <MemberPasswordResetTrigger profile={profile}>

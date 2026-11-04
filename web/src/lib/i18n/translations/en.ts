@@ -208,6 +208,7 @@ export const en = {
     moveUp: "Move up",
     moveDown: "Move down",
     promoteToParentLevel: "Move to parent's level",
+    moveIntoCategory: "Move into category",
   },
   search: {
     kindThreads: "Threads",

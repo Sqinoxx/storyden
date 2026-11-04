@@ -32,6 +32,7 @@ export default async function Page({ params }: Props) {
               profile={invitation.creator}
               size="md"
               name="full-vertical"
+              eagerAvatar
             />
           </Box>
           <styled.p>

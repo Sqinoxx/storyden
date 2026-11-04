@@ -84,26 +84,19 @@ func (s *service) Set(ctx context.Context, accountID account.AccountID, stream i
 
 func (s *service) Get(ctx context.Context, accountID account.AccountID) (io.Reader, int64, error) {
 	stream, size, err := s.storage.Read(ctx, avatarPath(accountID))
-	if err != nil {
-		r, w := io.Pipe()
-
-		go func() {
-			i, err := s.generator.Generate(ctx, accountID.String())
-			if err != nil {
-				w.CloseWithError(err)
-				return
-			}
-
-			if err := png.Encode(w, i); err != nil {
-				w.CloseWithError(err)
-				return
-			}
-
-			w.Close()
-		}()
-
-		return r, 0, nil
+	if err == nil {
+		return stream, size, nil
 	}
 
-	return stream, size, nil
+	img, err := s.generator.Generate(ctx, accountID.String())
+	if err != nil {
+		return nil, 0, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, img); err != nil {
+		return nil, 0, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return &buf, int64(buf.Len()), nil
 }

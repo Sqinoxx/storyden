@@ -57,9 +57,9 @@ func (c *capturingStorer) Write(ctx context.Context, path string, r io.Reader, s
 }
 
 // TestGet_GeneratedAvatarIsComplete covers accounts with no uploaded avatar,
-// where the image is produced on the fly and piped to the response. Closing the
-// wrong end of that pipe made the consumer see io.ErrClosedPipe instead of EOF,
-// truncating the PNG after the response headers had already been sent.
+// where the image is produced on the fly. It must be fully encoded with a known
+// size before the response headers are sent, otherwise a failure mid-stream
+// produces a truncated PNG behind a 200 status with no Content-Length.
 func TestGet_GeneratedAvatarIsComplete(t *testing.T) {
 	r := require.New(t)
 
@@ -68,17 +68,34 @@ func TestGet_GeneratedAvatarIsComplete(t *testing.T) {
 		storage:   missingStorer{errNotFound: io.ErrUnexpectedEOF},
 	}
 
-	reader, _, err := s.Get(context.Background(), account.AccountID{})
+	reader, size, err := s.Get(context.Background(), account.AccountID{})
 	r.NoError(err)
 
 	data, err := io.ReadAll(reader)
 	r.NoError(err, "the generated avatar must stream to completion")
 	r.NotEmpty(data)
+	r.Equal(int64(len(data)), size, "the size must match so Content-Length is sent")
 
 	img, err := png.Decode(bytes.NewReader(data))
 	r.NoError(err, "the streamed bytes must be a complete, decodable PNG")
 	r.Equal(8, img.Bounds().Dx())
 	r.Equal(8, img.Bounds().Dy())
+}
+
+type failingGenerator struct{}
+
+func (failingGenerator) Generate(ctx context.Context, seed string) (image.Image, error) {
+	return nil, io.ErrUnexpectedEOF
+}
+
+func TestGet_GeneratorFailureReturnsError(t *testing.T) {
+	s := &service{
+		generator: failingGenerator{},
+		storage:   missingStorer{errNotFound: io.ErrUnexpectedEOF},
+	}
+
+	_, _, err := s.Get(context.Background(), account.AccountID{})
+	require.Error(t, err, "a generation failure must surface before headers are written")
 }
 
 // TestSet_RejectsNonImageContent covers B18: Set used to write whatever bytes

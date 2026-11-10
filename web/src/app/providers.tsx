@@ -7,6 +7,7 @@ import { SWRConfig } from "swr";
 import { AuthProvider } from "@/auth/AuthProvider";
 
 import { CookieNotice } from "@/components/site/CookieNotice/CookieNotice";
+import { KonamiEasterEgg } from "@/components/site/KonamiEasterEgg/KonamiEasterEgg";
 import { RouteProgress } from "@/components/site/RouteProgress/RouteProgress";
 import { useCacheProvider } from "@/lib/cache/swr-cache";
 import { DndProvider } from "@/lib/dragdrop/provider";
@@ -30,6 +31,7 @@ export function Providers({ children }: PropsWithChildren) {
               <RouteProgress />
               <Toaster />
               <CookieNotice />
+              <KonamiEasterEgg />
 
               {/* -- */}
               {children}

@@ -1376,4 +1376,7 @@ export const de: Translations = {
     moveUp: "Nach oben",
     moveDown: "Nach unten",
   },
+  easterEgg: {
+    unlocked: "Geheimnis gelüftet! Du hast den Konami-Code gefunden. 🎮",
+  },
 };

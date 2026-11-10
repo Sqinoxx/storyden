@@ -10,6 +10,7 @@ import (
 	"github.com/Southclaws/opt"
 	"github.com/rs/xid"
 
+	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/bug_report"
 	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/internal/ent"
@@ -24,15 +25,27 @@ func New(db *ent.Client) *Querier {
 	return &Querier{db: db}
 }
 
+type Filter struct {
+	Status   opt.Optional[bug_report.Status]
+	Category opt.Optional[bug_report.Category]
+	Author   opt.Optional[account.AccountID]
+}
+
 func (q *Querier) List(
 	ctx context.Context,
 	page pagination.Parameters,
-	status opt.Optional[bug_report.Status],
+	filter Filter,
 ) (pagination.Result[*bug_report.BugReport], error) {
 	query := q.db.BugReport.Query()
 
-	status.Call(func(s bug_report.Status) {
+	filter.Status.Call(func(s bug_report.Status) {
 		query.Where(entbugreport.Status(s.String()))
+	})
+	filter.Category.Call(func(c bug_report.Category) {
+		query.Where(entbugreport.Category(c.String()))
+	})
+	filter.Author.Call(func(a account.AccountID) {
+		query.Where(entbugreport.AccountID(xid.ID(a)))
 	})
 
 	total, err := query.Clone().Count(ctx)

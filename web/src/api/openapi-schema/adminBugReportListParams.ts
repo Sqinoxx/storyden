@@ -7,6 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
+import type { BugReportCategoryQueryParameter } from "./bugReportCategoryQueryParameter";
 import type { BugReportStatusQueryParameter } from "./bugReportStatusQueryParameter";
 import type { PaginationQueryParameter } from "./paginationQueryParameter";
 
@@ -19,4 +20,8 @@ export type AdminBugReportListParams = {
    * Bug report status filter.
    */
   status?: BugReportStatusQueryParameter;
+  /**
+   * Bug report category filter.
+   */
+  category?: BugReportCategoryQueryParameter;
 };

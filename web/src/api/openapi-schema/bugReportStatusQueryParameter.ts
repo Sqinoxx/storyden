@@ -14,5 +14,7 @@ export type BugReportStatusQueryParameter =
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const BugReportStatusQueryParameter = {
   open: "open",
+  planned: "planned",
   resolved: "resolved",
+  declined: "declined",
 } as const;

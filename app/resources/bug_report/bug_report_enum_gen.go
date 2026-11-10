@@ -71,7 +71,9 @@ type Status struct {
 
 var (
 	StatusOpen     = Status{statusOpen}
+	StatusPlanned  = Status{statusPlanned}
 	StatusResolved = Status{statusResolved}
+	StatusDeclined = Status{statusDeclined}
 )
 
 func (r Status) Format(f fmt.State, verb rune) {
@@ -113,8 +115,12 @@ func NewStatus(__iNpUt__ string) (Status, error) {
 	switch __iNpUt__ {
 	case string(statusOpen):
 		return StatusOpen, nil
+	case string(statusPlanned):
+		return StatusPlanned, nil
 	case string(statusResolved):
 		return StatusResolved, nil
+	case string(statusDeclined):
+		return StatusDeclined, nil
 	default:
 		return Status{}, fmt.Errorf("invalid value for type 'Status': '%s'", __iNpUt__)
 	}

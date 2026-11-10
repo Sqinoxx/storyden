@@ -16,14 +16,14 @@ import { FormControl } from "@/components/ui/form/FormControl";
 import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { FormLabel } from "@/components/ui/form/FormLabel";
 import { Heading } from "@/components/ui/heading";
-import { Input } from "@/components/ui/input";
+import { Input, InputPrefix } from "@/components/ui/input";
 import { useTranslation } from "@/lib/i18n";
 import {
   centsToEuros,
   eurosToCents,
   formatCents,
 } from "@/lib/marketplace/marketplace";
-import { CardBox, LStack, styled } from "@/styled-system/jsx";
+import { CardBox, HStack, LStack, styled } from "@/styled-system/jsx";
 
 import { ContactButtons } from "./ContactButtons";
 import { PhoneRequiredNotice } from "./PhoneRequiredNotice";
@@ -82,7 +82,12 @@ export function ListingOfferPanel({ listing, onOffered }: Props) {
   return (
     <LStack gap="4" w="full">
       {listing.has_offered && contact.data && (
-        <CardBox w="full" data-testid="listing-contact">
+        <CardBox
+          w="full"
+          bg="bg.success"
+          borderColor="border.success"
+          data-testid="listing-contact"
+        >
           <LStack gap="2">
             <Heading size="sm">{t.marketplace.contact.title}</Heading>
             <ContactButtons
@@ -94,7 +99,11 @@ export function ListingOfferPanel({ listing, onOffered }: Props) {
       )}
 
       {unavailable ? (
-        <styled.p color="fg.muted">{t.marketplace.offer.unavailable}</styled.p>
+        <CardBox w="full">
+          <styled.p color="fg.muted" textAlign="center">
+            {t.marketplace.offer.unavailable}
+          </styled.p>
+        </CardBox>
       ) : phone.data && !phone.data.phone ? (
         <PhoneRequiredNotice />
       ) : (
@@ -111,13 +120,19 @@ export function ListingOfferPanel({ listing, onOffered }: Props) {
             </styled.p>
             <FormControl>
               <FormLabel>{t.marketplace.offer.amount}</FormLabel>
-              <Input
-                type="number"
-                inputMode="decimal"
-                min={0}
-                step="0.01"
-                {...form.register("amount")}
-              />
+              <HStack gap="0" alignItems="stretch" w="full">
+                <InputPrefix>€</InputPrefix>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.01"
+                  flex="1"
+                  borderTopLeftRadius="none"
+                  borderBottomLeftRadius="none"
+                  {...form.register("amount")}
+                />
+              </HStack>
               <FormErrorText>
                 {form.formState.errors.amount?.message}
               </FormErrorText>
@@ -129,7 +144,11 @@ export function ListingOfferPanel({ listing, onOffered }: Props) {
                 {...form.register("message")}
               />
             </FormControl>
-            <Button type="submit" loading={form.formState.isSubmitting}>
+            <Button
+              type="submit"
+              w="full"
+              loading={form.formState.isSubmitting}
+            >
               {listing.has_offered
                 ? t.marketplace.offer.update
                 : t.marketplace.offer.submit}

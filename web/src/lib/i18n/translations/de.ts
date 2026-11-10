@@ -1128,6 +1128,11 @@ export const de: Translations = {
     offers: "{count} Angebote",
     negotiableShort: "VB",
     free: "Zu verschenken",
+    all: "Alle",
+    sort: "Sortierung",
+    results: "{count} Inserate",
+    emptyFiltered: "Keine Inserate passen zu deinen Filtern.",
+    emptyHint: "Du hast etwas, das du nicht mehr brauchst? Biete es hier an.",
     conditions: {
       new: "Neu",
       like_new: "Wie neu",
@@ -1145,6 +1150,10 @@ export const de: Translations = {
       sold: "Verkauft",
     },
     form: {
+      sectionPhotos: "Fotos",
+      sectionWhat: "Was verkaufst du?",
+      sectionPrice: "Preis",
+      sectionDetails: "Details",
       createTitle: "Inserat aufgeben",
       editTitle: "Inserat bearbeiten",
       images: "Bilder",
@@ -1187,6 +1196,7 @@ export const de: Translations = {
       resetZoom: "Zoom zurücksetzen",
     },
     detail: {
+      description: "Beschreibung",
       seller: "Verkäufer",
       category: "Kategorie",
       condition: "Zustand",

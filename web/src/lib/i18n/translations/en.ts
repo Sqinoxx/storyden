@@ -1125,6 +1125,11 @@ export const en = {
     offers: "{count} offers",
     negotiableShort: "VB",
     free: "Free",
+    all: "All",
+    sort: "Sort",
+    results: "{count} listings",
+    emptyFiltered: "No listings match your filters.",
+    emptyHint: "Got something you no longer need? Put it up here.",
     conditions: {
       new: "New",
       like_new: "Like new",
@@ -1142,6 +1147,10 @@ export const en = {
       sold: "Sold",
     },
     form: {
+      sectionPhotos: "Photos",
+      sectionWhat: "What are you selling?",
+      sectionPrice: "Price",
+      sectionDetails: "Details",
       createTitle: "Create listing",
       editTitle: "Edit listing",
       images: "Images",
@@ -1185,6 +1194,7 @@ export const en = {
       resetZoom: "Reset zoom",
     },
     detail: {
+      description: "Description",
       seller: "Seller",
       category: "Category",
       condition: "Condition",

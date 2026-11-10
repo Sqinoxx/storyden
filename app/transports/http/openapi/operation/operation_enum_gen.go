@@ -198,6 +198,7 @@ var (
 	OperationIDPostReactRemove                        = OperationID{`PostReactRemove`}
 	OperationIDPostLocationGet                        = OperationID{`PostLocationGet`}
 	OperationIDAssetUpload                            = OperationID{`AssetUpload`}
+	OperationIDAssetImport                            = OperationID{`AssetImport`}
 	OperationIDAssetGet                               = OperationID{`AssetGet`}
 	OperationIDLikePostGet                            = OperationID{`LikePostGet`}
 	OperationIDLikePostAdd                            = OperationID{`LikePostAdd`}
@@ -702,6 +703,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDPostLocationGet, nil
 	case string(`AssetUpload`):
 		return OperationIDAssetUpload, nil
+	case string(`AssetImport`):
+		return OperationIDAssetImport, nil
 	case string(`AssetGet`):
 		return OperationIDAssetGet, nil
 	case string(`LikePostGet`):

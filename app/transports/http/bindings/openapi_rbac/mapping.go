@@ -734,6 +734,10 @@ func (m *Mapping) AssetUpload() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionUploadAsset
 }
 
+func (m *Mapping) AssetImport() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionUploadAsset
+}
+
 func (m *Mapping) AssetGet() (bool, *rbac.Permission) {
 	// Was public: any anonymous visitor could download any uploaded asset by
 	// guessing/enumerating its filename, with no ownership check at all.

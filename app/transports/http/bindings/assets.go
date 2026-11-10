@@ -17,6 +17,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/app/resources/cachecontrol"
 	"github.com/Southclaws/storyden/app/services/asset/asset_download"
+	"github.com/Southclaws/storyden/app/services/asset/asset_import"
 	"github.com/Southclaws/storyden/app/services/asset/asset_upload"
 	"github.com/Southclaws/storyden/app/services/reqinfo"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
@@ -25,10 +26,11 @@ import (
 type Assets struct {
 	uploader   *asset_upload.Uploader
 	downloader *asset_download.Downloader
+	importer   *asset_import.Importer
 }
 
-func NewAssets(uploader *asset_upload.Uploader, downloader *asset_download.Downloader) Assets {
-	return Assets{uploader, downloader}
+func NewAssets(uploader *asset_upload.Uploader, downloader *asset_download.Downloader, importer *asset_import.Importer) Assets {
+	return Assets{uploader, downloader, importer}
 }
 
 // assetCacheControl is "private" because this endpoint now requires a
@@ -282,6 +284,20 @@ func (i *Assets) AssetUpload(ctx context.Context, request openapi.AssetUploadReq
 
 	return openapi.AssetUpload200JSONResponse{
 		AssetUploadOKJSONResponse: openapi.AssetUploadOKJSONResponse(serialiseAssetPtr(a)),
+	}, nil
+}
+
+func (i *Assets) AssetImport(ctx context.Context, request openapi.AssetImportRequestObject) (openapi.AssetImportResponseObject, error) {
+	imported, err := i.importer.Import(ctx, request.Body.Url)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	a := serialiseAsset(*imported.Asset)
+	a.Filename = imported.Name
+
+	return openapi.AssetImport200JSONResponse{
+		AssetUploadOKJSONResponse: openapi.AssetUploadOKJSONResponse(a),
 	}, nil
 }
 

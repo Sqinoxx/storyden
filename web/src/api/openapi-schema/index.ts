@@ -117,6 +117,8 @@ export * from "./assetGetOKResponse";
 export * from "./assetGetParams";
 export * from "./assetID";
 export * from "./assetIDs";
+export * from "./assetImportBody";
+export * from "./assetImportProps";
 export * from "./assetList";
 export * from "./assetNameQueryParameter";
 export * from "./assetNotModifiedResponse";

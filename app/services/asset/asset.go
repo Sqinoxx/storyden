@@ -4,6 +4,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/Southclaws/storyden/app/services/asset/asset_download"
+	"github.com/Southclaws/storyden/app/services/asset/asset_import"
 	"github.com/Southclaws/storyden/app/services/asset/asset_link"
 	"github.com/Southclaws/storyden/app/services/asset/asset_upload"
 )
@@ -14,6 +15,7 @@ func Build() fx.Option {
 			asset_upload.New,
 			asset_download.New,
 			asset_link.New,
+			asset_import.New,
 		),
 	)
 }

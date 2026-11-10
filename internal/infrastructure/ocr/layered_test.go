@@ -54,7 +54,7 @@ func TestLayeredClient_PDFWithoutTextLayerAndNoRasterizerFails(t *testing.T) {
 func TestLayeredClient_UnsupportedMIME(t *testing.T) {
 	c := NewLayeredClient(slog.Default(), nil, nil, config.Config{})
 
-	_, err := c.ExtractText(context.Background(), []byte("data"), "text/plain")
+	_, err := c.ExtractText(context.Background(), []byte("data"), "application/zip")
 	require.Error(t, err)
 	assert.ErrorIs(t, err, ErrUnsupportedMIME)
 }

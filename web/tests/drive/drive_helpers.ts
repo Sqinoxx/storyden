@@ -5,6 +5,8 @@ import { Page, expect } from "@playwright/test";
 // "Handouts" subfolder containing handout.pdf.
 export const MOCK_ROOT_FOLDER_ID = "mock-root-folder";
 export const MOCK_SUB_FOLDER_ID = "mock-sub-folder";
+export const MOCK_TEXT_FILE_ID = "mock-notes-file";
+export const MOCK_PDF_FILE_ID = "mock-handout-file";
 
 // A Drive folder may only be registered once, so a shared backend means an
 // earlier test or a retry may already hold the one we want. Clear it first to

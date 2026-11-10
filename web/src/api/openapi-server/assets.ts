@@ -11,6 +11,7 @@ import type {
   AssetDownloadOKResponse,
   AssetDownloadPartialResponse,
   AssetGetParams,
+  AssetImportBody,
   AssetUploadBody,
   AssetUploadOKResponse,
   AssetUploadParams,
@@ -52,6 +53,34 @@ export const assetUpload = async (
       ...options?.headers,
     },
     body: JSON.stringify(assetUploadBody),
+  });
+};
+
+/**
+ * Download a document from a public URL and store it as an asset, as if
+it had been uploaded. Public Google Drive and Google Docs links are
+resolved to their download. Only PDF, Word, PowerPoint and Excel files
+are accepted and the usual upload size limit applies.
+
+ */
+export type assetImportResponse = {
+  data: AssetUploadOKResponse;
+  status: number;
+};
+
+export const getAssetImportUrl = () => {
+  return `/assets/import`;
+};
+
+export const assetImport = async (
+  assetImportBody: AssetImportBody,
+  options?: RequestInit,
+): Promise<assetImportResponse> => {
+  return fetcher<Promise<assetImportResponse>>(getAssetImportUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(assetImportBody),
   });
 };
 

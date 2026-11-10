@@ -17,11 +17,13 @@ import type {
   AssetDownloadOKResponse,
   AssetDownloadPartialResponse,
   AssetGetParams,
+  AssetImportBody,
   AssetNotModifiedResponse,
   AssetRangeNotSatisfiableResponse,
   AssetUploadBody,
   AssetUploadOKResponse,
   AssetUploadParams,
+  BadRequestResponse,
   InternalServerErrorResponse,
   NotFoundResponse,
   UnauthorisedResponse,
@@ -79,6 +81,66 @@ export const useAssetUpload = <
 
   const swrKey = swrOptions?.swrKey ?? getAssetUploadMutationKey(params);
   const swrFn = getAssetUploadMutationFetcher(params);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Download a document from a public URL and store it as an asset, as if
+it had been uploaded. Public Google Drive and Google Docs links are
+resolved to their download. Only PDF, Word, PowerPoint and Excel files
+are accepted and the usual upload size limit applies.
+
+ */
+export const assetImport = (assetImportBody: AssetImportBody) => {
+  return fetcher<AssetUploadOKResponse>({
+    url: `/assets/import`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: assetImportBody,
+  });
+};
+
+export const getAssetImportMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: AssetImportBody },
+  ): Promise<AssetUploadOKResponse> => {
+    return assetImport(arg);
+  };
+};
+export const getAssetImportMutationKey = () => [`/assets/import`] as const;
+
+export type AssetImportMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetImport>>
+>;
+export type AssetImportMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAssetImport = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof assetImport>>,
+    TError,
+    Key,
+    AssetImportBody,
+    Awaited<ReturnType<typeof assetImport>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAssetImportMutationKey();
+  const swrFn = getAssetImportMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

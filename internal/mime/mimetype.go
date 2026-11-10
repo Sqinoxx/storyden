@@ -3,6 +3,7 @@ package mime
 import (
 	"bytes"
 	"io"
+	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
 )
@@ -20,6 +21,10 @@ func (t Type) String() string {
 
 func New(s string) Type {
 	m := mimetype.Lookup(s)
+	if m == nil {
+		base, _, _ := strings.Cut(s, ";")
+		m = mimetype.Lookup(strings.TrimSpace(base))
+	}
 	if m == nil {
 		return Type{
 			mt: *mimetype.Lookup(DefaultMIME),

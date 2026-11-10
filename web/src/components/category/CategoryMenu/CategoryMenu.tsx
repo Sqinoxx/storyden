@@ -6,14 +6,18 @@ import { Category, Permission } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { MoreAction } from "@/components/site/Action/More";
 import { ArrowDownIcon, ArrowUpIcon, PromoteCategoryIcon } from "@/components/ui/icons/Arrow";
+import { CategoryIcon } from "@/components/ui/icons/Category";
+import { SubmenuIcon } from "@/components/ui/icons/Submenu";
 import { Heading } from "@/components/ui/heading";
 import * as Menu from "@/components/ui/menu";
 import { WEB_ADDRESS } from "@/config";
+import { CategoryTree } from "@/lib/category/tree";
 import { HStack, styled } from "@/styled-system/jsx";
 import { useShare } from "@/utils/client";
 import { hasPermission } from "@/utils/permissions";
 import { useCopyToClipboard } from "@/utils/useCopyToClipboard";
 
+import { CategoryBadge } from "../CategoryBadge";
 import { CategoryCreateMenuItem } from "../CategoryCreate/CategoryCreateMenuItem";
 import { CategoryDeleteMenuItem } from "../CategoryDelete/CategoryDeleteMenuItem";
 import { CategoryEditMenuItem } from "../CategoryEdit/CategoryEdit";
@@ -24,9 +28,31 @@ type Props = {
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onPromote?: () => void;
+  moveTargets?: CategoryTree[];
+  onMoveInto?: (targetCategory: string) => void;
 };
 
-export function useCategoryMenu({ category, onMoveUp, onMoveDown, onPromote }: Props) {
+const MOVE_INTO_PREFIX = "move-into:";
+
+function excludeSubtree(
+  nodes: CategoryTree[],
+  excludedID: string,
+): CategoryTree[] {
+  return nodes
+    .filter((node) => node.id !== excludedID)
+    .map((node) => ({
+      ...node,
+      children: excludeSubtree(node.children, excludedID),
+    }));
+}
+
+export function useCategoryMenu({
+  category,
+  onMoveUp,
+  onMoveDown,
+  onPromote,
+  onMoveInto,
+}: Props) {
   const t = useTranslation();
   const account = useSession();
   const [, copyToClipboard] = useCopyToClipboard();
@@ -50,6 +76,10 @@ export function useCategoryMenu({ category, onMoveUp, onMoveDown, onPromote }: P
   }
 
   async function handleSelect({ value }: MenuSelectionDetails) {
+    if (value.startsWith(MOVE_INTO_PREFIX)) {
+      return onMoveInto?.(value.slice(MOVE_INTO_PREFIX.length));
+    }
+
     switch (value) {
       case "copy-link":
         return handleCopyLink();
@@ -94,9 +124,16 @@ export function CategoryMenu(props: Props) {
     useCategoryMenu(props);
   const t = useTranslation();
 
-  const { category, onMoveUp, onMoveDown, onPromote } = props;
+  const { category, onMoveUp, onMoveDown, onPromote, onMoveInto } = props;
 
-  const hasReorderActions = isEditingEnabled && (onMoveUp || onMoveDown || onPromote);
+  const moveTargets =
+    onMoveInto && props.moveTargets
+      ? excludeSubtree(props.moveTargets, category.id)
+      : [];
+  const canMoveInto = moveTargets.length > 0;
+
+  const hasReorderActions =
+    isEditingEnabled && (onMoveUp || onMoveDown || onPromote || canMoveInto);
 
   return (
     <Menu.Root onSelect={handlers.handleSelect}>
@@ -148,6 +185,36 @@ export function CategoryMenu(props: Props) {
                       </HStack>
                     </Menu.Item>
                   )}
+                  {canMoveInto && (
+                    <Menu.Root
+                      size="xs"
+                      positioning={{ placement: "right-start", gutter: -2 }}
+                      onSelect={handlers.handleSelect}
+                    >
+                      <Menu.TriggerItem justifyContent="space-between">
+                        <HStack gap="1">
+                          <CategoryIcon />
+                          {t.category.moveIntoCategory}
+                        </HStack>
+                        <SubmenuIcon />
+                      </Menu.TriggerItem>
+
+                      <Portal>
+                        <Menu.Positioner>
+                          <Menu.Content minW="48" userSelect="none">
+                            {moveTargets.map((node) => (
+                              <CategoryMoveIntoNode
+                                key={node.id}
+                                node={node}
+                                currentParentID={category.parent}
+                                onSelect={handlers.handleSelect}
+                              />
+                            ))}
+                          </Menu.Content>
+                        </Menu.Positioner>
+                      </Portal>
+                    </Menu.Root>
+                  )}
                 </Menu.ItemGroup>
               </>
             )}
@@ -163,6 +230,59 @@ export function CategoryMenu(props: Props) {
                 </Menu.ItemGroup>
               </>
             )}
+          </Menu.Content>
+        </Menu.Positioner>
+      </Portal>
+    </Menu.Root>
+  );
+}
+
+function CategoryMoveIntoNode({
+  node,
+  currentParentID,
+  onSelect,
+}: {
+  node: CategoryTree;
+  currentParentID: string | undefined;
+  onSelect: (details: MenuSelectionDetails) => void;
+}) {
+  const item = (
+    <Menu.Item
+      value={`${MOVE_INTO_PREFIX}${node.id}`}
+      disabled={node.id === currentParentID}
+    >
+      <CategoryBadge category={node} asLink={false} />
+    </Menu.Item>
+  );
+
+  if (node.children.length === 0) {
+    return item;
+  }
+
+  return (
+    <Menu.Root
+      size="xs"
+      positioning={{ placement: "right-start", gutter: -2 }}
+      onSelect={onSelect}
+    >
+      <Menu.TriggerItem justifyContent="space-between">
+        <CategoryBadge category={node} asLink={false} />
+        <SubmenuIcon />
+      </Menu.TriggerItem>
+
+      <Portal>
+        <Menu.Positioner>
+          <Menu.Content minW="48" userSelect="none">
+            {item}
+            <Menu.Separator />
+            {node.children.map((child) => (
+              <CategoryMoveIntoNode
+                key={child.id}
+                node={child}
+                currentParentID={currentParentID}
+                onSelect={onSelect}
+              />
+            ))}
           </Menu.Content>
         </Menu.Positioner>
       </Portal>

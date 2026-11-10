@@ -189,6 +189,7 @@ export function CategoryListTree({
               indexPath={[]}
               siblings={rootNodes}
               siblingIndex={index}
+              tree={tree}
               canManageCategories={canManageCategories}
               emitCategoryEvent={emitCategoryEvent}
             />
@@ -207,6 +208,7 @@ type TreeNodeProps = {
   indexPath: number[];
   siblings: CategoryTree[];
   siblingIndex: number;
+  tree: CategoryTree[];
   canManageCategories: boolean;
   emitCategoryEvent: ReturnType<typeof useEmitCategoryEvent>;
 };
@@ -219,6 +221,7 @@ function CategoryTreeNode({
   indexPath,
   siblings,
   siblingIndex,
+  tree,
   canManageCategories,
   emitCategoryEvent,
 }: TreeNodeProps) {
@@ -263,6 +266,15 @@ function CategoryTreeNode({
       });
     }
     : undefined;
+
+  const onMoveInto = (targetCategory: string) => {
+    emitCategoryEvent("category:reorder-category", {
+      categorySlug: category.slug,
+      targetCategory,
+      direction: "inside",
+      newParent: targetCategory,
+    });
+  };
 
   return (
     <ArkTreeView.NodeProvider
@@ -310,6 +322,8 @@ function CategoryTreeNode({
                 onMoveUp={onMoveUp}
                 onMoveDown={onMoveDown}
                 onPromote={onPromote}
+                moveTargets={tree}
+                onMoveInto={onMoveInto}
               />
             </HStack>
           )}
@@ -326,6 +340,7 @@ function CategoryTreeNode({
               styles={styles}
               siblings={category.children}
               siblingIndex={childIndex}
+              tree={tree}
               canManageCategories={canManageCategories}
               emitCategoryEvent={emitCategoryEvent}
             />

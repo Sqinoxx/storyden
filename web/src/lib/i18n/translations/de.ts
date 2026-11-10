@@ -210,6 +210,7 @@ export const de: Translations = {
     moveUp: "Nach oben verschieben",
     moveDown: "Nach unten verschieben",
     promoteToParentLevel: "Auf Ebene des Überordners verschieben",
+    moveIntoCategory: "In Kategorie verschieben",
   },
   search: {
     kindThreads: "Threads",

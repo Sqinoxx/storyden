@@ -6,7 +6,11 @@ import { CategoryList } from "@/components/category/CategoryList/CategoryList";
 import { LStack, styled } from "@/styled-system/jsx";
 import { canSeeMarketplace } from "@/lib/marketplace/visibility";
 import { useSettings } from "@/lib/settings/settings-client";
-import { hasPermission, isModeratorOrAdmin } from "@/utils/permissions";
+import {
+  canManageTags,
+  hasPermission,
+  isModeratorOrAdmin,
+} from "@/utils/permissions";
 
 import styles from "./ContentNavigationList.module.css";
 
@@ -32,6 +36,7 @@ export function ContentNavigationList(props: Props) {
   const session = useSession();
   const isStaff = isModeratorOrAdmin(session);
   const isAdmin = hasPermission(session, Permission.ADMINISTRATOR);
+  const isTagManager = canManageTags(session);
   const hasDriveFolders = useHasDriveFolders();
   const settings = useSettings(undefined, true);
   const marketplaceVisible =
@@ -95,9 +100,9 @@ export function ContentNavigationList(props: Props) {
           <>
             <MembersAnchor />
             <RolesAnchor />
-            <TagManagementAnchor />
           </>
         )}
+        {isTagManager && <TagManagementAnchor />}
       </LStack>
     </styled.nav>
   );

@@ -39,6 +39,14 @@ export function hasPermissionOr(
   return false;
 }
 
+export function canManageTags(account?: Account | AccountCommonProps) {
+  return hasPermission(account, Permission.MANAGE_TAGS);
+}
+
+export function canCreateTags(account?: Account | AccountCommonProps) {
+  return hasPermission(account, Permission.CREATE_TAGS, Permission.MANAGE_TAGS);
+}
+
 export function isModeratorOrAdmin(account?: Account | AccountCommonProps) {
   return hasPermission(
     account,

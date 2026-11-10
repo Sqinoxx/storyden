@@ -93,6 +93,7 @@ export function LibraryPageTagsBlockEditing() {
     currentTagItems,
     queryResults,
     isSuggestEnabled,
+    allowNewTags,
     loadingTags,
     handleQuery,
     handleSuggestTags,
@@ -107,7 +108,7 @@ export function LibraryPageTagsBlockEditing() {
           onChange={handleChange}
           onQuery={handleQuery}
           queryResults={queryResults}
-          allowNewValues={true}
+          allowNewValues={allowNewTags}
           inputPlaceholder="Add tags..."
           autoColour={true}
           size="sm"

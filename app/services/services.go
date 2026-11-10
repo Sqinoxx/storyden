@@ -27,11 +27,11 @@ import (
 	"github.com/Southclaws/storyden/app/services/drive/drive_credentials"
 	"github.com/Southclaws/storyden/app/services/drive/drive_manage"
 	"github.com/Southclaws/storyden/app/services/event"
-	"github.com/Southclaws/storyden/app/services/listing"
 	"github.com/Southclaws/storyden/app/services/generative"
 	"github.com/Southclaws/storyden/app/services/library"
 	"github.com/Southclaws/storyden/app/services/like/post_liker"
 	"github.com/Southclaws/storyden/app/services/link"
+	"github.com/Southclaws/storyden/app/services/listing"
 	"github.com/Southclaws/storyden/app/services/mention/mention_job"
 	"github.com/Southclaws/storyden/app/services/moderation"
 	"github.com/Southclaws/storyden/app/services/moderation/action_dispatcher"
@@ -53,6 +53,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/semdex/semdexer"
 	"github.com/Southclaws/storyden/app/services/system/instance_info"
 	"github.com/Southclaws/storyden/app/services/tag/autotagger"
+	"github.com/Southclaws/storyden/app/services/tag/tag_create"
 	"github.com/Southclaws/storyden/app/services/thread"
 	"github.com/Southclaws/storyden/app/services/thread_mark"
 )
@@ -101,6 +102,7 @@ func Build() fx.Option {
 		fx.Provide(avatar_gen.New),
 		fx.Provide(following.New),
 		fx.Provide(autotagger.New),
+		fx.Provide(tag_create.New),
 		fx.Provide(instance_info.New),
 		ocr.Build(),
 		semester.Build(),

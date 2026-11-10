@@ -17,6 +17,10 @@ vi.mock("next/navigation", () => ({
   useParams: () => ({ slug: ["test"] }),
 }));
 
+vi.mock("@/auth", () => ({
+  useSession: () => undefined,
+}));
+
 vi.mock("../../useEditState", () => ({
   useEditState: () => ({
     isDirectEditing: isDirectEditingMock,

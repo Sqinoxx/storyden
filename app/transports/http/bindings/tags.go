@@ -13,6 +13,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/tag/tag_querier"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_writer"
+	"github.com/Southclaws/storyden/app/services/tag/tag_create"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 )
 
@@ -55,6 +56,10 @@ func (h Tags) TagList(ctx context.Context, request openapi.TagListRequestObject)
 func (h Tags) TagCreate(ctx context.Context, request openapi.TagCreateRequestObject) (openapi.TagCreateResponseObject, error) {
 	if request.Body == nil {
 		return nil, fault.New("missing request body", fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	if err := tag_create.Authorise(ctx); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
 	name := tag_ref.NewName(request.Body.Name)

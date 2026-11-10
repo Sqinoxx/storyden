@@ -48,6 +48,37 @@ func (w *Writer) Add(ctx context.Context, names ...tag_ref.Name) ([]*tag_ref.Tag
 	return tags, nil
 }
 
+func (w *Writer) Missing(ctx context.Context, names ...tag_ref.Name) (tag_ref.Names, error) {
+	nameStrings := tag_ref.Names(names).Strings()
+
+	existing, err := w.db.Tag.Query().
+		Where(ent_tag.NameIn(nameStrings...)).
+		Select(ent_tag.FieldName).
+		Strings(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	found := make(map[string]struct{}, len(existing))
+	for _, n := range existing {
+		found[n] = struct{}{}
+	}
+
+	missing := tag_ref.Names{}
+	for _, n := range nameStrings {
+		if _, ok := found[n]; ok {
+			continue
+		}
+		if n == "" {
+			continue
+		}
+		found[n] = struct{}{}
+		missing = append(missing, tag_ref.NewName(n))
+	}
+
+	return missing, nil
+}
+
 func (w *Writer) Remove(ctx context.Context, names ...tag_ref.Name) error {
 	nameStrings := tag_ref.Names(names).Strings()
 

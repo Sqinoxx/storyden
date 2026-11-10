@@ -7,7 +7,11 @@ import { BugReportModal } from "@/components/bug-report/BugReportModal";
 import { MemberAvatar } from "@/components/member/MemberBadge/MemberAvatar";
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
 import * as Menu from "@/components/ui/menu";
-import { hasPermission, isModeratorOrAdmin } from "@/utils/permissions";
+import {
+  canManageTags,
+  hasPermission,
+  isModeratorOrAdmin,
+} from "@/utils/permissions";
 import { useDisclosure } from "@/utils/useDisclosure";
 
 import { AdminMenuItem } from "../Anchors/Admin";
@@ -49,6 +53,7 @@ export function AccountMenu({
   const isAdmin = hasPermission(account, Permission.ADMINISTRATOR);
   const canCreateInvitations = hasPermission(account, Permission.CREATE_INVITATION);
   const isStaff = isModeratorOrAdmin(account);
+  const isTagManager = canManageTags(account);
   const invitationDisclosure = useDisclosure();
   const invitation = useInvitation();
   const bugReportDisclosure = useDisclosure();
@@ -111,7 +116,7 @@ export function AccountMenu({
                 {isStaff && <QueueMenuItem />}
                 <ReportsMenuItem />
                 <TagsMenuItem />
-                {isStaff && <TagManagementMenuItem />}
+                {isTagManager && <TagManagementMenuItem />}
                 <BugReportMenuItem />
               </Menu.ItemGroup>
 

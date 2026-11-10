@@ -65,6 +65,8 @@ export const writePermissions = [
   Permission.MANAGE_POSTS,
   Permission.PIN_POSTS,
   Permission.MANAGE_CATEGORIES,
+  Permission.MANAGE_TAGS,
+  Permission.CREATE_TAGS,
   Permission.CREATE_INVITATION,
   Permission.MANAGE_LIBRARY,
   Permission.SUBMIT_LIBRARY_NODE,

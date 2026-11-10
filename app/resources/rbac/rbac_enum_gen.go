@@ -19,6 +19,8 @@ var (
 	PermissionPinPosts                 = Permission{`PIN_POSTS`}
 	PermissionManageCategories         = Permission{`MANAGE_CATEGORIES`}
 	PermissionPostInAnyCategory        = Permission{`POST_IN_ANY_CATEGORY`}
+	PermissionManageTags               = Permission{`MANAGE_TAGS`}
+	PermissionCreateTags               = Permission{`CREATE_TAGS`}
 	PermissionCreateInvitation         = Permission{`CREATE_INVITATION`}
 	PermissionReadPublishedLibrary     = Permission{`READ_PUBLISHED_LIBRARY`}
 	PermissionManageLibrary            = Permission{`MANAGE_LIBRARY`}
@@ -101,6 +103,10 @@ func NewPermission(__iNpUt__ string) (Permission, error) {
 		return PermissionManageCategories, nil
 	case string(`POST_IN_ANY_CATEGORY`):
 		return PermissionPostInAnyCategory, nil
+	case string(`MANAGE_TAGS`):
+		return PermissionManageTags, nil
+	case string(`CREATE_TAGS`):
+		return PermissionCreateTags, nil
 	case string(`CREATE_INVITATION`):
 		return PermissionCreateInvitation, nil
 	case string(`READ_PUBLISHED_LIBRARY`):

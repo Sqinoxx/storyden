@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
+	"github.com/Southclaws/storyden/internal/ent/accessgrant"
 	"github.com/Southclaws/storyden/internal/ent/account"
 	"github.com/Southclaws/storyden/internal/ent/accountfollow"
 	"github.com/Southclaws/storyden/internal/ent/accountroles"
@@ -858,6 +859,21 @@ func (_u *AccountUpdate) AddWarnings(v ...*Warning) *AccountUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddWarningIDs(ids...)
+}
+
+// AddAccessGrantIDs adds the "access_grants" edge to the AccessGrant entity by IDs.
+func (_u *AccountUpdate) AddAccessGrantIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.AddAccessGrantIDs(ids...)
+	return _u
+}
+
+// AddAccessGrants adds the "access_grants" edges to the AccessGrant entity.
+func (_u *AccountUpdate) AddAccessGrants(v ...*AccessGrant) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAccessGrantIDs(ids...)
 }
 
 // AddAuthoredWarningIDs adds the "authored_warnings" edge to the Warning entity by IDs.
@@ -1811,6 +1827,27 @@ func (_u *AccountUpdate) RemoveWarnings(v ...*Warning) *AccountUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveWarningIDs(ids...)
+}
+
+// ClearAccessGrants clears all "access_grants" edges to the AccessGrant entity.
+func (_u *AccountUpdate) ClearAccessGrants() *AccountUpdate {
+	_u.mutation.ClearAccessGrants()
+	return _u
+}
+
+// RemoveAccessGrantIDs removes the "access_grants" edge to AccessGrant entities by IDs.
+func (_u *AccountUpdate) RemoveAccessGrantIDs(ids ...xid.ID) *AccountUpdate {
+	_u.mutation.RemoveAccessGrantIDs(ids...)
+	return _u
+}
+
+// RemoveAccessGrants removes "access_grants" edges to AccessGrant entities.
+func (_u *AccountUpdate) RemoveAccessGrants(v ...*AccessGrant) *AccountUpdate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAccessGrantIDs(ids...)
 }
 
 // ClearAuthoredWarnings clears all "authored_warnings" edges to the Warning entity.
@@ -3903,6 +3940,51 @@ func (_u *AccountUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AccessGrantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.AccessGrantsTable,
+			Columns: []string{account.AccessGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accessgrant.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAccessGrantsIDs(); len(nodes) > 0 && !_u.mutation.AccessGrantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.AccessGrantsTable,
+			Columns: []string{account.AccessGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accessgrant.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AccessGrantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.AccessGrantsTable,
+			Columns: []string{account.AccessGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accessgrant.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.AuthoredWarningsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -5206,6 +5288,21 @@ func (_u *AccountUpdateOne) AddWarnings(v ...*Warning) *AccountUpdateOne {
 	return _u.AddWarningIDs(ids...)
 }
 
+// AddAccessGrantIDs adds the "access_grants" edge to the AccessGrant entity by IDs.
+func (_u *AccountUpdateOne) AddAccessGrantIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.AddAccessGrantIDs(ids...)
+	return _u
+}
+
+// AddAccessGrants adds the "access_grants" edges to the AccessGrant entity.
+func (_u *AccountUpdateOne) AddAccessGrants(v ...*AccessGrant) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAccessGrantIDs(ids...)
+}
+
 // AddAuthoredWarningIDs adds the "authored_warnings" edge to the Warning entity by IDs.
 func (_u *AccountUpdateOne) AddAuthoredWarningIDs(ids ...xid.ID) *AccountUpdateOne {
 	_u.mutation.AddAuthoredWarningIDs(ids...)
@@ -6157,6 +6254,27 @@ func (_u *AccountUpdateOne) RemoveWarnings(v ...*Warning) *AccountUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveWarningIDs(ids...)
+}
+
+// ClearAccessGrants clears all "access_grants" edges to the AccessGrant entity.
+func (_u *AccountUpdateOne) ClearAccessGrants() *AccountUpdateOne {
+	_u.mutation.ClearAccessGrants()
+	return _u
+}
+
+// RemoveAccessGrantIDs removes the "access_grants" edge to AccessGrant entities by IDs.
+func (_u *AccountUpdateOne) RemoveAccessGrantIDs(ids ...xid.ID) *AccountUpdateOne {
+	_u.mutation.RemoveAccessGrantIDs(ids...)
+	return _u
+}
+
+// RemoveAccessGrants removes "access_grants" edges to AccessGrant entities.
+func (_u *AccountUpdateOne) RemoveAccessGrants(v ...*AccessGrant) *AccountUpdateOne {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAccessGrantIDs(ids...)
 }
 
 // ClearAuthoredWarnings clears all "authored_warnings" edges to the Warning entity.
@@ -8272,6 +8390,51 @@ func (_u *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(warning.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AccessGrantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.AccessGrantsTable,
+			Columns: []string{account.AccessGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accessgrant.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAccessGrantsIDs(); len(nodes) > 0 && !_u.mutation.AccessGrantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.AccessGrantsTable,
+			Columns: []string{account.AccessGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accessgrant.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AccessGrantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.AccessGrantsTable,
+			Columns: []string{account.AccessGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accessgrant.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

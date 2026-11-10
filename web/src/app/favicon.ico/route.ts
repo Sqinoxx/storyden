@@ -1,6 +1,7 @@
 import { getAPIAddress } from "@/config";
 
 export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const res = await fetch(`${getAPIAddress()}/api/info/icon/512x512`, {

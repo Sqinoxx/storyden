@@ -4,6 +4,7 @@ import {
   TreeView as ArkTreeView,
   createTreeCollection,
 } from "@ark-ui/react/tree-view";
+import { Lock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { KeyedMutator } from "swr";
 
@@ -26,6 +27,7 @@ import { Unready } from "@/components/site/Unready";
 import { BulletIcon } from "@/components/ui/icons/Bullet";
 import { ChevronRightIcon } from "@/components/ui/icons/Chevron";
 import { DiscussionIcon } from "@/components/ui/icons/Discussion";
+import { useLockedCategoryIDs } from "@/lib/access/useAccess";
 import { useCategoryEvent, useEmitCategoryEvent } from "@/lib/category/events";
 import { CategoryTree, buildCategoryTree } from "@/lib/category/tree";
 import { css, cx } from "@/styled-system/css";
@@ -75,6 +77,7 @@ export function CategoryListTree({
   const t = useTranslation();
 
   const canManageCategories = hasPermission(session, "MANAGE_CATEGORIES");
+  const lockedIDs = useLockedCategoryIDs();
 
   const tree = buildCategoryTree(categories);
 
@@ -192,6 +195,7 @@ export function CategoryListTree({
               tree={tree}
               canManageCategories={canManageCategories}
               emitCategoryEvent={emitCategoryEvent}
+              lockedIDs={lockedIDs}
             />
           ))}
         </ArkTreeView.Tree>
@@ -211,6 +215,7 @@ type TreeNodeProps = {
   tree: CategoryTree[];
   canManageCategories: boolean;
   emitCategoryEvent: ReturnType<typeof useEmitCategoryEvent>;
+  lockedIDs: Set<string>;
 };
 
 function CategoryTreeNode({
@@ -224,7 +229,10 @@ function CategoryTreeNode({
   tree,
   canManageCategories,
   emitCategoryEvent,
+  lockedIDs,
 }: TreeNodeProps) {
+  const t = useTranslation();
+  const isLocked = lockedIDs.has(category.id);
   const isHighlighted = category.slug === currentCategorySlug;
 
   const highlightStyles = css({
@@ -306,6 +314,14 @@ function CategoryTreeNode({
               })}
             >
               {category.name}
+              {isLocked && (
+                <Lock
+                  size={12}
+                  aria-label={t.access.locked}
+                  data-testid="category-locked-icon"
+                  className={css({ color: "fg.muted", flexShrink: "0" })}
+                />
+              )}
             </Anchor>
           </ArkTreeView.BranchText>
 
@@ -343,6 +359,7 @@ function CategoryTreeNode({
               tree={tree}
               canManageCategories={canManageCategories}
               emitCategoryEvent={emitCategoryEvent}
+              lockedIDs={lockedIDs}
             />
           ))}
         </ArkTreeView.BranchContent>

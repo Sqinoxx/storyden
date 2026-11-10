@@ -11,8 +11,10 @@ import (
 	"github.com/Southclaws/storyden/app/resources/collection"
 	"github.com/Southclaws/storyden/app/resources/collection/collection_item_status"
 	"github.com/Southclaws/storyden/app/resources/collection/collection_querier"
+	"github.com/Southclaws/storyden/app/resources/datagraph"
 	"github.com/Southclaws/storyden/app/resources/library"
 	"github.com/Southclaws/storyden/app/resources/post"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/collection/collection_item_manager"
 	"github.com/Southclaws/storyden/app/services/collection/collection_manager"
@@ -25,6 +27,7 @@ type Collections struct {
 	colReader      *collection_read.Hydrator
 	colManager     *collection_manager.Manager
 	colItemManager *collection_item_manager.Manager
+	access         *access_check.Checker
 }
 
 func NewCollections(
@@ -32,12 +35,14 @@ func NewCollections(
 	colReader *collection_read.Hydrator,
 	colManager *collection_manager.Manager,
 	colItemManager *collection_item_manager.Manager,
+	access *access_check.Checker,
 ) Collections {
 	return Collections{
 		colQuerier:     colQuerier,
 		colReader:      colReader,
 		colManager:     colManager,
 		colItemManager: colItemManager,
+		access:         access,
 	}
 }
 
@@ -87,6 +92,11 @@ func (i *Collections) CollectionList(ctx context.Context, request openapi.Collec
 
 func (i *Collections) CollectionGet(ctx context.Context, request openapi.CollectionGetRequestObject) (openapi.CollectionGetResponseObject, error) {
 	coll, err := i.colReader.GetCollection(ctx, collection.NewKey(request.CollectionMark))
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	coll.Items, err = access_check.FilterWrapped(ctx, i.access, coll.Items, func(ci *collection.CollectionItem) datagraph.Item { return ci.Item })
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

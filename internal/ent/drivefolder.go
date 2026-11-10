@@ -47,9 +47,11 @@ type DriveFolder struct {
 type DriveFolderEdges struct {
 	// Account holds the value of the account edge.
 	Account *Account `json:"account,omitempty"`
+	// AccessPasses holds the value of the access_passes edge.
+	AccessPasses []*AccessPass `json:"access_passes,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // AccountOrErr returns the Account value or an error if the edge
@@ -61,6 +63,15 @@ func (e DriveFolderEdges) AccountOrErr() (*Account, error) {
 		return nil, &NotFoundError{label: account.Label}
 	}
 	return nil, &NotLoadedError{edge: "account"}
+}
+
+// AccessPassesOrErr returns the AccessPasses value or an error if the edge
+// was not loaded in eager-loading.
+func (e DriveFolderEdges) AccessPassesOrErr() ([]*AccessPass, error) {
+	if e.loadedTypes[1] {
+		return e.AccessPasses, nil
+	}
+	return nil, &NotLoadedError{edge: "access_passes"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -168,6 +179,11 @@ func (_m *DriveFolder) Value(name string) (ent.Value, error) {
 // QueryAccount queries the "account" edge of the DriveFolder entity.
 func (_m *DriveFolder) QueryAccount() *AccountQuery {
 	return NewDriveFolderClient(_m.config).QueryAccount(_m)
+}
+
+// QueryAccessPasses queries the "access_passes" edge of the DriveFolder entity.
+func (_m *DriveFolder) QueryAccessPasses() *AccessPassQuery {
+	return NewDriveFolderClient(_m.config).QueryAccessPasses(_m)
 }
 
 // Update returns a builder for updating this DriveFolder.

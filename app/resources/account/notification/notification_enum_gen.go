@@ -33,6 +33,10 @@ var (
 	EventNodeVersionDeleted    = Event{eventNodeVersionDeleted}
 	EventListingOfferReceived  = Event{eventListingOfferReceived}
 	EventListingExpiring       = Event{eventListingExpiring}
+	EventAccessRequested       = Event{eventAccessRequested}
+	EventAccessGranted         = Event{eventAccessGranted}
+	EventAccessRejected        = Event{eventAccessRejected}
+	EventAccessExpiring        = Event{eventAccessExpiring}
 )
 
 func (r Event) Format(f fmt.State, verb rune) {
@@ -114,6 +118,14 @@ func NewEvent(__iNpUt__ string) (Event, error) {
 		return EventListingOfferReceived, nil
 	case string(eventListingExpiring):
 		return EventListingExpiring, nil
+	case string(eventAccessRequested):
+		return EventAccessRequested, nil
+	case string(eventAccessGranted):
+		return EventAccessGranted, nil
+	case string(eventAccessRejected):
+		return EventAccessRejected, nil
+	case string(eventAccessExpiring):
+		return EventAccessExpiring, nil
 	default:
 		return Event{}, fmt.Errorf("invalid value for type 'Event': '%s'", __iNpUt__)
 	}

@@ -3,6 +3,7 @@ package search
 import (
 	"go.uber.org/fx"
 
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/search/asset_match"
 	"github.com/Southclaws/storyden/app/services/search/bleve_search"
 	"github.com/Southclaws/storyden/app/services/search/redis_search"
@@ -12,6 +13,19 @@ import (
 )
 
 func newSearcher(
+	cfg config.Config,
+	simpleSearcher *simplesearch.ParallelSearcher,
+	bleveSearcher *bleve_search.BleveSearcher,
+	redisSearcher *redis_search.RedisSearcher,
+	access *access_check.Checker,
+) searcher.Searcher {
+	return &accessFilteredSearcher{
+		next:   providerSearcher(cfg, simpleSearcher, bleveSearcher, redisSearcher),
+		access: access,
+	}
+}
+
+func providerSearcher(
 	cfg config.Config,
 	simpleSearcher *simplesearch.ParallelSearcher,
 	bleveSearcher *bleve_search.BleveSearcher,

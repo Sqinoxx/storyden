@@ -52,5 +52,7 @@ func (Category) Edges() []ent.Edge {
 			Unique(),
 		edge.To("related", Category.Type).
 			From("related_by"),
+		edge.From("access_passes", AccessPass.Type).
+			Ref("categories"),
 	}
 }

@@ -200,5 +200,13 @@ function getNotificationContent(t: Translations, n: Notification) {
         description: d.listingExpiring,
         url: "/flohmarkt?scope=mine",
       };
+    case "access_requested":
+      return { description: d.accessRequested, url: "/access?tab=requests" };
+    case "access_granted":
+      return { description: d.accessGranted, url: "/access" };
+    case "access_rejected":
+      return { description: d.accessRejected, url: "/access" };
+    case "access_expiring":
+      return { description: d.accessExpiring, url: "/access" };
   }
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/post"
 	"github.com/Southclaws/storyden/app/resources/post/post_querier"
 	"github.com/Southclaws/storyden/app/resources/post/thread_cache"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/internal/infrastructure/pubsub"
 	"github.com/Southclaws/storyden/lib/plugin/rpc"
 )
@@ -19,6 +20,7 @@ type PostLiker struct {
 	postQuerier *post_querier.Querier
 	bus         *pubsub.Bus
 	cache       *thread_cache.Cache
+	access      *access_check.Checker
 }
 
 func New(
@@ -26,16 +28,22 @@ func New(
 	postQuerier *post_querier.Querier,
 	bus *pubsub.Bus,
 	cache *thread_cache.Cache,
+	access *access_check.Checker,
 ) *PostLiker {
 	return &PostLiker{
 		likeWriter:  likeWriter,
 		postQuerier: postQuerier,
 		bus:         bus,
 		cache:       cache,
+		access:      access,
 	}
 }
 
 func (l *PostLiker) AddPostLike(ctx context.Context, accountID account.AccountID, postID post.ID) error {
+	if err := l.access.RequirePost(ctx, xid.ID(postID)); err != nil {
+		return err
+	}
+
 	postRef, err := l.postQuerier.Probe(ctx, postID)
 	if err != nil {
 		return err

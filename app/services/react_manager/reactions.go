@@ -14,6 +14,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/post/reaction"
 	"github.com/Southclaws/storyden/app/resources/post/reaction/reaction_repo"
 	"github.com/Southclaws/storyden/app/resources/post/thread_cache"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/internal/infrastructure/pubsub"
 	"github.com/Southclaws/storyden/lib/plugin/rpc"
@@ -26,6 +27,7 @@ type Reactor struct {
 	postQuerier    *post_querier.Querier
 	bus            *pubsub.Bus
 	cache          *thread_cache.Cache
+	access         *access_check.Checker
 }
 
 func New(
@@ -35,6 +37,7 @@ func New(
 	postQuerier *post_querier.Querier,
 	bus *pubsub.Bus,
 	cache *thread_cache.Cache,
+	access *access_check.Checker,
 ) *Reactor {
 	return &Reactor{
 		accountQuerier: accountQuerier,
@@ -43,12 +46,17 @@ func New(
 		postQuerier:    postQuerier,
 		bus:            bus,
 		cache:          cache,
+		access:         access,
 	}
 }
 
 func (s *Reactor) Add(ctx context.Context, postID post.ID, emoji string) (*reaction.React, error) {
 	accountID, err := session.GetAccountID(ctx)
 	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := s.access.RequirePost(ctx, xid.ID(postID)); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 

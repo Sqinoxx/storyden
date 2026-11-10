@@ -26,6 +26,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_writer"
 	"github.com/Southclaws/storyden/app/resources/visibility"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/asset/asset_link"
 	"github.com/Southclaws/storyden/app/services/link/fetcher"
 	"github.com/Southclaws/storyden/app/services/mention/mentioner"
@@ -110,6 +111,7 @@ type service struct {
 	cache          *thread_cache.Cache
 	systemReporter *system_report.Manager
 	assetLink      *asset_link.Resolver
+	access         *access_check.Checker
 }
 
 func New(
@@ -128,6 +130,7 @@ func New(
 	cache *thread_cache.Cache,
 	systemReporter *system_report.Manager,
 	assetLink *asset_link.Resolver,
+	access *access_check.Checker,
 ) Service {
 	return &service{
 		logger: logger,
@@ -145,6 +148,7 @@ func New(
 		cache:          cache,
 		systemReporter: systemReporter,
 		assetLink:      assetLink,
+		access:         access,
 	}
 }
 

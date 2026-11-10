@@ -62,9 +62,11 @@ type CategoryEdges struct {
 	RelatedBy []*Category `json:"related_by,omitempty"`
 	// Related holds the value of the related edge.
 	Related []*Category `json:"related,omitempty"`
+	// AccessPasses holds the value of the access_passes edge.
+	AccessPasses []*AccessPass `json:"access_passes,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // PostsOrErr returns the Posts value or an error if the edge
@@ -123,6 +125,15 @@ func (e CategoryEdges) RelatedOrErr() ([]*Category, error) {
 		return e.Related, nil
 	}
 	return nil, &NotLoadedError{edge: "related"}
+}
+
+// AccessPassesOrErr returns the AccessPasses value or an error if the edge
+// was not loaded in eager-loading.
+func (e CategoryEdges) AccessPassesOrErr() ([]*AccessPass, error) {
+	if e.loadedTypes[6] {
+		return e.AccessPasses, nil
+	}
+	return nil, &NotLoadedError{edge: "access_passes"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -275,6 +286,11 @@ func (_m *Category) QueryRelatedBy() *CategoryQuery {
 // QueryRelated queries the "related" edge of the Category entity.
 func (_m *Category) QueryRelated() *CategoryQuery {
 	return NewCategoryClient(_m.config).QueryRelated(_m)
+}
+
+// QueryAccessPasses queries the "access_passes" edge of the Category entity.
+func (_m *Category) QueryAccessPasses() *AccessPassQuery {
+	return NewCategoryClient(_m.config).QueryAccessPasses(_m)
 }
 
 // Update returns a builder for updating this Category.

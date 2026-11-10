@@ -12,6 +12,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/Southclaws/lexorank"
+	"github.com/Southclaws/storyden/internal/ent/accessgrant"
+	"github.com/Southclaws/storyden/internal/ent/accesspass"
 	"github.com/Southclaws/storyden/internal/ent/account"
 	"github.com/Southclaws/storyden/internal/ent/accountfollow"
 	"github.com/Southclaws/storyden/internal/ent/accountroles"
@@ -82,6 +84,8 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeAccessGrant                  = "AccessGrant"
+	TypeAccessPass                   = "AccessPass"
 	TypeAccount                      = "Account"
 	TypeAccountFollow                = "AccountFollow"
 	TypeAccountRoles                 = "AccountRoles"
@@ -139,6 +143,2189 @@ const (
 	TypeTag                          = "Tag"
 	TypeWarning                      = "Warning"
 )
+
+// AccessGrantMutation represents an operation that mutates the AccessGrant nodes in the graph.
+type AccessGrantMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *xid.ID
+	created_at         *time.Time
+	updated_at         *time.Time
+	expires_at         *time.Time
+	status             *accessgrant.Status
+	reference_code     *string
+	requested_at       *time.Time
+	decided_by         *xid.ID
+	decided_at         *time.Time
+	note               *string
+	expiry_notified_at *time.Time
+	clearedFields      map[string]struct{}
+	account            *xid.ID
+	clearedaccount     bool
+	pass               *xid.ID
+	clearedpass        bool
+	done               bool
+	oldValue           func(context.Context) (*AccessGrant, error)
+	predicates         []predicate.AccessGrant
+}
+
+var _ ent.Mutation = (*AccessGrantMutation)(nil)
+
+// accessgrantOption allows management of the mutation configuration using functional options.
+type accessgrantOption func(*AccessGrantMutation)
+
+// newAccessGrantMutation creates new mutation for the AccessGrant entity.
+func newAccessGrantMutation(c config, op Op, opts ...accessgrantOption) *AccessGrantMutation {
+	m := &AccessGrantMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAccessGrant,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAccessGrantID sets the ID field of the mutation.
+func withAccessGrantID(id xid.ID) accessgrantOption {
+	return func(m *AccessGrantMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AccessGrant
+		)
+		m.oldValue = func(ctx context.Context) (*AccessGrant, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AccessGrant.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAccessGrant sets the old AccessGrant of the mutation.
+func withAccessGrant(node *AccessGrant) accessgrantOption {
+	return func(m *AccessGrantMutation) {
+		m.oldValue = func(context.Context) (*AccessGrant, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AccessGrantMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AccessGrantMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AccessGrant entities.
+func (m *AccessGrantMutation) SetID(id xid.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AccessGrantMutation) ID() (id xid.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AccessGrantMutation) IDs(ctx context.Context) ([]xid.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []xid.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AccessGrant.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AccessGrantMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AccessGrantMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AccessGrantMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AccessGrantMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AccessGrantMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AccessGrantMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *AccessGrantMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *AccessGrantMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ClearExpiresAt clears the value of the "expires_at" field.
+func (m *AccessGrantMutation) ClearExpiresAt() {
+	m.expires_at = nil
+	m.clearedFields[accessgrant.FieldExpiresAt] = struct{}{}
+}
+
+// ExpiresAtCleared returns if the "expires_at" field was cleared in this mutation.
+func (m *AccessGrantMutation) ExpiresAtCleared() bool {
+	_, ok := m.clearedFields[accessgrant.FieldExpiresAt]
+	return ok
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *AccessGrantMutation) ResetExpiresAt() {
+	m.expires_at = nil
+	delete(m.clearedFields, accessgrant.FieldExpiresAt)
+}
+
+// SetAccountID sets the "account_id" field.
+func (m *AccessGrantMutation) SetAccountID(x xid.ID) {
+	m.account = &x
+}
+
+// AccountID returns the value of the "account_id" field in the mutation.
+func (m *AccessGrantMutation) AccountID() (r xid.ID, exists bool) {
+	v := m.account
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccountID returns the old "account_id" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldAccountID(ctx context.Context) (v xid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccountID: %w", err)
+	}
+	return oldValue.AccountID, nil
+}
+
+// ResetAccountID resets all changes to the "account_id" field.
+func (m *AccessGrantMutation) ResetAccountID() {
+	m.account = nil
+}
+
+// SetPassID sets the "pass_id" field.
+func (m *AccessGrantMutation) SetPassID(x xid.ID) {
+	m.pass = &x
+}
+
+// PassID returns the value of the "pass_id" field in the mutation.
+func (m *AccessGrantMutation) PassID() (r xid.ID, exists bool) {
+	v := m.pass
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPassID returns the old "pass_id" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldPassID(ctx context.Context) (v xid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPassID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPassID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPassID: %w", err)
+	}
+	return oldValue.PassID, nil
+}
+
+// ResetPassID resets all changes to the "pass_id" field.
+func (m *AccessGrantMutation) ResetPassID() {
+	m.pass = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *AccessGrantMutation) SetStatus(a accessgrant.Status) {
+	m.status = &a
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AccessGrantMutation) Status() (r accessgrant.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldStatus(ctx context.Context) (v accessgrant.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AccessGrantMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetReferenceCode sets the "reference_code" field.
+func (m *AccessGrantMutation) SetReferenceCode(s string) {
+	m.reference_code = &s
+}
+
+// ReferenceCode returns the value of the "reference_code" field in the mutation.
+func (m *AccessGrantMutation) ReferenceCode() (r string, exists bool) {
+	v := m.reference_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReferenceCode returns the old "reference_code" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldReferenceCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReferenceCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReferenceCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReferenceCode: %w", err)
+	}
+	return oldValue.ReferenceCode, nil
+}
+
+// ResetReferenceCode resets all changes to the "reference_code" field.
+func (m *AccessGrantMutation) ResetReferenceCode() {
+	m.reference_code = nil
+}
+
+// SetRequestedAt sets the "requested_at" field.
+func (m *AccessGrantMutation) SetRequestedAt(t time.Time) {
+	m.requested_at = &t
+}
+
+// RequestedAt returns the value of the "requested_at" field in the mutation.
+func (m *AccessGrantMutation) RequestedAt() (r time.Time, exists bool) {
+	v := m.requested_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestedAt returns the old "requested_at" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldRequestedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestedAt: %w", err)
+	}
+	return oldValue.RequestedAt, nil
+}
+
+// ClearRequestedAt clears the value of the "requested_at" field.
+func (m *AccessGrantMutation) ClearRequestedAt() {
+	m.requested_at = nil
+	m.clearedFields[accessgrant.FieldRequestedAt] = struct{}{}
+}
+
+// RequestedAtCleared returns if the "requested_at" field was cleared in this mutation.
+func (m *AccessGrantMutation) RequestedAtCleared() bool {
+	_, ok := m.clearedFields[accessgrant.FieldRequestedAt]
+	return ok
+}
+
+// ResetRequestedAt resets all changes to the "requested_at" field.
+func (m *AccessGrantMutation) ResetRequestedAt() {
+	m.requested_at = nil
+	delete(m.clearedFields, accessgrant.FieldRequestedAt)
+}
+
+// SetDecidedBy sets the "decided_by" field.
+func (m *AccessGrantMutation) SetDecidedBy(x xid.ID) {
+	m.decided_by = &x
+}
+
+// DecidedBy returns the value of the "decided_by" field in the mutation.
+func (m *AccessGrantMutation) DecidedBy() (r xid.ID, exists bool) {
+	v := m.decided_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDecidedBy returns the old "decided_by" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldDecidedBy(ctx context.Context) (v *xid.ID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDecidedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDecidedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDecidedBy: %w", err)
+	}
+	return oldValue.DecidedBy, nil
+}
+
+// ClearDecidedBy clears the value of the "decided_by" field.
+func (m *AccessGrantMutation) ClearDecidedBy() {
+	m.decided_by = nil
+	m.clearedFields[accessgrant.FieldDecidedBy] = struct{}{}
+}
+
+// DecidedByCleared returns if the "decided_by" field was cleared in this mutation.
+func (m *AccessGrantMutation) DecidedByCleared() bool {
+	_, ok := m.clearedFields[accessgrant.FieldDecidedBy]
+	return ok
+}
+
+// ResetDecidedBy resets all changes to the "decided_by" field.
+func (m *AccessGrantMutation) ResetDecidedBy() {
+	m.decided_by = nil
+	delete(m.clearedFields, accessgrant.FieldDecidedBy)
+}
+
+// SetDecidedAt sets the "decided_at" field.
+func (m *AccessGrantMutation) SetDecidedAt(t time.Time) {
+	m.decided_at = &t
+}
+
+// DecidedAt returns the value of the "decided_at" field in the mutation.
+func (m *AccessGrantMutation) DecidedAt() (r time.Time, exists bool) {
+	v := m.decided_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDecidedAt returns the old "decided_at" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldDecidedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDecidedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDecidedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDecidedAt: %w", err)
+	}
+	return oldValue.DecidedAt, nil
+}
+
+// ClearDecidedAt clears the value of the "decided_at" field.
+func (m *AccessGrantMutation) ClearDecidedAt() {
+	m.decided_at = nil
+	m.clearedFields[accessgrant.FieldDecidedAt] = struct{}{}
+}
+
+// DecidedAtCleared returns if the "decided_at" field was cleared in this mutation.
+func (m *AccessGrantMutation) DecidedAtCleared() bool {
+	_, ok := m.clearedFields[accessgrant.FieldDecidedAt]
+	return ok
+}
+
+// ResetDecidedAt resets all changes to the "decided_at" field.
+func (m *AccessGrantMutation) ResetDecidedAt() {
+	m.decided_at = nil
+	delete(m.clearedFields, accessgrant.FieldDecidedAt)
+}
+
+// SetNote sets the "note" field.
+func (m *AccessGrantMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *AccessGrantMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldNote(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *AccessGrantMutation) ResetNote() {
+	m.note = nil
+}
+
+// SetExpiryNotifiedAt sets the "expiry_notified_at" field.
+func (m *AccessGrantMutation) SetExpiryNotifiedAt(t time.Time) {
+	m.expiry_notified_at = &t
+}
+
+// ExpiryNotifiedAt returns the value of the "expiry_notified_at" field in the mutation.
+func (m *AccessGrantMutation) ExpiryNotifiedAt() (r time.Time, exists bool) {
+	v := m.expiry_notified_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiryNotifiedAt returns the old "expiry_notified_at" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldExpiryNotifiedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiryNotifiedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiryNotifiedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiryNotifiedAt: %w", err)
+	}
+	return oldValue.ExpiryNotifiedAt, nil
+}
+
+// ClearExpiryNotifiedAt clears the value of the "expiry_notified_at" field.
+func (m *AccessGrantMutation) ClearExpiryNotifiedAt() {
+	m.expiry_notified_at = nil
+	m.clearedFields[accessgrant.FieldExpiryNotifiedAt] = struct{}{}
+}
+
+// ExpiryNotifiedAtCleared returns if the "expiry_notified_at" field was cleared in this mutation.
+func (m *AccessGrantMutation) ExpiryNotifiedAtCleared() bool {
+	_, ok := m.clearedFields[accessgrant.FieldExpiryNotifiedAt]
+	return ok
+}
+
+// ResetExpiryNotifiedAt resets all changes to the "expiry_notified_at" field.
+func (m *AccessGrantMutation) ResetExpiryNotifiedAt() {
+	m.expiry_notified_at = nil
+	delete(m.clearedFields, accessgrant.FieldExpiryNotifiedAt)
+}
+
+// ClearAccount clears the "account" edge to the Account entity.
+func (m *AccessGrantMutation) ClearAccount() {
+	m.clearedaccount = true
+	m.clearedFields[accessgrant.FieldAccountID] = struct{}{}
+}
+
+// AccountCleared reports if the "account" edge to the Account entity was cleared.
+func (m *AccessGrantMutation) AccountCleared() bool {
+	return m.clearedaccount
+}
+
+// AccountIDs returns the "account" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AccountID instead. It exists only for internal usage by the builders.
+func (m *AccessGrantMutation) AccountIDs() (ids []xid.ID) {
+	if id := m.account; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAccount resets all changes to the "account" edge.
+func (m *AccessGrantMutation) ResetAccount() {
+	m.account = nil
+	m.clearedaccount = false
+}
+
+// ClearPass clears the "pass" edge to the AccessPass entity.
+func (m *AccessGrantMutation) ClearPass() {
+	m.clearedpass = true
+	m.clearedFields[accessgrant.FieldPassID] = struct{}{}
+}
+
+// PassCleared reports if the "pass" edge to the AccessPass entity was cleared.
+func (m *AccessGrantMutation) PassCleared() bool {
+	return m.clearedpass
+}
+
+// PassIDs returns the "pass" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PassID instead. It exists only for internal usage by the builders.
+func (m *AccessGrantMutation) PassIDs() (ids []xid.ID) {
+	if id := m.pass; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPass resets all changes to the "pass" edge.
+func (m *AccessGrantMutation) ResetPass() {
+	m.pass = nil
+	m.clearedpass = false
+}
+
+// Where appends a list predicates to the AccessGrantMutation builder.
+func (m *AccessGrantMutation) Where(ps ...predicate.AccessGrant) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AccessGrantMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AccessGrantMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AccessGrant, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AccessGrantMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AccessGrantMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AccessGrant).
+func (m *AccessGrantMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AccessGrantMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, accessgrant.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, accessgrant.FieldUpdatedAt)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, accessgrant.FieldExpiresAt)
+	}
+	if m.account != nil {
+		fields = append(fields, accessgrant.FieldAccountID)
+	}
+	if m.pass != nil {
+		fields = append(fields, accessgrant.FieldPassID)
+	}
+	if m.status != nil {
+		fields = append(fields, accessgrant.FieldStatus)
+	}
+	if m.reference_code != nil {
+		fields = append(fields, accessgrant.FieldReferenceCode)
+	}
+	if m.requested_at != nil {
+		fields = append(fields, accessgrant.FieldRequestedAt)
+	}
+	if m.decided_by != nil {
+		fields = append(fields, accessgrant.FieldDecidedBy)
+	}
+	if m.decided_at != nil {
+		fields = append(fields, accessgrant.FieldDecidedAt)
+	}
+	if m.note != nil {
+		fields = append(fields, accessgrant.FieldNote)
+	}
+	if m.expiry_notified_at != nil {
+		fields = append(fields, accessgrant.FieldExpiryNotifiedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AccessGrantMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case accessgrant.FieldCreatedAt:
+		return m.CreatedAt()
+	case accessgrant.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case accessgrant.FieldExpiresAt:
+		return m.ExpiresAt()
+	case accessgrant.FieldAccountID:
+		return m.AccountID()
+	case accessgrant.FieldPassID:
+		return m.PassID()
+	case accessgrant.FieldStatus:
+		return m.Status()
+	case accessgrant.FieldReferenceCode:
+		return m.ReferenceCode()
+	case accessgrant.FieldRequestedAt:
+		return m.RequestedAt()
+	case accessgrant.FieldDecidedBy:
+		return m.DecidedBy()
+	case accessgrant.FieldDecidedAt:
+		return m.DecidedAt()
+	case accessgrant.FieldNote:
+		return m.Note()
+	case accessgrant.FieldExpiryNotifiedAt:
+		return m.ExpiryNotifiedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AccessGrantMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case accessgrant.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case accessgrant.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case accessgrant.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	case accessgrant.FieldAccountID:
+		return m.OldAccountID(ctx)
+	case accessgrant.FieldPassID:
+		return m.OldPassID(ctx)
+	case accessgrant.FieldStatus:
+		return m.OldStatus(ctx)
+	case accessgrant.FieldReferenceCode:
+		return m.OldReferenceCode(ctx)
+	case accessgrant.FieldRequestedAt:
+		return m.OldRequestedAt(ctx)
+	case accessgrant.FieldDecidedBy:
+		return m.OldDecidedBy(ctx)
+	case accessgrant.FieldDecidedAt:
+		return m.OldDecidedAt(ctx)
+	case accessgrant.FieldNote:
+		return m.OldNote(ctx)
+	case accessgrant.FieldExpiryNotifiedAt:
+		return m.OldExpiryNotifiedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown AccessGrant field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AccessGrantMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case accessgrant.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case accessgrant.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case accessgrant.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	case accessgrant.FieldAccountID:
+		v, ok := value.(xid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccountID(v)
+		return nil
+	case accessgrant.FieldPassID:
+		v, ok := value.(xid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPassID(v)
+		return nil
+	case accessgrant.FieldStatus:
+		v, ok := value.(accessgrant.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case accessgrant.FieldReferenceCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReferenceCode(v)
+		return nil
+	case accessgrant.FieldRequestedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestedAt(v)
+		return nil
+	case accessgrant.FieldDecidedBy:
+		v, ok := value.(xid.ID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDecidedBy(v)
+		return nil
+	case accessgrant.FieldDecidedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDecidedAt(v)
+		return nil
+	case accessgrant.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	case accessgrant.FieldExpiryNotifiedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiryNotifiedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AccessGrant field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AccessGrantMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AccessGrantMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AccessGrantMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AccessGrant numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AccessGrantMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(accessgrant.FieldExpiresAt) {
+		fields = append(fields, accessgrant.FieldExpiresAt)
+	}
+	if m.FieldCleared(accessgrant.FieldRequestedAt) {
+		fields = append(fields, accessgrant.FieldRequestedAt)
+	}
+	if m.FieldCleared(accessgrant.FieldDecidedBy) {
+		fields = append(fields, accessgrant.FieldDecidedBy)
+	}
+	if m.FieldCleared(accessgrant.FieldDecidedAt) {
+		fields = append(fields, accessgrant.FieldDecidedAt)
+	}
+	if m.FieldCleared(accessgrant.FieldExpiryNotifiedAt) {
+		fields = append(fields, accessgrant.FieldExpiryNotifiedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AccessGrantMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AccessGrantMutation) ClearField(name string) error {
+	switch name {
+	case accessgrant.FieldExpiresAt:
+		m.ClearExpiresAt()
+		return nil
+	case accessgrant.FieldRequestedAt:
+		m.ClearRequestedAt()
+		return nil
+	case accessgrant.FieldDecidedBy:
+		m.ClearDecidedBy()
+		return nil
+	case accessgrant.FieldDecidedAt:
+		m.ClearDecidedAt()
+		return nil
+	case accessgrant.FieldExpiryNotifiedAt:
+		m.ClearExpiryNotifiedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AccessGrant nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AccessGrantMutation) ResetField(name string) error {
+	switch name {
+	case accessgrant.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case accessgrant.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case accessgrant.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	case accessgrant.FieldAccountID:
+		m.ResetAccountID()
+		return nil
+	case accessgrant.FieldPassID:
+		m.ResetPassID()
+		return nil
+	case accessgrant.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case accessgrant.FieldReferenceCode:
+		m.ResetReferenceCode()
+		return nil
+	case accessgrant.FieldRequestedAt:
+		m.ResetRequestedAt()
+		return nil
+	case accessgrant.FieldDecidedBy:
+		m.ResetDecidedBy()
+		return nil
+	case accessgrant.FieldDecidedAt:
+		m.ResetDecidedAt()
+		return nil
+	case accessgrant.FieldNote:
+		m.ResetNote()
+		return nil
+	case accessgrant.FieldExpiryNotifiedAt:
+		m.ResetExpiryNotifiedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AccessGrant field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AccessGrantMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.account != nil {
+		edges = append(edges, accessgrant.EdgeAccount)
+	}
+	if m.pass != nil {
+		edges = append(edges, accessgrant.EdgePass)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AccessGrantMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case accessgrant.EdgeAccount:
+		if id := m.account; id != nil {
+			return []ent.Value{*id}
+		}
+	case accessgrant.EdgePass:
+		if id := m.pass; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AccessGrantMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AccessGrantMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AccessGrantMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedaccount {
+		edges = append(edges, accessgrant.EdgeAccount)
+	}
+	if m.clearedpass {
+		edges = append(edges, accessgrant.EdgePass)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AccessGrantMutation) EdgeCleared(name string) bool {
+	switch name {
+	case accessgrant.EdgeAccount:
+		return m.clearedaccount
+	case accessgrant.EdgePass:
+		return m.clearedpass
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AccessGrantMutation) ClearEdge(name string) error {
+	switch name {
+	case accessgrant.EdgeAccount:
+		m.ClearAccount()
+		return nil
+	case accessgrant.EdgePass:
+		m.ClearPass()
+		return nil
+	}
+	return fmt.Errorf("unknown AccessGrant unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AccessGrantMutation) ResetEdge(name string) error {
+	switch name {
+	case accessgrant.EdgeAccount:
+		m.ResetAccount()
+		return nil
+	case accessgrant.EdgePass:
+		m.ResetPass()
+		return nil
+	}
+	return fmt.Errorf("unknown AccessGrant edge %s", name)
+}
+
+// AccessPassMutation represents an operation that mutates the AccessPass nodes in the graph.
+type AccessPassMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *xid.ID
+	created_at           *time.Time
+	updated_at           *time.Time
+	name                 *string
+	description          *string
+	price_label          *string
+	payment_info         *string
+	colour               *string
+	sort                 *int
+	addsort              *int
+	requestable          *bool
+	clearedFields        map[string]struct{}
+	categories           map[xid.ID]struct{}
+	removedcategories    map[xid.ID]struct{}
+	clearedcategories    bool
+	drive_folders        map[xid.ID]struct{}
+	removeddrive_folders map[xid.ID]struct{}
+	cleareddrive_folders bool
+	grants               map[xid.ID]struct{}
+	removedgrants        map[xid.ID]struct{}
+	clearedgrants        bool
+	done                 bool
+	oldValue             func(context.Context) (*AccessPass, error)
+	predicates           []predicate.AccessPass
+}
+
+var _ ent.Mutation = (*AccessPassMutation)(nil)
+
+// accesspassOption allows management of the mutation configuration using functional options.
+type accesspassOption func(*AccessPassMutation)
+
+// newAccessPassMutation creates new mutation for the AccessPass entity.
+func newAccessPassMutation(c config, op Op, opts ...accesspassOption) *AccessPassMutation {
+	m := &AccessPassMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAccessPass,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAccessPassID sets the ID field of the mutation.
+func withAccessPassID(id xid.ID) accesspassOption {
+	return func(m *AccessPassMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AccessPass
+		)
+		m.oldValue = func(ctx context.Context) (*AccessPass, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AccessPass.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAccessPass sets the old AccessPass of the mutation.
+func withAccessPass(node *AccessPass) accesspassOption {
+	return func(m *AccessPassMutation) {
+		m.oldValue = func(context.Context) (*AccessPass, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AccessPassMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AccessPassMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AccessPass entities.
+func (m *AccessPassMutation) SetID(id xid.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AccessPassMutation) ID() (id xid.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AccessPassMutation) IDs(ctx context.Context) ([]xid.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []xid.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AccessPass.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AccessPassMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AccessPassMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AccessPass entity.
+// If the AccessPass object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessPassMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AccessPassMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AccessPassMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AccessPassMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AccessPass entity.
+// If the AccessPass object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessPassMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AccessPassMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetName sets the "name" field.
+func (m *AccessPassMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *AccessPassMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the AccessPass entity.
+// If the AccessPass object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessPassMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *AccessPassMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *AccessPassMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *AccessPassMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the AccessPass entity.
+// If the AccessPass object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessPassMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *AccessPassMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetPriceLabel sets the "price_label" field.
+func (m *AccessPassMutation) SetPriceLabel(s string) {
+	m.price_label = &s
+}
+
+// PriceLabel returns the value of the "price_label" field in the mutation.
+func (m *AccessPassMutation) PriceLabel() (r string, exists bool) {
+	v := m.price_label
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPriceLabel returns the old "price_label" field's value of the AccessPass entity.
+// If the AccessPass object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessPassMutation) OldPriceLabel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPriceLabel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPriceLabel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPriceLabel: %w", err)
+	}
+	return oldValue.PriceLabel, nil
+}
+
+// ResetPriceLabel resets all changes to the "price_label" field.
+func (m *AccessPassMutation) ResetPriceLabel() {
+	m.price_label = nil
+}
+
+// SetPaymentInfo sets the "payment_info" field.
+func (m *AccessPassMutation) SetPaymentInfo(s string) {
+	m.payment_info = &s
+}
+
+// PaymentInfo returns the value of the "payment_info" field in the mutation.
+func (m *AccessPassMutation) PaymentInfo() (r string, exists bool) {
+	v := m.payment_info
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPaymentInfo returns the old "payment_info" field's value of the AccessPass entity.
+// If the AccessPass object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessPassMutation) OldPaymentInfo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPaymentInfo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPaymentInfo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPaymentInfo: %w", err)
+	}
+	return oldValue.PaymentInfo, nil
+}
+
+// ResetPaymentInfo resets all changes to the "payment_info" field.
+func (m *AccessPassMutation) ResetPaymentInfo() {
+	m.payment_info = nil
+}
+
+// SetColour sets the "colour" field.
+func (m *AccessPassMutation) SetColour(s string) {
+	m.colour = &s
+}
+
+// Colour returns the value of the "colour" field in the mutation.
+func (m *AccessPassMutation) Colour() (r string, exists bool) {
+	v := m.colour
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColour returns the old "colour" field's value of the AccessPass entity.
+// If the AccessPass object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessPassMutation) OldColour(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldColour is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldColour requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldColour: %w", err)
+	}
+	return oldValue.Colour, nil
+}
+
+// ResetColour resets all changes to the "colour" field.
+func (m *AccessPassMutation) ResetColour() {
+	m.colour = nil
+}
+
+// SetSort sets the "sort" field.
+func (m *AccessPassMutation) SetSort(i int) {
+	m.sort = &i
+	m.addsort = nil
+}
+
+// Sort returns the value of the "sort" field in the mutation.
+func (m *AccessPassMutation) Sort() (r int, exists bool) {
+	v := m.sort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSort returns the old "sort" field's value of the AccessPass entity.
+// If the AccessPass object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessPassMutation) OldSort(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSort: %w", err)
+	}
+	return oldValue.Sort, nil
+}
+
+// AddSort adds i to the "sort" field.
+func (m *AccessPassMutation) AddSort(i int) {
+	if m.addsort != nil {
+		*m.addsort += i
+	} else {
+		m.addsort = &i
+	}
+}
+
+// AddedSort returns the value that was added to the "sort" field in this mutation.
+func (m *AccessPassMutation) AddedSort() (r int, exists bool) {
+	v := m.addsort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSort resets all changes to the "sort" field.
+func (m *AccessPassMutation) ResetSort() {
+	m.sort = nil
+	m.addsort = nil
+}
+
+// SetRequestable sets the "requestable" field.
+func (m *AccessPassMutation) SetRequestable(b bool) {
+	m.requestable = &b
+}
+
+// Requestable returns the value of the "requestable" field in the mutation.
+func (m *AccessPassMutation) Requestable() (r bool, exists bool) {
+	v := m.requestable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestable returns the old "requestable" field's value of the AccessPass entity.
+// If the AccessPass object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessPassMutation) OldRequestable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestable: %w", err)
+	}
+	return oldValue.Requestable, nil
+}
+
+// ResetRequestable resets all changes to the "requestable" field.
+func (m *AccessPassMutation) ResetRequestable() {
+	m.requestable = nil
+}
+
+// AddCategoryIDs adds the "categories" edge to the Category entity by ids.
+func (m *AccessPassMutation) AddCategoryIDs(ids ...xid.ID) {
+	if m.categories == nil {
+		m.categories = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.categories[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCategories clears the "categories" edge to the Category entity.
+func (m *AccessPassMutation) ClearCategories() {
+	m.clearedcategories = true
+}
+
+// CategoriesCleared reports if the "categories" edge to the Category entity was cleared.
+func (m *AccessPassMutation) CategoriesCleared() bool {
+	return m.clearedcategories
+}
+
+// RemoveCategoryIDs removes the "categories" edge to the Category entity by IDs.
+func (m *AccessPassMutation) RemoveCategoryIDs(ids ...xid.ID) {
+	if m.removedcategories == nil {
+		m.removedcategories = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.categories, ids[i])
+		m.removedcategories[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCategories returns the removed IDs of the "categories" edge to the Category entity.
+func (m *AccessPassMutation) RemovedCategoriesIDs() (ids []xid.ID) {
+	for id := range m.removedcategories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CategoriesIDs returns the "categories" edge IDs in the mutation.
+func (m *AccessPassMutation) CategoriesIDs() (ids []xid.ID) {
+	for id := range m.categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCategories resets all changes to the "categories" edge.
+func (m *AccessPassMutation) ResetCategories() {
+	m.categories = nil
+	m.clearedcategories = false
+	m.removedcategories = nil
+}
+
+// AddDriveFolderIDs adds the "drive_folders" edge to the DriveFolder entity by ids.
+func (m *AccessPassMutation) AddDriveFolderIDs(ids ...xid.ID) {
+	if m.drive_folders == nil {
+		m.drive_folders = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.drive_folders[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDriveFolders clears the "drive_folders" edge to the DriveFolder entity.
+func (m *AccessPassMutation) ClearDriveFolders() {
+	m.cleareddrive_folders = true
+}
+
+// DriveFoldersCleared reports if the "drive_folders" edge to the DriveFolder entity was cleared.
+func (m *AccessPassMutation) DriveFoldersCleared() bool {
+	return m.cleareddrive_folders
+}
+
+// RemoveDriveFolderIDs removes the "drive_folders" edge to the DriveFolder entity by IDs.
+func (m *AccessPassMutation) RemoveDriveFolderIDs(ids ...xid.ID) {
+	if m.removeddrive_folders == nil {
+		m.removeddrive_folders = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.drive_folders, ids[i])
+		m.removeddrive_folders[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDriveFolders returns the removed IDs of the "drive_folders" edge to the DriveFolder entity.
+func (m *AccessPassMutation) RemovedDriveFoldersIDs() (ids []xid.ID) {
+	for id := range m.removeddrive_folders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DriveFoldersIDs returns the "drive_folders" edge IDs in the mutation.
+func (m *AccessPassMutation) DriveFoldersIDs() (ids []xid.ID) {
+	for id := range m.drive_folders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDriveFolders resets all changes to the "drive_folders" edge.
+func (m *AccessPassMutation) ResetDriveFolders() {
+	m.drive_folders = nil
+	m.cleareddrive_folders = false
+	m.removeddrive_folders = nil
+}
+
+// AddGrantIDs adds the "grants" edge to the AccessGrant entity by ids.
+func (m *AccessPassMutation) AddGrantIDs(ids ...xid.ID) {
+	if m.grants == nil {
+		m.grants = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.grants[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGrants clears the "grants" edge to the AccessGrant entity.
+func (m *AccessPassMutation) ClearGrants() {
+	m.clearedgrants = true
+}
+
+// GrantsCleared reports if the "grants" edge to the AccessGrant entity was cleared.
+func (m *AccessPassMutation) GrantsCleared() bool {
+	return m.clearedgrants
+}
+
+// RemoveGrantIDs removes the "grants" edge to the AccessGrant entity by IDs.
+func (m *AccessPassMutation) RemoveGrantIDs(ids ...xid.ID) {
+	if m.removedgrants == nil {
+		m.removedgrants = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.grants, ids[i])
+		m.removedgrants[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGrants returns the removed IDs of the "grants" edge to the AccessGrant entity.
+func (m *AccessPassMutation) RemovedGrantsIDs() (ids []xid.ID) {
+	for id := range m.removedgrants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GrantsIDs returns the "grants" edge IDs in the mutation.
+func (m *AccessPassMutation) GrantsIDs() (ids []xid.ID) {
+	for id := range m.grants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGrants resets all changes to the "grants" edge.
+func (m *AccessPassMutation) ResetGrants() {
+	m.grants = nil
+	m.clearedgrants = false
+	m.removedgrants = nil
+}
+
+// Where appends a list predicates to the AccessPassMutation builder.
+func (m *AccessPassMutation) Where(ps ...predicate.AccessPass) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AccessPassMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AccessPassMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AccessPass, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AccessPassMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AccessPassMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AccessPass).
+func (m *AccessPassMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AccessPassMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, accesspass.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, accesspass.FieldUpdatedAt)
+	}
+	if m.name != nil {
+		fields = append(fields, accesspass.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, accesspass.FieldDescription)
+	}
+	if m.price_label != nil {
+		fields = append(fields, accesspass.FieldPriceLabel)
+	}
+	if m.payment_info != nil {
+		fields = append(fields, accesspass.FieldPaymentInfo)
+	}
+	if m.colour != nil {
+		fields = append(fields, accesspass.FieldColour)
+	}
+	if m.sort != nil {
+		fields = append(fields, accesspass.FieldSort)
+	}
+	if m.requestable != nil {
+		fields = append(fields, accesspass.FieldRequestable)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AccessPassMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case accesspass.FieldCreatedAt:
+		return m.CreatedAt()
+	case accesspass.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case accesspass.FieldName:
+		return m.Name()
+	case accesspass.FieldDescription:
+		return m.Description()
+	case accesspass.FieldPriceLabel:
+		return m.PriceLabel()
+	case accesspass.FieldPaymentInfo:
+		return m.PaymentInfo()
+	case accesspass.FieldColour:
+		return m.Colour()
+	case accesspass.FieldSort:
+		return m.Sort()
+	case accesspass.FieldRequestable:
+		return m.Requestable()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AccessPassMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case accesspass.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case accesspass.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case accesspass.FieldName:
+		return m.OldName(ctx)
+	case accesspass.FieldDescription:
+		return m.OldDescription(ctx)
+	case accesspass.FieldPriceLabel:
+		return m.OldPriceLabel(ctx)
+	case accesspass.FieldPaymentInfo:
+		return m.OldPaymentInfo(ctx)
+	case accesspass.FieldColour:
+		return m.OldColour(ctx)
+	case accesspass.FieldSort:
+		return m.OldSort(ctx)
+	case accesspass.FieldRequestable:
+		return m.OldRequestable(ctx)
+	}
+	return nil, fmt.Errorf("unknown AccessPass field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AccessPassMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case accesspass.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case accesspass.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case accesspass.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case accesspass.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case accesspass.FieldPriceLabel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPriceLabel(v)
+		return nil
+	case accesspass.FieldPaymentInfo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPaymentInfo(v)
+		return nil
+	case accesspass.FieldColour:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetColour(v)
+		return nil
+	case accesspass.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSort(v)
+		return nil
+	case accesspass.FieldRequestable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestable(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AccessPass field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AccessPassMutation) AddedFields() []string {
+	var fields []string
+	if m.addsort != nil {
+		fields = append(fields, accesspass.FieldSort)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AccessPassMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case accesspass.FieldSort:
+		return m.AddedSort()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AccessPassMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case accesspass.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSort(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AccessPass numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AccessPassMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AccessPassMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AccessPassMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown AccessPass nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AccessPassMutation) ResetField(name string) error {
+	switch name {
+	case accesspass.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case accesspass.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case accesspass.FieldName:
+		m.ResetName()
+		return nil
+	case accesspass.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case accesspass.FieldPriceLabel:
+		m.ResetPriceLabel()
+		return nil
+	case accesspass.FieldPaymentInfo:
+		m.ResetPaymentInfo()
+		return nil
+	case accesspass.FieldColour:
+		m.ResetColour()
+		return nil
+	case accesspass.FieldSort:
+		m.ResetSort()
+		return nil
+	case accesspass.FieldRequestable:
+		m.ResetRequestable()
+		return nil
+	}
+	return fmt.Errorf("unknown AccessPass field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AccessPassMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.categories != nil {
+		edges = append(edges, accesspass.EdgeCategories)
+	}
+	if m.drive_folders != nil {
+		edges = append(edges, accesspass.EdgeDriveFolders)
+	}
+	if m.grants != nil {
+		edges = append(edges, accesspass.EdgeGrants)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AccessPassMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case accesspass.EdgeCategories:
+		ids := make([]ent.Value, 0, len(m.categories))
+		for id := range m.categories {
+			ids = append(ids, id)
+		}
+		return ids
+	case accesspass.EdgeDriveFolders:
+		ids := make([]ent.Value, 0, len(m.drive_folders))
+		for id := range m.drive_folders {
+			ids = append(ids, id)
+		}
+		return ids
+	case accesspass.EdgeGrants:
+		ids := make([]ent.Value, 0, len(m.grants))
+		for id := range m.grants {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AccessPassMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedcategories != nil {
+		edges = append(edges, accesspass.EdgeCategories)
+	}
+	if m.removeddrive_folders != nil {
+		edges = append(edges, accesspass.EdgeDriveFolders)
+	}
+	if m.removedgrants != nil {
+		edges = append(edges, accesspass.EdgeGrants)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AccessPassMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case accesspass.EdgeCategories:
+		ids := make([]ent.Value, 0, len(m.removedcategories))
+		for id := range m.removedcategories {
+			ids = append(ids, id)
+		}
+		return ids
+	case accesspass.EdgeDriveFolders:
+		ids := make([]ent.Value, 0, len(m.removeddrive_folders))
+		for id := range m.removeddrive_folders {
+			ids = append(ids, id)
+		}
+		return ids
+	case accesspass.EdgeGrants:
+		ids := make([]ent.Value, 0, len(m.removedgrants))
+		for id := range m.removedgrants {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AccessPassMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedcategories {
+		edges = append(edges, accesspass.EdgeCategories)
+	}
+	if m.cleareddrive_folders {
+		edges = append(edges, accesspass.EdgeDriveFolders)
+	}
+	if m.clearedgrants {
+		edges = append(edges, accesspass.EdgeGrants)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AccessPassMutation) EdgeCleared(name string) bool {
+	switch name {
+	case accesspass.EdgeCategories:
+		return m.clearedcategories
+	case accesspass.EdgeDriveFolders:
+		return m.cleareddrive_folders
+	case accesspass.EdgeGrants:
+		return m.clearedgrants
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AccessPassMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AccessPass unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AccessPassMutation) ResetEdge(name string) error {
+	switch name {
+	case accesspass.EdgeCategories:
+		m.ResetCategories()
+		return nil
+	case accesspass.EdgeDriveFolders:
+		m.ResetDriveFolders()
+		return nil
+	case accesspass.EdgeGrants:
+		m.ResetGrants()
+		return nil
+	}
+	return fmt.Errorf("unknown AccessPass edge %s", name)
+}
 
 // AccountMutation represents an operation that mutates the Account nodes in the graph.
 type AccountMutation struct {
@@ -275,6 +2462,9 @@ type AccountMutation struct {
 	warnings                                    map[xid.ID]struct{}
 	removedwarnings                             map[xid.ID]struct{}
 	clearedwarnings                             bool
+	access_grants                               map[xid.ID]struct{}
+	removedaccess_grants                        map[xid.ID]struct{}
+	clearedaccess_grants                        bool
 	authored_warnings                           map[xid.ID]struct{}
 	removedauthored_warnings                    map[xid.ID]struct{}
 	clearedauthored_warnings                    bool
@@ -3102,6 +5292,60 @@ func (m *AccountMutation) ResetWarnings() {
 	m.removedwarnings = nil
 }
 
+// AddAccessGrantIDs adds the "access_grants" edge to the AccessGrant entity by ids.
+func (m *AccountMutation) AddAccessGrantIDs(ids ...xid.ID) {
+	if m.access_grants == nil {
+		m.access_grants = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.access_grants[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAccessGrants clears the "access_grants" edge to the AccessGrant entity.
+func (m *AccountMutation) ClearAccessGrants() {
+	m.clearedaccess_grants = true
+}
+
+// AccessGrantsCleared reports if the "access_grants" edge to the AccessGrant entity was cleared.
+func (m *AccountMutation) AccessGrantsCleared() bool {
+	return m.clearedaccess_grants
+}
+
+// RemoveAccessGrantIDs removes the "access_grants" edge to the AccessGrant entity by IDs.
+func (m *AccountMutation) RemoveAccessGrantIDs(ids ...xid.ID) {
+	if m.removedaccess_grants == nil {
+		m.removedaccess_grants = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.access_grants, ids[i])
+		m.removedaccess_grants[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAccessGrants returns the removed IDs of the "access_grants" edge to the AccessGrant entity.
+func (m *AccountMutation) RemovedAccessGrantsIDs() (ids []xid.ID) {
+	for id := range m.removedaccess_grants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AccessGrantsIDs returns the "access_grants" edge IDs in the mutation.
+func (m *AccountMutation) AccessGrantsIDs() (ids []xid.ID) {
+	for id := range m.access_grants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAccessGrants resets all changes to the "access_grants" edge.
+func (m *AccountMutation) ResetAccessGrants() {
+	m.access_grants = nil
+	m.clearedaccess_grants = false
+	m.removedaccess_grants = nil
+}
+
 // AddAuthoredWarningIDs adds the "authored_warnings" edge to the Warning entity by ids.
 func (m *AccountMutation) AddAuthoredWarningIDs(ids ...xid.ID) {
 	if m.authored_warnings == nil {
@@ -4118,7 +6362,7 @@ func (m *AccountMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AccountMutation) AddedEdges() []string {
-	edges := make([]string, 0, 49)
+	edges := make([]string, 0, 50)
 	if m.sessions != nil {
 		edges = append(edges, account.EdgeSessions)
 	}
@@ -4232,6 +6476,9 @@ func (m *AccountMutation) AddedEdges() []string {
 	}
 	if m.warnings != nil {
 		edges = append(edges, account.EdgeWarnings)
+	}
+	if m.access_grants != nil {
+		edges = append(edges, account.EdgeAccessGrants)
 	}
 	if m.authored_warnings != nil {
 		edges = append(edges, account.EdgeAuthoredWarnings)
@@ -4499,6 +6746,12 @@ func (m *AccountMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case account.EdgeAccessGrants:
+		ids := make([]ent.Value, 0, len(m.access_grants))
+		for id := range m.access_grants {
+			ids = append(ids, id)
+		}
+		return ids
 	case account.EdgeAuthoredWarnings:
 		ids := make([]ent.Value, 0, len(m.authored_warnings))
 		for id := range m.authored_warnings {
@@ -4571,7 +6824,7 @@ func (m *AccountMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AccountMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 49)
+	edges := make([]string, 0, 50)
 	if m.removedsessions != nil {
 		edges = append(edges, account.EdgeSessions)
 	}
@@ -4682,6 +6935,9 @@ func (m *AccountMutation) RemovedEdges() []string {
 	}
 	if m.removedwarnings != nil {
 		edges = append(edges, account.EdgeWarnings)
+	}
+	if m.removedaccess_grants != nil {
+		edges = append(edges, account.EdgeAccessGrants)
 	}
 	if m.removedauthored_warnings != nil {
 		edges = append(edges, account.EdgeAuthoredWarnings)
@@ -4945,6 +7201,12 @@ func (m *AccountMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case account.EdgeAccessGrants:
+		ids := make([]ent.Value, 0, len(m.removedaccess_grants))
+		for id := range m.removedaccess_grants {
+			ids = append(ids, id)
+		}
+		return ids
 	case account.EdgeAuthoredWarnings:
 		ids := make([]ent.Value, 0, len(m.removedauthored_warnings))
 		for id := range m.removedauthored_warnings {
@@ -5017,7 +7279,7 @@ func (m *AccountMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AccountMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 49)
+	edges := make([]string, 0, 50)
 	if m.clearedsessions {
 		edges = append(edges, account.EdgeSessions)
 	}
@@ -5131,6 +7393,9 @@ func (m *AccountMutation) ClearedEdges() []string {
 	}
 	if m.clearedwarnings {
 		edges = append(edges, account.EdgeWarnings)
+	}
+	if m.clearedaccess_grants {
+		edges = append(edges, account.EdgeAccessGrants)
 	}
 	if m.clearedauthored_warnings {
 		edges = append(edges, account.EdgeAuthoredWarnings)
@@ -5248,6 +7513,8 @@ func (m *AccountMutation) EdgeCleared(name string) bool {
 		return m.clearedauthored_moderation_notes
 	case account.EdgeWarnings:
 		return m.clearedwarnings
+	case account.EdgeAccessGrants:
+		return m.clearedaccess_grants
 	case account.EdgeAuthoredWarnings:
 		return m.clearedauthored_warnings
 	case account.EdgeRobots:
@@ -5402,6 +7669,9 @@ func (m *AccountMutation) ResetEdge(name string) error {
 		return nil
 	case account.EdgeWarnings:
 		m.ResetWarnings()
+		return nil
+	case account.EdgeAccessGrants:
+		m.ResetAccessGrants()
 		return nil
 	case account.EdgeAuthoredWarnings:
 		m.ResetAuthoredWarnings()
@@ -11097,39 +13367,42 @@ func (m *BugReportMutation) ResetEdge(name string) error {
 // CategoryMutation represents an operation that mutates the Category nodes in the graph.
 type CategoryMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *xid.ID
-	created_at         *time.Time
-	updated_at         *time.Time
-	name               *string
-	slug               *string
-	description        *string
-	colour             *string
-	sort               *int
-	addsort            *int
-	admin              *bool
-	metadata           *map[string]interface{}
-	clearedFields      map[string]struct{}
-	posts              map[xid.ID]struct{}
-	removedposts       map[xid.ID]struct{}
-	clearedposts       bool
-	parent             *xid.ID
-	clearedparent      bool
-	children           map[xid.ID]struct{}
-	removedchildren    map[xid.ID]struct{}
-	clearedchildren    bool
-	cover_image        *xid.ID
-	clearedcover_image bool
-	related_by         map[xid.ID]struct{}
-	removedrelated_by  map[xid.ID]struct{}
-	clearedrelated_by  bool
-	related            map[xid.ID]struct{}
-	removedrelated     map[xid.ID]struct{}
-	clearedrelated     bool
-	done               bool
-	oldValue           func(context.Context) (*Category, error)
-	predicates         []predicate.Category
+	op                   Op
+	typ                  string
+	id                   *xid.ID
+	created_at           *time.Time
+	updated_at           *time.Time
+	name                 *string
+	slug                 *string
+	description          *string
+	colour               *string
+	sort                 *int
+	addsort              *int
+	admin                *bool
+	metadata             *map[string]interface{}
+	clearedFields        map[string]struct{}
+	posts                map[xid.ID]struct{}
+	removedposts         map[xid.ID]struct{}
+	clearedposts         bool
+	parent               *xid.ID
+	clearedparent        bool
+	children             map[xid.ID]struct{}
+	removedchildren      map[xid.ID]struct{}
+	clearedchildren      bool
+	cover_image          *xid.ID
+	clearedcover_image   bool
+	related_by           map[xid.ID]struct{}
+	removedrelated_by    map[xid.ID]struct{}
+	clearedrelated_by    bool
+	related              map[xid.ID]struct{}
+	removedrelated       map[xid.ID]struct{}
+	clearedrelated       bool
+	access_passes        map[xid.ID]struct{}
+	removedaccess_passes map[xid.ID]struct{}
+	clearedaccess_passes bool
+	done                 bool
+	oldValue             func(context.Context) (*Category, error)
+	predicates           []predicate.Category
 }
 
 var _ ent.Mutation = (*CategoryMutation)(nil)
@@ -11987,6 +14260,60 @@ func (m *CategoryMutation) ResetRelated() {
 	m.removedrelated = nil
 }
 
+// AddAccessPassIDs adds the "access_passes" edge to the AccessPass entity by ids.
+func (m *CategoryMutation) AddAccessPassIDs(ids ...xid.ID) {
+	if m.access_passes == nil {
+		m.access_passes = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.access_passes[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAccessPasses clears the "access_passes" edge to the AccessPass entity.
+func (m *CategoryMutation) ClearAccessPasses() {
+	m.clearedaccess_passes = true
+}
+
+// AccessPassesCleared reports if the "access_passes" edge to the AccessPass entity was cleared.
+func (m *CategoryMutation) AccessPassesCleared() bool {
+	return m.clearedaccess_passes
+}
+
+// RemoveAccessPassIDs removes the "access_passes" edge to the AccessPass entity by IDs.
+func (m *CategoryMutation) RemoveAccessPassIDs(ids ...xid.ID) {
+	if m.removedaccess_passes == nil {
+		m.removedaccess_passes = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.access_passes, ids[i])
+		m.removedaccess_passes[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAccessPasses returns the removed IDs of the "access_passes" edge to the AccessPass entity.
+func (m *CategoryMutation) RemovedAccessPassesIDs() (ids []xid.ID) {
+	for id := range m.removedaccess_passes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AccessPassesIDs returns the "access_passes" edge IDs in the mutation.
+func (m *CategoryMutation) AccessPassesIDs() (ids []xid.ID) {
+	for id := range m.access_passes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAccessPasses resets all changes to the "access_passes" edge.
+func (m *CategoryMutation) ResetAccessPasses() {
+	m.access_passes = nil
+	m.clearedaccess_passes = false
+	m.removedaccess_passes = nil
+}
+
 // Where appends a list predicates to the CategoryMutation builder.
 func (m *CategoryMutation) Where(ps ...predicate.Category) {
 	m.predicates = append(m.predicates, ps...)
@@ -12326,7 +14653,7 @@ func (m *CategoryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CategoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.posts != nil {
 		edges = append(edges, category.EdgePosts)
 	}
@@ -12344,6 +14671,9 @@ func (m *CategoryMutation) AddedEdges() []string {
 	}
 	if m.related != nil {
 		edges = append(edges, category.EdgeRelated)
+	}
+	if m.access_passes != nil {
+		edges = append(edges, category.EdgeAccessPasses)
 	}
 	return edges
 }
@@ -12384,13 +14714,19 @@ func (m *CategoryMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case category.EdgeAccessPasses:
+		ids := make([]ent.Value, 0, len(m.access_passes))
+		for id := range m.access_passes {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CategoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedposts != nil {
 		edges = append(edges, category.EdgePosts)
 	}
@@ -12402,6 +14738,9 @@ func (m *CategoryMutation) RemovedEdges() []string {
 	}
 	if m.removedrelated != nil {
 		edges = append(edges, category.EdgeRelated)
+	}
+	if m.removedaccess_passes != nil {
+		edges = append(edges, category.EdgeAccessPasses)
 	}
 	return edges
 }
@@ -12434,13 +14773,19 @@ func (m *CategoryMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case category.EdgeAccessPasses:
+		ids := make([]ent.Value, 0, len(m.removedaccess_passes))
+		for id := range m.removedaccess_passes {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CategoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedposts {
 		edges = append(edges, category.EdgePosts)
 	}
@@ -12458,6 +14803,9 @@ func (m *CategoryMutation) ClearedEdges() []string {
 	}
 	if m.clearedrelated {
 		edges = append(edges, category.EdgeRelated)
+	}
+	if m.clearedaccess_passes {
+		edges = append(edges, category.EdgeAccessPasses)
 	}
 	return edges
 }
@@ -12478,6 +14826,8 @@ func (m *CategoryMutation) EdgeCleared(name string) bool {
 		return m.clearedrelated_by
 	case category.EdgeRelated:
 		return m.clearedrelated
+	case category.EdgeAccessPasses:
+		return m.clearedaccess_passes
 	}
 	return false
 }
@@ -12517,6 +14867,9 @@ func (m *CategoryMutation) ResetEdge(name string) error {
 		return nil
 	case category.EdgeRelated:
 		m.ResetRelated()
+		return nil
+	case category.EdgeAccessPasses:
+		m.ResetAccessPasses()
 		return nil
 	}
 	return fmt.Errorf("unknown Category edge %s", name)
@@ -14487,24 +16840,27 @@ func (m *CollectionPostMutation) ResetEdge(name string) error {
 // DriveFolderMutation represents an operation that mutates the DriveFolder nodes in the graph.
 type DriveFolderMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *xid.ID
-	created_at      *time.Time
-	updated_at      *time.Time
-	deleted_at      *time.Time
-	name            *string
-	description     *string
-	drive_folder_id *string
-	visibility      *drivefolder.Visibility
-	sort            *int
-	addsort         *int
-	clearedFields   map[string]struct{}
-	account         *xid.ID
-	clearedaccount  bool
-	done            bool
-	oldValue        func(context.Context) (*DriveFolder, error)
-	predicates      []predicate.DriveFolder
+	op                   Op
+	typ                  string
+	id                   *xid.ID
+	created_at           *time.Time
+	updated_at           *time.Time
+	deleted_at           *time.Time
+	name                 *string
+	description          *string
+	drive_folder_id      *string
+	visibility           *drivefolder.Visibility
+	sort                 *int
+	addsort              *int
+	clearedFields        map[string]struct{}
+	account              *xid.ID
+	clearedaccount       bool
+	access_passes        map[xid.ID]struct{}
+	removedaccess_passes map[xid.ID]struct{}
+	clearedaccess_passes bool
+	done                 bool
+	oldValue             func(context.Context) (*DriveFolder, error)
+	predicates           []predicate.DriveFolder
 }
 
 var _ ent.Mutation = (*DriveFolderMutation)(nil)
@@ -15021,6 +17377,60 @@ func (m *DriveFolderMutation) ResetAccount() {
 	m.clearedaccount = false
 }
 
+// AddAccessPassIDs adds the "access_passes" edge to the AccessPass entity by ids.
+func (m *DriveFolderMutation) AddAccessPassIDs(ids ...xid.ID) {
+	if m.access_passes == nil {
+		m.access_passes = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		m.access_passes[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAccessPasses clears the "access_passes" edge to the AccessPass entity.
+func (m *DriveFolderMutation) ClearAccessPasses() {
+	m.clearedaccess_passes = true
+}
+
+// AccessPassesCleared reports if the "access_passes" edge to the AccessPass entity was cleared.
+func (m *DriveFolderMutation) AccessPassesCleared() bool {
+	return m.clearedaccess_passes
+}
+
+// RemoveAccessPassIDs removes the "access_passes" edge to the AccessPass entity by IDs.
+func (m *DriveFolderMutation) RemoveAccessPassIDs(ids ...xid.ID) {
+	if m.removedaccess_passes == nil {
+		m.removedaccess_passes = make(map[xid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.access_passes, ids[i])
+		m.removedaccess_passes[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAccessPasses returns the removed IDs of the "access_passes" edge to the AccessPass entity.
+func (m *DriveFolderMutation) RemovedAccessPassesIDs() (ids []xid.ID) {
+	for id := range m.removedaccess_passes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AccessPassesIDs returns the "access_passes" edge IDs in the mutation.
+func (m *DriveFolderMutation) AccessPassesIDs() (ids []xid.ID) {
+	for id := range m.access_passes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAccessPasses resets all changes to the "access_passes" edge.
+func (m *DriveFolderMutation) ResetAccessPasses() {
+	m.access_passes = nil
+	m.clearedaccess_passes = false
+	m.removedaccess_passes = nil
+}
+
 // Where appends a list predicates to the DriveFolderMutation builder.
 func (m *DriveFolderMutation) Where(ps ...predicate.DriveFolder) {
 	m.predicates = append(m.predicates, ps...)
@@ -15320,9 +17730,12 @@ func (m *DriveFolderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DriveFolderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.account != nil {
 		edges = append(edges, drivefolder.EdgeAccount)
+	}
+	if m.access_passes != nil {
+		edges = append(edges, drivefolder.EdgeAccessPasses)
 	}
 	return edges
 }
@@ -15335,27 +17748,47 @@ func (m *DriveFolderMutation) AddedIDs(name string) []ent.Value {
 		if id := m.account; id != nil {
 			return []ent.Value{*id}
 		}
+	case drivefolder.EdgeAccessPasses:
+		ids := make([]ent.Value, 0, len(m.access_passes))
+		for id := range m.access_passes {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DriveFolderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedaccess_passes != nil {
+		edges = append(edges, drivefolder.EdgeAccessPasses)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *DriveFolderMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case drivefolder.EdgeAccessPasses:
+		ids := make([]ent.Value, 0, len(m.removedaccess_passes))
+		for id := range m.removedaccess_passes {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DriveFolderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedaccount {
 		edges = append(edges, drivefolder.EdgeAccount)
+	}
+	if m.clearedaccess_passes {
+		edges = append(edges, drivefolder.EdgeAccessPasses)
 	}
 	return edges
 }
@@ -15366,6 +17799,8 @@ func (m *DriveFolderMutation) EdgeCleared(name string) bool {
 	switch name {
 	case drivefolder.EdgeAccount:
 		return m.clearedaccount
+	case drivefolder.EdgeAccessPasses:
+		return m.clearedaccess_passes
 	}
 	return false
 }
@@ -15387,6 +17822,9 @@ func (m *DriveFolderMutation) ResetEdge(name string) error {
 	switch name {
 	case drivefolder.EdgeAccount:
 		m.ResetAccount()
+		return nil
+	case drivefolder.EdgeAccessPasses:
+		m.ResetAccessPasses()
 		return nil
 	}
 	return fmt.Errorf("unknown DriveFolder edge %s", name)

@@ -584,6 +584,29 @@ func HasAccountWith(preds ...predicate.Account) predicate.DriveFolder {
 	})
 }
 
+// HasAccessPasses applies the HasEdge predicate on the "access_passes" edge.
+func HasAccessPasses() predicate.DriveFolder {
+	return predicate.DriveFolder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, AccessPassesTable, AccessPassesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAccessPassesWith applies the HasEdge predicate on the "access_passes" edge with a given conditions (other predicates).
+func HasAccessPassesWith(preds ...predicate.AccessPass) predicate.DriveFolder {
+	return predicate.DriveFolder(func(s *sql.Selector) {
+		step := newAccessPassesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.DriveFolder) predicate.DriveFolder {
 	return predicate.DriveFolder(sql.AndPredicates(predicates...))

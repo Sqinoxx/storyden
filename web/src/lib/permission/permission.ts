@@ -191,6 +191,12 @@ export const PermissionDetails: Record<Permission, PermissionDetail> = {
     description:
       "Create and delete internal staff-only moderation notes attached to member accounts.",
   },
+  [Permission.MANAGE_ACCESS]: {
+    value: Permission.MANAGE_ACCESS,
+    name: "Manage access passes",
+    description:
+      "Create access passes and grant or revoke members' access to paid categories.",
+  },
   [Permission.USE_ROBOTS]: {
     value: Permission.USE_ROBOTS,
     name: "Use robots",

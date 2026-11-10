@@ -24,6 +24,7 @@ var (
 	EventTypeAccountWarningDeleted           = EventType{eventTypeAccountWarningDeleted}
 	EventTypeAccountPasswordResetTokenIssued = EventType{eventTypeAccountPasswordResetTokenIssued}
 	EventTypeAccountPasswordResetEmailSent   = EventType{eventTypeAccountPasswordResetEmailSent}
+	EventTypeAccessGrantUpdated              = EventType{eventTypeAccessGrantUpdated}
 )
 
 func (r EventType) Format(f fmt.State, verb rune) {
@@ -87,6 +88,8 @@ func NewEventType(__iNpUt__ string) (EventType, error) {
 		return EventTypeAccountPasswordResetTokenIssued, nil
 	case string(eventTypeAccountPasswordResetEmailSent):
 		return EventTypeAccountPasswordResetEmailSent, nil
+	case string(eventTypeAccessGrantUpdated):
+		return EventTypeAccessGrantUpdated, nil
 	default:
 		return EventType{}, fmt.Errorf("invalid value for type 'EventType': '%s'", __iNpUt__)
 	}

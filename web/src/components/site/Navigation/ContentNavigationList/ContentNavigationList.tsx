@@ -10,6 +10,7 @@ import { hasPermission, isModeratorOrAdmin } from "@/utils/permissions";
 
 import styles from "./ContentNavigationList.module.css";
 
+import { AccessAnchor, useHasAccessPasses } from "../Anchors/Access";
 import { CollectionsAnchor } from "../Anchors/Collections";
 import { DriveAnchor, useHasDriveFolders } from "../Anchors/Drive";
 import { LatestAnchor } from "../Anchors/Latest";
@@ -33,6 +34,7 @@ export function ContentNavigationList(props: Props) {
   const isStaff = isModeratorOrAdmin(session);
   const isAdmin = hasPermission(session, Permission.ADMINISTRATOR);
   const hasDriveFolders = useHasDriveFolders();
+  const hasAccessPasses = useHasAccessPasses();
   const settings = useSettings(undefined, true);
   const marketplaceVisible =
     settings.ready &&
@@ -90,6 +92,7 @@ export function ContentNavigationList(props: Props) {
         <CollectionsAnchor />
         {session && <TagsAnchor />}
         {hasDriveFolders && <DriveAnchor />}
+        {hasAccessPasses && <AccessAnchor />}
         {isAdmin && <LinksAnchor />}
         {isStaff && (
           <>

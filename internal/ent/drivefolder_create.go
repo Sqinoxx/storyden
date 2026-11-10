@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Southclaws/storyden/internal/ent/accesspass"
 	"github.com/Southclaws/storyden/internal/ent/account"
 	"github.com/Southclaws/storyden/internal/ent/drivefolder"
 	"github.com/rs/xid"
@@ -150,6 +151,21 @@ func (_c *DriveFolderCreate) SetAccountID(id xid.ID) *DriveFolderCreate {
 // SetAccount sets the "account" edge to the Account entity.
 func (_c *DriveFolderCreate) SetAccount(v *Account) *DriveFolderCreate {
 	return _c.SetAccountID(v.ID)
+}
+
+// AddAccessPassIDs adds the "access_passes" edge to the AccessPass entity by IDs.
+func (_c *DriveFolderCreate) AddAccessPassIDs(ids ...xid.ID) *DriveFolderCreate {
+	_c.mutation.AddAccessPassIDs(ids...)
+	return _c
+}
+
+// AddAccessPasses adds the "access_passes" edges to the AccessPass entity.
+func (_c *DriveFolderCreate) AddAccessPasses(v ...*AccessPass) *DriveFolderCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAccessPassIDs(ids...)
 }
 
 // Mutation returns the DriveFolderMutation object of the builder.
@@ -338,6 +354,22 @@ func (_c *DriveFolderCreate) createSpec() (*DriveFolder, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.AddedBy = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AccessPassesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   drivefolder.AccessPassesTable,
+			Columns: drivefolder.AccessPassesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accesspass.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

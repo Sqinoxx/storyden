@@ -4,6 +4,7 @@ import { Controller, ControllerProps } from "react-hook-form";
 import { match } from "ts-pattern";
 
 import { Asset, Thread, Visibility } from "@/api/openapi-schema";
+import { LockedContentNotice } from "@/components/access/AccessPassCard";
 import { CategoryBadge } from "@/components/category/CategoryBadge";
 import { Byline } from "@/components/content/Byline";
 import { ContentComposer } from "@/components/content/ContentComposer/ContentComposer";
@@ -73,6 +74,7 @@ export function ThreadScreen(props: Props) {
   }
 
   const { thread } = data;
+  const locked = thread.access?.locked === true;
   const signatureConfig = props.initialSignatureConfig ?? {
     enabled: true,
     maxHeight: 160,
@@ -189,18 +191,27 @@ export function ThreadScreen(props: Props) {
               )}
             </LStack>
 
-            {thread.link && <LinkPreviewCard link={thread.link} />}
+            {thread.link && !locked && <LinkPreviewCard link={thread.link} />}
 
-            <ThreadBodyInput
-              control={form.control}
-              name="body"
-              initialValue={thread.body}
-              resetKey={resetKey}
-              disabled={!isEditing}
-              handleEmptyStateChange={handlers.handleEmptyStateChange}
-              handleAssetUpload={handlers.handleAssetUpload}
-              handleUploadingChange={handlers.handleUploadingChange}
-            />
+            {locked && thread.access && (
+              <LockedContentNotice
+                passIDs={thread.access.passes.map((p) => p.id)}
+                fallbackNames={thread.access.passes.map((p) => p.name)}
+              />
+            )}
+
+            {!locked && (
+              <ThreadBodyInput
+                control={form.control}
+                name="body"
+                initialValue={thread.body}
+                resetKey={resetKey}
+                disabled={!isEditing}
+                handleEmptyStateChange={handlers.handleEmptyStateChange}
+                handleAssetUpload={handlers.handleAssetUpload}
+                handleUploadingChange={handlers.handleUploadingChange}
+              />
+            )}
 
             {((isEditing && attachments.length > 0) ||
               (thread.assets && thread.assets.length > 0)) && (
@@ -217,7 +228,7 @@ export function ThreadScreen(props: Props) {
               />
             )}
 
-            {signatureConfig.enabled && (
+            {signatureConfig.enabled && !locked && (
               <Signature
                 signature={thread.author.signature}
                 maxHeight={signatureConfig.maxHeight}
@@ -225,50 +236,56 @@ export function ThreadScreen(props: Props) {
             )}
           </styled.form>
 
-          <ThreadStats
-            thread={thread}
-            sortOrder={sortOrder}
-            onSortOrderChange={handlers.handleSetSortOrder}
-            canLike={canLike}
-            onToggleLike={handlers.handleToggleLike}
-          />
+          {!locked && (
+            <ThreadStats
+              thread={thread}
+              sortOrder={sortOrder}
+              onSortOrderChange={handlers.handleSetSortOrder}
+              canLike={canLike}
+              onToggleLike={handlers.handleToggleLike}
+            />
+          )}
         </styled.article>
 
-        <ReplyBox
-          initialSession={props.initialSession}
-          initialSettings={props.initialSettings}
-          thread={thread}
-          sortOrder={sortOrder}
-        />
-
-        <VStack w="full">
-          {data.thread.replies.total_pages > 1 && (
-            <PaginationControls
-              path={`/t/${thread.slug}`}
-              params={sortOrder === "asc" ? { sort: "asc" } : undefined}
-              currentPage={data.thread.replies.current_page ?? 1}
-              totalPages={data.thread.replies.total_pages}
-              pageSize={data.thread.replies.page_size}
-            />
-          )}
-
-          <ReplyList
+        {!locked && (
+          <ReplyBox
             initialSession={props.initialSession}
+            initialSettings={props.initialSettings}
             thread={thread}
-            currentPage={data.thread.replies.current_page}
-            initialSignatureConfig={signatureConfig}
+            sortOrder={sortOrder}
           />
+        )}
 
-          {data.thread.replies.total_pages > 1 && (
-            <PaginationControls
-              path={`/t/${thread.slug}`}
-              params={sortOrder === "asc" ? { sort: "asc" } : undefined}
-              currentPage={data.thread.replies.current_page ?? 1}
-              totalPages={data.thread.replies.total_pages}
-              pageSize={data.thread.replies.page_size}
+        {!locked && (
+          <VStack w="full">
+            {data.thread.replies.total_pages > 1 && (
+              <PaginationControls
+                path={`/t/${thread.slug}`}
+                params={sortOrder === "asc" ? { sort: "asc" } : undefined}
+                currentPage={data.thread.replies.current_page ?? 1}
+                totalPages={data.thread.replies.total_pages}
+                pageSize={data.thread.replies.page_size}
+              />
+            )}
+
+            <ReplyList
+              initialSession={props.initialSession}
+              thread={thread}
+              currentPage={data.thread.replies.current_page}
+              initialSignatureConfig={signatureConfig}
             />
-          )}
-        </VStack>
+
+            {data.thread.replies.total_pages > 1 && (
+              <PaginationControls
+                path={`/t/${thread.slug}`}
+                params={sortOrder === "asc" ? { sort: "asc" } : undefined}
+                currentPage={data.thread.replies.current_page ?? 1}
+                totalPages={data.thread.replies.total_pages}
+                pageSize={data.thread.replies.page_size}
+              />
+            )}
+          </VStack>
+        )}
       </LStack>
     </ReplyProvider>
   );

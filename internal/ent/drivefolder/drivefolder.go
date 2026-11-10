@@ -36,6 +36,8 @@ const (
 	FieldAddedBy = "added_by"
 	// EdgeAccount holds the string denoting the account edge name in mutations.
 	EdgeAccount = "account"
+	// EdgeAccessPasses holds the string denoting the access_passes edge name in mutations.
+	EdgeAccessPasses = "access_passes"
 	// Table holds the table name of the drivefolder in the database.
 	Table = "drive_folders"
 	// AccountTable is the table that holds the account relation/edge.
@@ -45,6 +47,11 @@ const (
 	AccountInverseTable = "accounts"
 	// AccountColumn is the table column denoting the account relation/edge.
 	AccountColumn = "added_by"
+	// AccessPassesTable is the table that holds the access_passes relation/edge. The primary key declared below.
+	AccessPassesTable = "access_pass_drive_folders"
+	// AccessPassesInverseTable is the table name for the AccessPass entity.
+	// It exists in this package in order to avoid circular dependency with the "accesspass" package.
+	AccessPassesInverseTable = "access_passes"
 )
 
 // Columns holds all SQL columns for drivefolder fields.
@@ -60,6 +67,12 @@ var Columns = []string{
 	FieldSort,
 	FieldAddedBy,
 }
+
+var (
+	// AccessPassesPrimaryKey and AccessPassesColumn2 are the table columns denoting the
+	// primary key for the access_passes relation (M2M).
+	AccessPassesPrimaryKey = []string{"access_pass_id", "drive_folder_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -176,10 +189,31 @@ func ByAccountField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAccountStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByAccessPassesCount orders the results by access_passes count.
+func ByAccessPassesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAccessPassesStep(), opts...)
+	}
+}
+
+// ByAccessPasses orders the results by access_passes terms.
+func ByAccessPasses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAccessPassesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newAccountStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AccountInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, AccountTable, AccountColumn),
+	)
+}
+func newAccessPassesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AccessPassesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, AccessPassesTable, AccessPassesPrimaryKey...),
 	)
 }

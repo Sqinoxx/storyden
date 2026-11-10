@@ -116,5 +116,11 @@ func (s *service) List(ctx context.Context,
 		return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to list threads"))
 	}
 
+	decision, err := s.access.Resolve(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	decision.RedactAll(thr.Threads)
+
 	return thr, nil
 }

@@ -287,6 +287,39 @@ function EventDetails({ event }: { event: AuditEvent }) {
         </LStack>
       );
 
+    case AuditEventType.access_grant_updated:
+      return (
+        <LStack gap="1">
+          <styled.p fontSize="sm" color="fg.subtle">
+            Account:{" "}
+            <Link
+              href={`/m/${event.account_id}`}
+              className={css({ textDecoration: "underline" })}
+            >
+              <code>{event.account_id}</code>
+            </Link>
+          </styled.p>
+          <HStack gap="1" flexWrap="wrap">
+            <styled.p fontSize="sm" color="fg.subtle">
+              {event.pass_name}:
+            </styled.p>
+            <Badge size="sm" variant="subtle">
+              {event.status}
+            </Badge>
+            {event.expires_at && (
+              <styled.p fontSize="sm" color="fg.subtle">
+                until {new Date(event.expires_at).toLocaleDateString()}
+              </styled.p>
+            )}
+          </HStack>
+          {event.note && (
+            <styled.p fontSize="sm" color="fg.subtle">
+              {event.note}
+            </styled.p>
+          )}
+        </LStack>
+      );
+
     default:
       return null;
   }

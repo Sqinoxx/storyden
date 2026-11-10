@@ -245,6 +245,10 @@ export default defineConfig({
           "0%": { opacity: 1, transform: "scale(1)" },
           "100%": { opacity: 0, transform: "scale(0.95)" },
         },
+        easterEggFall: {
+          "0%": { opacity: 1, transform: "translateY(-10vh) rotate(0deg)" },
+          "100%": { opacity: 0, transform: "translateY(110vh) rotate(540deg)" },
+        },
       },
       textStyles: defineTextStyles({
         xs: { value: { fontSize: "xs", lineHeight: "1.125rem" } },

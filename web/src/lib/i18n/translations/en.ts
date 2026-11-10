@@ -1376,6 +1376,9 @@ export const en = {
     moveUp: "Move up",
     moveDown: "Move down",
   },
+  easterEgg: {
+    unlocked: "Secret unlocked! You found the Konami code. 🎮",
+  },
 };
 
 export type Translations = typeof en;

@@ -25,6 +25,7 @@ export const en = {
     queue: "Queue",
     reports: "Reports",
     reportBug: "Report a problem",
+    suggestImprovement: "Suggest an improvement",
     roles: "Roles",
     latest: "Latest posts",
     tags: "Tags",
@@ -808,6 +809,9 @@ export const en = {
       reportSubmitted: "submitted a report",
       reportUpdated: "report status updated",
       bugReportSubmitted: "reported a problem with the site",
+      suggestionPlanned: "planned your suggestion",
+      suggestionImplemented: "implemented your suggestion",
+      suggestionDeclined: "declined your suggestion",
       warningIssued: "issued you a warning",
       nodeVersionCreated: "created a draft for your page",
       nodeVersionApplied: "applied your draft",
@@ -1044,7 +1048,7 @@ export const en = {
   bugReport: {
     title: "Report a problem",
     description:
-      "Found a bug or have an idea? Your report goes directly to the administrators.",
+      "Something isn't working? Your report goes directly to the administrators.",
     category: "Type",
     categories: {
       bug: "Bug",
@@ -1064,6 +1068,30 @@ export const en = {
     submit: "Send report",
     sending: "Sending report...",
     sent: "Thanks! Your report was sent to the administrators.",
+  },
+  suggestion: {
+    title: "Suggest an improvement",
+    description:
+      "Do you have an idea how we could make the site better? Your suggestion goes directly to the administrators and you'll be notified when it's planned or implemented.",
+    descriptionLabel: "What would you improve?",
+    descriptionPlaceholder:
+      "Describe your idea and why it would help you or others.",
+    descriptionRequired: "Please describe your suggestion.",
+    submit: "Send suggestion",
+    sending: "Sending suggestion...",
+    sent: "Thanks for your suggestion!",
+    mySuggestions: "My suggestions",
+    pageTitle: "My suggestions",
+    pageDescription:
+      "Improvements you have suggested and what the administrators decided.",
+    empty: "You haven't made any suggestions yet.",
+    newSuggestion: "New suggestion",
+    status: {
+      open: "Submitted",
+      planned: "Planned",
+      resolved: "Implemented",
+      declined: "Declined",
+    },
   },
   marketplace: {
     title: "Flea market",
@@ -1097,6 +1125,11 @@ export const en = {
     offers: "{count} offers",
     negotiableShort: "VB",
     free: "Free",
+    all: "All",
+    sort: "Sort",
+    results: "{count} listings",
+    emptyFiltered: "No listings match your filters.",
+    emptyHint: "Got something you no longer need? Put it up here.",
     conditions: {
       new: "New",
       like_new: "Like new",
@@ -1114,6 +1147,10 @@ export const en = {
       sold: "Sold",
     },
     form: {
+      sectionPhotos: "Photos",
+      sectionWhat: "What are you selling?",
+      sectionPrice: "Price",
+      sectionDetails: "Details",
       createTitle: "Create listing",
       editTitle: "Edit listing",
       images: "Images",
@@ -1157,6 +1194,7 @@ export const en = {
       resetZoom: "Reset zoom",
     },
     detail: {
+      description: "Description",
       seller: "Seller",
       category: "Category",
       condition: "Condition",

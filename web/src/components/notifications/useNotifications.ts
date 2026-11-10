@@ -164,6 +164,12 @@ function getNotificationContent(t: Translations, n: Notification) {
       return { description: d.reportUpdated, url: `/reports` };
     case "bug_report_submitted":
       return { description: d.bugReportSubmitted, url: `/admin?tab=bug_reports` };
+    case "suggestion_planned":
+      return { description: d.suggestionPlanned, url: `/suggestions` };
+    case "suggestion_implemented":
+      return { description: d.suggestionImplemented, url: `/suggestions` };
+    case "suggestion_declined":
+      return { description: d.suggestionDeclined, url: `/suggestions` };
     case "warning_issued":
       return {
         description: d.warningIssued,

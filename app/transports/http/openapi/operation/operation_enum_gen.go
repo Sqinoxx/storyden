@@ -164,6 +164,7 @@ var (
 	OperationIDReportCreate                           = OperationID{`ReportCreate`}
 	OperationIDReportList                             = OperationID{`ReportList`}
 	OperationIDReportUpdate                           = OperationID{`ReportUpdate`}
+	OperationIDBugReportListOwn                       = OperationID{`BugReportListOwn`}
 	OperationIDBugReportCreate                        = OperationID{`BugReportCreate`}
 	OperationIDAdminBugReportList                     = OperationID{`AdminBugReportList`}
 	OperationIDAdminBugReportUpdate                   = OperationID{`AdminBugReportUpdate`}
@@ -633,6 +634,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDReportList, nil
 	case string(`ReportUpdate`):
 		return OperationIDReportUpdate, nil
+	case string(`BugReportListOwn`):
+		return OperationIDBugReportListOwn, nil
 	case string(`BugReportCreate`):
 		return OperationIDBugReportCreate, nil
 	case string(`AdminBugReportList`):

@@ -1,20 +1,25 @@
+import { assetImport } from "@/api/openapi-client/assets";
 import { driveFolderList } from "@/api/openapi-client/drive";
+import { Asset } from "@/api/openapi-schema";
 import { API_ADDRESS, WEB_ADDRESS } from "@/config";
 
 import { getDriveFileURL } from "./url";
-
-export const UPLOADABLE_DOCUMENT_MIMES = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-] as const;
 
 const FALLBACK_EXTENSIONS: Record<string, string> = {
   "application/pdf": "pdf",
   "application/msword": "doc",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
     "docx",
+  "application/vnd.ms-powerpoint": "ppt",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+    "pptx",
+  "application/vnd.ms-excel": "xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
 };
+
+export const UPLOADABLE_DOCUMENT_MIMES = Object.keys(FALLBACK_EXTENSIONS);
+
+const IMPORTABLE_EXTENSION = /\.(pdf|docx?|pptx?|xlsx?)$/i;
 
 const DRIVE_ID = /^[A-Za-z0-9_-]{10,}$/;
 
@@ -149,7 +154,7 @@ export function filenameFromContentDisposition(
 }
 
 function isUploadableDocument(mime: string): boolean {
-  return (UPLOADABLE_DOCUMENT_MIMES as readonly string[]).includes(mime);
+  return UPLOADABLE_DOCUMENT_MIMES.includes(mime);
 }
 
 async function fetchFromFolder(
@@ -196,4 +201,41 @@ export async function fetchDriveDocument(
   }
 
   return null;
+}
+
+export function isImportableFileURL(raw: string | undefined): boolean {
+  if (!raw) return false;
+
+  let url: URL;
+  try {
+    url = new URL(raw.trim());
+  } catch {
+    return false;
+  }
+
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    return false;
+  }
+
+  if (ownHosts().has(url.host)) {
+    return false;
+  }
+
+  if (url.host === "drive.google.com" || url.host === "docs.google.com") {
+    return parseDriveDropURL(raw) !== null;
+  }
+
+  try {
+    return IMPORTABLE_EXTENSION.test(decodeURIComponent(url.pathname));
+  } catch {
+    return IMPORTABLE_EXTENSION.test(url.pathname);
+  }
+}
+
+export async function importFromURL(url: string): Promise<Asset | null> {
+  try {
+    return await assetImport({ url });
+  } catch {
+    return null;
+  }
 }

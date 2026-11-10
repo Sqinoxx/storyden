@@ -4,6 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ContentComposerRich } from "./ContentComposerRich";
 
+const assetImport = vi.fn();
+vi.mock("@/api/openapi-client/assets", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/api/openapi-client/assets")
+  >("@/api/openapi-client/assets");
+
+  return { ...actual, assetImport: (body: unknown) => assetImport(body) };
+});
+
 vi.mock("@tiptap/react", async () => {
   const actual =
     await vi.importActual<typeof import("@tiptap/react")>("@tiptap/react");
@@ -126,5 +135,55 @@ describe("ContentComposerRich drive link drops", () => {
     await waitFor(() => {
       expect(editor.querySelector(`a[href="${DRIVE_URL}"]`)).not.toBeNull();
     });
+  });
+
+  it("imports a dropped link to a pdf on another site as an attachment", async () => {
+    const url =
+      "https://register.awmf.org/assets/guidelines/Kariesprophylaxe.pdf";
+    assetImport.mockResolvedValue({
+      id: "imported",
+      filename: "Kariesprophylaxe.pdf",
+      path: "/api/assets/imported-kariesprophylaxe-pdf",
+      mime_type: "application/pdf",
+      width: 0,
+      height: 0,
+    });
+
+    const { container, editor } = await renderEditor();
+
+    fireEvent.drop(editor, { dataTransfer: urlDataTransfer(url) });
+
+    await waitFor(() => {
+      expect(container.textContent).toContain("Kariesprophylaxe.pdf");
+    });
+
+    expect(assetImport).toHaveBeenCalledWith({ url });
+    expect(editor.querySelector(`a[href="${url}"]`)).toBeNull();
+  });
+
+  it("falls back to the link when the import is refused", async () => {
+    const url = "https://example.com/private/Skript.pdf";
+    assetImport.mockRejectedValue(new Error("400"));
+
+    const { editor } = await renderEditor();
+
+    fireEvent.drop(editor, { dataTransfer: urlDataTransfer(url) });
+
+    await waitFor(() => {
+      expect(editor.querySelector(`a[href="${url}"]`)).not.toBeNull();
+    });
+  });
+
+  it("leaves ordinary web links to the editor", async () => {
+    const url = "https://www.zm-online.de/news/aktuelles";
+
+    const { editor } = await renderEditor();
+
+    fireEvent.drop(editor, { dataTransfer: urlDataTransfer(url) });
+
+    await waitFor(() => {
+      expect(editor.textContent).toContain(url);
+    });
+    expect(assetImport).not.toHaveBeenCalled();
   });
 });

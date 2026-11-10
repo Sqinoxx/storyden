@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   fetchDriveDocument,
   filenameFromContentDisposition,
+  importFromURL,
+  isImportableFileURL,
   parseDriveDropURL,
   readDropURL,
 } from "./resolveDroppedDriveFile";
@@ -10,6 +12,11 @@ import {
 vi.mock("@/config", () => ({
   API_ADDRESS: "https://api.unidentists.test",
   WEB_ADDRESS: "https://unidentists.test",
+}));
+
+const assetImport = vi.fn();
+vi.mock("@/api/openapi-client/assets", () => ({
+  assetImport: (body: unknown) => assetImport(body),
 }));
 
 const driveFolderList = vi.fn();
@@ -22,6 +29,8 @@ const FOLDER = "dbf0dtosi88000bln04g";
 const PDF = "application/pdf";
 const DOCX =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const PPTX =
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation";
 
 function response(body: string, headers: Record<string, string>, status = 200) {
   return new Response(body, { status, headers });
@@ -214,5 +223,70 @@ describe("fetchDriveDocument", () => {
 
     expect(file?.type).toBe(PDF);
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("isImportableFileURL", () => {
+  it.each([
+    "https://register.awmf.org/assets/guidelines/083-001l_S3_Kariesprophylaxe.pdf",
+    "https://example.com/files/Vorlesung%20Endo.PPTX",
+    "https://example.com/Lernliste.xlsx?download=1",
+    "https://example.com/protokoll.docx",
+    `https://drive.google.com/file/d/${GOOGLE_ID}/view`,
+    `https://docs.google.com/presentation/d/${GOOGLE_ID}/edit`,
+  ])("accepts %s", (url) => {
+    expect(isImportableFileURL(url)).toBe(true);
+  });
+
+  it.each([
+    ["an article", "https://www.zm-online.de/news/aktuelles"],
+    ["an image", "https://example.com/photo.jpg"],
+    [
+      "the site's own drive",
+      `https://unidentists.test/drive/${FOLDER}/${GOOGLE_ID}`,
+    ],
+    ["the site's own files", "https://unidentists.test/files/skript.pdf"],
+    ["a google folder", "https://drive.google.com/drive/my-drive"],
+    ["a non-http link", "ftp://example.com/a.pdf"],
+    ["nothing", undefined],
+  ])("rejects %s", (_, url) => {
+    expect(isImportableFileURL(url)).toBe(false);
+  });
+});
+
+describe("importFromURL", () => {
+  it("returns the imported asset", async () => {
+    const asset = { id: "a", filename: "Leitlinie.pdf", path: "/api/assets/a" };
+    assetImport.mockResolvedValue(asset);
+
+    expect(await importFromURL("https://example.com/Leitlinie.pdf")).toBe(
+      asset,
+    );
+    expect(assetImport).toHaveBeenCalledWith({
+      url: "https://example.com/Leitlinie.pdf",
+    });
+  });
+
+  it("returns null when the server refuses", async () => {
+    assetImport.mockRejectedValue(new Error("400"));
+
+    expect(await importFromURL("https://example.com/Leitlinie.pdf")).toBeNull();
+  });
+});
+
+describe("fetchDriveDocument slides", () => {
+  it("accepts powerpoint files from the drive", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(response("pptx", { "content-type": PPTX })),
+    );
+
+    const file = await fetchDriveDocument({
+      folderID: FOLDER,
+      fileID: GOOGLE_ID,
+    });
+
+    expect(file?.type).toBe(PPTX);
+    expect(file?.name).toBe("dokument.pptx");
   });
 });

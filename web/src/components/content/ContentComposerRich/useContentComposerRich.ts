@@ -15,8 +15,9 @@ import { Asset } from "@/api/openapi-schema";
 
 import { handle } from "@/api/client";
 import {
-  DriveFileRef,
   fetchDriveDocument,
+  importFromURL,
+  isImportableFileURL,
   parseDriveDropURL,
   readDropURL,
 } from "@/components/drive/resolveDroppedDriveFile";
@@ -58,6 +59,10 @@ function stripPendingUploads(html: string): string {
 }
 
 export type Block = "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+
+export function isFileLink(url: string | undefined): url is string {
+  return parseDriveDropURL(url) !== null || isImportableFileURL(url);
+}
 
 export function useContentComposer(props: ContentComposerProps) {
   const t = useTranslation();
@@ -135,13 +140,13 @@ export function useContentComposer(props: ContentComposerProps) {
     },
   });
 
-  const DriveDropExtension = Extension.create({
-    name: "driveDrop",
+  const FileLinkDropExtension = Extension.create({
+    name: "fileLinkDrop",
 
     addProseMirrorPlugins() {
       return [
         new Plugin({
-          key: new PluginKey("driveDrop"),
+          key: new PluginKey("fileLinkDrop"),
           props: {
             handleDrop(view, event, _slice, moved) {
               if (moved || propsRef.current.disabled) {
@@ -158,8 +163,7 @@ export function useContentComposer(props: ContentComposerProps) {
               }
 
               const url = readDropURL(dt);
-              const ref = parseDriveDropURL(url);
-              if (!url || !ref) {
+              if (!isFileLink(url)) {
                 return false;
               }
 
@@ -169,7 +173,7 @@ export function useContentComposer(props: ContentComposerProps) {
                 view.posAtCoords({ left: event.clientX, top: event.clientY })
                   ?.pos ?? view.state.selection.from;
 
-              void handleDriveDrop(view, ref, url, dropPos);
+              void handleFileLink(view, url, dropPos);
 
               return true;
             },
@@ -225,7 +229,7 @@ export function useContentComposer(props: ContentComposerProps) {
       showOnlyCurrent: false,
     }),
     UploadCleanupExtension,
-    DriveDropExtension,
+    FileLinkDropExtension,
   ];
 
   // This is for the initial server render.
@@ -711,19 +715,43 @@ export function useContentComposer(props: ContentComposerProps) {
     return assets;
   }
 
-  async function handleDriveDrop(
+  async function resolveFileLink(
+    url: string,
+  ): Promise<{ file: File } | { asset: Asset } | null> {
+    const ref = parseDriveDropURL(url);
+    if (ref) {
+      const file = await fetchDriveDocument(ref).catch(() => null);
+      if (file) {
+        return { file };
+      }
+      if (ref.folderID) {
+        return null;
+      }
+    }
+
+    if (isImportableFileURL(url)) {
+      const asset = await importFromURL(url);
+      if (asset) {
+        return { asset };
+      }
+      toast.info(t.upload.linkImportFailed);
+    }
+
+    return null;
+  }
+
+  async function handleFileLink(
     view: EditorView,
-    ref: DriveFileRef,
     url: string,
     dropPos: number,
   ) {
     setUploadingCount((prev) => prev + 1);
 
-    let file: File | null = null;
+    let resolved: Awaited<ReturnType<typeof resolveFileLink>> = null;
     try {
-      file = await fetchDriveDocument(ref);
+      resolved = await resolveFileLink(url);
     } catch (err) {
-      console.error("Resolving dropped drive link failed:", err);
+      console.error("Resolving dropped file link failed:", err);
     } finally {
       setUploadingCount((prev) => prev - 1);
     }
@@ -734,13 +762,18 @@ export function useContentComposer(props: ContentComposerProps) {
 
     const pos = Math.min(dropPos, view.state.doc.content.size);
 
-    if (file) {
+    if (resolved && "file" in resolved) {
       view.dispatch(
         view.state.tr.setSelection(
           TextSelection.near(view.state.doc.resolve(pos)),
         ),
       );
-      await handleFiles(view, [file]);
+      await handleFiles(view, [resolved.file]);
+      return;
+    }
+
+    if (resolved && "asset" in resolved) {
+      insertUploadedAttachment(view, resolved.asset, pos);
       return;
     }
 
@@ -750,6 +783,37 @@ export function useContentComposer(props: ContentComposerProps) {
       linkMark ? [linkMark.create({ href: url })] : [],
     );
     view.dispatch(view.state.tr.insert(pos, text));
+  }
+
+  function insertUploadedAttachment(
+    view: EditorView,
+    asset: Asset,
+    pos: number,
+  ) {
+    const fileAttachmentNode = view.state.schema.nodes["fileAttachment"];
+
+    if (propsRef.current.inlineAttachments && fileAttachmentNode) {
+      view.dispatch(
+        view.state.tr.insert(
+          pos,
+          fileAttachmentNode.create({
+            href: getAssetURL(asset.path),
+            fileName: asset.filename,
+          }),
+        ),
+      );
+    }
+
+    propsRef.current.onAssetUpload?.(asset);
+  }
+
+  function handleUploadLinkAsFile(url: string, range: { from: number; to: number }) {
+    if (!editor) {
+      return;
+    }
+
+    editor.view.dispatch(editor.state.tr.delete(range.from, range.to));
+    void handleFileLink(editor.view, url, range.from);
   }
 
   async function handleFileUpload(e: ChangeEvent<HTMLInputElement>) {
@@ -904,11 +968,9 @@ export function useContentComposer(props: ContentComposerProps) {
 
     if (!handledByEditor && !propsRef.current.disabled) {
       const url = readDropURL(e.dataTransfer);
-      const ref = parseDriveDropURL(url);
-      if (url && ref) {
-        await handleDriveDrop(
+      if (url && isFileLink(url)) {
+        await handleFileLink(
           editor.view,
-          ref,
           url,
           editor.view.state.doc.content.size,
         );
@@ -948,6 +1010,7 @@ export function useContentComposer(props: ContentComposerProps) {
     getDragOverlayMessage,
     handlers: {
       handleFileUpload,
+      handleUploadLinkAsFile,
       handleDragOver,
       handleDragEnter,
       handleDragLeave,

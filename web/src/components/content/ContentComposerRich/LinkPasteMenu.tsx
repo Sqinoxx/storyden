@@ -1,20 +1,25 @@
 import { BubbleMenu, Editor } from "@tiptap/react";
+import { PaperclipIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CardIcon } from "@/components/ui/icons/Card";
 import { LinkIcon } from "@/components/ui/icons/Link";
+import { useTranslation } from "@/lib/i18n";
 import { css } from "@/styled-system/css";
 import { HStack, styled } from "@/styled-system/jsx";
-import { useTranslation } from "@/lib/i18n";
 
 import { linkPasteMenuKey } from "./plugins/LinkPasteMenuPlugin";
+import { isFileLink } from "./useContentComposerRich";
 
 type Props = {
   editor: Editor;
+  onUploadAsFile?: (url: string, range: { from: number; to: number }) => void;
 };
 
-export function LinkPasteMenu({ editor }: Props) {
+export function LinkPasteMenu({ editor, onUploadAsFile }: Props) {
   const t = useTranslation();
+  const pastedURL = linkPasteMenuKey.getState(editor.state)?.url ?? undefined;
+  const canUploadAsFile = !!onUploadAsFile && isFileLink(pastedURL);
   const dismissMenu = () => {
     const tr = editor.state.tr.setMeta(linkPasteMenuKey, {
       isVisible: false,
@@ -51,6 +56,15 @@ export function LinkPasteMenu({ editor }: Props) {
       .run();
 
     dismissMenu();
+  };
+
+  const handleFileChoice = () => {
+    const menuState = linkPasteMenuKey.getState(editor.state);
+    if (!menuState?.range || !menuState?.url) return;
+
+    const { url, range } = menuState;
+    dismissMenu();
+    onUploadAsFile?.(url, range);
   };
 
   return (
@@ -130,6 +144,16 @@ export function LinkPasteMenu({ editor }: Props) {
         >
           <CardIcon /> {t.link.preview}
         </Button>
+        {canUploadAsFile && (
+          <Button
+            type="button"
+            size="xs"
+            variant="subtle"
+            onClick={handleFileChoice}
+          >
+            <PaperclipIcon /> {t.link.file}
+          </Button>
+        )}
       </HStack>
     </BubbleMenu>
   );

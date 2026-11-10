@@ -37,7 +37,7 @@ export function ConfirmButton({
   }
 
   return (
-    <HStack gap="1">
+    <HStack gap="1" flexWrap="wrap">
       <Button
         size="sm"
         variant="solid"

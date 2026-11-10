@@ -75,8 +75,12 @@ export function AccessPassCard({ pass, categoryNames }: Props) {
 
   async function onCopy() {
     if (!membership) return;
-    await navigator.clipboard.writeText(membership.reference_code);
-    toast.success(t.access.copied);
+    try {
+      await navigator.clipboard.writeText(membership.reference_code);
+      toast.success(t.access.copied);
+    } catch {
+      toast.error(t.access.copyFailed);
+    }
   }
 
   return (
@@ -88,14 +92,22 @@ export function AccessPassCard({ pass, categoryNames }: Props) {
       aria-label={pass.name}
       data-testid="access-pass-card"
     >
-      <HStack justify="space-between" alignItems="start" gap="2" w="full">
-        <HStack gap="2" minW="0">
-          {isActive ? <LockOpen size={18} /> : <Lock size={18} />}
-          <Heading size="md" fontWeight="bold">
+      <HStack
+        justify="space-between"
+        alignItems="start"
+        gap="2"
+        w="full"
+        flexWrap="wrap"
+      >
+        <HStack gap="2" minW="0" alignItems="start">
+          <styled.span flexShrink="0" pt="0.5">
+            {isActive ? <LockOpen size={18} /> : <Lock size={18} />}
+          </styled.span>
+          <Heading size="md" fontWeight="bold" overflowWrap="anywhere">
             {pass.name}
           </Heading>
         </HStack>
-        <HStack gap="2" flexShrink="0">
+        <HStack gap="2" flexShrink="0" flexWrap="wrap">
           {status && (
             <Badge size="sm" variant="subtle">
               {t.access.status[status]}
@@ -110,7 +122,11 @@ export function AccessPassCard({ pass, categoryNames }: Props) {
       </HStack>
 
       {pass.description && (
-        <styled.p color="fg.muted" whiteSpace="pre-wrap">
+        <styled.p
+          color="fg.muted"
+          whiteSpace="pre-wrap"
+          overflowWrap="anywhere"
+        >
           {pass.description}
         </styled.p>
       )}
@@ -155,7 +171,12 @@ export function AccessPassCard({ pass, categoryNames }: Props) {
             <Step index={1} done={isRequested} label={t.access.stepRequest} />
             <Step index={2} done={false} label={t.access.stepPay}>
               {pass.payment_info && (
-                <styled.p fontSize="sm" color="fg.muted" whiteSpace="pre-wrap">
+                <styled.p
+                  fontSize="sm"
+                  color="fg.muted"
+                  whiteSpace="pre-wrap"
+                  overflowWrap="anywhere"
+                >
                   {pass.payment_info}
                 </styled.p>
               )}
@@ -194,7 +215,7 @@ export function AccessPassCard({ pass, categoryNames }: Props) {
             </styled.p>
           )}
 
-          <HStack gap="2">
+          <HStack gap="2" flexWrap="wrap" w="full">
             {action === "login" && (
               <LinkButton href="/login" size="sm">
                 {t.access.loginToRequest}
@@ -256,7 +277,7 @@ function Step({
       >
         {done ? <Check size={14} /> : index}
       </styled.span>
-      <LStack gap="1">
+      <LStack gap="1" minW="0" flex="1">
         <styled.span fontWeight="medium">{label}</styled.span>
         {children}
       </LStack>
@@ -278,8 +299,15 @@ export function LockedContentNotice({ passIDs, fallbackNames }: LockedProps) {
 
   if (matching.length === 0) {
     return (
-      <HStack gap="2" color="fg.muted" data-testid="access-locked-notice">
-        <Lock size={16} />
+      <HStack
+        gap="2"
+        alignItems="start"
+        color="fg.muted"
+        data-testid="access-locked-notice"
+      >
+        <styled.span flexShrink="0" pt="1">
+          <Lock size={16} />
+        </styled.span>
         <styled.p>
           {t.access.lockedContent.replace(
             "{pass}",

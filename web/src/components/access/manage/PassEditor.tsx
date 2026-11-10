@@ -265,13 +265,19 @@ function PassEditorContent({ isOpen, onClose, pass }: Props) {
           {m.fieldRequestable}
         </Checkbox>
 
-        <HStack gap="2" w="full">
+        <HStack gap="2" w="full" flexWrap="wrap">
           {pass && (
             <DeleteWithConfirmationButton onDelete={onDelete}>
               {m.deletePass}
             </DeleteWithConfirmationButton>
           )}
-          <Button type="submit" flex="1" loading={busy} disabled={!name.trim()}>
+          <Button
+            type="submit"
+            flex="1"
+            minW="32"
+            loading={busy}
+            disabled={!name.trim()}
+          >
             {t.common.save}
           </Button>
         </HStack>

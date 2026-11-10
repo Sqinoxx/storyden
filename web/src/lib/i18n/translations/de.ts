@@ -959,6 +959,7 @@ export const de: Translations = {
     referenceCode: "Dein Verwendungszweck",
     copy: "Kopieren",
     copied: "Verwendungszweck kopiert",
+    copyFailed: "Kopieren nicht möglich – bitte Code manuell abschreiben",
     request: "Zugang anfragen",
     requested: "Angefragt am {date}. Wir warten auf deine Zahlung.",
     withdraw: "Anfrage zurückziehen",

@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAccessRevalidate } from "@/lib/access/useAccessRevalidate";
 import { useTranslation } from "@/lib/i18n";
-import { HStack, LStack, styled } from "@/styled-system/jsx";
+import { Grid, LStack, styled } from "@/styled-system/jsx";
 
 import { ConfirmButton } from "./ConfirmButton";
 import { GrantDialog } from "./GrantDialog";
@@ -38,6 +38,8 @@ const selectStyle = {
   p: "2",
   bg: "bg.default",
   fontSize: "sm",
+  minW: "0",
+  w: "full",
 } as const;
 
 export function GrantsTab({ passes }: { passes: AccessPass[] }) {
@@ -78,7 +80,15 @@ export function GrantsTab({ passes }: { passes: AccessPass[] }) {
 
   return (
     <LStack gap="3" w="full">
-      <HStack gap="2" flexWrap="wrap" w="full">
+      <Grid
+        gap="2"
+        w="full"
+        alignItems="center"
+        gridTemplateColumns={{
+          base: "repeat(2, minmax(0, 1fr))",
+          md: "auto auto minmax(0, 1fr) auto",
+        }}
+      >
         <styled.select
           {...selectStyle}
           aria-label={m.pass}
@@ -108,17 +118,20 @@ export function GrantsTab({ passes }: { passes: AccessPass[] }) {
         </styled.select>
         <Input
           size="sm"
-          flex="1"
-          minW="40"
+          gridColumn={{ base: "span 2", md: "auto" }}
           placeholder={m.search}
           aria-label={m.search}
           value={query}
           onChange={(e) => setQuery(e.currentTarget.value)}
         />
-        <Button size="sm" onClick={() => setDialog({})}>
+        <Button
+          size="sm"
+          gridColumn={{ base: "span 2", md: "auto" }}
+          onClick={() => setDialog({})}
+        >
           {m.grantMember}
         </Button>
-      </HStack>
+      </Grid>
 
       {!data ? (
         <Unready error={error} />

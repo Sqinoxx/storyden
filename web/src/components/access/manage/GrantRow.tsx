@@ -52,7 +52,7 @@ export function GrantRow({ grant, showStatus, actions }: Props) {
       aria-label={`${grant.account.name} ${grant.pass.name}`}
       data-testid="access-grant-row"
     >
-      <LStack gap="1" minW="0" flex="1">
+      <LStack gap="1" minW="0" flex="1" overflowWrap="anywhere">
         <HStack gap="2" flexWrap="wrap">
           <Link href={`/m/${grant.account.handle}`}>
             <styled.span fontWeight="semibold">
@@ -85,7 +85,13 @@ export function GrantRow({ grant, showStatus, actions }: Props) {
         )}
       </LStack>
       {actions && (
-        <HStack gap="2" flexShrink="0">
+        <HStack
+          gap="2"
+          flexWrap="wrap"
+          flexShrink="0"
+          w={{ base: "full", sm: "auto" }}
+          justify={{ base: "start", sm: "end" }}
+        >
           {actions}
         </HStack>
       )}

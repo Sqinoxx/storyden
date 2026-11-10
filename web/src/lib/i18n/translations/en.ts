@@ -956,6 +956,7 @@ export const en = {
     referenceCode: "Your payment reference",
     copy: "Copy",
     copied: "Payment reference copied",
+    copyFailed: "Could not copy – please write the code down manually",
     request: "Request access",
     requested: "Requested on {date}. Waiting for your payment.",
     withdraw: "Withdraw request",

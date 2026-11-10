@@ -47,7 +47,7 @@ export function PassesTab({ passes }: { passes: AccessPass[] }) {
             flexWrap="wrap"
             aria-label={p.name}
           >
-            <LStack gap="1" minW="0" flex="1">
+            <LStack gap="1" minW="0" flex="1" overflowWrap="anywhere">
               <HStack gap="2" flexWrap="wrap">
                 <styled.span fontWeight="semibold">{p.name}</styled.span>
                 {p.price_label && (

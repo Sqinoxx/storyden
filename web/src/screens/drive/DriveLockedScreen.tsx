@@ -16,9 +16,13 @@ export function DriveLockedScreen({ folder }: Props) {
 
   return (
     <LStack gap="4" w="full">
-      <HStack gap="2">
-        <Folder size={20} />
-        <Heading size="lg">{folder.name}</Heading>
+      <HStack gap="2" alignItems="start" minW="0">
+        <styled.span flexShrink="0" pt="1">
+          <Folder size={20} />
+        </styled.span>
+        <Heading size="lg" overflowWrap="anywhere">
+          {folder.name}
+        </Heading>
       </HStack>
       {folder.description && (
         <styled.p color="fg.muted">{folder.description}</styled.p>

@@ -117,6 +117,7 @@ func NewProcessor(
 // before this instance started, or from a crash) in bounded batches until
 // none remain, then periodically re-checks in case new assets slip through.
 func (p *Processor) runBackfill(ctx context.Context) {
+	p.retryNewlySupported(ctx)
 	p.processPendingBatches(ctx)
 
 	ticker := time.NewTicker(5 * time.Minute)
@@ -129,6 +130,19 @@ func (p *Processor) runBackfill(ctx context.Context) {
 		case <-ticker.C:
 			p.processPendingBatches(ctx)
 		}
+	}
+}
+
+// retryNewlySupported picks up files uploaded before their type could be
+// read, such as Word documents from before text extraction covered them.
+func (p *Processor) retryNewlySupported(ctx context.Context) {
+	ids, err := p.assetWriter.ResetOCRSkippedUnsupported(ctx, IsSupportedMIME)
+	if err != nil {
+		p.logger.Error("failed to requeue assets of newly supported types", slog.String("error", err.Error()))
+		return
+	}
+	if len(ids) > 0 {
+		p.logger.Info("requeued assets of newly supported types for text extraction", slog.Int("count", len(ids)))
 	}
 }
 
@@ -217,7 +231,7 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 	mimeStr := a.MIME.String()
 	if !p.isSupportedMIME(mimeStr) {
 		p.logger.Debug("skipping unsupported asset type for OCR", slog.String("id", id.String()), slog.String("mime", mimeStr))
-		_, err := p.assetWriter.UpdateOCRSkipped(ctx, id, fmt.Sprintf("unsupported mime type: %s", mimeStr))
+		_, err := p.assetWriter.UpdateOCRSkipped(ctx, id, fmt.Sprintf("%s: %s", asset_writer.UnsupportedMIMEReasonPrefix, mimeStr))
 		return err
 	}
 
@@ -431,7 +445,11 @@ func (p *Processor) handleExtractionError(ctx context.Context, id xid.ID, err er
 		return werr
 
 	case errors.Is(err, infra_ocr.ErrUnsupportedMIME):
-		_, werr := p.assetWriter.UpdateOCRSkipped(ctx, id, "unsupported mime type")
+		_, werr := p.assetWriter.UpdateOCRSkipped(ctx, id, asset_writer.UnsupportedMIMEReasonPrefix)
+		return werr
+
+	case errors.Is(err, infra_ocr.ErrNoText):
+		_, werr := p.assetWriter.UpdateOCRSkipped(ctx, id, "document contains no extractable text")
 		return werr
 
 	case errors.Is(err, infra_ocr.ErrNoTextLayer):
@@ -463,7 +481,7 @@ var supportedOCRMIMETypes = map[string]bool{
 // enqueueing for text extraction at all. Upload sites use it to avoid
 // dispatching commands that this package would immediately mark as skipped.
 func IsSupportedMIME(m string) bool {
-	return supportedOCRMIMETypes[strings.ToLower(strings.TrimSpace(m))]
+	return supportedOCRMIMETypes[infra_ocr.BaseMIME(m)] || infra_ocr.IsDocumentMIME(m)
 }
 
 func (p *Processor) isSupportedMIME(m string) bool {

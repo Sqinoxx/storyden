@@ -160,6 +160,49 @@ func (w *Writer) UpdateOCRSkipped(ctx context.Context, id xid.ID, reason string)
 	return asset.Map(r), nil
 }
 
+// ResetOCRSkippedUnsupported returns assets that were skipped only because
+// their type was not supported at the time to pending, for the types that
+// isSupported now accepts. Returns the IDs that were reset.
+func (w *Writer) ResetOCRSkippedUnsupported(ctx context.Context, isSupported func(mime string) bool) ([]xid.ID, error) {
+	candidates, err := w.db.Asset.Query().
+		Where(
+			ent_asset.OcrStatusEQ(ent_asset.OcrStatusSkipped),
+			ent_asset.OcrErrorHasPrefix(UnsupportedMIMEReasonPrefix),
+		).
+		Select(ent_asset.FieldID, ent_asset.FieldMimeType).
+		All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	var ids []xid.ID
+	for _, a := range candidates {
+		if isSupported(a.MimeType) {
+			ids = append(ids, a.ID)
+		}
+	}
+
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	_, err = w.db.Asset.Update().
+		Where(ent_asset.IDIn(ids...)).
+		SetOcrStatus(ent_asset.OcrStatusPending).
+		ClearOcrError().
+		ClearOcrProcessedAt().
+		Save(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return ids, nil
+}
+
+// UnsupportedMIMEReasonPrefix starts the skip reason recorded for a type the
+// extractor could not handle.
+const UnsupportedMIMEReasonPrefix = "unsupported mime type"
+
 // ResetOCRForReindex resets a bounded batch of previously-processed
 // (completed/failed/skipped) assets back to pending, clearing prior results,
 // so they are picked up by the backfill/processor again. Returns the IDs

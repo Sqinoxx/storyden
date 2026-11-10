@@ -50,6 +50,13 @@ func (c *LayeredClient) ExtractText(ctx context.Context, data []byte, mimeType s
 	case strings.Contains(mt, "pdf"):
 		return c.extractPDF(ctx, data)
 
+	case IsDocumentMIME(mt):
+		result, err := extractDocument(data, mt)
+		if err != nil {
+			return Result{}, fault.Wrap(err, fctx.With(ctx))
+		}
+		return result, nil
+
 	default:
 		return Result{}, fault.Wrap(ErrUnsupportedMIME, fctx.With(ctx))
 	}

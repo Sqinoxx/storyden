@@ -4,7 +4,7 @@ import { FocusClasses } from "@tiptap/extension-focus";
 import { Link } from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { generateHTML, generateJSON } from "@tiptap/html";
-import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
 import { EditorView } from "@tiptap/pm/view";
 import { Extension, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -14,6 +14,12 @@ import { toast } from "sonner";
 import { Asset } from "@/api/openapi-schema";
 
 import { handle } from "@/api/client";
+import {
+  DriveFileRef,
+  fetchDriveDocument,
+  parseDriveDropURL,
+  readDropURL,
+} from "@/components/drive/resolveDroppedDriveFile";
 import { css } from "@/styled-system/css";
 import { getAssetURL } from "@/utils/asset";
 
@@ -129,6 +135,50 @@ export function useContentComposer(props: ContentComposerProps) {
     },
   });
 
+  const DriveDropExtension = Extension.create({
+    name: "driveDrop",
+
+    addProseMirrorPlugins() {
+      return [
+        new Plugin({
+          key: new PluginKey("driveDrop"),
+          props: {
+            handleDrop(view, event, _slice, moved) {
+              if (moved || propsRef.current.disabled) {
+                return false;
+              }
+
+              const dt = event.dataTransfer;
+              if (!dt) {
+                return false;
+              }
+
+              if (dt.files.length > 0) {
+                return true;
+              }
+
+              const url = readDropURL(dt);
+              const ref = parseDriveDropURL(url);
+              if (!url || !ref) {
+                return false;
+              }
+
+              event.preventDefault();
+
+              const dropPos =
+                view.posAtCoords({ left: event.clientX, top: event.clientY })
+                  ?.pos ?? view.state.selection.from;
+
+              void handleDriveDrop(view, ref, url, dropPos);
+
+              return true;
+            },
+          },
+        }),
+      ];
+    },
+  });
+
   const extensions = [
     StarterKit,
     FocusClasses,
@@ -175,6 +225,7 @@ export function useContentComposer(props: ContentComposerProps) {
       showOnlyCurrent: false,
     }),
     UploadCleanupExtension,
+    DriveDropExtension,
   ];
 
   // This is for the initial server render.
@@ -660,6 +711,47 @@ export function useContentComposer(props: ContentComposerProps) {
     return assets;
   }
 
+  async function handleDriveDrop(
+    view: EditorView,
+    ref: DriveFileRef,
+    url: string,
+    dropPos: number,
+  ) {
+    setUploadingCount((prev) => prev + 1);
+
+    let file: File | null = null;
+    try {
+      file = await fetchDriveDocument(ref);
+    } catch (err) {
+      console.error("Resolving dropped drive link failed:", err);
+    } finally {
+      setUploadingCount((prev) => prev - 1);
+    }
+
+    if (view.isDestroyed) {
+      return;
+    }
+
+    const pos = Math.min(dropPos, view.state.doc.content.size);
+
+    if (file) {
+      view.dispatch(
+        view.state.tr.setSelection(
+          TextSelection.near(view.state.doc.resolve(pos)),
+        ),
+      );
+      await handleFiles(view, [file]);
+      return;
+    }
+
+    const linkMark = view.state.schema.marks["link"];
+    const text = view.state.schema.text(
+      url,
+      linkMark ? [linkMark.create({ href: url })] : [],
+    );
+    view.dispatch(view.state.tr.insert(pos, text));
+  }
+
   async function handleFileUpload(e: ChangeEvent<HTMLInputElement>) {
     if (!e.currentTarget.files || !editor) {
       return;
@@ -787,6 +879,8 @@ export function useContentComposer(props: ContentComposerProps) {
   }
 
   async function handleDrop(e: React.DragEvent) {
+    const handledByEditor = e.defaultPrevented;
+
     e.preventDefault();
     e.stopPropagation();
 
@@ -806,6 +900,20 @@ export function useContentComposer(props: ContentComposerProps) {
       setDragFileCount(0);
       await handleFiles(editor.view, assets);
       return;
+    }
+
+    if (!handledByEditor && !propsRef.current.disabled) {
+      const url = readDropURL(e.dataTransfer);
+      const ref = parseDriveDropURL(url);
+      if (url && ref) {
+        await handleDriveDrop(
+          editor.view,
+          ref,
+          url,
+          editor.view.state.doc.content.size,
+        );
+        return;
+      }
     }
 
     // A non-file drop (repositioning content within the editor, dropping a

@@ -172,6 +172,24 @@ export async function dropFiles(
   await target.dispatchEvent("drop", { dataTransfer });
 }
 
+export async function dropURL(page: Page, target: Locator, url: string) {
+  const dataTransfer = await page.evaluateHandle((href) => {
+    const dt = new DataTransfer();
+    dt.setData("text/uri-list", href);
+    dt.setData("text/plain", href);
+    return dt;
+  }, url);
+
+  const box = await target.boundingBox();
+  const coords = box
+    ? { clientX: box.x + box.width / 2, clientY: box.y + box.height / 2 }
+    : {};
+
+  await target.dispatchEvent("dragenter", { dataTransfer, ...coords });
+  await target.dispatchEvent("dragover", { dataTransfer, ...coords });
+  await target.dispatchEvent("drop", { dataTransfer, ...coords });
+}
+
 export async function postReply(page: Page, body: string) {
   const form = page.locator("form").filter({ hasText: "Reply to" });
   const editor = form.locator(".ProseMirror[contenteditable='true']");

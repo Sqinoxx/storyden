@@ -2,7 +2,7 @@
 
 import { Download, Eye, File, Folder } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { DragEvent, useState } from "react";
 
 import { DriveEntry } from "@/api/openapi-schema";
 import { FilePreviewModal } from "@/components/post/FilePreviewModal";
@@ -31,6 +31,20 @@ export function DriveContentsTable({ folderID, entries }: Props) {
     );
   }
 
+  function handleDragStart(
+    e: DragEvent<HTMLTableRowElement>,
+    entry: DriveEntry,
+  ) {
+    const url = new URL(
+      getDriveFileURL(folderID, entry.id, "inline"),
+      window.location.href,
+    ).toString();
+
+    e.dataTransfer.effectAllowed = "copy";
+    e.dataTransfer.setData("text/uri-list", url);
+    e.dataTransfer.setData("text/plain", url);
+  }
+
   return (
     <>
       <styled.div w="full" overflowX="auto">
@@ -47,7 +61,13 @@ export function DriveContentsTable({ folderID, entries }: Props) {
 
           <Table.Body>
             {entries.map((entry) => (
-              <Table.Row key={entry.id}>
+              <Table.Row
+                key={entry.id}
+                draggable={!entry.is_folder}
+                onDragStart={
+                  entry.is_folder ? undefined : (e) => handleDragStart(e, entry)
+                }
+              >
                 <Table.Cell>
                   <HStack gap="2" minW="0">
                     {entry.is_folder ? (

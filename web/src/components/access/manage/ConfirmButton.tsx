@@ -41,7 +41,7 @@ export function ConfirmButton({
       <Button
         size="sm"
         variant="solid"
-        bg="bg.destructive"
+        colorPalette="red"
         loading={busy}
         aria-label={confirmLabel}
         onClick={async () => {

@@ -55,9 +55,14 @@ export function PassesTab({ passes }: { passes: AccessPass[] }) {
                     {p.price_label}
                   </Badge>
                 )}
-                <Badge size="sm" variant="subtle">
-                  {m.members.replace("{count}", String(counts.get(p.id) ?? 0))}
-                </Badge>
+                {active && (
+                  <Badge size="sm" variant="subtle">
+                    {m.members.replace(
+                      "{count}",
+                      String(counts.get(p.id) ?? 0),
+                    )}
+                  </Badge>
+                )}
               </HStack>
               <styled.p fontSize="sm" color="fg.muted">
                 {includedNames(p).join(", ")}
@@ -66,6 +71,7 @@ export function PassesTab({ passes }: { passes: AccessPass[] }) {
             <Button
               size="sm"
               variant="outline"
+              w={{ base: "full", sm: "auto" }}
               onClick={() => setEditing({ pass: p })}
             >
               {m.editPass}

@@ -26,7 +26,12 @@ $tarPath = Join-Path $outDir "storyden-arm64.tar"
 
 if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir | Out-Null }
 
+. (Join-Path $PSScriptRoot "..\get-build-info.ps1")
+$build = Get-BuildInfo -RepoRoot $repoRoot
+$Tag = "$Tag-b$($build.Number)"
+
 Write-Host "Projekt-Root : $repoRoot"
+Write-Host "Build        : $($build.Number) ($($build.Commit), $($build.Date))"
 Write-Host "Plattform    : $Platform"
 Write-Host "Tags         : ${Repo}:latest, ${Repo}:$Tag"
 Write-Host ""
@@ -40,6 +45,9 @@ docker buildx build `
     --platform $Platform `
     --provenance=false `
     --sbom=false `
+    --build-arg "BUILD_NUMBER=$($build.Number)" `
+    --build-arg "BUILD_COMMIT=$($build.Commit)" `
+    --build-arg "BUILD_DATE=$($build.Date)" `
     -t "${Repo}:latest" `
     -t "${Repo}:$Tag" `
     -f (Join-Path $repoRoot "docker\all\Dockerfile") `

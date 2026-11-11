@@ -63,6 +63,13 @@ COPY ./web .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_BUILD_STANDALONE=true
 
+ARG BUILD_NUMBER=""
+ARG BUILD_COMMIT=""
+ARG BUILD_DATE=""
+ENV NEXT_PUBLIC_BUILD_NUMBER=$BUILD_NUMBER
+ENV NEXT_PUBLIC_BUILD_COMMIT=$BUILD_COMMIT
+ENV NEXT_PUBLIC_BUILD_DATE=$BUILD_DATE
+
 # NOTE: A regular Next.js build will attempt to do static generation for every
 # page. But we don't want to constantly be adding force-dynamic to every page so
 # this ensures no SSG runs during the Docker build.

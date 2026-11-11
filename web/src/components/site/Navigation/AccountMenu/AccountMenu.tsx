@@ -27,6 +27,7 @@ import { SettingsMenuItem } from "../Anchors/Settings";
 import { TagManagementMenuItem, TagsMenuItem } from "../Anchors/Tags";
 import { ThemeMenuItem } from "../Anchors/Theme";
 
+import { BuildInfo } from "./BuildInfo";
 import {
   InvitationID,
   InvitationMenuItem,
@@ -138,6 +139,8 @@ export function AccountMenu({
               <Menu.ItemGroup id="logout">
                 <LogoutMenuItem />
               </Menu.ItemGroup>
+
+              {isAdmin && <BuildInfo />}
             </Menu.Content>
           </Menu.Positioner>
         </Portal>

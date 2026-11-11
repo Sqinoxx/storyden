@@ -33,6 +33,7 @@ var DefaultRoleMember = Role{
 		rbac.PermissionListCollections,
 		rbac.PermissionReadCollection,
 		rbac.PermissionCollectionSubmit,
+		rbac.PermissionCreateTags,
 	),
 	SortKey: -1, // Always sorts above guest and below custom roles.
 }

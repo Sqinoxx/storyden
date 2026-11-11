@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/Southclaws/opt"
 	"github.com/google/uuid"
@@ -24,7 +23,7 @@ import (
 )
 
 func TestBleveThreadSearch(t *testing.T) {
-	bleveName := time.Now().Format(time.RFC3339) + t.Name()
+	bleveName := t.Name()
 	cfg := &config.Config{
 		SearchProvider: "bleve",
 		BlevePath:      filepath.Join(t.TempDir(), fmt.Sprintf("%s.bleve", bleveName)),

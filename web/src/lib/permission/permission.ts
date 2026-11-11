@@ -47,6 +47,16 @@ export const PermissionDetails: Record<Permission, PermissionDetail> = {
     description:
       "Create threads in parent categories or without a category at all, bypassing the rule that threads may only be posted in the deepest subcategory.",
   },
+  [Permission.MANAGE_TAGS]: {
+    value: Permission.MANAGE_TAGS,
+    name: "Manage tags",
+    description: "Create, rename and delete tags.",
+  },
+  [Permission.CREATE_TAGS]: {
+    value: Permission.CREATE_TAGS,
+    name: "Create tags",
+    description: "Create new tags when tagging threads and library pages.",
+  },
   [Permission.CREATE_INVITATION]: {
     value: Permission.CREATE_INVITATION,
     name: "Create invitations",

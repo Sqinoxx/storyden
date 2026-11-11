@@ -18,7 +18,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/library/node_writer"
 	"github.com/Southclaws/storyden/app/resources/mark"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
-	"github.com/Southclaws/storyden/app/resources/tag/tag_writer"
+	"github.com/Southclaws/storyden/app/services/tag/tag_create"
 	"github.com/Southclaws/storyden/app/resources/visibility"
 	"github.com/Southclaws/storyden/app/services/asset/asset_link"
 	"github.com/Southclaws/storyden/app/services/generative"
@@ -63,7 +63,7 @@ type Manager struct {
 	nodeWriter     *node_writer.Writer
 	schemaWriter   *node_properties.SchemaWriter
 	propWriter     *node_properties.Writer
-	tagWriter      *tag_writer.Writer
+	tagWriter      *tag_create.Creator
 	titler         generative.Titler
 	tagger         *autotagger.Tagger
 	nc             *node_children.Writer
@@ -82,7 +82,7 @@ func New(
 	nodeWriter *node_writer.Writer,
 	schemaWriter *node_properties.SchemaWriter,
 	propWriter *node_properties.Writer,
-	tagWriter *tag_writer.Writer,
+	tagWriter *tag_create.Creator,
 	titler generative.Titler,
 	tagger *autotagger.Tagger,
 	nc *node_children.Writer,

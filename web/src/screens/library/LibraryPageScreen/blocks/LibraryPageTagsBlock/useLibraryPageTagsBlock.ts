@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import { handle } from "@/api/client";
 import { tagList } from "@/api/openapi-client/tags";
 import { InstanceCapability } from "@/api/openapi-schema";
+import { useSession } from "@/auth";
 import { MultiSelectPickerItem } from "@/components/ui/MultiSelectPicker";
 import { useLibraryMutation } from "@/lib/library/library";
 import { useCapability } from "@/lib/settings/capabilities";
+import { canCreateTags } from "@/utils/permissions";
 
 import { useLibraryPageContext } from "../../Context";
 import { useWatch } from "../../store";
@@ -17,6 +19,8 @@ export function useLibraryPageTagsBlockEditing() {
   const content = useWatch((s) => s.draft.content);
 
   const isSuggestEnabled = useCapability(InstanceCapability.gen_ai);
+  const session = useSession();
+  const allowNewTags = canCreateTags(session);
 
   const { suggestTags } = useLibraryMutation();
   const [loadingTags, setLoadingTags] = useState(false);
@@ -84,6 +88,7 @@ export function useLibraryPageTagsBlockEditing() {
     currentTagItems,
     queryResults,
     isSuggestEnabled,
+    allowNewTags,
     loadingTags,
     handleQuery,
     handleSuggestTags,

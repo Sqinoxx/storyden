@@ -186,11 +186,11 @@ func TestAccessPasses(t *testing.T) {
 
 			t.Run("attachments_hidden", func(t *testing.T) {
 				r := require.New(t)
-				get, err := cl.AssetGetWithResponse(root, upload.Filename, lockedSession)
+				get, err := cl.AssetGetWithResponse(root, upload.Filename, nil, lockedSession)
 				r.NoError(err)
 				r.Equal(http.StatusNotFound, get.StatusCode())
 
-				get, err = cl.AssetGetWithResponse(root, upload.Filename, paidSession)
+				get, err = cl.AssetGetWithResponse(root, upload.Filename, nil, paidSession)
 				r.NoError(err)
 				r.Equal(http.StatusOK, get.StatusCode())
 			})

@@ -24,7 +24,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/post/thread_querier"
 	"github.com/Southclaws/storyden/app/resources/post/thread_writer"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
-	"github.com/Southclaws/storyden/app/resources/tag/tag_writer"
+	"github.com/Southclaws/storyden/app/services/tag/tag_create"
 	"github.com/Southclaws/storyden/app/resources/visibility"
 	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/asset/asset_link"
@@ -102,7 +102,7 @@ type service struct {
 	categoryRepo   *category.Repository
 	threadQuerier  *thread_querier.Querier
 	threadWriter   *thread_writer.Writer
-	tagWriter      *tag_writer.Writer
+	tagWriter      *tag_create.Creator
 	fetcher        *fetcher.Fetcher
 	recommender    semdex.Recommender
 	bus            *pubsub.Bus
@@ -121,7 +121,7 @@ func New(
 	categoryRepo *category.Repository,
 	threadQuerier *thread_querier.Querier,
 	threadWriter *thread_writer.Writer,
-	tagWriter *tag_writer.Writer,
+	tagWriter *tag_create.Creator,
 	fetcher *fetcher.Fetcher,
 	recommender semdex.Recommender,
 	bus *pubsub.Bus,

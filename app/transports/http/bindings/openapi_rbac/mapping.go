@@ -1115,15 +1115,15 @@ func (m *Mapping) RobotSessionGet() (bool, *rbac.Permission) {
 }
 
 func (m *Mapping) TagCreate() (bool, *rbac.Permission) {
-	return true, &rbac.PermissionManagePosts
+	return true, nil
 }
 
 func (m *Mapping) TagDelete() (bool, *rbac.Permission) {
-	return true, &rbac.PermissionManagePosts
+	return true, &rbac.PermissionManageTags
 }
 
 func (m *Mapping) TagUpdate() (bool, *rbac.Permission) {
-	return true, &rbac.PermissionManagePosts
+	return true, &rbac.PermissionManageTags
 }
 
 func (m *Mapping) AccountPhoneGet() (bool, *rbac.Permission) {

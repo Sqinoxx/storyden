@@ -6,12 +6,14 @@ import { Control, Controller, ControllerProps, FieldValues } from "react-hook-fo
 import { handle } from "@/api/client";
 import { tagList } from "@/api/openapi-client/tags";
 import { TagNameList, TagReferenceList } from "@/api/openapi-schema";
+import { useSession } from "@/auth";
 import { TagBadgeList } from "@/components/tag/TagBadgeList";
 import {
   MultiSelectPicker,
   MultiSelectPickerItem,
 } from "@/components/ui/MultiSelectPicker";
 import { useTranslation } from "@/lib/i18n";
+import { canCreateTags } from "@/utils/permissions";
 
 import { ButtonProps } from "@/components/ui/button";
 import { AttachmentItem, useAutoTagDetection } from "./useAutoTagDetection";
@@ -28,6 +30,7 @@ export function ThreadTagList(props: Props) {
     [],
   );
   const t = useTranslation();
+  const session = useSession();
 
   const currentTags: MultiSelectPickerItem[] =
     props.initialTags?.map((t) => ({
@@ -68,7 +71,7 @@ export function ThreadTagList(props: Props) {
         onChange={handleChange}
         onQuery={handleQuery}
         queryResults={queryResults}
-        allowNewValues={true}
+        allowNewValues={canCreateTags(session)}
         inputPlaceholder={t.editor.addTags}
         autoColour={true}
         size="sm"

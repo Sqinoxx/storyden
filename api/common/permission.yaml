@@ -12,6 +12,8 @@ oneOf:
   - $ref: "#/$defs/PIN_POSTS"
   - $ref: "#/$defs/MANAGE_CATEGORIES"
   - $ref: "#/$defs/POST_IN_ANY_CATEGORY"
+  - $ref: "#/$defs/MANAGE_TAGS"
+  - $ref: "#/$defs/CREATE_TAGS"
   - $ref: "#/$defs/CREATE_INVITATION"
   - $ref: "#/$defs/READ_PUBLISHED_LIBRARY"
   - $ref: "#/$defs/MANAGE_LIBRARY"
@@ -85,6 +87,18 @@ $defs:
     const: POST_IN_ANY_CATEGORY
     title: Post in any category
     description: Create threads in parent categories or without a category at all, bypassing the rule that threads may only be posted in the deepest subcategory.
+
+  MANAGE_TAGS:
+    type: string
+    const: MANAGE_TAGS
+    title: Manage tags
+    description: Create, rename and delete tags.
+
+  CREATE_TAGS:
+    type: string
+    const: CREATE_TAGS
+    title: Create tags
+    description: Create new tags when tagging threads and library pages.
 
   CREATE_INVITATION:
     type: string

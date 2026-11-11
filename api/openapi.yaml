@@ -3653,6 +3653,21 @@ paths:
         default: { $ref: "#/components/responses/InternalServerError" }
         "401": { $ref: "#/components/responses/Unauthorised" }
         "200": { $ref: "#/components/responses/AssetUploadOK" }
+  /assets/import:
+    post:
+      operationId: AssetImport
+      description: |
+        Download a document from a public URL and store it as an asset, as if
+        it had been uploaded. Public Google Drive and Google Docs links are
+        resolved to their download. Only PDF, Word, PowerPoint and Excel files
+        are accepted and the usual upload size limit applies.
+      tags: [assets]
+      requestBody: { $ref: "#/components/requestBodies/AssetImport" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/AssetUploadOK" }
   /assets/{asset_filename}:
     get:
       operationId: AssetGet
@@ -6735,6 +6750,11 @@ components:
       content:
         application/json:
           schema: { $ref: "#/components/schemas/LinkInitialProps" }
+
+    AssetImport:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AssetImportProps" }
 
     VisibilityUpdate:
       content:
@@ -13826,6 +13846,12 @@ components:
         url: { $ref: "#/components/schemas/URL" }
         title: { $ref: "#/components/schemas/LinkTitle" }
         description: { $ref: "#/components/schemas/LinkDescription" }
+
+    AssetImportProps:
+      type: object
+      required: [url]
+      properties:
+        url: { $ref: "#/components/schemas/URL" }
 
     #
     # 8888888b.           888                                               888

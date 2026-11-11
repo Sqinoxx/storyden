@@ -13,4 +13,7 @@ var (
 	// ErrNoTextLayer is returned when a PDF has no usable embedded text
 	// layer and no rasterisation fallback is available to OCR it.
 	ErrNoTextLayer = fault.New("ocr: pdf has no usable text layer and no rasteriser available")
+	// ErrNoText is returned when a document is unreadable or holds no text,
+	// which retrying cannot change.
+	ErrNoText = fault.New("ocr: document contains no extractable text")
 )

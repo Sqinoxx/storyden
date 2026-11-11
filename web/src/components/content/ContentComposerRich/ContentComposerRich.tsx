@@ -150,7 +150,14 @@ export function ContentComposerRich(props: ContentComposerProps) {
           />
         </BubbleMenu>
       )}
-      {editor && <LinkPasteMenu editor={editor} />}
+      {editor && (
+        <LinkPasteMenu
+          editor={editor}
+          onUploadAsFile={
+            props.disabled ? undefined : handlers.handleUploadLinkAsFile
+          }
+        />
+      )}
       {isDragging && (
         <ContentDragOverlay
           isError={isDragError}

@@ -248,6 +248,7 @@ export const de: Translations = {
     showLinkAs: "Link anzeigen als",
     text: "Text",
     preview: "Vorschau",
+    file: "Datei",
   },
   common: {
     showErrorDetails: "Fehlerdetails anzeigen",
@@ -928,6 +929,7 @@ export const de: Translations = {
     tooSmall: "Die Datei ist zu klein.",
     tooMany: "Zu viele Dateien.",
     readError: "Beim Lesen der Datei ist ein unerwarteter Fehler aufgetreten.",
+    linkImportFailed: "Die Datei hinter dem Link konnte nicht übernommen werden, der Link wurde eingefügt.",
   },
   errors: {
     backToHome: "Zurück zur Startseite",

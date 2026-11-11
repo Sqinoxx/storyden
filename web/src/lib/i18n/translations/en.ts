@@ -246,6 +246,7 @@ export const en = {
     showLinkAs: "Show link as",
     text: "Text",
     preview: "Preview",
+    file: "File",
   },
   common: {
     showErrorDetails: "Show error details",
@@ -925,6 +926,7 @@ export const en = {
     tooSmall: "File is too small.",
     tooMany: "Too many files.",
     readError: "An unexpected error occurred while reading the file.",
+    linkImportFailed: "The file behind the link could not be imported, so the link was inserted instead.",
   },
   errors: {
     backToHome: "Go back to the home page",

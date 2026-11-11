@@ -73,6 +73,15 @@ type OperationPermissions interface {
 	RoleGet() (bool, *rbac.Permission)
 	RoleUpdate() (bool, *rbac.Permission)
 	RoleDelete() (bool, *rbac.Permission)
+	AccessPassList() (bool, *rbac.Permission)
+	AccessPassCreate() (bool, *rbac.Permission)
+	AccessPassUpdate() (bool, *rbac.Permission)
+	AccessPassDelete() (bool, *rbac.Permission)
+	AccessPassRequest() (bool, *rbac.Permission)
+	AccessPassRequestWithdraw() (bool, *rbac.Permission)
+	AccessGrantSet() (bool, *rbac.Permission)
+	AccessGrantRemove() (bool, *rbac.Permission)
+	AccessGrantList() (bool, *rbac.Permission)
 	AuthProviderList() (bool, *rbac.Permission)
 	AuthPasswordSignup() (bool, *rbac.Permission)
 	AuthPasswordSignin() (bool, *rbac.Permission)
@@ -155,6 +164,7 @@ type OperationPermissions interface {
 	ReportCreate() (bool, *rbac.Permission)
 	ReportList() (bool, *rbac.Permission)
 	ReportUpdate() (bool, *rbac.Permission)
+	BugReportListOwn() (bool, *rbac.Permission)
 	BugReportCreate() (bool, *rbac.Permission)
 	AdminBugReportList() (bool, *rbac.Permission)
 	AdminBugReportUpdate() (bool, *rbac.Permission)
@@ -426,6 +436,24 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.RoleUpdate()
 	case "RoleDelete":
 		return optable.RoleDelete()
+	case "AccessPassList":
+		return optable.AccessPassList()
+	case "AccessPassCreate":
+		return optable.AccessPassCreate()
+	case "AccessPassUpdate":
+		return optable.AccessPassUpdate()
+	case "AccessPassDelete":
+		return optable.AccessPassDelete()
+	case "AccessPassRequest":
+		return optable.AccessPassRequest()
+	case "AccessPassRequestWithdraw":
+		return optable.AccessPassRequestWithdraw()
+	case "AccessGrantSet":
+		return optable.AccessGrantSet()
+	case "AccessGrantRemove":
+		return optable.AccessGrantRemove()
+	case "AccessGrantList":
+		return optable.AccessGrantList()
 	case "AuthProviderList":
 		return optable.AuthProviderList()
 	case "AuthPasswordSignup":
@@ -590,6 +618,8 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.ReportList()
 	case "ReportUpdate":
 		return optable.ReportUpdate()
+	case "BugReportListOwn":
+		return optable.BugReportListOwn()
 	case "BugReportCreate":
 		return optable.BugReportCreate()
 	case "AdminBugReportList":

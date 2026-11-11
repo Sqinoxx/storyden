@@ -8,6 +8,7 @@ import (
 	"github.com/Southclaws/opt"
 	"github.com/rs/xid"
 
+	"github.com/Southclaws/storyden/app/resources/access"
 	"github.com/Southclaws/storyden/app/resources/account"
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/app/resources/collection/collection_item_status"
@@ -39,6 +40,7 @@ type Thread struct {
 	Category    opt.Optional[category.Category]
 	Tags        tag_ref.Tags
 	Related     datagraph.ItemList
+	Access      opt.Optional[access.Lock]
 }
 
 type ThreadRef struct {

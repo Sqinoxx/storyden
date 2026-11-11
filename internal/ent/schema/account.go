@@ -170,6 +170,9 @@ func (Account) Edges() []ent.Edge {
 		edge.To("warnings", Warning.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 
+		edge.To("access_grants", AccessGrant.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
+
 		edge.To("authored_warnings", Warning.Type).
 			Annotations(entsql.OnDelete(entsql.SetNull)),
 

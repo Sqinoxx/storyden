@@ -1,23 +1,18 @@
-import Image from "next/image";
-
 import { Identifier, ProfileReference } from "@/api/openapi-schema";
 import { API_ADDRESS } from "@/config";
-import { css } from "@/styled-system/css";
 import { Box } from "@/styled-system/jsx";
 
+import { AvatarImage } from "./AvatarImage";
 import { MemberAvatarEditable } from "./MemberAvatarEditable";
-
-const avatarStyles = css({
-  borderRadius: "full",
-});
 
 export type Props = {
   profile: ProfileReference;
   size?: "xs" | "sm" | "md" | "lg";
   editable?: boolean;
+  eager?: boolean;
 };
 
-export function MemberAvatar({ profile, size, editable }: Props) {
+export function MemberAvatar({ profile, size, editable, eager }: Props) {
   const avatarURL = getAvatarURL(profile.handle);
 
   const { width, height } = avatarSize(size);
@@ -25,12 +20,13 @@ export function MemberAvatar({ profile, size, editable }: Props) {
   return (
     <Box position="relative" flexShrink="0">
       {editable && <MemberAvatarEditable profile={profile} />}
-      <Image
-        className={avatarStyles}
+      <AvatarImage
+        key={avatarURL}
         src={avatarURL}
         alt={`${profile.handle}'s avatar`}
         width={width}
         height={height}
+        eager={eager}
       />
     </Box>
   );

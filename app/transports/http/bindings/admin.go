@@ -1614,6 +1614,27 @@ func serialiseAuditEvent(in *audit.AuditLog) openapi.AuditEvent {
 			AccountId:      openapi.Identifier(accountID),
 			EmailAddressId: openapi.Identifier(emailAddressID),
 		})
+
+	case audit.EventTypeAccessGrantUpdated:
+		var expiresAt *time.Time
+		if raw := metadataString(in.Metadata, "expires_at"); raw != "" {
+			if t, perr := time.Parse(time.RFC3339, raw); perr == nil {
+				expiresAt = &t
+			}
+		}
+		var note *string
+		if raw := metadataString(in.Metadata, "note"); raw != "" {
+			note = &raw
+		}
+		err = out.FromAuditEventAccessGrantUpdated(openapi.AuditEventAccessGrantUpdated{
+			Type:      openapi.AccessGrantUpdated,
+			AccountId: openapi.Identifier(metadataString(in.Metadata, "account_id")),
+			PassId:    openapi.Identifier(metadataString(in.Metadata, "pass_id")),
+			PassName:  metadataString(in.Metadata, "pass_name"),
+			Status:    openapi.AccessGrantStatus(metadataString(in.Metadata, "status")),
+			ExpiresAt: expiresAt,
+			Note:      note,
+		})
 	}
 
 	if err != nil {

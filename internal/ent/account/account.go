@@ -122,6 +122,8 @@ const (
 	EdgeAuthoredModerationNotes = "authored_moderation_notes"
 	// EdgeWarnings holds the string denoting the warnings edge name in mutations.
 	EdgeWarnings = "warnings"
+	// EdgeAccessGrants holds the string denoting the access_grants edge name in mutations.
+	EdgeAccessGrants = "access_grants"
 	// EdgeAuthoredWarnings holds the string denoting the authored_warnings edge name in mutations.
 	EdgeAuthoredWarnings = "authored_warnings"
 	// EdgeRobots holds the string denoting the robots edge name in mutations.
@@ -408,6 +410,13 @@ const (
 	WarningsInverseTable = "warnings"
 	// WarningsColumn is the table column denoting the warnings relation/edge.
 	WarningsColumn = "account_id"
+	// AccessGrantsTable is the table that holds the access_grants relation/edge.
+	AccessGrantsTable = "access_grants"
+	// AccessGrantsInverseTable is the table name for the AccessGrant entity.
+	// It exists in this package in order to avoid circular dependency with the "accessgrant" package.
+	AccessGrantsInverseTable = "access_grants"
+	// AccessGrantsColumn is the table column denoting the access_grants relation/edge.
+	AccessGrantsColumn = "account_id"
 	// AuthoredWarningsTable is the table that holds the authored_warnings relation/edge.
 	AuthoredWarningsTable = "warnings"
 	// AuthoredWarningsInverseTable is the table name for the Warning entity.
@@ -1196,6 +1205,20 @@ func ByWarnings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByAccessGrantsCount orders the results by access_grants count.
+func ByAccessGrantsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAccessGrantsStep(), opts...)
+	}
+}
+
+// ByAccessGrants orders the results by access_grants terms.
+func ByAccessGrants(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAccessGrantsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAuthoredWarningsCount orders the results by authored_warnings count.
 func ByAuthoredWarningsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1613,6 +1636,13 @@ func newWarningsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(WarningsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, WarningsTable, WarningsColumn),
+	)
+}
+func newAccessGrantsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AccessGrantsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AccessGrantsTable, AccessGrantsColumn),
 	)
 }
 func newAuthoredWarningsStep() *sqlgraph.Step {

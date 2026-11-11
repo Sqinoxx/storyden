@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Southclaws/storyden/internal/ent/accessgrant"
 	"github.com/Southclaws/storyden/internal/ent/account"
 	"github.com/Southclaws/storyden/internal/ent/accountfollow"
 	"github.com/Southclaws/storyden/internal/ent/accountroles"
@@ -817,6 +818,21 @@ func (_c *AccountCreate) AddWarnings(v ...*Warning) *AccountCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddWarningIDs(ids...)
+}
+
+// AddAccessGrantIDs adds the "access_grants" edge to the AccessGrant entity by IDs.
+func (_c *AccountCreate) AddAccessGrantIDs(ids ...xid.ID) *AccountCreate {
+	_c.mutation.AddAccessGrantIDs(ids...)
+	return _c
+}
+
+// AddAccessGrants adds the "access_grants" edges to the AccessGrant entity.
+func (_c *AccountCreate) AddAccessGrants(v ...*AccessGrant) *AccountCreate {
+	ids := make([]xid.ID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAccessGrantIDs(ids...)
 }
 
 // AddAuthoredWarningIDs adds the "authored_warnings" edge to the Warning entity by IDs.
@@ -1794,6 +1810,22 @@ func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(warning.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AccessGrantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   account.AccessGrantsTable,
+			Columns: []string{account.AccessGrantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accessgrant.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

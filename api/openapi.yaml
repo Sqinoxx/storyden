@@ -70,6 +70,10 @@ tags:
     description: Management of plugins.
   - name: roles
     description: Roles for permissions and aesthetics.
+  - name: access
+    description: |
+      Access passes gate categories behind an offline payment. Members who hold
+      an active grant for a pass may read everything under its categories.
   - name: auth
     description: Authentication resources.
   - name: accounts
@@ -1484,6 +1488,149 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "401": { $ref: "#/components/responses/Unauthorised" }
         "200": { description: OK }
+
+  /access/passes:
+    get:
+      operationId: AccessPassList
+      description: |
+        List every access pass along with the categories each one unlocks.
+      tags: [access]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "200": { $ref: "#/components/responses/AccessPassListOK" }
+    post:
+      operationId: AccessPassCreate
+      description: Create an access pass that unlocks a set of categories.
+      tags: [access]
+      requestBody: { $ref: "#/components/requestBodies/AccessPassCreate" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AccessPassGetOK" }
+
+  /access/passes/{access_pass_id}:
+    patch:
+      operationId: AccessPassUpdate
+      description: Update an access pass, including the categories it unlocks.
+      tags: [access]
+      parameters: [{ $ref: "#/components/parameters/AccessPassIDParam" }]
+      requestBody: { $ref: "#/components/requestBodies/AccessPassUpdate" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/AccessPassGetOK" }
+    delete:
+      operationId: AccessPassDelete
+      description: |
+        Delete an access pass and every grant for it. Its categories become
+        readable by everyone again unless another pass still covers them.
+      tags: [access]
+      parameters: [{ $ref: "#/components/parameters/AccessPassIDParam" }]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { description: OK }
+
+  /access/passes/{access_pass_id}/request:
+    post:
+      operationId: AccessPassRequest
+      description: |
+        Ask for access to a pass. The member receives a reference code to put
+        on their offline payment, and everyone who manages access is notified.
+        Requesting a pass already held changes nothing.
+      tags: [access]
+      parameters: [{ $ref: "#/components/parameters/AccessPassIDParam" }]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/AccessPassGetOK" }
+    delete:
+      operationId: AccessPassRequestWithdraw
+      description: Withdraw a pending request for a pass.
+      tags: [access]
+      parameters: [{ $ref: "#/components/parameters/AccessPassIDParam" }]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/AccessPassGetOK" }
+
+  /access/passes/{access_pass_id}/grants/{account_handle}:
+    put:
+      operationId: AccessGrantSet
+      description: |
+        Activate a member's access to a pass, typically once their offline
+        payment has arrived. Works with or without a prior request and also
+        extends or shortens an existing grant. Omitting `expires_at` grants
+        access indefinitely.
+      tags: [access]
+      parameters:
+        - $ref: "#/components/parameters/AccessPassIDParam"
+        - $ref: "#/components/parameters/AccountHandleParam"
+      requestBody: { $ref: "#/components/requestBodies/AccessGrantSet" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/AccessGrantOK" }
+    delete:
+      operationId: AccessGrantRemove
+      description: |
+        Reject a pending request or revoke an active grant. The record is kept
+        so the history of who was granted what remains visible.
+      tags: [access]
+      parameters:
+        - $ref: "#/components/parameters/AccessPassIDParam"
+        - $ref: "#/components/parameters/AccountHandleParam"
+        - name: action
+          in: query
+          required: true
+          schema: { $ref: "#/components/schemas/AccessGrantRemoveAction" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/AccessGrantOK" }
+
+  /access/grants:
+    get:
+      operationId: AccessGrantList
+      description: |
+        List grants across all passes for people who manage access, newest
+        activity first. Filter by status to see open requests.
+      tags: [access]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/AccessGrantStatus" }
+        - name: pass_id
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/Identifier" }
+        - name: account_handle
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/AccountHandle" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AccessGrantListOK" }
 
   #
   #                   888    888
@@ -2947,6 +3094,19 @@ paths:
         "200": { $ref: "#/components/responses/ReportUpdateOK" }
 
   /bug-reports:
+    get:
+      operationId: BugReportListOwn
+      description: |
+        List the bug reports and suggestions submitted by the current member,
+        newest first.
+      tags: [bug_reports]
+      parameters:
+        - $ref: "#/components/parameters/PaginationQuery"
+        - $ref: "#/components/parameters/BugReportCategoryQuery"
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/BugReportListOK" }
     post:
       operationId: BugReportCreate
       description: |
@@ -2968,6 +3128,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/PaginationQuery"
         - $ref: "#/components/parameters/BugReportStatusQuery"
+        - $ref: "#/components/parameters/BugReportCategoryQuery"
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "401": { $ref: "#/components/responses/Unauthorised" }
@@ -3497,7 +3658,9 @@ paths:
       operationId: AssetGet
       description: Download an asset by its ID.
       tags: [assets]
-      parameters: [$ref: "#/components/parameters/AssetPathParam"]
+      parameters:
+        - $ref: "#/components/parameters/AssetPathParam"
+        - $ref: "#/components/parameters/AssetDownloadNameQuery"
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "404": { $ref: "#/components/responses/NotFound" }
@@ -5214,6 +5377,14 @@ components:
       schema:
         $ref: "#/components/schemas/Identifier"
 
+    AccessPassIDParam:
+      description: Access pass ID
+      in: path
+      name: access_pass_id
+      required: true
+      schema:
+        $ref: "#/components/schemas/Identifier"
+
     AccessKeyIDParam:
       description: Access key ID.
       in: path
@@ -5417,6 +5588,14 @@ components:
       required: false
       schema:
         $ref: "#/components/schemas/BugReportStatus"
+
+    BugReportCategoryQuery:
+      description: Bug report category filter.
+      name: category
+      in: query
+      required: false
+      schema:
+        $ref: "#/components/schemas/BugReportCategory"
 
     ReportIDParam:
       description: Unique report ID.
@@ -5704,6 +5883,18 @@ components:
       schema:
         type: string
         enum: [inline, attachment]
+
+    AssetDownloadNameQuery:
+      description: |
+        The name the browser should give the file when it is saved, such as
+        from a PDF viewer's own download button. The extension is always the
+        asset's own, whatever this ends with. Without it, a readable name is
+        derived from the stored filename.
+      name: filename
+      in: query
+      required: false
+      schema:
+        type: string
 
     AssetPathParam:
       description: Asset ID.
@@ -6152,6 +6343,21 @@ components:
       content:
         application/json:
           schema: { $ref: "#/components/schemas/RoleInitialProps" }
+
+    AccessPassCreate:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AccessPassInitialProps" }
+
+    AccessPassUpdate:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AccessPassMutableProps" }
+
+    AccessGrantSet:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AccessGrantMutableProps" }
 
     RoleUpdate:
       content:
@@ -6790,6 +6996,34 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AuditEventProps"
+
+    AccessPassListOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AccessPassListResult"
+
+    AccessPassGetOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AccessPass"
+
+    AccessGrantOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AccessGrant"
+
+    AccessGrantListOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AccessGrantListResult"
 
     RoleCreateOK:
       description: OK
@@ -8187,6 +8421,7 @@ components:
         drive_folder_id:
           type: string
           description: The folder's ID within Google Drive.
+        access: { $ref: "#/components/schemas/ContentAccess" }
 
     DriveFolder:
       type: object
@@ -9196,6 +9431,7 @@ components:
         - account_warning_deleted
         - account_password_reset_token_issued
         - account_password_reset_email_sent
+        - access_grant_updated
 
     AuditEventProps:
       required: [id, type, timestamp]
@@ -9225,6 +9461,7 @@ components:
           account_warning_deleted: "#/components/schemas/AuditEventAccountWarningDeleted"
           account_password_reset_token_issued: "#/components/schemas/AuditEventAccountPasswordResetTokenIssued"
           account_password_reset_email_sent: "#/components/schemas/AuditEventAccountPasswordResetEmailSent"
+          access_grant_updated: "#/components/schemas/AuditEventAccessGrantUpdated"
       oneOf:
         - $ref: "#/components/schemas/AuditEventThreadDeleted"
         - $ref: "#/components/schemas/AuditEventThreadReplyDeleted"
@@ -9238,6 +9475,19 @@ components:
         - $ref: "#/components/schemas/AuditEventAccountWarningDeleted"
         - $ref: "#/components/schemas/AuditEventAccountPasswordResetTokenIssued"
         - $ref: "#/components/schemas/AuditEventAccountPasswordResetEmailSent"
+        - $ref: "#/components/schemas/AuditEventAccessGrantUpdated"
+
+    AuditEventAccessGrantUpdated:
+      type: object
+      required: [type, account_id, pass_id, pass_name, status]
+      properties:
+        type: { $ref: "#/components/schemas/AuditEventType" }
+        account_id: { $ref: "#/components/schemas/Identifier" }
+        pass_id: { $ref: "#/components/schemas/Identifier" }
+        pass_name: { type: string }
+        status: { $ref: "#/components/schemas/AccessGrantStatus" }
+        expires_at: { type: string, format: date-time }
+        note: { type: string }
 
     AuditEventThreadDeleted:
       type: object
@@ -9853,6 +10103,181 @@ components:
         - $ref: "#/components/schemas/CommonProperties"
         - $ref: "#/components/schemas/RoleProps"
 
+    AccessPassReference:
+      type: object
+      required: [id, name, price_label, colour]
+      properties:
+        id: { $ref: "#/components/schemas/Identifier" }
+        name: { type: string }
+        price_label:
+          type: string
+          description: Display-only price, payment happens off-platform.
+        colour: { type: string }
+
+    AccessPass:
+      allOf:
+        - $ref: "#/components/schemas/AccessPassReference"
+        - type: object
+          required:
+            - description
+            - payment_info
+            - sort
+            - requestable
+            - category_ids
+            - drive_folder_ids
+            - createdAt
+            - updatedAt
+          properties:
+            description: { type: string }
+            payment_info:
+              type: string
+              description: Instructions for paying the student council offline.
+            sort: { type: integer }
+            requestable: { type: boolean }
+            category_ids:
+              type: array
+              description: |
+                Categories this pass unlocks. Every descendant category is
+                unlocked as well.
+              items: { $ref: "#/components/schemas/Identifier" }
+            drive_folder_ids:
+              type: array
+              description: Registered Google Drive folders this pass unlocks.
+              items: { $ref: "#/components/schemas/Identifier" }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+            membership: { $ref: "#/components/schemas/AccessPassMembership" }
+
+    AccessPassMembership:
+      type: object
+      description: |
+        The requesting member's own standing for a pass. Absent for guests and
+        for members who never requested or held it.
+      required: [status, reference_code]
+      properties:
+        status: { $ref: "#/components/schemas/AccessGrantStatus" }
+        reference_code:
+          type: string
+          description: Put this on the offline payment so it can be matched.
+        expires_at: { type: string, format: date-time }
+        requested_at: { type: string, format: date-time }
+        decided_at: { type: string, format: date-time }
+
+    AccessGrantStatus:
+      type: string
+      description: |
+        `expired` is never stored, it describes an active grant whose expiry
+        date has passed.
+      enum: [requested, active, expired, rejected, revoked]
+
+    AccessGrantRemoveAction:
+      type: string
+      enum: [reject, revoke]
+
+    AccessGrant:
+      type: object
+      required:
+        - id
+        - pass
+        - account
+        - status
+        - reference_code
+        - note
+        - createdAt
+        - updatedAt
+      properties:
+        id: { $ref: "#/components/schemas/Identifier" }
+        pass: { $ref: "#/components/schemas/AccessPassReference" }
+        account: { $ref: "#/components/schemas/ProfileReference" }
+        status: { $ref: "#/components/schemas/AccessGrantStatus" }
+        reference_code: { type: string }
+        expires_at: { type: string, format: date-time }
+        requested_at: { type: string, format: date-time }
+        decided_at: { type: string, format: date-time }
+        decided_by: { $ref: "#/components/schemas/ProfileReference" }
+        note:
+          type: string
+          description: Internal note for whoever manages access.
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    AccessGrantList:
+      type: array
+      items: { $ref: "#/components/schemas/AccessGrant" }
+
+    AccessGrantListResult:
+      type: object
+      required: [grants]
+      properties:
+        grants: { $ref: "#/components/schemas/AccessGrantList" }
+
+    AccessGrantMutableProps:
+      type: object
+      properties:
+        expires_at:
+          type: string
+          format: date-time
+          description: Leave out to grant access with no end date.
+        note: { type: string }
+
+    AccessPassList:
+      type: array
+      items: { $ref: "#/components/schemas/AccessPass" }
+
+    AccessPassListResult:
+      type: object
+      required: [passes]
+      properties:
+        passes: { $ref: "#/components/schemas/AccessPassList" }
+
+    AccessPassInitialProps:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string }
+        price_label: { type: string }
+        payment_info: { type: string }
+        colour: { type: string }
+        sort: { type: integer }
+        requestable: { type: boolean }
+        category_ids:
+          type: array
+          items: { $ref: "#/components/schemas/Identifier" }
+        drive_folder_ids:
+          type: array
+          items: { $ref: "#/components/schemas/Identifier" }
+
+    AccessPassMutableProps:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string }
+        price_label: { type: string }
+        payment_info: { type: string }
+        colour: { type: string }
+        sort: { type: integer }
+        requestable: { type: boolean }
+        category_ids:
+          type: array
+          items: { $ref: "#/components/schemas/Identifier" }
+        drive_folder_ids:
+          type: array
+          items: { $ref: "#/components/schemas/Identifier" }
+
+    ContentAccess:
+      type: object
+      description: |
+        Present when the content is withheld because the requester holds none
+        of the access passes covering its category. Body, replies and assets
+        are omitted, the title and metadata remain as a preview.
+      required: [locked, passes]
+      properties:
+        locked: { type: boolean }
+        passes:
+          type: array
+          items: { $ref: "#/components/schemas/AccessPassReference" }
+
     RoleListResult:
       type: object
       required: [roles]
@@ -10007,6 +10432,7 @@ components:
         - "VIEW_ACCOUNTS"
         - "VIEW_MODERATION_NOTES"
         - "MANAGE_MODERATION_NOTES"
+        - "MANAGE_ACCESS"
         # Robots
         - "USE_ROBOTS"
         - "MANAGE_ROBOTS"
@@ -11696,12 +12122,19 @@ components:
         - report_submitted
         - report_updated
         - bug_report_submitted
+        - suggestion_planned
+        - suggestion_implemented
+        - suggestion_declined
         - warning_issued
         - node_version_created
         - node_version_applied
         - node_version_deleted
         - listing_offer_received
         - listing_expiring
+        - access_requested
+        - access_granted
+        - access_rejected
+        - access_expiring
 
     NotificationStatus:
       type: string
@@ -11847,7 +12280,7 @@ components:
 
     BugReportStatus:
       type: string
-      enum: [open, resolved]
+      enum: [open, planned, resolved, declined]
 
     #
     # 8888888b.                   .d888 d8b 888
@@ -12412,6 +12845,7 @@ components:
           type: string
           format: date-time
           description: The time of the last reply to the thread.
+        access: { $ref: "#/components/schemas/ContentAccess" }
 
     ReadStatus:
       description: |

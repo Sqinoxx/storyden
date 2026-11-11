@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useCategoryGet } from "@/api/openapi-client/categories";
 import {
   CategoryGetOKResponse,
@@ -7,8 +9,7 @@ import {
   ThreadListOKResponse,
 } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
-import Link from "next/link";
-
+import { CategoryAccessBanner } from "@/components/access/CategoryAccessBanner";
 import {
   CategoryBreadcrumbs,
   useCategoryAncestors,
@@ -116,6 +117,8 @@ export function CategoryScreen(props: ScreenProps) {
 
         <styled.p color="fg.muted">{category.description}</styled.p>
       </LStack>
+
+      <CategoryAccessBanner categoryID={category.id} />
 
       {category.children && category.children.length > 0 && (
         <LStack gap="1">

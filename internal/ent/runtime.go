@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/Southclaws/lexorank"
+	"github.com/Southclaws/storyden/internal/ent/accessgrant"
+	"github.com/Southclaws/storyden/internal/ent/accesspass"
 	"github.com/Southclaws/storyden/internal/ent/account"
 	"github.com/Southclaws/storyden/internal/ent/accountfollow"
 	"github.com/Southclaws/storyden/internal/ent/accountroles"
@@ -70,6 +72,134 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	accessgrantMixin := schema.AccessGrant{}.Mixin()
+	accessgrantMixinFields0 := accessgrantMixin[0].Fields()
+	_ = accessgrantMixinFields0
+	accessgrantMixinFields1 := accessgrantMixin[1].Fields()
+	_ = accessgrantMixinFields1
+	accessgrantMixinFields2 := accessgrantMixin[2].Fields()
+	_ = accessgrantMixinFields2
+	accessgrantFields := schema.AccessGrant{}.Fields()
+	_ = accessgrantFields
+	// accessgrantDescCreatedAt is the schema descriptor for created_at field.
+	accessgrantDescCreatedAt := accessgrantMixinFields1[0].Descriptor()
+	// accessgrant.DefaultCreatedAt holds the default value on creation for the created_at field.
+	accessgrant.DefaultCreatedAt = accessgrantDescCreatedAt.Default.(func() time.Time)
+	// accessgrantDescUpdatedAt is the schema descriptor for updated_at field.
+	accessgrantDescUpdatedAt := accessgrantMixinFields2[0].Descriptor()
+	// accessgrant.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	accessgrant.DefaultUpdatedAt = accessgrantDescUpdatedAt.Default.(func() time.Time)
+	// accessgrant.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	accessgrant.UpdateDefaultUpdatedAt = accessgrantDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// accessgrantDescReferenceCode is the schema descriptor for reference_code field.
+	accessgrantDescReferenceCode := accessgrantFields[3].Descriptor()
+	// accessgrant.ReferenceCodeValidator is a validator for the "reference_code" field. It is called by the builders before save.
+	accessgrant.ReferenceCodeValidator = accessgrantDescReferenceCode.Validators[0].(func(string) error)
+	// accessgrantDescNote is the schema descriptor for note field.
+	accessgrantDescNote := accessgrantFields[7].Descriptor()
+	// accessgrant.DefaultNote holds the default value on creation for the note field.
+	accessgrant.DefaultNote = accessgrantDescNote.Default.(string)
+	// accessgrantDescID is the schema descriptor for id field.
+	accessgrantDescID := accessgrantMixinFields0[0].Descriptor()
+	// accessgrant.DefaultID holds the default value on creation for the id field.
+	accessgrant.DefaultID = accessgrantDescID.Default.(func() xid.ID)
+	// accessgrant.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	accessgrant.IDValidator = func() func(string) error {
+		validators := accessgrantDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	accesspassMixin := schema.AccessPass{}.Mixin()
+	accesspassMixinFields0 := accesspassMixin[0].Fields()
+	_ = accesspassMixinFields0
+	accesspassMixinFields1 := accesspassMixin[1].Fields()
+	_ = accesspassMixinFields1
+	accesspassMixinFields2 := accesspassMixin[2].Fields()
+	_ = accesspassMixinFields2
+	accesspassFields := schema.AccessPass{}.Fields()
+	_ = accesspassFields
+	// accesspassDescCreatedAt is the schema descriptor for created_at field.
+	accesspassDescCreatedAt := accesspassMixinFields1[0].Descriptor()
+	// accesspass.DefaultCreatedAt holds the default value on creation for the created_at field.
+	accesspass.DefaultCreatedAt = accesspassDescCreatedAt.Default.(func() time.Time)
+	// accesspassDescUpdatedAt is the schema descriptor for updated_at field.
+	accesspassDescUpdatedAt := accesspassMixinFields2[0].Descriptor()
+	// accesspass.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	accesspass.DefaultUpdatedAt = accesspassDescUpdatedAt.Default.(func() time.Time)
+	// accesspass.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	accesspass.UpdateDefaultUpdatedAt = accesspassDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// accesspassDescName is the schema descriptor for name field.
+	accesspassDescName := accesspassFields[0].Descriptor()
+	// accesspass.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	accesspass.NameValidator = func() func(string) error {
+		validators := accesspassDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// accesspassDescDescription is the schema descriptor for description field.
+	accesspassDescDescription := accesspassFields[1].Descriptor()
+	// accesspass.DefaultDescription holds the default value on creation for the description field.
+	accesspass.DefaultDescription = accesspassDescDescription.Default.(string)
+	// accesspassDescPriceLabel is the schema descriptor for price_label field.
+	accesspassDescPriceLabel := accesspassFields[2].Descriptor()
+	// accesspass.DefaultPriceLabel holds the default value on creation for the price_label field.
+	accesspass.DefaultPriceLabel = accesspassDescPriceLabel.Default.(string)
+	// accesspassDescPaymentInfo is the schema descriptor for payment_info field.
+	accesspassDescPaymentInfo := accesspassFields[3].Descriptor()
+	// accesspass.DefaultPaymentInfo holds the default value on creation for the payment_info field.
+	accesspass.DefaultPaymentInfo = accesspassDescPaymentInfo.Default.(string)
+	// accesspassDescColour is the schema descriptor for colour field.
+	accesspassDescColour := accesspassFields[4].Descriptor()
+	// accesspass.DefaultColour holds the default value on creation for the colour field.
+	accesspass.DefaultColour = accesspassDescColour.Default.(string)
+	// accesspassDescSort is the schema descriptor for sort field.
+	accesspassDescSort := accesspassFields[5].Descriptor()
+	// accesspass.DefaultSort holds the default value on creation for the sort field.
+	accesspass.DefaultSort = accesspassDescSort.Default.(int)
+	// accesspassDescRequestable is the schema descriptor for requestable field.
+	accesspassDescRequestable := accesspassFields[6].Descriptor()
+	// accesspass.DefaultRequestable holds the default value on creation for the requestable field.
+	accesspass.DefaultRequestable = accesspassDescRequestable.Default.(bool)
+	// accesspassDescID is the schema descriptor for id field.
+	accesspassDescID := accesspassMixinFields0[0].Descriptor()
+	// accesspass.DefaultID holds the default value on creation for the id field.
+	accesspass.DefaultID = accesspassDescID.Default.(func() xid.ID)
+	// accesspass.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	accesspass.IDValidator = func() func(string) error {
+		validators := accesspassDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	accountMixin := schema.Account{}.Mixin()
 	accountMixinFields0 := accountMixin[0].Fields()
 	_ = accountMixinFields0

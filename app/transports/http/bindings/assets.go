@@ -68,7 +68,7 @@ func (i *Assets) AssetGet(ctx context.Context, request openapi.AssetGetRequestOb
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	headers := assetDownloadHeaders(a, etag)
+	headers := assetDownloadHeaders(a, etag, request.Params.Filename)
 
 	rng, ok := reqinfo.GetRange(ctx).Get()
 	if !ok {
@@ -133,11 +133,11 @@ func (i *Assets) AssetGet(ctx context.Context, request openapi.AssetGetRequestOb
 	}, nil
 }
 
-func assetDownloadHeaders(a *asset.Asset, etag *cachecontrol.ETag) openapi.AssetDownloadOKResponseHeaders {
+func assetDownloadHeaders(a *asset.Asset, etag *cachecontrol.ETag, requestedName *string) openapi.AssetDownloadOKResponseHeaders {
 	return openapi.AssetDownloadOKResponseHeaders{
 		AcceptRanges:       "bytes",
 		CacheControl:       assetCacheControl,
-		ContentDisposition: contentDisposition(a),
+		ContentDisposition: contentDisposition(a, requestedName),
 		ETag:               etag.String(),
 		LastModified:       cachecontrol.HTTPDate(etag.Time),
 		// The MIME type is sniffed from user-supplied content, so the browser
@@ -163,16 +163,6 @@ var inlineRenderableMIMEs = map[string]bool{
 	"audio/mpeg":      true,
 	"audio/ogg":       true,
 	"audio/wav":       true,
-}
-
-func contentDisposition(a *asset.Asset) string {
-	name := strings.ReplaceAll(a.Name.String(), `"`, "")
-
-	if inlineRenderableMIMEs[strings.ToLower(a.MIME.String())] {
-		return fmt.Sprintf(`inline; filename="%s"`, name)
-	}
-
-	return fmt.Sprintf(`attachment; filename="%s"`, name)
 }
 
 var (

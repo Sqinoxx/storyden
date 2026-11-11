@@ -1,5 +1,6 @@
 "use client";
 
+import { Lock } from "lucide-react";
 import Link from "next/link";
 import { memo } from "react";
 
@@ -401,13 +402,27 @@ export const ThreadReferenceCard = memo(
       textDescription = undefined;
     }
 
+    const locked = thread.access?.locked === true;
+    if (locked && thread.access) {
+      textDescription = t.access.lockedPreview.replace(
+        "{pass}",
+        thread.access.passes.map((p) => p.name).join(", "),
+      );
+    }
+
+    const titleIcon = locked ? (
+      <Lock size={16} aria-label={t.access.locked} />
+    ) : isPinned ? (
+      <PinIcon w="4" />
+    ) : undefined;
+
     return (
       <Card
         shape="responsive"
         backgroundColor={cardBackground}
         id={thread.id}
         title={title}
-        titleIcon={isPinned ? <PinIcon w="4" /> : undefined}
+        titleIcon={titleIcon}
         titleAside={
           showTags && thread.tags.length > 0 ? (
             <TagBadgeList tags={thread.tags} />

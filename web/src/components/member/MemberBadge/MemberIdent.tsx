@@ -14,6 +14,7 @@ export type Props = {
   name?: "hidden" | "handle" | "full-horizontal" | "full-vertical";
   showRoles?: "hidden" | "badge" | "all";
   avatar?: "hidden" | "visible";
+  eagerAvatar?: boolean;
 };
 
 export function MemberIdent({
@@ -22,6 +23,7 @@ export function MemberIdent({
   name = "hidden",
   avatar = "visible",
   showRoles = "hidden",
+  eagerAvatar,
 }: Props) {
   if (isDeletedAccount(profile)) {
     const meta = profile.meta as Record<string, unknown> | undefined;
@@ -45,7 +47,9 @@ export function MemberIdent({
       overflow="hidden"
       gap={size === "lg" ? "2" : "1"}
     >
-      {avatar === "visible" && <MemberAvatar profile={profile} size={size} />}
+      {avatar === "visible" && (
+        <MemberAvatar profile={profile} size={size} eager={eagerAvatar} />
+      )}
       <MemberName
         profile={profile}
         size={size}

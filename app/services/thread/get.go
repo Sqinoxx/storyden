@@ -61,6 +61,12 @@ func (s *service) Get(
 
 	thr.Replies.Items = s.filterRepliesByVisibility(ctx, thr.Replies.Items, accountID)
 
+	decision, err := s.access.Resolve(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	decision.Redact(thr)
+
 	// recommendations, err := s.recommender.Recommend(ctx, thr)
 	// if err != nil {
 	// 	s.l.Warn("failed to aggregate recommendations", slog.String("error", err.Error()))

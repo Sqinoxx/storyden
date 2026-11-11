@@ -34,6 +34,8 @@ func (DriveFolder) Edges() []ent.Edge {
 			Field("added_by").
 			Required().
 			Unique(),
+		edge.From("access_passes", AccessPass.Type).
+			Ref("drive_folders"),
 	}
 }
 

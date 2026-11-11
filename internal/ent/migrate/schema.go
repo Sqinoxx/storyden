@@ -8,6 +8,73 @@ import (
 )
 
 var (
+	// AccessGrantsColumns holds the columns for the "access_grants" table.
+	AccessGrantsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 20},
+		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"requested", "active", "rejected", "revoked"}},
+		{Name: "reference_code", Type: field.TypeString, Unique: true},
+		{Name: "requested_at", Type: field.TypeTime, Nullable: true},
+		{Name: "decided_by", Type: field.TypeString, Nullable: true},
+		{Name: "decided_at", Type: field.TypeTime, Nullable: true},
+		{Name: "note", Type: field.TypeString, Default: ""},
+		{Name: "expiry_notified_at", Type: field.TypeTime, Nullable: true},
+		{Name: "pass_id", Type: field.TypeString, Size: 20},
+		{Name: "account_id", Type: field.TypeString, Size: 20},
+	}
+	// AccessGrantsTable holds the schema information for the "access_grants" table.
+	AccessGrantsTable = &schema.Table{
+		Name:       "access_grants",
+		Columns:    AccessGrantsColumns,
+		PrimaryKey: []*schema.Column{AccessGrantsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "access_grants_access_passes_grants",
+				Columns:    []*schema.Column{AccessGrantsColumns[11]},
+				RefColumns: []*schema.Column{AccessPassesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "access_grants_accounts_access_grants",
+				Columns:    []*schema.Column{AccessGrantsColumns[12]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "accessgrant_account_id_pass_id",
+				Unique:  true,
+				Columns: []*schema.Column{AccessGrantsColumns[12], AccessGrantsColumns[11]},
+			},
+			{
+				Name:    "accessgrant_pass_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{AccessGrantsColumns[11], AccessGrantsColumns[4]},
+			},
+		},
+	}
+	// AccessPassesColumns holds the columns for the "access_passes" table.
+	AccessPassesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 20},
+		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Size: 200},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "price_label", Type: field.TypeString, Default: ""},
+		{Name: "payment_info", Type: field.TypeString, Default: ""},
+		{Name: "colour", Type: field.TypeString, Default: "#8577ce"},
+		{Name: "sort", Type: field.TypeInt, Default: 0},
+		{Name: "requestable", Type: field.TypeBool, Default: true},
+	}
+	// AccessPassesTable holds the schema information for the "access_passes" table.
+	AccessPassesTable = &schema.Table{
+		Name:       "access_passes",
+		Columns:    AccessPassesColumns,
+		PrimaryKey: []*schema.Column{AccessPassesColumns[0]},
+	}
 	// AccountsColumns holds the columns for the "accounts" table.
 	AccountsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Size: 20},
@@ -2002,6 +2069,56 @@ var (
 			},
 		},
 	}
+	// AccessPassCategoriesColumns holds the columns for the "access_pass_categories" table.
+	AccessPassCategoriesColumns = []*schema.Column{
+		{Name: "access_pass_id", Type: field.TypeString, Size: 20},
+		{Name: "category_id", Type: field.TypeString, Size: 20},
+	}
+	// AccessPassCategoriesTable holds the schema information for the "access_pass_categories" table.
+	AccessPassCategoriesTable = &schema.Table{
+		Name:       "access_pass_categories",
+		Columns:    AccessPassCategoriesColumns,
+		PrimaryKey: []*schema.Column{AccessPassCategoriesColumns[0], AccessPassCategoriesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "access_pass_categories_access_pass_id",
+				Columns:    []*schema.Column{AccessPassCategoriesColumns[0]},
+				RefColumns: []*schema.Column{AccessPassesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "access_pass_categories_category_id",
+				Columns:    []*schema.Column{AccessPassCategoriesColumns[1]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// AccessPassDriveFoldersColumns holds the columns for the "access_pass_drive_folders" table.
+	AccessPassDriveFoldersColumns = []*schema.Column{
+		{Name: "access_pass_id", Type: field.TypeString, Size: 20},
+		{Name: "drive_folder_id", Type: field.TypeString, Size: 20},
+	}
+	// AccessPassDriveFoldersTable holds the schema information for the "access_pass_drive_folders" table.
+	AccessPassDriveFoldersTable = &schema.Table{
+		Name:       "access_pass_drive_folders",
+		Columns:    AccessPassDriveFoldersColumns,
+		PrimaryKey: []*schema.Column{AccessPassDriveFoldersColumns[0], AccessPassDriveFoldersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "access_pass_drive_folders_access_pass_id",
+				Columns:    []*schema.Column{AccessPassDriveFoldersColumns[0]},
+				RefColumns: []*schema.Column{AccessPassesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "access_pass_drive_folders_drive_folder_id",
+				Columns:    []*schema.Column{AccessPassDriveFoldersColumns[1]},
+				RefColumns: []*schema.Column{DriveFoldersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// AccountTagsColumns holds the columns for the "account_tags" table.
 	AccountTagsColumns = []*schema.Column{
 		{Name: "account_id", Type: field.TypeString, Size: 20},
@@ -2254,6 +2371,8 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AccessGrantsTable,
+		AccessPassesTable,
 		AccountsTable,
 		AccountFollowsTable,
 		AccountRolesTable,
@@ -2310,6 +2429,8 @@ var (
 		SettingsTable,
 		TagsTable,
 		WarningsTable,
+		AccessPassCategoriesTable,
+		AccessPassDriveFoldersTable,
 		AccountTagsTable,
 		CategoryRelatedTable,
 		LinkPostContentReferencesTable,
@@ -2324,6 +2445,8 @@ var (
 )
 
 func init() {
+	AccessGrantsTable.ForeignKeys[0].RefTable = AccessPassesTable
+	AccessGrantsTable.ForeignKeys[1].RefTable = AccountsTable
 	AccountsTable.ForeignKeys[0].RefTable = InvitationsTable
 	AccountFollowsTable.ForeignKeys[0].RefTable = AccountsTable
 	AccountFollowsTable.ForeignKeys[1].RefTable = AccountsTable
@@ -2417,6 +2540,10 @@ func init() {
 	SessionsTable.ForeignKeys[0].RefTable = AccountsTable
 	WarningsTable.ForeignKeys[0].RefTable = AccountsTable
 	WarningsTable.ForeignKeys[1].RefTable = AccountsTable
+	AccessPassCategoriesTable.ForeignKeys[0].RefTable = AccessPassesTable
+	AccessPassCategoriesTable.ForeignKeys[1].RefTable = CategoriesTable
+	AccessPassDriveFoldersTable.ForeignKeys[0].RefTable = AccessPassesTable
+	AccessPassDriveFoldersTable.ForeignKeys[1].RefTable = DriveFoldersTable
 	AccountTagsTable.ForeignKeys[0].RefTable = AccountsTable
 	AccountTagsTable.ForeignKeys[1].RefTable = TagsTable
 	CategoryRelatedTable.ForeignKeys[0].RefTable = CategoriesTable

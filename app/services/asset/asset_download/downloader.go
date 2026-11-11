@@ -6,24 +6,32 @@ import (
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
+	"github.com/Southclaws/fault/ftag"
+	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/app/resources/asset/asset_querier"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/internal/infrastructure/object"
 )
+
+var errAssetLocked = fault.New("asset is attached to locked content", ftag.With(ftag.NotFound))
 
 type Downloader struct {
 	assets  *asset_querier.Querier
 	objects object.Storer
+	access  *access_check.Checker
 }
 
 func New(
 	assets *asset_querier.Querier,
 	objects object.Storer,
+	access *access_check.Checker,
 ) *Downloader {
 	return &Downloader{
 		assets:  assets,
 		objects: objects,
+		access:  access,
 	}
 }
 
@@ -34,6 +42,16 @@ func (d *Downloader) Head(ctx context.Context, id asset.Filename) (*asset.Asset,
 	a, err := d.assets.GetForDownload(ctx, id)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	// Answered as missing so a locked protocol cannot be told apart from one
+	// that does not exist.
+	readable, err := d.access.AssetReadable(ctx, xid.ID(a.ID))
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	if !readable {
+		return nil, fault.Wrap(errAssetLocked, fctx.With(ctx))
 	}
 
 	return a, nil

@@ -69,6 +69,7 @@ type Bindings struct {
 	Admin
 	Plugins
 	Roles
+	Access
 	Authentication
 	WebAuthn
 	PhoneAuth
@@ -111,6 +112,7 @@ func bindingsProviders() fx.Option {
 		NewAdmin,
 		NewPlugins,
 		NewRoles,
+		NewAccess,
 		NewAuthentication,
 		NewWebAuthn,
 		NewPhoneAuth,

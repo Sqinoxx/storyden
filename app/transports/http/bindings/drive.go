@@ -266,6 +266,7 @@ func serialiseDriveFolder(in *drive.Folder) openapi.DriveFolder {
 		DriveFolderId: in.DriveID,
 		Visibility:    openapi.DriveVisibility(in.Visibility.String()),
 		Sort:          in.Sort,
+		Access:        serialiseContentAccess(in.Access.Ptr()),
 	}
 }
 

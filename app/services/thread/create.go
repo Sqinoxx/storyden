@@ -38,6 +38,10 @@ func (s *service) Create(ctx context.Context,
 		return nil, err
 	}
 
+	if err := s.authoriseCategoryAccess(ctx, partial.Category); err != nil {
+		return nil, err
+	}
+
 	if content, ok := partial.Content.Get(); ok {
 		stable, err := datagraph.NewRichTextWithNewBlocks(content)
 		if err != nil {
@@ -186,4 +190,20 @@ func (s *service) authoriseCategoryForCreate(ctx context.Context, partial Partia
 	}
 
 	return nil
+}
+
+// authoriseCategoryAccess stops members from posting into a category behind
+// an access pass they do not hold.
+func (s *service) authoriseCategoryAccess(ctx context.Context, catID opt.Optional[xid.ID]) error {
+	id, ok := catID.Get()
+	if !ok {
+		return nil
+	}
+
+	decision, err := s.access.Resolve(ctx)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return decision.RequireCategory(ctx, id)
 }

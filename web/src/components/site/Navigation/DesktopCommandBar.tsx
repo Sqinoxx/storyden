@@ -47,7 +47,7 @@ export async function DesktopCommandBar() {
         <Title>Unidentists</Title>
       </HStack>
 
-      <HStack className={styles["topbar-right"]}>
+      <HStack className={styles["topbar-right"]} gap="2" minW="0">
         <ThemeToggle />
         <MemberActions session={sessionAccount} canRegister={canRegister} />
       </HStack>

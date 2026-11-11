@@ -62,6 +62,10 @@ func (s *service) Update(ctx context.Context, threadID post.ID, partial Partial)
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if err := s.authoriseCategoryAccess(ctx, partial.Category); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	if c, ok := partial.Content.Get(); ok {
 		prev := thr.Content
 		stable, err := datagraph.NewRichTextWithChangedBlocks(prev, c)

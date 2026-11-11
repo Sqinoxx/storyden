@@ -20,6 +20,19 @@
   --grid-col-padding-inner: var(--spacing-8);
   --grid-col-padding-inner-right: 0px;
 
+  --grid-row-padding-top: max(
+    var(--grid-row-padding-outer),
+    calc(env(safe-area-inset-top) + var(--spacing-2))
+  );
+  --grid-col-padding-left: max(
+    var(--grid-col-padding-outer),
+    env(safe-area-inset-left)
+  );
+  --grid-col-padding-right: max(
+    var(--grid-col-padding-outer),
+    env(safe-area-inset-right)
+  );
+
   min-height: 100dvh;
 }
 
@@ -34,20 +47,20 @@
   --grid-row-padding-outer: var(--spacing-8);
 
   grid-template-rows:
-    var(--grid-row-padding-outer)
+    var(--grid-row-padding-top)
     1fr
     var(--grid-row-padding-inner)
     auto
     var(--grid-row-padding-outer);
 
   grid-template-columns:
-    minmax(var(--grid-col-padding-outer), 1fr)
+    minmax(var(--grid-col-padding-left), 1fr)
     1fr
     var(--grid-col-padding-inner)
     minmax(0, var(--sizes-breakpoint-lg))
     var(--grid-col-padding-inner-right)
     1fr
-    minmax(var(--grid-col-padding-outer), 1fr);
+    minmax(var(--grid-col-padding-right), 1fr);
 
   grid-template-areas:
     " padtl    padtop    padtop   padtop   padtop   padtop    padtr    "
@@ -55,6 +68,12 @@
     " padleft  .         .        .        .        .         padright "
     " padleft  .         .        navpill  .        .         padright "
     " padbl    padbot    padbot   padbot   padbot   padbot    padbr    ";
+}
+
+@media (display-mode: standalone) and (max-width: 767px) {
+  .navgrid {
+    --grid-col-padding-outer: var(--spacing-4);
+  }
 }
 
 .main {
@@ -102,14 +121,14 @@
     --grid-row-padding-outer: var(--spacing-5);
 
     grid-template-rows:
-      var(--grid-row-padding-outer)
+      var(--grid-row-padding-top)
       3rem
       var(--grid-row-padding-inner)
       1fr
       var(--grid-row-padding-outer);
 
     grid-template-columns:
-      var(--grid-col-padding-outer)
+      var(--grid-col-padding-left)
       18rem
       minmax(var(--grid-col-padding-inner), 1fr)
       minmax(0, var(--sizes-breakpoint-lg))
@@ -117,7 +136,7 @@
       /* only difference to the 1280 width version, this makes sure the title
       section is centered between the search bar and the profile area. */
       auto
-      var(--grid-col-padding-outer);
+      var(--grid-col-padding-right);
 
     grid-template-areas:
       " padtl    padtop    padtop   padtop   padtop   padtop    padtr    "
@@ -258,13 +277,13 @@
 @media screen and (min-width: 1280px) {
   .navgrid {
     grid-template-columns:
-      var(--grid-col-padding-outer)
+      var(--grid-col-padding-left)
       18rem
       minmax(var(--grid-col-padding-inner), 1fr)
       minmax(0, var(--sizes-breakpoint-lg))
       minmax(var(--grid-col-padding-inner-right), 1fr)
       18rem
-      var(--grid-col-padding-outer);
+      var(--grid-col-padding-right);
 
     grid-template-areas:
       " padtl    padtop    padtop   padtop   padtop   padtop    padtr    "

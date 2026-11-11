@@ -13,6 +13,7 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/app/resources/datagraph"
+	"github.com/Southclaws/storyden/app/resources/post/thread"
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	ent_node "github.com/Southclaws/storyden/internal/ent/node"
@@ -48,6 +49,10 @@ func (an *Annotator) Annotate(ctx context.Context, query string, items []datagra
 
 	var postIDs, nodeIDs []xid.ID
 	for _, item := range items {
+		if t, ok := item.(*thread.Thread); ok && t.Access.Ok() {
+			continue
+		}
+
 		switch item.GetKind() {
 		case datagraph.KindPost, datagraph.KindThread, datagraph.KindReply:
 			postIDs = append(postIDs, item.GetID())

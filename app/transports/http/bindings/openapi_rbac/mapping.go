@@ -270,6 +270,42 @@ func (m *Mapping) PluginUpdateConfiguration() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionAdministrator
 }
 
+func (m *Mapping) AccessPassList() (bool, *rbac.Permission) {
+	return false, nil // Public: guests see what they could unlock.
+}
+
+func (m *Mapping) AccessPassCreate() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
+func (m *Mapping) AccessPassUpdate() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
+func (m *Mapping) AccessPassDelete() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
+func (m *Mapping) AccessPassRequest() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) AccessPassRequestWithdraw() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) AccessGrantSet() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
+func (m *Mapping) AccessGrantRemove() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
+func (m *Mapping) AccessGrantList() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
 func (m *Mapping) RoleCreate() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageRoles
 }
@@ -591,6 +627,10 @@ func (m *Mapping) NotificationUpdate() (bool, *rbac.Permission) {
 }
 
 func (m *Mapping) NotificationUpdateMany() (bool, *rbac.Permission) {
+	return true, nil
+}
+
+func (m *Mapping) BugReportListOwn() (bool, *rbac.Permission) {
 	return true, nil
 }
 

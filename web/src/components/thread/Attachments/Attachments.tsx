@@ -16,7 +16,7 @@ export function Attachments({ assets }: { assets: Asset[] }) {
     <HStack w="full" flexWrap="wrap" gap="2">
       {files.map((a) => {
         const displayName = getCleanFilename(a.filename);
-        const url = getAssetURL(a.path);
+        const url = getAssetURL(a.path, displayName);
         return (
           <styled.a
             key={a.id}

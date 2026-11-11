@@ -3,6 +3,7 @@ package resources
 import (
 	"go.uber.org/fx"
 
+	"github.com/Southclaws/storyden/app/resources/access/access_repo"
 	"github.com/Southclaws/storyden/app/resources/account/account_phone"
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/account/account_repo"
@@ -101,6 +102,7 @@ func Build() fx.Option {
 			settings.New,
 			role_assign.New,
 			role_repo.New,
+			access_repo.New,
 			role_hydrate.New,
 			account_repo.New,
 			account_querier.New,

@@ -12,6 +12,7 @@ import { useDisclosure } from "@/utils/useDisclosure";
 
 import { AdminMenuItem } from "../Anchors/Admin";
 import { BugReportID, BugReportMenuItem } from "../Anchors/BugReport";
+import { SuggestionID, SuggestionMenuItem } from "../Anchors/Suggestion";
 import { DraftsMenuItem } from "../Anchors/Drafts";
 import { LanguageMenuItem } from "../Anchors/Language";
 import { LogoutMenuItem } from "../Anchors/Logout";
@@ -52,6 +53,7 @@ export function AccountMenu({
   const invitationDisclosure = useDisclosure();
   const invitation = useInvitation();
   const bugReportDisclosure = useDisclosure();
+  const suggestionDisclosure = useDisclosure();
 
   async function handleInvitationSelect() {
     invitationDisclosure.onOpen();
@@ -64,6 +66,9 @@ export function AccountMenu({
     }
     if (details.value === BugReportID) {
       bugReportDisclosure.onOpen();
+    }
+    if (details.value === SuggestionID) {
+      suggestionDisclosure.onOpen();
     }
   }
 
@@ -112,6 +117,7 @@ export function AccountMenu({
                 <ReportsMenuItem />
                 <TagsMenuItem />
                 {isStaff && <TagManagementMenuItem />}
+                <SuggestionMenuItem />
                 <BugReportMenuItem />
               </Menu.ItemGroup>
 
@@ -143,6 +149,13 @@ export function AccountMenu({
         isOpen={bugReportDisclosure.isOpen}
         onOpen={bugReportDisclosure.onOpen}
         onClose={bugReportDisclosure.onClose}
+      />
+
+      <BugReportModal
+        variant="suggestion"
+        isOpen={suggestionDisclosure.isOpen}
+        onOpen={suggestionDisclosure.onOpen}
+        onClose={suggestionDisclosure.onClose}
       />
     </>
   );

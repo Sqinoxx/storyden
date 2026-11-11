@@ -12,11 +12,49 @@ import type {
   BugReportCreateBody,
   BugReportCreateOKResponse,
   BugReportListOKResponse,
+  BugReportListOwnParams,
   BugReportUpdateBody,
   BugReportUpdateOKResponse,
   NoContentResponse,
 } from "../openapi-schema";
 import { fetcher } from "../server";
+
+/**
+ * List the bug reports and suggestions submitted by the current member,
+newest first.
+
+ */
+export type bugReportListOwnResponse = {
+  data: BugReportListOKResponse;
+  status: number;
+};
+
+export const getBugReportListOwnUrl = (params?: BugReportListOwnParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  return normalizedParams.size
+    ? `/bug-reports?${normalizedParams.toString()}`
+    : `/bug-reports`;
+};
+
+export const bugReportListOwn = async (
+  params?: BugReportListOwnParams,
+  options?: RequestInit,
+): Promise<bugReportListOwnResponse> => {
+  return fetcher<Promise<bugReportListOwnResponse>>(
+    getBugReportListOwnUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
 
 /**
  * Submit a bug report or feedback about the platform itself. Bug reports

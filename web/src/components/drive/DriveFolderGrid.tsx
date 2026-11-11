@@ -1,4 +1,4 @@
-import { Folder, Lock, Users } from "lucide-react";
+import { Folder, KeyRound, Lock, Users } from "lucide-react";
 import Link from "next/link";
 
 import { DriveFolder, DriveVisibility } from "@/api/openapi-schema";
@@ -28,6 +28,7 @@ export function DriveFolderGrid({ folders }: Props) {
                 </Heading>
 
                 <VisibilityHint visibility={folder.visibility} />
+                {folder.access?.locked && <AccessHint folder={folder} />}
               </HStack>
 
               {folder.description && (
@@ -40,6 +41,26 @@ export function DriveFolderGrid({ folders }: Props) {
         </CardBox>
       ))}
     </CardGrid>
+  );
+}
+
+function AccessHint({ folder }: { folder: DriveFolder }) {
+  const t = useTranslation();
+  const label = t.access.lockedPreview.replace(
+    "{pass}",
+    (folder.access?.passes ?? []).map((p) => p.name).join(", "),
+  );
+
+  return (
+    <styled.span
+      color="fg.muted"
+      title={label}
+      aria-label={label}
+      flexShrink="0"
+      data-testid="drive-folder-locked-icon"
+    >
+      <KeyRound size={14} />
+    </styled.span>
   );
 }
 

@@ -131,6 +131,7 @@ func serialiseThreadReference(t *thread.Thread) openapi.ThreadReference {
 		Assets:      dt.Map(t.Assets, serialiseAssetPtr),
 		Collections: serialiseCollectionStatus(t.Collections),
 		Link:        opt.Map(t.WebLink, serialiseLinkRef).Ptr(),
+		Access:      serialiseContentAccess(t.Access.Ptr()),
 	}
 }
 
@@ -164,6 +165,7 @@ func serialiseThread(t *thread.Thread) openapi.Thread {
 		Title:          t.Title,
 		UpdatedAt:      t.UpdatedAt,
 		LastReplyAt:    t.LastReplyAt.Ptr(),
+		Access:         serialiseContentAccess(t.Access.Ptr()),
 	}
 }
 

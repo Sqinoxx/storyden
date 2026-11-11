@@ -6,6 +6,7 @@ import { parseAsBoolean, useQueryState } from "nuqs";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { handle } from "@/api/client";
 import { useProfileGet } from "@/api/openapi-client/profiles";
 import {
   Account,
@@ -13,8 +14,7 @@ import {
   ProfileGetOKResponse,
 } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
-
-import { handle } from "@/api/client";
+import { useTranslation } from "@/lib/i18n";
 import {
   ACADEMIC_META_KEY,
   SemesterSchema,
@@ -24,7 +24,6 @@ import { useProfileMutations } from "@/lib/profile/mutation";
 import type { SignatureConfig } from "@/lib/settings/settings";
 import { hasPermissionOr } from "@/utils/permissions";
 import { isSlug } from "@/utils/slugify";
-import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   initialSession?: Account;
@@ -40,7 +39,7 @@ export const FormSchema = z.object({
     .max(30, "Handle must be 30 characters or less")
     .refine(isSlug, {
       message:
-        "Handle can only contain letters, numbers, hyphens, and underscores",
+        "Handle may only contain lowercase letters, numbers, hyphens and underscores. No capital letters, spaces or special characters.",
     }),
 
   bio: z.string(),

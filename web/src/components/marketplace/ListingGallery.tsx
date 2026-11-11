@@ -50,7 +50,7 @@ export function ListingGallery({
         w="full"
         aspectRatio="[4/3]"
         bg="bg.muted"
-        borderRadius="lg"
+        borderRadius="xl"
         display="flex"
         alignItems="center"
         justifyContent="center"
@@ -67,7 +67,7 @@ export function ListingGallery({
         w="full"
         aspectRatio="[4/3]"
         bg="bg.muted"
-        borderRadius="lg"
+        borderRadius="xl"
         overflow="hidden"
         className="group"
       >
@@ -173,7 +173,13 @@ export function ListingGallery({
         </Box>
       </Box>
       {assets.length > 1 && (
-        <HStack gap="2" w="full" overflowX="auto" overscrollBehaviorX="contain">
+        <HStack
+          gap="2"
+          w="full"
+          overflowX="auto"
+          overscrollBehaviorX="contain"
+          hideBelow="md"
+        >
           {assets.map((a, i) => (
             <styled.button
               key={a.id}
@@ -186,9 +192,12 @@ export function ListingGallery({
               overflow="hidden"
               borderWidth="medium"
               borderStyle="solid"
-              borderColor={i === index ? "border.accent" : "border.subtle"}
+              borderColor={i === index ? "border.accent" : "transparent"}
+              opacity={i === index ? undefined : "7"}
               cursor="pointer"
+              _hover={{ opacity: "full" }}
               aria-label={`${title} ${i + 1}`}
+              aria-current={i === index}
             >
               <styled.img
                 src={getAssetURL(a.path)}

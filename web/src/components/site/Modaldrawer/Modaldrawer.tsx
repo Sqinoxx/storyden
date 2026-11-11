@@ -116,7 +116,7 @@ export function ModalDrawer({
             display: flex;
             flex-direction: column;
             position: fixed;
-            margin-top: 3rem;
+            margin-top: calc(3rem + env(safe-area-inset-top));
             max-height: 96%;
             z-index: var(--z-index-modal);
           }

@@ -4,6 +4,7 @@ import { match } from "ts-pattern";
 
 import { LinkReference } from "@/api/openapi-schema";
 import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/CategoryTreeSelect";
+import { blockSubmitWhileUploading } from "@/components/content/blockSubmitWhileUploading";
 import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
 import { FileAttachmentBadge } from "@/components/post/FileAttachmentList";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
@@ -56,7 +57,10 @@ export function QuickShare(props: Props) {
         })}
         ref={formRef}
         onFocus={handlers.handleFocus}
-        onSubmit={handlers.handlePost}
+        onSubmit={blockSubmitWhileUploading(
+          isUploading || isComposerUploading,
+          handlers.handlePost,
+        )}
         minHeight={editing ? "48" : "0"}
         transitionDuration="slower"
         transitionTimingFunction="default"
@@ -184,8 +188,16 @@ export function QuickShare(props: Props) {
                 type="submit"
                 size="sm"
                 variant="subtle"
-                disabled={isUploading || isComposerUploading}
-                loading={form.formState.isSubmitting}
+                loading={
+                  form.formState.isSubmitting ||
+                  isUploading ||
+                  isComposerUploading
+                }
+                loadingText={
+                  isUploading || isComposerUploading
+                    ? t.toasts.uploading
+                    : undefined
+                }
               >
                 {t.feed.share}
                 <SendIcon />

@@ -2,9 +2,7 @@
 
 import { formatDistanceToNow } from "date-fns";
 import { de, enUS } from "date-fns/locale";
-
-import { useLanguage } from "@/lib/i18n";
-import { Unready } from "@/components/site/Unready";
+import { UseFormReturn } from "react-hook-form";
 
 import { ContentFormField } from "@/components/content/ContentComposer/ContentField";
 import { MemberAvatar } from "@/components/member/MemberBadge/MemberAvatar";
@@ -18,8 +16,12 @@ import { EditAction } from "@/components/site/Action/Edit";
 import { MoreAction } from "@/components/site/Action/More";
 import { SaveAction } from "@/components/site/Action/Save";
 import { DotSeparator } from "@/components/site/Dot";
+import { Unready } from "@/components/site/Unready";
+import { Button } from "@/components/ui/button";
+import { FormErrorText } from "@/components/ui/form/FormErrorText";
 import { LikeIcon } from "@/components/ui/icons/Like";
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/lib/i18n";
 import {
   SEMESTER_OPTIONS,
   formatSemester,
@@ -34,8 +36,47 @@ import {
   styled,
 } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
+import { slugify } from "@/utils/slugify";
 
 import { Form, Props, useProfileScreen } from "./useProfileScreen";
+
+function ProfileIdentErrors({ form }: { form: UseFormReturn<Form> }) {
+  const { t } = useLanguage();
+  const { errors } = form.formState;
+  const handle = form.watch("handle");
+
+  const handleError = errors.handle?.message;
+  const suggestion = handleError ? slugify(handle).slice(0, 30) : "";
+  const showSuggestion = suggestion !== "" && suggestion !== handle;
+
+  if (!errors.name && !handleError) {
+    return null;
+  }
+
+  return (
+    <LStack gap="1" maxW={{ base: "full", sm: "64" }}>
+      {errors.name?.message && (
+        <FormErrorText>{errors.name.message}</FormErrorText>
+      )}
+      {handleError && <FormErrorText>{handleError}</FormErrorText>}
+      {showSuggestion && (
+        <Button
+          type="button"
+          variant="link"
+          size="xs"
+          onClick={() =>
+            form.setValue("handle", suggestion, {
+              shouldValidate: true,
+              shouldDirty: true,
+            })
+          }
+        >
+          {t.profile.handleSuggestion.replace("{handle}", suggestion)}
+        </Button>
+      )}
+    </LStack>
+  );
+}
 
 export function ProfileScreen(props: Props) {
   const { ready, error, form, state, data, handlers } = useProfileScreen(props);
@@ -91,9 +132,11 @@ export function ProfileScreen(props: Props) {
                       px="2"
                       borderTop="none"
                       borderTopRadius="none"
+                      aria-invalid={!!form.formState.errors.handle}
                       {...form.register("handle")}
                     />
                   </LStack>
+                  <ProfileIdentErrors form={form} />
                   <RoleBadgeList roles={profile.roles} />
                 </LStack>
               </HStack>

@@ -13,9 +13,11 @@ import (
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/fault/fmsg"
 	"github.com/Southclaws/fault/ftag"
+	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/drive"
 	"github.com/Southclaws/storyden/app/resources/rbac"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/internal/config"
 	"github.com/Southclaws/storyden/internal/infrastructure/cache"
@@ -38,13 +40,15 @@ type Browser struct {
 	repo   *drive.Repository
 	client gdrive.Client
 	cache  *listCache
+	access *access_check.Checker
 }
 
-func New(repo *drive.Repository, client gdrive.Client, store cache.Store, cfg config.Config) *Browser {
+func New(repo *drive.Repository, client gdrive.Client, store cache.Store, cfg config.Config, access *access_check.Checker) *Browser {
 	return &Browser{
 		repo:   repo,
 		client: client,
 		cache:  newListCache(store, cfg.GoogleDriveCacheTTL),
+		access: access,
 	}
 }
 
@@ -60,9 +64,21 @@ func (b *Browser) ListRoots(ctx context.Context) (drive.Folders, error) {
 	admin := isAdmin(ctx)
 	_, member := session.GetOptAccountID(ctx).Get()
 
-	return dt.Filter(all, func(f *drive.Folder) bool {
+	visible := dt.Filter(all, func(f *drive.Folder) bool {
 		return permitted(f.Visibility, member, admin)
-	}), nil
+	})
+
+	// Folders behind an access pass stay listed so members can see what a
+	// pass includes; only their contents are withheld.
+	decision, err := b.access.ResolveDrive(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	for _, f := range visible {
+		f.Access = decision.FolderLock(xid.ID(f.ID))
+	}
+
+	return visible, nil
 }
 
 func (b *Browser) Contents(ctx context.Context, id drive.FolderID, childID string, pageToken string) (*Contents, error) {
@@ -163,6 +179,14 @@ func (b *Browser) resolveRoot(ctx context.Context, id drive.FolderID) (*drive.Fo
 			fctx.With(ctx),
 			ftag.With(ftag.NotFound),
 			fmsg.WithDesc("visibility", "This folder is not available."))
+	}
+
+	decision, err := b.access.ResolveDrive(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	if err := decision.RequireFolder(ctx, xid.ID(folder.ID)); err != nil {
+		return nil, err
 	}
 
 	return folder, nil

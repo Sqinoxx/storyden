@@ -13,7 +13,7 @@ import (
 )
 
 var TitlePrompt = template.Must(template.New("").Parse(`
-Generate 1 to 3 concise and genuine title suggestions for the following content. Titles should feel natural, not overly stylized or pushy, and suitable for diverse content types. Limit each title to 60 characters. Respond with only the titles, separated by newlines.
+Generate 1 to 3 concise and genuine title suggestions for the following content. Titles should feel natural, not overly stylized or pushy, and suitable for diverse content types. Limit each title to 60 characters. Write the titles in the same language as the content. Respond with only the titles, separated by newlines.
 
 Content:
 

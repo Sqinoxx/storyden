@@ -83,3 +83,13 @@ func (IndexedAt) Fields() []ent.Field {
 			Nillable(),
 	}
 }
+
+type SemdexIndexedAt struct{ mixin.Schema }
+
+func (SemdexIndexedAt) Fields() []ent.Field {
+	return []ent.Field{
+		field.Time("semdex_indexed_at").
+			Optional().
+			Nillable(),
+	}
+}

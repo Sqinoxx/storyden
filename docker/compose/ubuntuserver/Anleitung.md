@@ -469,6 +469,38 @@ tar xzf backups/assets-2026-08-16-0330.tar.gz
 
 ---
 
+## 11. KI (optional, kostenlos ueber Ollama)
+
+Tag-, Titel- und Zusammenfassungs-Vorschlaege sowie die semantische Suche
+laufen ueber ein lokales Ollama. Es entstehen keine Kosten, und keine Daten
+verlassen den Server. Der Ollama-Container ist auf 4 GB RAM begrenzt.
+
+1. Vorher pruefen, ob genug RAM frei ist (ca. 3-4 GB):
+   ```bash
+   free -h
+   docker stats --no-stream
+   ```
+2. In `.env` den Block "KI" einkommentieren.
+3. Starten und Modelle einmalig laden:
+   ```bash
+   docker compose --profile ai up -d
+   docker compose exec ollama ollama pull qwen2.5:3b
+   docker compose exec ollama ollama pull bge-m3
+   docker compose up -d storyden
+   ```
+4. `qwen2.5:3b` braucht ohne GPU ca. 2-4 s pro Vorschlag. Kleinere Modelle wie
+   `gemma3:1b` sind schneller, liefern aber oft kaputtes JSON (dann erscheint
+   kein Vorschlag). Wird der RAM knapp, das kleinere Embedding-Modell
+   `paraphrase-multilingual` nehmen.
+   Modell in `.env` eintragen und Schritt 3 mit dem neuen Namen wiederholen.
+   Nach einem Wechsel des Embedding-Modells `data/semdex` loeschen, damit der
+   Index neu aufgebaut wird.
+
+Ausschalten: die Zeilen in `.env` wieder auskommentieren,
+`docker compose up -d storyden` und `docker compose stop ollama`.
+
+---
+
 ## Fehlersuche
 
 ```bash

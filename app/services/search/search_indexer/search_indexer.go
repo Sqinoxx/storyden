@@ -321,11 +321,6 @@ func (idx *Indexer) indexThread(ctx context.Context, id post.ID) error {
 		return err
 	}
 
-	if _, err := idx.semdexMutator.Index(ctx, thread); err != nil {
-		idx.logger.Error("failed to semdex thread", slog.String("id", id.String()), slog.String("error", err.Error()))
-		return fault.Wrap(err, fctx.With(ctx))
-	}
-
 	idx.logger.Debug("indexed thread", slog.String("id", id.String()))
 	return nil
 }
@@ -337,11 +332,6 @@ func (idx *Indexer) deindexThread(ctx context.Context, id post.ID) error {
 	}); err != nil {
 		idx.logger.Error("failed to deindex thread", slog.String("id", id.String()), slog.String("error", err.Error()))
 		return err
-	}
-
-	if _, err := idx.semdexMutator.Delete(ctx, xid.ID(id)); err != nil {
-		idx.logger.Error("failed to desemdex thread", slog.String("id", id.String()), slog.String("error", err.Error()))
-		return fault.Wrap(err, fctx.With(ctx))
 	}
 
 	idx.logger.Debug("deindexed thread", slog.String("id", id.String()))
@@ -360,11 +350,6 @@ func (idx *Indexer) indexNode(ctx context.Context, id library.NodeID) error {
 		return err
 	}
 
-	if _, err := idx.semdexMutator.Index(ctx, node); err != nil {
-		idx.logger.Error("failed to semdex node", slog.String("id", id.String()), slog.String("error", err.Error()))
-		return fault.Wrap(err, fctx.With(ctx))
-	}
-
 	idx.logger.Debug("indexed node", slog.String("id", id.String()))
 	return nil
 }
@@ -376,11 +361,6 @@ func (idx *Indexer) deindexNode(ctx context.Context, id library.NodeID) error {
 	}); err != nil {
 		idx.logger.Error("failed to deindex node", slog.String("id", id.String()), slog.String("error", err.Error()))
 		return err
-	}
-
-	if _, err := idx.semdexMutator.Delete(ctx, xid.ID(id)); err != nil {
-		idx.logger.Error("failed to desemdex node", slog.String("id", id.String()), slog.String("error", err.Error()))
-		return fault.Wrap(err, fctx.With(ctx))
 	}
 
 	idx.logger.Debug("deindexed node", slog.String("id", id.String()))

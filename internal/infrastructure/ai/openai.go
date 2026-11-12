@@ -12,20 +12,51 @@ import (
 	"github.com/Southclaws/storyden/internal/config"
 )
 
+const (
+	defaultChatModel      = openai.ChatModelGPT4_1
+	defaultEmbeddingModel = string(chromem.EmbeddingModelOpenAI3Large)
+)
+
 type OpenAI struct {
 	client *openai.Client
+	model  string
 	ef     func(ctx context.Context, text string) ([]float32, error)
 }
 
 func newOpenAI(cfg config.Config) (*OpenAI, error) {
-	client := openai.NewClient(option.WithAPIKey(cfg.OpenAIKey))
-	ef := chromem.NewEmbeddingFuncOpenAI(cfg.OpenAIKey, chromem.EmbeddingModelOpenAI3Large)
-	return &OpenAI{client: &client, ef: ef}, nil
+	model := cfg.LanguageModelChatModel
+	if model == "" {
+		model = defaultChatModel
+	}
+
+	embeddingModel := cfg.LanguageModelEmbeddingModel
+	if embeddingModel == "" {
+		embeddingModel = defaultEmbeddingModel
+	}
+
+	key := cfg.OpenAIKey
+	opts := []option.RequestOption{}
+
+	var ef chromem.EmbeddingFunc
+	if cfg.OpenAIBaseURL != "" {
+		if key == "" {
+			key = "ollama"
+		}
+		opts = append(opts, option.WithBaseURL(cfg.OpenAIBaseURL))
+		ef = chromem.NewEmbeddingFuncOpenAICompat(cfg.OpenAIBaseURL, key, embeddingModel, nil)
+	} else {
+		ef = chromem.NewEmbeddingFuncOpenAI(key, chromem.EmbeddingModelOpenAI(embeddingModel))
+	}
+
+	opts = append(opts, option.WithAPIKey(key))
+	client := openai.NewClient(opts...)
+
+	return &OpenAI{client: &client, model: model, ef: ef}, nil
 }
 
 func (o *OpenAI) Prompt(ctx context.Context, input string) (*Result, error) {
 	res, err := o.client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
-		Model: openai.ChatModelGPT4_1,
+		Model: o.model,
 		Messages: []openai.ChatCompletionMessageParamUnion{
 			openai.UserMessage(input),
 		},
@@ -46,7 +77,7 @@ func (o *OpenAI) Prompt(ctx context.Context, input string) (*Result, error) {
 func (o *OpenAI) PromptStream(ctx context.Context, input string) (func(yield func(string, error) bool), error) {
 	iter := func(yield func(string, error) bool) {
 		stream := o.client.Chat.Completions.NewStreaming(ctx, openai.ChatCompletionNewParams{
-			Model: openai.ChatModelGPT4_1,
+			Model: o.model,
 			Messages: []openai.ChatCompletionMessageParamUnion{
 				openai.UserMessage(input),
 			},

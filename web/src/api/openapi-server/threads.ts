@@ -14,6 +14,8 @@ import type {
   ThreadGetResponse,
   ThreadListOKResponse,
   ThreadListParams,
+  ThreadSuggestSemesterBody,
+  ThreadSuggestSemesterOKResponse,
   ThreadUpdateBody,
   ThreadUpdateOKResponse,
 } from "../openapi-schema";
@@ -82,6 +84,38 @@ export const threadList = async (
     ...options,
     method: "GET",
   });
+};
+
+/**
+ * Suggest the academic term (semester) a thread being composed belongs
+to. Explicitly written terms such as "WS 22/23" are detected directly.
+Indirect references such as dates are only suggested when a language
+model confirms they describe the thread's exam or course. Returns an
+empty result when no term can be determined with high confidence.
+
+ */
+export type threadSuggestSemesterResponse = {
+  data: ThreadSuggestSemesterOKResponse;
+  status: number;
+};
+
+export const getThreadSuggestSemesterUrl = () => {
+  return `/threads/semester-suggestion`;
+};
+
+export const threadSuggestSemester = async (
+  threadSuggestSemesterBody: ThreadSuggestSemesterBody,
+  options?: RequestInit,
+): Promise<threadSuggestSemesterResponse> => {
+  return fetcher<Promise<threadSuggestSemesterResponse>>(
+    getThreadSuggestSemesterUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(threadSuggestSemesterBody),
+    },
+  );
 };
 
 /**

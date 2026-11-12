@@ -1240,7 +1240,7 @@ See [the documentation](https://storyden.org/docs/introduction/mcp) for more inf
 
 The provider for language model features.
 
-`openai` is currently the only supported provider.
+`openai` is currently the only supported provider. It works with any OpenAI-compatible API, such as a self-hosted Ollama instance, by setting `OPENAI_BASE_URL`.
 
 ### `OPENAI_API_KEY`
 
@@ -1249,7 +1249,34 @@ The provider for language model features.
 <tr><td>default</td><td>none</td></tr>
 </table>
 
-When `LANGUAGE_MODEL_PROVIDER` is set to `openai`, this is the API key for the OpenAI API.
+When `LANGUAGE_MODEL_PROVIDER` is set to `openai`, this is the API key for the OpenAI API. Optional when `OPENAI_BASE_URL` points to a server that does not require a key, such as Ollama.
+
+### `OPENAI_BASE_URL`
+
+<table>
+<tr><td>type</td><td>`string`</td></tr>
+<tr><td>default</td><td>none</td></tr>
+</table>
+
+Base URL of an OpenAI-compatible API. Leave empty for the official OpenAI API. For Ollama use e.g. `http://ollama:11434/v1`.
+
+### `LANGUAGE_MODEL_CHAT_MODEL`
+
+<table>
+<tr><td>type</td><td>`string`</td></tr>
+<tr><td>default</td><td>`gpt-4.1`</td></tr>
+</table>
+
+The chat model used for generative features such as tag, title and summary suggestions.
+
+### `LANGUAGE_MODEL_EMBEDDING_MODEL`
+
+<table>
+<tr><td>type</td><td>`string`</td></tr>
+<tr><td>default</td><td>`text-embedding-3-large`</td></tr>
+</table>
+
+The embedding model used by the Semdex.
 
 ## Semdex
 

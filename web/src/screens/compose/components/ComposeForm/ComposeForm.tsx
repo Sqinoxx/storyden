@@ -7,6 +7,7 @@ import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/Cat
 import { ContentDragOverlay } from "@/components/content/ContentDragOverlay";
 import { blockSubmitWhileUploading } from "@/components/content/blockSubmitWhileUploading";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
+import { SemesterSuggestionHint } from "@/components/thread/SemesterSelect/SemesterSuggestionHint";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { DEFAULT_NEW_THREAD_TAGS } from "@/components/thread/useAutoTagDetection";
 import { Button } from "@/components/ui/button";
@@ -139,6 +140,11 @@ export function ComposeForm(props: Props) {
                 </Button>
               </HStack>
             </WStack>
+
+            <SemesterSuggestionHint
+              name="semester"
+              attachments={state.attachments}
+            />
           </CardBox>
 
           {/* Card Box 2: Post Composition / Title & Content Editor */}

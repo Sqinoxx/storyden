@@ -28855,6 +28855,7 @@ type NodeMutation struct {
 	updated_at             *time.Time
 	deleted_at             *time.Time
 	indexed_at             *time.Time
+	semdex_indexed_at      *time.Time
 	name                   *string
 	slug                   *string
 	description            *string
@@ -29174,6 +29175,55 @@ func (m *NodeMutation) IndexedAtCleared() bool {
 func (m *NodeMutation) ResetIndexedAt() {
 	m.indexed_at = nil
 	delete(m.clearedFields, node.FieldIndexedAt)
+}
+
+// SetSemdexIndexedAt sets the "semdex_indexed_at" field.
+func (m *NodeMutation) SetSemdexIndexedAt(t time.Time) {
+	m.semdex_indexed_at = &t
+}
+
+// SemdexIndexedAt returns the value of the "semdex_indexed_at" field in the mutation.
+func (m *NodeMutation) SemdexIndexedAt() (r time.Time, exists bool) {
+	v := m.semdex_indexed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSemdexIndexedAt returns the old "semdex_indexed_at" field's value of the Node entity.
+// If the Node object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NodeMutation) OldSemdexIndexedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSemdexIndexedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSemdexIndexedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSemdexIndexedAt: %w", err)
+	}
+	return oldValue.SemdexIndexedAt, nil
+}
+
+// ClearSemdexIndexedAt clears the value of the "semdex_indexed_at" field.
+func (m *NodeMutation) ClearSemdexIndexedAt() {
+	m.semdex_indexed_at = nil
+	m.clearedFields[node.FieldSemdexIndexedAt] = struct{}{}
+}
+
+// SemdexIndexedAtCleared returns if the "semdex_indexed_at" field was cleared in this mutation.
+func (m *NodeMutation) SemdexIndexedAtCleared() bool {
+	_, ok := m.clearedFields[node.FieldSemdexIndexedAt]
+	return ok
+}
+
+// ResetSemdexIndexedAt resets all changes to the "semdex_indexed_at" field.
+func (m *NodeMutation) ResetSemdexIndexedAt() {
+	m.semdex_indexed_at = nil
+	delete(m.clearedFields, node.FieldSemdexIndexedAt)
 }
 
 // SetName sets the "name" field.
@@ -30397,7 +30447,7 @@ func (m *NodeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NodeMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.created_at != nil {
 		fields = append(fields, node.FieldCreatedAt)
 	}
@@ -30409,6 +30459,9 @@ func (m *NodeMutation) Fields() []string {
 	}
 	if m.indexed_at != nil {
 		fields = append(fields, node.FieldIndexedAt)
+	}
+	if m.semdex_indexed_at != nil {
+		fields = append(fields, node.FieldSemdexIndexedAt)
 	}
 	if m.name != nil {
 		fields = append(fields, node.FieldName)
@@ -30468,6 +30521,8 @@ func (m *NodeMutation) Field(name string) (ent.Value, bool) {
 		return m.DeletedAt()
 	case node.FieldIndexedAt:
 		return m.IndexedAt()
+	case node.FieldSemdexIndexedAt:
+		return m.SemdexIndexedAt()
 	case node.FieldName:
 		return m.Name()
 	case node.FieldSlug:
@@ -30513,6 +30568,8 @@ func (m *NodeMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDeletedAt(ctx)
 	case node.FieldIndexedAt:
 		return m.OldIndexedAt(ctx)
+	case node.FieldSemdexIndexedAt:
+		return m.OldSemdexIndexedAt(ctx)
 	case node.FieldName:
 		return m.OldName(ctx)
 	case node.FieldSlug:
@@ -30577,6 +30634,13 @@ func (m *NodeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIndexedAt(v)
+		return nil
+	case node.FieldSemdexIndexedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSemdexIndexedAt(v)
 		return nil
 	case node.FieldName:
 		v, ok := value.(string)
@@ -30712,6 +30776,9 @@ func (m *NodeMutation) ClearedFields() []string {
 	if m.FieldCleared(node.FieldIndexedAt) {
 		fields = append(fields, node.FieldIndexedAt)
 	}
+	if m.FieldCleared(node.FieldSemdexIndexedAt) {
+		fields = append(fields, node.FieldSemdexIndexedAt)
+	}
 	if m.FieldCleared(node.FieldDescription) {
 		fields = append(fields, node.FieldDescription)
 	}
@@ -30756,6 +30823,9 @@ func (m *NodeMutation) ClearField(name string) error {
 	case node.FieldIndexedAt:
 		m.ClearIndexedAt()
 		return nil
+	case node.FieldSemdexIndexedAt:
+		m.ClearSemdexIndexedAt()
+		return nil
 	case node.FieldDescription:
 		m.ClearDescription()
 		return nil
@@ -30799,6 +30869,9 @@ func (m *NodeMutation) ResetField(name string) error {
 		return nil
 	case node.FieldIndexedAt:
 		m.ResetIndexedAt()
+		return nil
+	case node.FieldSemdexIndexedAt:
+		m.ResetSemdexIndexedAt()
 		return nil
 	case node.FieldName:
 		m.ResetName()
@@ -43957,6 +44030,7 @@ type PostMutation struct {
 	updated_at           *time.Time
 	deleted_at           *time.Time
 	indexed_at           *time.Time
+	semdex_indexed_at    *time.Time
 	title                *string
 	slug                 *string
 	pinned_rank          *int
@@ -44287,6 +44361,55 @@ func (m *PostMutation) IndexedAtCleared() bool {
 func (m *PostMutation) ResetIndexedAt() {
 	m.indexed_at = nil
 	delete(m.clearedFields, post.FieldIndexedAt)
+}
+
+// SetSemdexIndexedAt sets the "semdex_indexed_at" field.
+func (m *PostMutation) SetSemdexIndexedAt(t time.Time) {
+	m.semdex_indexed_at = &t
+}
+
+// SemdexIndexedAt returns the value of the "semdex_indexed_at" field in the mutation.
+func (m *PostMutation) SemdexIndexedAt() (r time.Time, exists bool) {
+	v := m.semdex_indexed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSemdexIndexedAt returns the old "semdex_indexed_at" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldSemdexIndexedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSemdexIndexedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSemdexIndexedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSemdexIndexedAt: %w", err)
+	}
+	return oldValue.SemdexIndexedAt, nil
+}
+
+// ClearSemdexIndexedAt clears the value of the "semdex_indexed_at" field.
+func (m *PostMutation) ClearSemdexIndexedAt() {
+	m.semdex_indexed_at = nil
+	m.clearedFields[post.FieldSemdexIndexedAt] = struct{}{}
+}
+
+// SemdexIndexedAtCleared returns if the "semdex_indexed_at" field was cleared in this mutation.
+func (m *PostMutation) SemdexIndexedAtCleared() bool {
+	_, ok := m.clearedFields[post.FieldSemdexIndexedAt]
+	return ok
+}
+
+// ResetSemdexIndexedAt resets all changes to the "semdex_indexed_at" field.
+func (m *PostMutation) ResetSemdexIndexedAt() {
+	m.semdex_indexed_at = nil
+	delete(m.clearedFields, post.FieldSemdexIndexedAt)
 }
 
 // SetTitle sets the "title" field.
@@ -45670,7 +45793,7 @@ func (m *PostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 18)
 	if m.created_at != nil {
 		fields = append(fields, post.FieldCreatedAt)
 	}
@@ -45682,6 +45805,9 @@ func (m *PostMutation) Fields() []string {
 	}
 	if m.indexed_at != nil {
 		fields = append(fields, post.FieldIndexedAt)
+	}
+	if m.semdex_indexed_at != nil {
+		fields = append(fields, post.FieldSemdexIndexedAt)
 	}
 	if m.title != nil {
 		fields = append(fields, post.FieldTitle)
@@ -45738,6 +45864,8 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 		return m.DeletedAt()
 	case post.FieldIndexedAt:
 		return m.IndexedAt()
+	case post.FieldSemdexIndexedAt:
+		return m.SemdexIndexedAt()
 	case post.FieldTitle:
 		return m.Title()
 	case post.FieldSlug:
@@ -45781,6 +45909,8 @@ func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDeletedAt(ctx)
 	case post.FieldIndexedAt:
 		return m.OldIndexedAt(ctx)
+	case post.FieldSemdexIndexedAt:
+		return m.OldSemdexIndexedAt(ctx)
 	case post.FieldTitle:
 		return m.OldTitle(ctx)
 	case post.FieldSlug:
@@ -45843,6 +45973,13 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIndexedAt(v)
+		return nil
+	case post.FieldSemdexIndexedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSemdexIndexedAt(v)
 		return nil
 	case post.FieldTitle:
 		v, ok := value.(string)
@@ -45986,6 +46123,9 @@ func (m *PostMutation) ClearedFields() []string {
 	if m.FieldCleared(post.FieldIndexedAt) {
 		fields = append(fields, post.FieldIndexedAt)
 	}
+	if m.FieldCleared(post.FieldSemdexIndexedAt) {
+		fields = append(fields, post.FieldSemdexIndexedAt)
+	}
 	if m.FieldCleared(post.FieldTitle) {
 		fields = append(fields, post.FieldTitle)
 	}
@@ -46027,6 +46167,9 @@ func (m *PostMutation) ClearField(name string) error {
 	case post.FieldIndexedAt:
 		m.ClearIndexedAt()
 		return nil
+	case post.FieldSemdexIndexedAt:
+		m.ClearSemdexIndexedAt()
+		return nil
 	case post.FieldTitle:
 		m.ClearTitle()
 		return nil
@@ -46067,6 +46210,9 @@ func (m *PostMutation) ResetField(name string) error {
 		return nil
 	case post.FieldIndexedAt:
 		m.ResetIndexedAt()
+		return nil
+	case post.FieldSemdexIndexedAt:
+		m.ResetSemdexIndexedAt()
 		return nil
 	case post.FieldTitle:
 		m.ResetTitle()

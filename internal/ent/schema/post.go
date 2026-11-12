@@ -14,7 +14,7 @@ type Post struct {
 }
 
 func (Post) Mixin() []ent.Mixin {
-	return []ent.Mixin{Identifier{}, CreatedAt{}, UpdatedAtManual{}, DeletedAt{}, IndexedAt{}}
+	return []ent.Mixin{Identifier{}, CreatedAt{}, UpdatedAtManual{}, DeletedAt{}, IndexedAt{}, SemdexIndexedAt{}}
 }
 
 func (Post) Fields() []ent.Field {

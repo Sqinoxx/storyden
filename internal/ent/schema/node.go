@@ -16,7 +16,7 @@ type Node struct {
 }
 
 func (Node) Mixin() []ent.Mixin {
-	return []ent.Mixin{Identifier{}, CreatedAt{}, UpdatedAt{}, DeletedAt{}, IndexedAt{}}
+	return []ent.Mixin{Identifier{}, CreatedAt{}, UpdatedAt{}, DeletedAt{}, IndexedAt{}, SemdexIndexedAt{}}
 }
 
 func (Node) Fields() []ent.Field {

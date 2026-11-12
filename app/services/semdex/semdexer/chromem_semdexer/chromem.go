@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"strings"
 
 	"github.com/Southclaws/dt"
 	"github.com/Southclaws/fault"
@@ -55,7 +56,7 @@ func New(cfg config.Config, rh *hydrate.Hydrator, aip ai.Prompter) (semdex.Semde
 func (c *chromemRefIndex) Index(ctx context.Context, object datagraph.Item) (int, error) {
 	err := c.c.AddDocument(ctx, chromem.Document{
 		ID:      object.GetID().String(),
-		Content: object.GetContent().Plaintext(),
+		Content: embeddingText(object),
 		Metadata: map[string]string{
 			"datagraph_kind": object.GetKind().String(),
 		},
@@ -65,6 +66,19 @@ func (c *chromemRefIndex) Index(ctx context.Context, object datagraph.Item) (int
 	}
 
 	return 1, nil
+}
+
+func embeddingText(object datagraph.Item) string {
+	body := object.GetContent().Plaintext()
+	name := strings.TrimSpace(object.GetName())
+	if name == "" {
+		return body
+	}
+	return name + "\n\n" + body
+}
+
+func (c *chromemRefIndex) Count(ctx context.Context) (int, error) {
+	return c.c.Count(), nil
 }
 
 func (c *chromemRefIndex) Delete(ctx context.Context, object xid.ID) (int, error) {

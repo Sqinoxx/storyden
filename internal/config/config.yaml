@@ -964,13 +964,33 @@
       description: |-
         The provider for language model features.
 
-        `openai` is currently the only supported provider.
+        `openai` is currently the only supported provider. It works with any OpenAI-compatible API, such as a self-hosted Ollama instance, by setting `OPENAI_BASE_URL`.
 
     - env: "OPENAI_API_KEY"
       name: OpenAIKey
       type: string
       description: |-
-        When `LANGUAGE_MODEL_PROVIDER` is set to `openai`, this is the API key for the OpenAI API.
+        When `LANGUAGE_MODEL_PROVIDER` is set to `openai`, this is the API key for the OpenAI API. Optional when `OPENAI_BASE_URL` points to a server that does not require a key, such as Ollama.
+
+    - env: "OPENAI_BASE_URL"
+      name: OpenAIBaseURL
+      type: string
+      description: |-
+        Base URL of an OpenAI-compatible API. Leave empty for the official OpenAI API. For Ollama use e.g. `http://ollama:11434/v1`.
+
+    - env: "LANGUAGE_MODEL_CHAT_MODEL"
+      name: LanguageModelChatModel
+      type: string
+      default: gpt-4.1
+      description: |-
+        The chat model used for generative features such as tag, title and summary suggestions.
+
+    - env: "LANGUAGE_MODEL_EMBEDDING_MODEL"
+      name: LanguageModelEmbeddingModel
+      type: string
+      default: text-embedding-3-large
+      description: |-
+        The embedding model used by the Semdex.
 
 - section: Semdex
   description: |-

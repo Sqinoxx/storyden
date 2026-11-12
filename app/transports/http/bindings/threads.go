@@ -26,6 +26,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/reqinfo"
+	"github.com/Southclaws/storyden/app/services/semester_suggest"
 	thread_service "github.com/Southclaws/storyden/app/services/thread"
 	"github.com/Southclaws/storyden/app/services/thread_mark"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
@@ -40,6 +41,7 @@ type Threads struct {
 	profileQuery    *profile_querier.Querier
 	settings        *settings.SettingsRepository
 	access          *access_check.Checker
+	semesters       *semester_suggest.Suggester
 }
 
 func NewThreads(
@@ -50,8 +52,9 @@ func NewThreads(
 	profileQuery *profile_querier.Querier,
 	settings *settings.SettingsRepository,
 	access *access_check.Checker,
+	semesters *semester_suggest.Suggester,
 ) Threads {
-	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings, access}
+	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings, access, semesters}
 }
 
 func (i *Threads) pageSizes(ctx context.Context) (replies int, threads int) {
@@ -357,4 +360,35 @@ func deserialiseCategorySlugQueryParam(in *openapi.CategorySlugListQuery) opt.Op
 		Slugs:         *in,
 		Uncategorised: false,
 	})
+}
+
+func (i *Threads) ThreadSuggestSemester(ctx context.Context, request openapi.ThreadSuggestSemesterRequestObject) (openapi.ThreadSuggestSemesterResponseObject, error) {
+	in := semester_suggest.Input{
+		Title:     opt.NewPtr(request.Body.Title).OrZero(),
+		Filenames: opt.NewPtr(request.Body.Filenames).OrZero(),
+	}
+
+	if body := opt.NewPtr(request.Body.Body).OrZero(); body != "" {
+		content, err := datagraph.NewRichText(body)
+		if err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+		}
+		in.Body = content.Plaintext()
+	}
+
+	sug, err := i.semesters.Suggest(ctx, in)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	res := openapi.ThreadSemesterSuggestion{}
+	if sug != nil {
+		res.Term = opt.New(sug.Term.String()).Ptr()
+		res.Source = opt.New(openapi.ThreadSemesterSuggestionSource(sug.Source)).Ptr()
+		res.Evidence = opt.New(sug.Evidence).Ptr()
+	}
+
+	return openapi.ThreadSuggestSemester200JSONResponse{
+		ThreadSuggestSemesterOKJSONResponse: openapi.ThreadSuggestSemesterOKJSONResponse(res),
+	}, nil
 }

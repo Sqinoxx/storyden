@@ -250,6 +250,31 @@ test.describe("Thread Editing", () => {
     ).toBeVisible();
   });
 
+  test("should suggest the semester written in the title", async ({
+    page,
+  }) => {
+    const seed = unique("suggest-semester");
+
+    await registerUser(page, seed);
+    await page.goto("/new");
+    await dismissOnboarding(page);
+
+    const semester = page.locator("main").getByRole("combobox").first();
+    await expect(semester).toBeVisible({ timeout: 5000 });
+
+    await page
+      .getByPlaceholder("Thread title...")
+      .fill(`Altklausur Anatomie WS 22/23 ${seed}`);
+
+    const hint = page.getByText("Detected semester: WS22/23");
+    await expect(hint).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("(from “WS 22/23”)")).toBeVisible();
+
+    await page.getByRole("button", { name: "Apply", exact: true }).click();
+    await expect(semester).toHaveText(/WS22\/23/);
+    await expect(hint).toHaveCount(0);
+  });
+
   test("should change the thread semester", async ({ page }) => {
     const seed = unique("edit-semester");
     const category = `Semester Edit ${seed}`;

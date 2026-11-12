@@ -1,6 +1,8 @@
 package origin
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 
@@ -72,4 +74,23 @@ func TestNormaliseOrigin(t *testing.T) {
 	assert.Equal(t, "", normaliseOrigin(""))
 	assert.Equal(t, "", normaliseOrigin("notaurl"))
 	assert.Equal(t, "", normaliseOrigin("https://"))
+}
+
+func TestCORSExposesContentDisposition(t *testing.T) {
+	cfg := config.Config{
+		PublicWebAddress: mustURL(t, "https://app.example.com"),
+		PublicAPIAddress: mustURL(t, "https://api.example.com"),
+	}
+
+	handler := New(cfg).WithCORS()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Disposition", `attachment; filename="handout.pdf"`)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "https://api.example.com/api/drive/x", nil)
+	req.Header.Set("Origin", "https://app.example.com")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Contains(t, rec.Header().Get("Access-Control-Expose-Headers"), "Content-Disposition")
 }

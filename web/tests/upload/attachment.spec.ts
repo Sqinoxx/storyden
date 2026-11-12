@@ -35,12 +35,12 @@ test.describe("Attachment upload", () => {
 
     // The composer body is populated from the upload responses, so waiting on
     // the rendered markup is also waiting for both uploads to finish.
-    await expect(editor.locator("img")).toBeVisible({ timeout: 15000 });
+    await expect(editor.getByRole("img", { name: "screenshot.png" })).toBeVisible({ timeout: 15000 });
     await expect(
-      editor.locator("a").filter({ hasText: "handout.pdf" }),
+      editor.getByText("handout.pdf"),
     ).toBeVisible({ timeout: 15000 });
 
-    const imageSrc = await editor.locator("img").getAttribute("src");
+    const imageSrc = await editor.getByRole("img", { name: "screenshot.png" }).getAttribute("src");
     expect(imageSrc).toBeTruthy();
 
     await form.getByRole("button", { name: "Post" }).click();

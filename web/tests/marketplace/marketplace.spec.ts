@@ -140,9 +140,9 @@ test.describe("Flea market", () => {
     await expect(whatsapp).toBeVisible({ timeout: 10000 });
     await expect(whatsapp).toHaveAttribute(
       "href",
-      /^https:\/\/wa\.me\/436641112233\?text=/,
+      /^https:\/\/wa\.me\/496641112233\?text=/,
     );
-    await expect(page.getByTestId("contact-phone")).toHaveText("+436641112233");
+    await expect(page.getByTestId("contact-phone")).toHaveText("+496641112233");
 
     page = sellerPage;
     await page.goto(listingURL);

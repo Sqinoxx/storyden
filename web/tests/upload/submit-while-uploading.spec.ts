@@ -4,7 +4,9 @@ import {
   createThread,
   dismissOnboarding,
   dropFiles,
+  ensureThreadCategory,
   registerUser,
+  selectThreadCategory,
   unique,
 } from "../helpers";
 
@@ -39,26 +41,24 @@ test.describe("Submitting while an upload is in flight", () => {
     await page.goto(`${url}?edit=true`);
     await dismissOnboarding(page);
 
-    const form = page
-      .locator("form")
-      .filter({ has: page.getByRole("button", { name: "Save" }) })
-      .first();
-    const save = form.getByRole("button", { name: "Save" });
-    const composer = form.locator("[id^='rich-text-editor-']").first();
+    const article = page.locator("main article").first();
+    // Its label switches to "Uploading..." while a file is in flight.
+    const save = page.locator('main button[type="submit"][form]');
+    const composer = article.locator("[id^='rich-text-editor-']").first();
     await expect(composer).toBeVisible({ timeout: 10000 });
     await expect(save).toBeEnabled();
 
     const release = await holdUploads(page);
 
     await dropFiles(page, composer, [
-      { name: "altklausur.pdf", mimeType: "application/pdf", buffer: PDF },
+      { name: "edit-handout.pdf", mimeType: "application/pdf", buffer: PDF },
     ]);
 
     await expect(save).toBeDisabled({ timeout: 5000 });
 
     release();
 
-    await expect(form.getByText(/altklausur/i).first()).toBeVisible({
+    await expect(article.getByText(/edit.handout/i).first()).toBeVisible({
       timeout: 15000,
     });
     await expect(save).toBeEnabled({ timeout: 15000 });
@@ -68,7 +68,7 @@ test.describe("Submitting while an upload is in flight", () => {
 
     await page.reload();
     await dismissOnboarding(page);
-    await expect(page.getByText(/altklausur/i).first()).toBeVisible({
+    await expect(page.getByText(/edit.handout/i).first()).toBeVisible({
       timeout: 15000,
     });
   });
@@ -76,6 +76,7 @@ test.describe("Submitting while an upload is in flight", () => {
   test("new post holds publish until the dropped file has uploaded", async ({
     page,
   }) => {
+    await ensureThreadCategory();
     await registerUser(page, unique("composeupload"));
 
     await page.getByRole("link", { name: "Post", exact: true }).first().click();
@@ -83,8 +84,9 @@ test.describe("Submitting while an upload is in flight", () => {
 
     await page.locator("#title-input").fill(unique("Post with upload"));
     await page.locator(".ProseMirror").first().fill("Body with a file.");
+    await selectThreadCategory(page);
 
-    const post = page.getByRole("button", { name: "Post" });
+    const post = page.locator("main form button[type='submit']").first();
     await expect(post).toBeEnabled({ timeout: 10000 });
 
     const release = await holdUploads(page);

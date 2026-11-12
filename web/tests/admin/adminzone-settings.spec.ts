@@ -142,7 +142,7 @@ test.describe("AdminZone Feed Settings", () => {
       page.getByText("Thread list display", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("img", { name: "Discussion categories" }),
+      page.locator("main").getByRole("button", { name: "Create" }),
     ).toBeVisible();
 
     await chooseSelectOption(page, layoutSelect, "grid");

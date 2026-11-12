@@ -85,6 +85,26 @@ func (_u *NodeUpdate) ClearIndexedAt() *NodeUpdate {
 	return _u
 }
 
+// SetSemdexIndexedAt sets the "semdex_indexed_at" field.
+func (_u *NodeUpdate) SetSemdexIndexedAt(v time.Time) *NodeUpdate {
+	_u.mutation.SetSemdexIndexedAt(v)
+	return _u
+}
+
+// SetNillableSemdexIndexedAt sets the "semdex_indexed_at" field if the given value is not nil.
+func (_u *NodeUpdate) SetNillableSemdexIndexedAt(v *time.Time) *NodeUpdate {
+	if v != nil {
+		_u.SetSemdexIndexedAt(*v)
+	}
+	return _u
+}
+
+// ClearSemdexIndexedAt clears the value of the "semdex_indexed_at" field.
+func (_u *NodeUpdate) ClearSemdexIndexedAt() *NodeUpdate {
+	_u.mutation.ClearSemdexIndexedAt()
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *NodeUpdate) SetName(v string) *NodeUpdate {
 	_u.mutation.SetName(v)
@@ -760,6 +780,12 @@ func (_u *NodeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.IndexedAtCleared() {
 		_spec.ClearField(node.FieldIndexedAt, field.TypeTime)
 	}
+	if value, ok := _u.mutation.SemdexIndexedAt(); ok {
+		_spec.SetField(node.FieldSemdexIndexedAt, field.TypeTime, value)
+	}
+	if _u.mutation.SemdexIndexedAtCleared() {
+		_spec.ClearField(node.FieldSemdexIndexedAt, field.TypeTime)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(node.FieldName, field.TypeString, value)
 	}
@@ -1359,6 +1385,26 @@ func (_u *NodeUpdateOne) SetNillableIndexedAt(v *time.Time) *NodeUpdateOne {
 // ClearIndexedAt clears the value of the "indexed_at" field.
 func (_u *NodeUpdateOne) ClearIndexedAt() *NodeUpdateOne {
 	_u.mutation.ClearIndexedAt()
+	return _u
+}
+
+// SetSemdexIndexedAt sets the "semdex_indexed_at" field.
+func (_u *NodeUpdateOne) SetSemdexIndexedAt(v time.Time) *NodeUpdateOne {
+	_u.mutation.SetSemdexIndexedAt(v)
+	return _u
+}
+
+// SetNillableSemdexIndexedAt sets the "semdex_indexed_at" field if the given value is not nil.
+func (_u *NodeUpdateOne) SetNillableSemdexIndexedAt(v *time.Time) *NodeUpdateOne {
+	if v != nil {
+		_u.SetSemdexIndexedAt(*v)
+	}
+	return _u
+}
+
+// ClearSemdexIndexedAt clears the value of the "semdex_indexed_at" field.
+func (_u *NodeUpdateOne) ClearSemdexIndexedAt() *NodeUpdateOne {
+	_u.mutation.ClearSemdexIndexedAt()
 	return _u
 }
 
@@ -2066,6 +2112,12 @@ func (_u *NodeUpdateOne) sqlSave(ctx context.Context) (_node *Node, err error) {
 	}
 	if _u.mutation.IndexedAtCleared() {
 		_spec.ClearField(node.FieldIndexedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.SemdexIndexedAt(); ok {
+		_spec.SetField(node.FieldSemdexIndexedAt, field.TypeTime, value)
+	}
+	if _u.mutation.SemdexIndexedAtCleared() {
+		_spec.ClearField(node.FieldSemdexIndexedAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(node.FieldName, field.TypeString, value)

@@ -30,6 +30,8 @@ type Post struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// IndexedAt holds the value of the "indexed_at" field.
 	IndexedAt *time.Time `json:"indexed_at,omitempty"`
+	// SemdexIndexedAt holds the value of the "semdex_indexed_at" field.
+	SemdexIndexedAt *time.Time `json:"semdex_indexed_at,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Slug holds the value of the "slug" field.
@@ -268,7 +270,7 @@ func (*Post) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case post.FieldTitle, post.FieldSlug, post.FieldBody, post.FieldShort, post.FieldVisibility:
 			values[i] = new(sql.NullString)
-		case post.FieldCreatedAt, post.FieldUpdatedAt, post.FieldDeletedAt, post.FieldIndexedAt, post.FieldLastReplyAt:
+		case post.FieldCreatedAt, post.FieldUpdatedAt, post.FieldDeletedAt, post.FieldIndexedAt, post.FieldSemdexIndexedAt, post.FieldLastReplyAt:
 			values[i] = new(sql.NullTime)
 		case post.FieldID, post.FieldAccountPosts, post.FieldCategoryID, post.FieldLinkID:
 			values[i] = new(xid.ID)
@@ -318,6 +320,13 @@ func (_m *Post) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IndexedAt = new(time.Time)
 				*_m.IndexedAt = value.Time
+			}
+		case post.FieldSemdexIndexedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field semdex_indexed_at", values[i])
+			} else if value.Valid {
+				_m.SemdexIndexedAt = new(time.Time)
+				*_m.SemdexIndexedAt = value.Time
 			}
 		case post.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -530,6 +539,11 @@ func (_m *Post) String() string {
 	builder.WriteString(", ")
 	if v := _m.IndexedAt; v != nil {
 		builder.WriteString("indexed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.SemdexIndexedAt; v != nil {
+		builder.WriteString("semdex_indexed_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")

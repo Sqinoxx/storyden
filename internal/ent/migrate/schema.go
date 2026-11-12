@@ -928,6 +928,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "indexed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "semdex_indexed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "slug", Type: field.TypeString, Unique: true},
 		{Name: "description", Type: field.TypeString, Nullable: true},
@@ -951,37 +952,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "nodes_accounts_nodes",
-				Columns:    []*schema.Column{NodesColumns[13]},
+				Columns:    []*schema.Column{NodesColumns[14]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "nodes_links_nodes",
-				Columns:    []*schema.Column{NodesColumns[14]},
+				Columns:    []*schema.Column{NodesColumns[15]},
 				RefColumns: []*schema.Column{LinksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "nodes_nodes_nodes",
-				Columns:    []*schema.Column{NodesColumns[15]},
+				Columns:    []*schema.Column{NodesColumns[16]},
 				RefColumns: []*schema.Column{NodesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "nodes_assets_primary_image",
-				Columns:    []*schema.Column{NodesColumns[16]},
+				Columns:    []*schema.Column{NodesColumns[17]},
 				RefColumns: []*schema.Column{AssetsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "nodes_node_versions_current_for_nodes",
-				Columns:    []*schema.Column{NodesColumns[17]},
+				Columns:    []*schema.Column{NodesColumns[18]},
 				RefColumns: []*schema.Column{NodeVersionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "nodes_property_schemas_node",
-				Columns:    []*schema.Column{NodesColumns[18]},
+				Columns:    []*schema.Column{NodesColumns[19]},
 				RefColumns: []*schema.Column{PropertySchemasColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -990,7 +991,7 @@ var (
 			{
 				Name:    "node_slug",
 				Unique:  false,
-				Columns: []*schema.Column{NodesColumns[6]},
+				Columns: []*schema.Column{NodesColumns[7]},
 			},
 		},
 	}
@@ -1441,6 +1442,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "indexed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "semdex_indexed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "title", Type: field.TypeString, Nullable: true},
 		{Name: "slug", Type: field.TypeString, Nullable: true},
 		{Name: "pinned_rank", Type: field.TypeInt, Default: 0},
@@ -1463,31 +1465,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "posts_accounts_posts",
-				Columns:    []*schema.Column{PostsColumns[13]},
+				Columns:    []*schema.Column{PostsColumns[14]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "posts_categories_posts",
-				Columns:    []*schema.Column{PostsColumns[14]},
+				Columns:    []*schema.Column{PostsColumns[15]},
 				RefColumns: []*schema.Column{CategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "posts_links_posts",
-				Columns:    []*schema.Column{PostsColumns[15]},
+				Columns:    []*schema.Column{PostsColumns[16]},
 				RefColumns: []*schema.Column{LinksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "posts_posts_posts",
-				Columns:    []*schema.Column{PostsColumns[16]},
+				Columns:    []*schema.Column{PostsColumns[17]},
 				RefColumns: []*schema.Column{PostsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "posts_posts_replies",
-				Columns:    []*schema.Column{PostsColumns[17]},
+				Columns:    []*schema.Column{PostsColumns[18]},
 				RefColumns: []*schema.Column{PostsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1496,17 +1498,17 @@ var (
 			{
 				Name:    "post_root_post_id_deleted_at_visibility_pinned_rank_last_reply_at",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[16], PostsColumns[3], PostsColumns[12], PostsColumns[7], PostsColumns[8]},
+				Columns: []*schema.Column{PostsColumns[17], PostsColumns[3], PostsColumns[13], PostsColumns[8], PostsColumns[9]},
 			},
 			{
 				Name:    "post_root_post_id_deleted_at_visibility_category_id_pinned_rank_last_reply_at",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[16], PostsColumns[3], PostsColumns[12], PostsColumns[14], PostsColumns[7], PostsColumns[8]},
+				Columns: []*schema.Column{PostsColumns[17], PostsColumns[3], PostsColumns[13], PostsColumns[15], PostsColumns[8], PostsColumns[9]},
 			},
 			{
 				Name:    "post_root_post_id_deleted_at_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[16], PostsColumns[3], PostsColumns[1]},
+				Columns: []*schema.Column{PostsColumns[17], PostsColumns[3], PostsColumns[1]},
 			},
 		},
 	}

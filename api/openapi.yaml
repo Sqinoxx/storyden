@@ -3476,6 +3476,24 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorised" }
         "200": { $ref: "#/components/responses/ThreadListOK" }
 
+  /threads/semester-suggestion:
+    post:
+      operationId: ThreadSuggestSemester
+      x-storyden: { rate-limit-cost: 5 }
+      description: |
+        Suggest the academic term (semester) a thread being composed belongs
+        to. Explicitly written terms such as "WS 22/23" are detected directly.
+        Indirect references such as dates are only suggested when a language
+        model confirms they describe the thread's exam or course. Returns an
+        empty result when no term can be determined with high confidence.
+      tags: [threads]
+      requestBody: { $ref: "#/components/requestBodies/ThreadSuggestSemester" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200": { $ref: "#/components/responses/ThreadSuggestSemesterOK" }
+
   /threads/{thread_mark}:
     get:
       operationId: ThreadGet
@@ -6642,6 +6660,11 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/CategoryDeleteProps" }
 
+    ThreadSuggestSemester:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ThreadSemesterSuggestionRequest" }
+
     ThreadCreate:
       content:
         application/json:
@@ -7606,6 +7629,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Tag"
+
+    ThreadSuggestSemesterOK:
+      description: Semester suggestion, empty when nothing was detected.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ThreadSemesterSuggestion" }
 
     ThreadCreateOK:
       description: Thread created.
@@ -12807,6 +12836,36 @@ components:
           required: [replies]
           properties:
             replies: { $ref: "#/components/schemas/PaginatedReplyList" }
+
+    ThreadSemesterSuggestionRequest:
+      type: object
+      properties:
+        title: { type: string }
+        body:
+          type: string
+          description: The rich text body as currently written in the editor.
+        filenames:
+          type: array
+          description: Names of attached files, which often contain the term.
+          items: { type: string }
+
+    ThreadSemesterSuggestion:
+      type: object
+      properties:
+        term:
+          type: string
+          description: |
+            The suggested term as YEAR-WS or YEAR-SS, where YEAR is the year
+            the term begins in. Absent when nothing was detected.
+        source:
+          type: string
+          enum: [pattern, model]
+          description: |
+            pattern when the term is written explicitly, model when an indirect
+            reference was confirmed by the language model.
+        evidence:
+          type: string
+          description: The passage the suggestion is based on.
 
     ThreadInitialProps:
       type: object

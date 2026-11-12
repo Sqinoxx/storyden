@@ -112,8 +112,39 @@ services:
       - RATE_LIMIT=${RATE_LIMIT:-5000}
       - RATE_LIMIT_PERIOD=${RATE_LIMIT_PERIOD:-1h}
 
+      # --- KI (optional, lokal ueber Ollama, siehe Anleitung.md "KI") ---
+      # Standardmaessig aus. Aktivieren per .env:
+      #   LANGUAGE_MODEL_PROVIDER=openai
+      #   OPENAI_BASE_URL=http://ollama:11434/v1
+      #   SEMDEX_PROVIDER=chromem
+      # und "docker compose --profile ai up -d".
+      - LANGUAGE_MODEL_PROVIDER=${LANGUAGE_MODEL_PROVIDER:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - LANGUAGE_MODEL_CHAT_MODEL=${LANGUAGE_MODEL_CHAT_MODEL:-qwen2.5:3b}
+      - LANGUAGE_MODEL_EMBEDDING_MODEL=${LANGUAGE_MODEL_EMBEDDING_MODEL:-bge-m3}
+      - SEMDEX_PROVIDER=${SEMDEX_PROVIDER:-}
+
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - LOG_FORMAT=${LOG_FORMAT:-json}
+
+  # Lokale KI (kostenlos, keine Daten verlassen den Server). Startet nur mit
+  # "docker compose --profile ai up -d". 8 GB RAM ohne GPU: kleine Modelle,
+  # Speicher auf 4 GB begrenzt, damit Postgres und Storyden Luft behalten.
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    logging: *default-logging
+    profiles: ["ai"]
+    expose:
+      - "11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    mem_limit: 4g
+    environment:
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=2
+      - OLLAMA_KEEP_ALIVE=30m
 
   caddy:
     image: caddy:2-alpine
@@ -158,3 +189,4 @@ volumes:
   postgres-data:
   caddy_data:
   caddy_config:
+  ollama-data:

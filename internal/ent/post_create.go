@@ -83,6 +83,20 @@ func (_c *PostCreate) SetNillableIndexedAt(v *time.Time) *PostCreate {
 	return _c
 }
 
+// SetSemdexIndexedAt sets the "semdex_indexed_at" field.
+func (_c *PostCreate) SetSemdexIndexedAt(v time.Time) *PostCreate {
+	_c.mutation.SetSemdexIndexedAt(v)
+	return _c
+}
+
+// SetNillableSemdexIndexedAt sets the "semdex_indexed_at" field if the given value is not nil.
+func (_c *PostCreate) SetNillableSemdexIndexedAt(v *time.Time) *PostCreate {
+	if v != nil {
+		_c.SetSemdexIndexedAt(*v)
+	}
+	return _c
+}
+
 // SetTitle sets the "title" field.
 func (_c *PostCreate) SetTitle(v string) *PostCreate {
 	_c.mutation.SetTitle(v)
@@ -607,6 +621,10 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 		_spec.SetField(post.FieldIndexedAt, field.TypeTime, value)
 		_node.IndexedAt = &value
 	}
+	if value, ok := _c.mutation.SemdexIndexedAt(); ok {
+		_spec.SetField(post.FieldSemdexIndexedAt, field.TypeTime, value)
+		_node.SemdexIndexedAt = &value
+	}
 	if value, ok := _c.mutation.Title(); ok {
 		_spec.SetField(post.FieldTitle, field.TypeString, value)
 		_node.Title = value
@@ -1000,6 +1018,24 @@ func (u *PostUpsert) ClearIndexedAt() *PostUpsert {
 	return u
 }
 
+// SetSemdexIndexedAt sets the "semdex_indexed_at" field.
+func (u *PostUpsert) SetSemdexIndexedAt(v time.Time) *PostUpsert {
+	u.Set(post.FieldSemdexIndexedAt, v)
+	return u
+}
+
+// UpdateSemdexIndexedAt sets the "semdex_indexed_at" field to the value that was provided on create.
+func (u *PostUpsert) UpdateSemdexIndexedAt() *PostUpsert {
+	u.SetExcluded(post.FieldSemdexIndexedAt)
+	return u
+}
+
+// ClearSemdexIndexedAt clears the value of the "semdex_indexed_at" field.
+func (u *PostUpsert) ClearSemdexIndexedAt() *PostUpsert {
+	u.SetNull(post.FieldSemdexIndexedAt)
+	return u
+}
+
 // SetTitle sets the "title" field.
 func (u *PostUpsert) SetTitle(v string) *PostUpsert {
 	u.Set(post.FieldTitle, v)
@@ -1308,6 +1344,27 @@ func (u *PostUpsertOne) UpdateIndexedAt() *PostUpsertOne {
 func (u *PostUpsertOne) ClearIndexedAt() *PostUpsertOne {
 	return u.Update(func(s *PostUpsert) {
 		s.ClearIndexedAt()
+	})
+}
+
+// SetSemdexIndexedAt sets the "semdex_indexed_at" field.
+func (u *PostUpsertOne) SetSemdexIndexedAt(v time.Time) *PostUpsertOne {
+	return u.Update(func(s *PostUpsert) {
+		s.SetSemdexIndexedAt(v)
+	})
+}
+
+// UpdateSemdexIndexedAt sets the "semdex_indexed_at" field to the value that was provided on create.
+func (u *PostUpsertOne) UpdateSemdexIndexedAt() *PostUpsertOne {
+	return u.Update(func(s *PostUpsert) {
+		s.UpdateSemdexIndexedAt()
+	})
+}
+
+// ClearSemdexIndexedAt clears the value of the "semdex_indexed_at" field.
+func (u *PostUpsertOne) ClearSemdexIndexedAt() *PostUpsertOne {
+	return u.Update(func(s *PostUpsert) {
+		s.ClearSemdexIndexedAt()
 	})
 }
 
@@ -1820,6 +1877,27 @@ func (u *PostUpsertBulk) UpdateIndexedAt() *PostUpsertBulk {
 func (u *PostUpsertBulk) ClearIndexedAt() *PostUpsertBulk {
 	return u.Update(func(s *PostUpsert) {
 		s.ClearIndexedAt()
+	})
+}
+
+// SetSemdexIndexedAt sets the "semdex_indexed_at" field.
+func (u *PostUpsertBulk) SetSemdexIndexedAt(v time.Time) *PostUpsertBulk {
+	return u.Update(func(s *PostUpsert) {
+		s.SetSemdexIndexedAt(v)
+	})
+}
+
+// UpdateSemdexIndexedAt sets the "semdex_indexed_at" field to the value that was provided on create.
+func (u *PostUpsertBulk) UpdateSemdexIndexedAt() *PostUpsertBulk {
+	return u.Update(func(s *PostUpsert) {
+		s.UpdateSemdexIndexedAt()
+	})
+}
+
+// ClearSemdexIndexedAt clears the value of the "semdex_indexed_at" field.
+func (u *PostUpsertBulk) ClearSemdexIndexedAt() *PostUpsertBulk {
+	return u.Update(func(s *PostUpsert) {
+		s.ClearSemdexIndexedAt()
 	})
 }
 

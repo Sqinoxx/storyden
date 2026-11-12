@@ -24,6 +24,8 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// FieldIndexedAt holds the string denoting the indexed_at field in the database.
 	FieldIndexedAt = "indexed_at"
+	// FieldSemdexIndexedAt holds the string denoting the semdex_indexed_at field in the database.
+	FieldSemdexIndexedAt = "semdex_indexed_at"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
 	// FieldSlug holds the string denoting the slug field in the database.
@@ -185,6 +187,7 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldDeletedAt,
 	FieldIndexedAt,
+	FieldSemdexIndexedAt,
 	FieldTitle,
 	FieldSlug,
 	FieldPinnedRank,
@@ -290,6 +293,11 @@ func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByIndexedAt orders the results by the indexed_at field.
 func ByIndexedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIndexedAt, opts...).ToFunc()
+}
+
+// BySemdexIndexedAt orders the results by the semdex_indexed_at field.
+func BySemdexIndexedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSemdexIndexedAt, opts...).ToFunc()
 }
 
 // ByTitle orders the results by the title field.

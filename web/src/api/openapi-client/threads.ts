@@ -14,6 +14,7 @@ import type { SWRMutationConfiguration } from "swr/mutation";
 
 import { fetcher } from "../client";
 import type {
+  BadRequestResponse,
   InternalServerErrorResponse,
   NotFoundResponse,
   NotModifiedResponse,
@@ -23,6 +24,8 @@ import type {
   ThreadGetResponse,
   ThreadListOKResponse,
   ThreadListParams,
+  ThreadSuggestSemesterBody,
+  ThreadSuggestSemesterOKResponse,
   ThreadUpdateBody,
   ThreadUpdateOKResponse,
   UnauthorisedResponse,
@@ -132,6 +135,70 @@ export const useThreadList = <
     swrFn,
     swrOptions,
   );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Suggest the academic term (semester) a thread being composed belongs
+to. Explicitly written terms such as "WS 22/23" are detected directly.
+Indirect references such as dates are only suggested when a language
+model confirms they describe the thread's exam or course. Returns an
+empty result when no term can be determined with high confidence.
+
+ */
+export const threadSuggestSemester = (
+  threadSuggestSemesterBody: ThreadSuggestSemesterBody,
+) => {
+  return fetcher<ThreadSuggestSemesterOKResponse>({
+    url: `/threads/semester-suggestion`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: threadSuggestSemesterBody,
+  });
+};
+
+export const getThreadSuggestSemesterMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: ThreadSuggestSemesterBody },
+  ): Promise<ThreadSuggestSemesterOKResponse> => {
+    return threadSuggestSemester(arg);
+  };
+};
+export const getThreadSuggestSemesterMutationKey = () =>
+  [`/threads/semester-suggestion`] as const;
+
+export type ThreadSuggestSemesterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof threadSuggestSemester>>
+>;
+export type ThreadSuggestSemesterMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useThreadSuggestSemester = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof threadSuggestSemester>>,
+    TError,
+    Key,
+    ThreadSuggestSemesterBody,
+    Awaited<ReturnType<typeof threadSuggestSemester>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getThreadSuggestSemesterMutationKey();
+  const swrFn = getThreadSuggestSemesterMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,

@@ -76,6 +76,11 @@ func IndexedAt(v time.Time) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldIndexedAt, v))
 }
 
+// SemdexIndexedAt applies equality check predicate on the "semdex_indexed_at" field. It's identical to SemdexIndexedAtEQ.
+func SemdexIndexedAt(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldSemdexIndexedAt, v))
+}
+
 // Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
 func Title(v string) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldTitle, v))
@@ -309,6 +314,56 @@ func IndexedAtIsNil() predicate.Post {
 // IndexedAtNotNil applies the NotNil predicate on the "indexed_at" field.
 func IndexedAtNotNil() predicate.Post {
 	return predicate.Post(sql.FieldNotNull(FieldIndexedAt))
+}
+
+// SemdexIndexedAtEQ applies the EQ predicate on the "semdex_indexed_at" field.
+func SemdexIndexedAtEQ(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldSemdexIndexedAt, v))
+}
+
+// SemdexIndexedAtNEQ applies the NEQ predicate on the "semdex_indexed_at" field.
+func SemdexIndexedAtNEQ(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldSemdexIndexedAt, v))
+}
+
+// SemdexIndexedAtIn applies the In predicate on the "semdex_indexed_at" field.
+func SemdexIndexedAtIn(vs ...time.Time) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldSemdexIndexedAt, vs...))
+}
+
+// SemdexIndexedAtNotIn applies the NotIn predicate on the "semdex_indexed_at" field.
+func SemdexIndexedAtNotIn(vs ...time.Time) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldSemdexIndexedAt, vs...))
+}
+
+// SemdexIndexedAtGT applies the GT predicate on the "semdex_indexed_at" field.
+func SemdexIndexedAtGT(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldSemdexIndexedAt, v))
+}
+
+// SemdexIndexedAtGTE applies the GTE predicate on the "semdex_indexed_at" field.
+func SemdexIndexedAtGTE(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldSemdexIndexedAt, v))
+}
+
+// SemdexIndexedAtLT applies the LT predicate on the "semdex_indexed_at" field.
+func SemdexIndexedAtLT(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldSemdexIndexedAt, v))
+}
+
+// SemdexIndexedAtLTE applies the LTE predicate on the "semdex_indexed_at" field.
+func SemdexIndexedAtLTE(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldSemdexIndexedAt, v))
+}
+
+// SemdexIndexedAtIsNil applies the IsNil predicate on the "semdex_indexed_at" field.
+func SemdexIndexedAtIsNil() predicate.Post {
+	return predicate.Post(sql.FieldIsNull(FieldSemdexIndexedAt))
+}
+
+// SemdexIndexedAtNotNil applies the NotNil predicate on the "semdex_indexed_at" field.
+func SemdexIndexedAtNotNil() predicate.Post {
+	return predicate.Post(sql.FieldNotNull(FieldSemdexIndexedAt))
 }
 
 // TitleEQ applies the EQ predicate on the "title" field.

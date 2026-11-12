@@ -22,6 +22,10 @@ type Mutator interface {
 	Delete(ctx context.Context, object xid.ID) (int, error)
 }
 
+type Counter interface {
+	Count(ctx context.Context) (int, error)
+}
+
 type Querier interface {
 	Searcher
 	Recommender

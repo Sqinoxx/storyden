@@ -594,11 +594,17 @@ type Config struct {
 	/*
 	   The provider for language model features.
 
-	   `openai` is currently the only supported provider.
+	   `openai` is currently the only supported provider. It works with any OpenAI-compatible API, such as a self-hosted Ollama instance, by setting `OPENAI_BASE_URL`.
 	*/
 	LanguageModelProvider string `envconfig:"LANGUAGE_MODEL_PROVIDER"`
-	// When `LANGUAGE_MODEL_PROVIDER` is set to `openai`, this is the API key for the OpenAI API.
+	// When `LANGUAGE_MODEL_PROVIDER` is set to `openai`, this is the API key for the OpenAI API. Optional when `OPENAI_BASE_URL` points to a server that does not require a key, such as Ollama.
 	OpenAIKey string `envconfig:"OPENAI_API_KEY"`
+	// Base URL of an OpenAI-compatible API. Leave empty for the official OpenAI API. For Ollama use e.g. `http://ollama:11434/v1`.
+	OpenAIBaseURL string `envconfig:"OPENAI_BASE_URL"`
+	// The chat model used for generative features such as tag, title and summary suggestions.
+	LanguageModelChatModel string `default:"gpt-4.1" envconfig:"LANGUAGE_MODEL_CHAT_MODEL"`
+	// The embedding model used by the Semdex.
+	LanguageModelEmbeddingModel string `default:"text-embedding-3-large" envconfig:"LANGUAGE_MODEL_EMBEDDING_MODEL"`
 
 	// -
 	// Semdex

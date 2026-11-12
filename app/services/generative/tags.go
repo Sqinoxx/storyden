@@ -15,7 +15,7 @@ import (
 	"github.com/Southclaws/storyden/internal/infrastructure/ai"
 )
 
-var SuggestTagsPrompt = template.Must(template.New("").Parse(`Analyze the provided content and generate up to three relevant tags. Tags are either single words or multiple words separated only by a hyphen, no spaces.
+var SuggestTagsPrompt = template.Must(template.New("").Parse(`Analyze the provided content and generate up to three relevant tags. Write new tags in the same language as the content. Tags are either single words or multiple words separated only by a hyphen, no spaces.
 
 It's very important that only tags that are relevant to the content are returned, any tags of low confidence MUST be omitted. Do not generate tags that are too vague or tags that are too specific and cannot easily be used in other contexts for other types of content. Generally avoid tags that are singular and not plural that too closely match phrases or words in the content.
 

@@ -46,6 +46,9 @@ export const DefaultFrontendConfig = {
   semester: {
     legacyLabel: "",
   },
+  ai: {
+    tagMeanings: "",
+  },
   logo: {
     light: "",
     dark: "",
@@ -89,6 +92,11 @@ export const FrontendConfigurationSchema = z
         legacyLabel: z.string().max(32).default(""),
       })
       .default({ legacyLabel: "" }),
+    ai: z
+      .object({
+        tagMeanings: z.string().max(10000).default(""),
+      })
+      .default({ tagMeanings: "" }),
     logo: LogoSettingsSchema.default(DefaultLogoSettings),
   })
   .default(DefaultFrontendConfig);

@@ -27,6 +27,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/reqinfo"
 	"github.com/Southclaws/storyden/app/services/semester_suggest"
+	"github.com/Southclaws/storyden/app/services/tag/tag_suggest"
 	thread_service "github.com/Southclaws/storyden/app/services/thread"
 	"github.com/Southclaws/storyden/app/services/thread_mark"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
@@ -42,6 +43,7 @@ type Threads struct {
 	settings        *settings.SettingsRepository
 	access          *access_check.Checker
 	semesters       *semester_suggest.Suggester
+	tagSuggester    *tag_suggest.Suggester
 }
 
 func NewThreads(
@@ -53,8 +55,9 @@ func NewThreads(
 	settings *settings.SettingsRepository,
 	access *access_check.Checker,
 	semesters *semester_suggest.Suggester,
+	tagSuggester *tag_suggest.Suggester,
 ) Threads {
-	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings, access, semesters}
+	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings, access, semesters, tagSuggester}
 }
 
 func (i *Threads) pageSizes(ctx context.Context) (replies int, threads int) {
@@ -390,5 +393,28 @@ func (i *Threads) ThreadSuggestSemester(ctx context.Context, request openapi.Thr
 
 	return openapi.ThreadSuggestSemester200JSONResponse{
 		ThreadSuggestSemesterOKJSONResponse: openapi.ThreadSuggestSemesterOKJSONResponse(res),
+	}, nil
+}
+
+func (i *Threads) ThreadSuggestTags(ctx context.Context, request openapi.ThreadSuggestTagsRequestObject) (openapi.ThreadSuggestTagsResponseObject, error) {
+	body := ""
+	if raw := opt.NewPtr(request.Body.Body).OrZero(); raw != "" {
+		content, err := datagraph.NewRichText(raw)
+		if err != nil {
+			return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+		}
+		body = content.Plaintext()
+	}
+
+	tags, err := i.tagSuggester.Suggest(ctx, opt.NewPtr(request.Body.Title).OrZero(), body)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	if tags == nil {
+		tags = []string{}
+	}
+
+	return openapi.ThreadSuggestTags200JSONResponse{
+		ThreadSuggestTagsOKJSONResponse: openapi.ThreadSuggestTagsOKJSONResponse{Tags: tags},
 	}, nil
 }

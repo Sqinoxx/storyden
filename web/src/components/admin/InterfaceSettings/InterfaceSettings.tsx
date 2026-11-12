@@ -150,6 +150,29 @@ export function InterfaceSettingsForm(props: Props) {
             under it. Leave empty to show the regular semester name.
           </FormHelperText>
         </FormControl>
+
+        <FormControl>
+          <FormLabel>AI tag meanings</FormLabel>
+          <styled.textarea
+            {...register("aiTagMeanings")}
+            width="full"
+            borderWidth="thin"
+            borderRadius="sm"
+            borderColor="border.default"
+            padding="2"
+            fontFamily="mono"
+            fontSize="sm"
+            rows={8}
+            placeholder={
+              "endo: endodontics (root canal treatment)\nkfo: orthodontics (braces, brackets, aligners)"
+            }
+          />
+          <FormHelperText>
+            One tag per line as &quot;tag: meaning&quot;. While a thread is
+            written, the AI adds matching tags automatically, but only tags
+            listed here. Leave out tags whose meaning is ambiguous.
+          </FormHelperText>
+        </FormControl>
       </CardBox>
     </styled.form>
   );

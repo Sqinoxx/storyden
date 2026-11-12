@@ -730,6 +730,10 @@ func (m *Mapping) ThreadSuggestSemester() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionCreatePost
 }
 
+func (m *Mapping) ThreadSuggestTags() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionCreatePost
+}
+
 func (m *Mapping) ThreadList() (bool, *rbac.Permission) {
 	return false, &rbac.PermissionReadPublishedThreads
 }

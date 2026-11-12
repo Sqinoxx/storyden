@@ -190,6 +190,7 @@ type OperationPermissions interface {
 	ThreadCreate() (bool, *rbac.Permission)
 	ThreadList() (bool, *rbac.Permission)
 	ThreadSuggestSemester() (bool, *rbac.Permission)
+	ThreadSuggestTags() (bool, *rbac.Permission)
 	ThreadGet() (bool, *rbac.Permission)
 	ThreadUpdate() (bool, *rbac.Permission)
 	ThreadDelete() (bool, *rbac.Permission)
@@ -672,6 +673,8 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.ThreadList()
 	case "ThreadSuggestSemester":
 		return optable.ThreadSuggestSemester()
+	case "ThreadSuggestTags":
+		return optable.ThreadSuggestTags()
 	case "ThreadGet":
 		return optable.ThreadGet()
 	case "ThreadUpdate":

@@ -250,6 +250,41 @@ test.describe("Thread Editing", () => {
     ).toBeVisible();
   });
 
+  test("should add AI suggested tags in the background", async ({ page }) => {
+    const seed = unique("ai-tags");
+    const tag = `aitag${seed.replace(/[^a-z0-9]/gi, "").toLowerCase()}`;
+
+    await withAdminAccessKey(({ threadCreate }) =>
+      threadCreate({
+        title: `Tag seed ${seed}`,
+        body: "Seeds the tag",
+        tags: [tag],
+        visibility: "published",
+      }),
+    );
+
+    const requests: unknown[] = [];
+    await page.route("**/threads/tag-suggestion", async (route) => {
+      requests.push(route.request().postDataJSON());
+      await route.fulfill({ json: { tags: [tag] } });
+    });
+
+    await registerUser(page, seed);
+    await page.goto("/new");
+    await dismissOnboarding(page);
+
+    await page.getByPlaceholder("Thread title...").fill("Hirnnerven lernen");
+    await page
+      .locator(".ProseMirror")
+      .first()
+      .fill("Hat jemand eine gute Eselsbrücke für die Hirnnerven?");
+
+    await expect(page.locator("main").getByText(tag)).toBeVisible({
+      timeout: 10000,
+    });
+    expect(requests.length).toBeGreaterThan(0);
+  });
+
   test("should suggest the semester written in the title", async ({
     page,
   }) => {

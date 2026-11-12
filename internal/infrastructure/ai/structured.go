@@ -13,14 +13,25 @@ import (
 )
 
 func PromptObject[T any](ctx context.Context, prompter Prompter, description, input string, schema T) (*T, error) {
-	s, ok := prompter.(*OpenAI)
-	if !ok {
-		return nil, fault.New("structured prompt only supported with OpenAI prompter")
-	}
-
 	serialisedSchema, err := schemaFromObjectInstance(schema)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	var result T
+	if err := PromptSchema(ctx, prompter, description, input, serialisedSchema, &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// PromptSchema is PromptObject for schemas built at runtime, such as one that
+// constrains a field to an enum of values loaded from the database.
+func PromptSchema(ctx context.Context, prompter Prompter, description, input string, schema any, out any) error {
+	s, ok := prompter.(*OpenAI)
+	if !ok {
+		return fault.New("structured prompt only supported with OpenAI prompter")
 	}
 
 	res, err := s.client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
@@ -35,38 +46,33 @@ func PromptObject[T any](ctx context.Context, prompter Prompter, description, in
 					Name:        "json_schema",
 					Strict:      param.NewOpt(true),
 					Description: param.NewOpt(description),
-					Schema:      serialisedSchema,
+					Schema:      schema,
 				},
 			},
 		},
 	})
 	if err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
+		return fault.Wrap(err, fctx.With(ctx))
 	}
 	if len(res.Choices) == 0 {
-		return nil, fault.New("result choices are empty")
-	}
-
-	if res.Choices[0].Message.JSON.Content.Raw() == "" {
-		return nil, fault.New("result json is empty")
+		return fault.New("result choices are empty")
 	}
 
 	choice := res.Choices[0]
 
-	if choice.Message.JSON.Content.Valid() == false {
-		// TODO: Retry a few times with a backoff?
-		return nil, fault.New("result is not valid JSON")
+	if choice.Message.JSON.Content.Raw() == "" {
+		return fault.New("result json is empty")
 	}
 
-	payload := choice.Message.Content
-
-	var result T
-	err = json.Unmarshal([]byte(payload), &result)
-	if err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
+	if !choice.Message.JSON.Content.Valid() {
+		return fault.New("result is not valid JSON")
 	}
 
-	return &result, nil
+	if err := json.Unmarshal([]byte(choice.Message.Content), out); err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return nil
 }
 
 func schemaFromObjectInstance[T any](instance T) (any, error) {

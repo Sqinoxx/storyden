@@ -26,6 +26,8 @@ import type {
   ThreadListParams,
   ThreadSuggestSemesterBody,
   ThreadSuggestSemesterOKResponse,
+  ThreadSuggestTagsBody,
+  ThreadSuggestTagsOKResponse,
   ThreadUpdateBody,
   ThreadUpdateOKResponse,
   UnauthorisedResponse,
@@ -197,6 +199,69 @@ export const useThreadSuggestSemester = <
 
   const swrKey = swrOptions?.swrKey ?? getThreadSuggestSemesterMutationKey();
   const swrFn = getThreadSuggestSemesterMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Suggest existing tags for a thread being composed. Only tags that have
+a meaning configured by an administrator are considered, and a tag is
+only returned when both the language model and embedding similarity
+agree. Returns an empty list when language model features are off.
+
+ */
+export const threadSuggestTags = (
+  threadSuggestTagsBody: ThreadSuggestTagsBody,
+) => {
+  return fetcher<ThreadSuggestTagsOKResponse>({
+    url: `/threads/tag-suggestion`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: threadSuggestTagsBody,
+  });
+};
+
+export const getThreadSuggestTagsMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: ThreadSuggestTagsBody },
+  ): Promise<ThreadSuggestTagsOKResponse> => {
+    return threadSuggestTags(arg);
+  };
+};
+export const getThreadSuggestTagsMutationKey = () =>
+  [`/threads/tag-suggestion`] as const;
+
+export type ThreadSuggestTagsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof threadSuggestTags>>
+>;
+export type ThreadSuggestTagsMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useThreadSuggestTags = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof threadSuggestTags>>,
+    TError,
+    Key,
+    ThreadSuggestTagsBody,
+    Awaited<ReturnType<typeof threadSuggestTags>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getThreadSuggestTagsMutationKey();
+  const swrFn = getThreadSuggestTagsMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

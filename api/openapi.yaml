@@ -3494,6 +3494,23 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "200": { $ref: "#/components/responses/ThreadSuggestSemesterOK" }
 
+  /threads/tag-suggestion:
+    post:
+      operationId: ThreadSuggestTags
+      x-storyden: { rate-limit-cost: 5 }
+      description: |
+        Suggest existing tags for a thread being composed. Only tags that have
+        a meaning configured by an administrator are considered, and a tag is
+        only returned when both the language model and embedding similarity
+        agree. Returns an empty list when language model features are off.
+      tags: [threads]
+      requestBody: { $ref: "#/components/requestBodies/ThreadSuggestTags" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200": { $ref: "#/components/responses/ThreadSuggestTagsOK" }
+
   /threads/{thread_mark}:
     get:
       operationId: ThreadGet
@@ -6665,6 +6682,11 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/ThreadSemesterSuggestionRequest" }
 
+    ThreadSuggestTags:
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ThreadTagSuggestionRequest" }
+
     ThreadCreate:
       content:
         application/json:
@@ -7635,6 +7657,12 @@ components:
       content:
         application/json:
           schema: { $ref: "#/components/schemas/ThreadSemesterSuggestion" }
+
+    ThreadSuggestTagsOK:
+      description: Suggested existing tags, possibly empty.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ThreadTagSuggestion" }
 
     ThreadCreateOK:
       description: Thread created.
@@ -12866,6 +12894,22 @@ components:
         evidence:
           type: string
           description: The passage the suggestion is based on.
+
+    ThreadTagSuggestionRequest:
+      type: object
+      properties:
+        title: { type: string }
+        body:
+          type: string
+          description: The rich text body as currently written in the editor.
+
+    ThreadTagSuggestion:
+      type: object
+      required: [tags]
+      properties:
+        tags:
+          type: array
+          items: { type: string }
 
     ThreadInitialProps:
       type: object

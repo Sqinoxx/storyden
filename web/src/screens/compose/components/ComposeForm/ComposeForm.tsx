@@ -97,6 +97,7 @@ export function ComposeForm(props: Props) {
                         props.editing ? undefined : DEFAULT_NEW_THREAD_TAGS
                       }
                       triggerProps={{ w: "full", minW: "0", maxW: "full" }}
+                      aiSuggest
                     />
                   </Box>
                 </HStack>

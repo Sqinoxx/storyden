@@ -104,6 +104,7 @@ type TagListFieldProps<T extends FieldValues> = Omit<
   defaultTags?: string[];
   categoryHint?: string;
   resetKey?: string;
+  aiSuggest?: boolean;
 };
 
 export function TagListField<T extends FieldValues>({
@@ -116,6 +117,7 @@ export function TagListField<T extends FieldValues>({
   defaultTags,
   categoryHint,
   resetKey,
+  aiSuggest,
 }: TagListFieldProps<T>) {
   return (
     <Controller<T>
@@ -139,6 +141,7 @@ export function TagListField<T extends FieldValues>({
             defaultTags={defaultTags}
             categoryHint={categoryHint}
             resetKey={resetKey}
+            aiSuggest={aiSuggest}
           />
         );
       }}
@@ -159,6 +162,7 @@ function TagListFieldInternal<T extends FieldValues>({
   defaultTags,
   categoryHint,
   resetKey,
+  aiSuggest,
 }: {
   control?: Control<T>;
   fieldValue: string[];
@@ -170,6 +174,7 @@ function TagListFieldInternal<T extends FieldValues>({
   defaultTags?: string[];
   categoryHint?: string;
   resetKey?: string;
+  aiSuggest?: boolean;
 }) {
   useAutoTagDetection({
     control,
@@ -182,6 +187,7 @@ function TagListFieldInternal<T extends FieldValues>({
     defaultTags,
     categoryHint,
     resetKey,
+    aiSuggest,
   });
 
   return (

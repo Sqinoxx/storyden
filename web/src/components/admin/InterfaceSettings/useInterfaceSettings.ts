@@ -20,7 +20,6 @@ export const FormSchema = z.object({
   signatureMaxChars: z.number().int().min(1).max(10000),
   showTagsInPostList: z.boolean(),
   semesterLegacyLabel: z.string().max(32),
-  aiTagMeanings: z.string().max(10000),
 });
 export type Form = z.infer<typeof FormSchema>;
 
@@ -37,7 +36,6 @@ export function useInterfaceSettings({ settings }: Props) {
         settings.services?.moderation?.signature_length_max ?? 500,
       showTagsInPostList: settings.metadata.postList.showTags,
       semesterLegacyLabel: settings.metadata.semester.legacyLabel,
-      aiTagMeanings: settings.metadata.ai.tagMeanings,
     },
   });
 
@@ -62,9 +60,6 @@ export function useInterfaceSettings({ settings }: Props) {
             },
             semester: {
               legacyLabel: data.semesterLegacyLabel.trim(),
-            },
-            ai: {
-              tagMeanings: data.aiTagMeanings.trim(),
             },
           },
           services: {

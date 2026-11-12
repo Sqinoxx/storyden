@@ -69,9 +69,17 @@ type ServiceSettings struct {
 	Session    opt.Optional[SessionServiceSettings]
 	Assets     opt.Optional[AssetServiceSettings]
 	Market     opt.Optional[MarketServiceSettings]
+	AI         opt.Optional[AIServiceSettings]
 }
 
 // MarketServiceSettings controls the Flohmarkt classifieds feature.
+type AIServiceSettings struct {
+	ThreadSummary      opt.Optional[bool]
+	TagSuggestion      opt.Optional[bool]
+	SemesterSuggestion opt.Optional[bool]
+	LibraryAssist      opt.Optional[bool]
+}
+
 type MarketServiceSettings struct {
 	Enabled             opt.Optional[bool]
 	ListingDurationDays opt.Optional[int]

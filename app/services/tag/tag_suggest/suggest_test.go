@@ -21,3 +21,15 @@ func TestCosine(t *testing.T) {
 	assert.Zero(t, cosine([]float32{1}, []float32{1, 2}))
 	assert.Zero(t, cosine([]float32{0, 0}, []float32{1, 2}))
 }
+
+func TestAppendMeanings(t *testing.T) {
+	assert.Equal(t, "", AppendMeanings("", nil))
+	assert.Equal(t, "endo: root canals", AppendMeanings("endo: root canals\n\n", nil))
+	assert.Equal(t, "kfo: braces", AppendMeanings("  \n", []string{"kfo: braces"}))
+	assert.Equal(t, "endo: root canals\nkfo: braces\npa: gums", AppendMeanings("endo: root canals\n", []string{"kfo: braces", "pa: gums"}))
+}
+
+func TestOneLine(t *testing.T) {
+	assert.Equal(t, "a b c", oneLine(" a\n b\t c ", 10))
+	assert.Equal(t, "äöü", oneLine("äöüß", 3))
+}

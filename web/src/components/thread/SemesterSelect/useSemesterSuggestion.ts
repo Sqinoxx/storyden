@@ -3,7 +3,8 @@ import { Control, FieldValues, Path, useWatch } from "react-hook-form";
 
 import { threadSuggestSemester } from "@/api/openapi-client/threads";
 import { Asset } from "@/api/openapi-schema";
-import { parseTermKey, Term } from "@/lib/thread/semester";
+import { useAIFeature } from "@/lib/settings/ai-features";
+import { Term, parseTermKey } from "@/lib/thread/semester";
 
 const DEBOUNCE_MS = 1200;
 
@@ -31,6 +32,7 @@ export function useSemesterSuggestion<T extends FieldValues>({
     | string
     | undefined;
   const selected = useWatch({ control, name }) as string | undefined;
+  const enabled = useAIFeature("semester_suggestion");
 
   const filenames = useMemo(
     () => attachments.map((a) => a.filename).filter(Boolean),
@@ -38,13 +40,14 @@ export function useSemesterSuggestion<T extends FieldValues>({
   );
   const filenamesKey = filenames.join("\n");
 
-  const [suggestion, setSuggestion] = useState<SemesterSuggestion | null>(
-    null,
-  );
+  const [suggestion, setSuggestion] = useState<SemesterSuggestion | null>(null);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!title?.trim() && !body?.trim() && filenames.length === 0) {
+    if (
+      !enabled ||
+      (!title?.trim() && !body?.trim() && filenames.length === 0)
+    ) {
       setSuggestion(null);
       return;
     }
@@ -75,12 +78,10 @@ export function useSemesterSuggestion<T extends FieldValues>({
       clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, body, filenamesKey]);
+  }, [enabled, title, body, filenamesKey]);
 
   const visible =
-    suggestion &&
-    suggestion.key !== selected &&
-    !dismissed.has(suggestion.key)
+    suggestion && suggestion.key !== selected && !dismissed.has(suggestion.key)
       ? suggestion
       : null;
 

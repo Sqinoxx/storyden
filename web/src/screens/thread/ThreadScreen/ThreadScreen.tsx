@@ -25,6 +25,7 @@ import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelec
 import { Signature } from "@/components/thread/Signature";
 import { ThreadDeletedAlert } from "@/components/thread/ThreadDeletedAlert";
 import { ThreadMenu } from "@/components/thread/ThreadMenu/ThreadMenu";
+import { ThreadSummary } from "@/components/thread/ThreadSummary/ThreadSummary";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { FormErrorText } from "@/components/ui/FormErrorText";
 import { Button } from "@/components/ui/button";
@@ -243,6 +244,13 @@ export function ThreadScreen(props: Props) {
               onSortOrderChange={handlers.handleSetSortOrder}
               canLike={canLike}
               onToggleLike={handlers.handleToggleLike}
+            />
+          )}
+
+          {!locked && (
+            <ThreadSummary
+              slug={thread.slug}
+              replyCount={thread.reply_status.replies}
             />
           )}
         </styled.article>

@@ -18,6 +18,7 @@ import type {
   ThreadSuggestSemesterOKResponse,
   ThreadSuggestTagsBody,
   ThreadSuggestTagsOKResponse,
+  ThreadSummariseOKResponse,
   ThreadUpdateBody,
   ThreadUpdateOKResponse,
 } from "../openapi-schema";
@@ -147,6 +148,34 @@ export const threadSuggestTags = async (
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
       body: JSON.stringify(threadSuggestTagsBody),
+    },
+  );
+};
+
+/**
+ * Summarise a long thread with the language model, including text
+extracted from attached PDF documents. Summaries are cached until the
+thread changes. Returns an empty summary for short threads.
+
+ */
+export type threadSummariseResponse = {
+  data: ThreadSummariseOKResponse;
+  status: number;
+};
+
+export const getThreadSummariseUrl = (threadMark: string) => {
+  return `/threads/${threadMark}/summary`;
+};
+
+export const threadSummarise = async (
+  threadMark: string,
+  options?: RequestInit,
+): Promise<threadSummariseResponse> => {
+  return fetcher<Promise<threadSummariseResponse>>(
+    getThreadSummariseUrl(threadMark),
+    {
+      ...options,
+      method: "POST",
     },
   );
 };

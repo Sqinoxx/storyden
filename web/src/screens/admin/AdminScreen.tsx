@@ -11,6 +11,7 @@ import * as Tabs from "@/components/ui/tabs";
 import { useCapability } from "@/lib/settings/capabilities";
 import { hasPermission } from "@/utils/permissions";
 
+import { AISettingsScreen } from "./AISettingsScreen";
 import { AccessKeySettingsScreen } from "./AccessKeySettingsScreen";
 import { AssetSettingsScreen } from "./AssetSettingsScreen";
 import { AuditLogSettingsScreen } from "./AuditLogSettingsScreen/AuditLogSettingsScreen";
@@ -120,6 +121,7 @@ export function AdminScreen() {
           <Tabs.Trigger value="content">Content</Tabs.Trigger>
           <Tabs.Trigger value="uploads">Uploads</Tabs.Trigger>
           <Tabs.Trigger value="market">Flohmarkt</Tabs.Trigger>
+          <Tabs.Trigger value="ai">KI</Tabs.Trigger>
           <Tabs.Trigger value="moderation">Moderation</Tabs.Trigger>
           <Tabs.Trigger value="system">System</Tabs.Trigger>
           <Tabs.Trigger value="ocr">OCR & Bildtext</Tabs.Trigger>
@@ -158,6 +160,10 @@ export function AdminScreen() {
 
         <Tabs.Content value="market">
           {tab === "market" && <MarketSettingsScreen />}
+        </Tabs.Content>
+
+        <Tabs.Content value="ai">
+          {tab === "ai" && <AISettingsScreen />}
         </Tabs.Content>
 
         <Tabs.Content value="moderation">

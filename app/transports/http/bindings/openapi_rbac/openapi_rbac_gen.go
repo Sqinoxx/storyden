@@ -20,6 +20,7 @@ type OperationPermissions interface {
 	AdminOCRAssetList() (bool, *rbac.Permission)
 	AdminOCRAssetSkip() (bool, *rbac.Permission)
 	AdminOCRReindex() (bool, *rbac.Permission)
+	AdminGenerateTagMeanings() (bool, *rbac.Permission)
 	AdminStatistics() (bool, *rbac.Permission)
 	AdminDriveFolderList() (bool, *rbac.Permission)
 	AdminDriveFolderCreate() (bool, *rbac.Permission)
@@ -191,6 +192,7 @@ type OperationPermissions interface {
 	ThreadList() (bool, *rbac.Permission)
 	ThreadSuggestSemester() (bool, *rbac.Permission)
 	ThreadSuggestTags() (bool, *rbac.Permission)
+	ThreadSummarise() (bool, *rbac.Permission)
 	ThreadGet() (bool, *rbac.Permission)
 	ThreadUpdate() (bool, *rbac.Permission)
 	ThreadDelete() (bool, *rbac.Permission)
@@ -333,6 +335,8 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.AdminOCRAssetSkip()
 	case "AdminOCRReindex":
 		return optable.AdminOCRReindex()
+	case "AdminGenerateTagMeanings":
+		return optable.AdminGenerateTagMeanings()
 	case "AdminStatistics":
 		return optable.AdminStatistics()
 	case "AdminDriveFolderList":
@@ -675,6 +679,8 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.ThreadSuggestSemester()
 	case "ThreadSuggestTags":
 		return optable.ThreadSuggestTags()
+	case "ThreadSummarise":
+		return optable.ThreadSummarise()
 	case "ThreadGet":
 		return optable.ThreadGet()
 	case "ThreadUpdate":

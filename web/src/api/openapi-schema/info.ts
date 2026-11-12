@@ -7,6 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
+import type { AIFeatureFlags } from "./aIFeatureFlags";
 import type { AuthMode } from "./authMode";
 import type { InstanceCapabilityList } from "./instanceCapabilityList";
 import type { MarketCategoryList } from "./marketCategoryList";
@@ -21,6 +22,7 @@ import type { RegistrationMode } from "./registrationMode";
  */
 export interface Info {
   accent_colour: string;
+  ai_features?: AIFeatureFlags;
   /** The public API address for this Storyden instance.
    */
   api_address: string;

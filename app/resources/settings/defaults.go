@@ -105,6 +105,26 @@ func (s *Settings) MarketEnabled() bool {
 	return s.Services.OrZero().Market.OrZero().Enabled.OrZero()
 }
 
+func (s *Settings) aiSettings() AIServiceSettings {
+	return s.Services.OrZero().AI.OrZero()
+}
+
+func (s *Settings) AIThreadSummaryEnabled() bool {
+	return s.aiSettings().ThreadSummary.Or(false)
+}
+
+func (s *Settings) AITagSuggestionEnabled() bool {
+	return s.aiSettings().TagSuggestion.Or(true)
+}
+
+func (s *Settings) AISemesterSuggestionEnabled() bool {
+	return s.aiSettings().SemesterSuggestion.Or(true)
+}
+
+func (s *Settings) AILibraryAssistEnabled() bool {
+	return s.aiSettings().LibraryAssist.Or(true)
+}
+
 var DefaultMarketCategories = []MarketCategory{
 	{ID: "books", Name: "Bücher & Skripten"},
 	{ID: "instruments", Name: "Instrumente & Ausrüstung"},

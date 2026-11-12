@@ -15,17 +15,13 @@ import { WarningIcon } from "@/components/ui/icons/Warning";
 import { Input } from "@/components/ui/input";
 import { Item } from "@/components/ui/menu";
 import * as Popover from "@/components/ui/popover";
-import { useCapability } from "@/lib/settings/capabilities";
+import { useTranslation } from "@/lib/i18n";
+import { useAIFeature } from "@/lib/settings/ai-features";
 import { HStack, styled } from "@/styled-system/jsx";
 import { UtilityValues } from "@/styled-system/types/prop-type";
 import { deriveError } from "@/utils/error";
-import { useTranslation } from "@/lib/i18n";
 
-import {
-  ImportState,
-  ImportStep,
-  importFromURLGenerator,
-} from "./import";
+import { ImportState, ImportStep, importFromURLGenerator } from "./import";
 
 const POPOVER_CLOSE_DELAY = 3000;
 
@@ -45,7 +41,7 @@ export function CreatePageFromURLAction({
   onComplete,
   ...props
 }: Props) {
-  const genaiAvailable = useCapability("gen_ai");
+  const genaiAvailable = useAIFeature("library_assist");
   const t = useTranslation();
   const [url, setUrl] = useState({
     valid: false,

@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 
 import { handle } from "@/api/client";
 import { tagList } from "@/api/openapi-client/tags";
-import { InstanceCapability } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { MultiSelectPickerItem } from "@/components/ui/MultiSelectPicker";
 import { useLibraryMutation } from "@/lib/library/library";
-import { useCapability } from "@/lib/settings/capabilities";
+import { useAIFeature } from "@/lib/settings/ai-features";
 import { canCreateTags } from "@/utils/permissions";
 
 import { useLibraryPageContext } from "../../Context";
@@ -18,15 +17,13 @@ export function useLibraryPageTagsBlockEditing() {
   const tags = useWatch((s) => s.draft.tags);
   const content = useWatch((s) => s.draft.content);
 
-  const isSuggestEnabled = useCapability(InstanceCapability.gen_ai);
+  const isSuggestEnabled = useAIFeature("library_assist");
   const session = useSession();
   const allowNewTags = canCreateTags(session);
 
   const { suggestTags } = useLibraryMutation();
   const [loadingTags, setLoadingTags] = useState(false);
-  const [queryResults, setQueryResults] = useState<MultiSelectPickerItem[]>(
-    [],
-  );
+  const [queryResults, setQueryResults] = useState<MultiSelectPickerItem[]>([]);
 
   const currentTagItems: MultiSelectPickerItem[] = tags.map((t) => ({
     label: t.name,

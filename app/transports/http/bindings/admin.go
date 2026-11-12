@@ -3,6 +3,7 @@ package bindings
 import (
 	"context"
 	"fmt"
+	"github.com/Southclaws/storyden/app/services/tag/tag_suggest"
 	"net/http"
 	"strconv"
 	"strings"
@@ -77,6 +78,7 @@ type Admin struct {
 	statisticsQuerier *statistics_querier.Querier
 	ocrProcessor      *ocr.Processor
 	bus               *pubsub.Bus
+	tagSuggester      *tag_suggest.Suggester
 }
 
 func NewAdmin(
@@ -100,6 +102,7 @@ func NewAdmin(
 	ocrProcessor *ocr.Processor,
 	bus *pubsub.Bus,
 	router *echo.Echo,
+	tagSuggester *tag_suggest.Suggester,
 ) Admin {
 	a := Admin{
 		accountQuery:      accountQuery,
@@ -121,6 +124,7 @@ func NewAdmin(
 		statisticsQuerier: statisticsQuerier,
 		ocrProcessor:      ocrProcessor,
 		bus:               bus,
+		tagSuggester:      tagSuggester,
 	}
 
 	router.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -429,6 +433,21 @@ func (a *Admin) AdminOCRAssetSkip(ctx context.Context, request openapi.AdminOCRA
 // admin action rather than an unbounded table scan.
 const adminOCRReindexBatchLimit = 500
 
+func (a *Admin) AdminGenerateTagMeanings(ctx context.Context, request openapi.AdminGenerateTagMeaningsRequestObject) (openapi.AdminGenerateTagMeaningsResponseObject, error) {
+	draft, err := a.tagSuggester.DraftMeanings(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AdminGenerateTagMeanings200JSONResponse{
+		AdminGenerateTagMeaningsOKJSONResponse: openapi.AdminGenerateTagMeaningsOKJSONResponse{
+			Meanings: draft.Meanings,
+			Added:    draft.Added,
+			Skipped:  draft.Skipped,
+		},
+	}, nil
+}
+
 func (a *Admin) AdminOCRReindex(ctx context.Context, request openapi.AdminOCRReindexRequestObject) (openapi.AdminOCRReindexResponseObject, error) {
 	if err := session.Authorise(ctx, nil, rbac.PermissionAdministrator); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -630,7 +649,17 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 			})
 		}
 
-		if clientIP.Ok() || rateLimit.Ok() || moderation.Ok() || robots.Ok() || content.Ok() || sessionSettings.Ok() || assets.Ok() || market.Ok() {
+		var ai opt.Optional[settings.AIServiceSettings]
+		if b := request.Body.Services.Ai; b != nil {
+			ai = opt.New(settings.AIServiceSettings{
+				ThreadSummary:      opt.NewPtr(b.ThreadSummary),
+				TagSuggestion:      opt.NewPtr(b.TagSuggestion),
+				SemesterSuggestion: opt.NewPtr(b.SemesterSuggestion),
+				LibraryAssist:      opt.NewPtr(b.LibraryAssist),
+			})
+		}
+
+		if clientIP.Ok() || rateLimit.Ok() || moderation.Ok() || robots.Ok() || content.Ok() || sessionSettings.Ok() || assets.Ok() || market.Ok() || ai.Ok() {
 			services = opt.New(settings.ServiceSettings{
 				ClientIP:   clientIP,
 				RateLimit:  rateLimit,
@@ -640,6 +669,7 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 				Session:    sessionSettings,
 				Assets:     assets,
 				Market:     market,
+				AI:         ai,
 			})
 		}
 	}
@@ -1365,6 +1395,16 @@ func serialiseServiceSettings(in settings.ServiceSettings) openapi.AdminSettings
 		Session:      opt.Map(in.Session, serialiseSessionSettings).Ptr(),
 		Assets:       opt.Map(in.Assets, serialiseAssetSettings).Ptr(),
 		Market:       opt.Map(in.Market, serialiseMarketSettings).Ptr(),
+		Ai:           opt.Map(in.AI, serialiseAISettings).Ptr(),
+	}
+}
+
+func serialiseAISettings(in settings.AIServiceSettings) openapi.AIServiceSettings {
+	return openapi.AIServiceSettings{
+		ThreadSummary:      in.ThreadSummary.Ptr(),
+		TagSuggestion:      in.TagSuggestion.Ptr(),
+		SemesterSuggestion: in.SemesterSuggestion.Ptr(),
+		LibraryAssist:      in.LibraryAssist.Ptr(),
 	}
 }
 
@@ -1417,8 +1457,8 @@ func serialiseContentSettings(in settings.ContentServiceSettings) openapi.Conten
 
 func serialiseAssetSettings(in settings.AssetServiceSettings) openapi.AssetServiceSettings {
 	return openapi.AssetServiceSettings{
-		MaxUploadSizeMb:  in.MaxUploadSizeMB.Ptr(),
-		OcrMaxFileSizeMb: in.OCRMaxFileSizeMB.Ptr(),
+		MaxUploadSizeMb:   in.MaxUploadSizeMB.Ptr(),
+		OcrMaxFileSizeMb:  in.OCRMaxFileSizeMB.Ptr(),
 		OcrTimeoutSeconds: opt.Map(in.OCRTimeout, durationToSeconds).Ptr(),
 	}
 }

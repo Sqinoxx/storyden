@@ -19,6 +19,7 @@ import type {
   AdminDriveCredentialsUploadBody,
   AdminDriveFolderCreateBody,
   AdminDriveFolderUpdateBody,
+  AdminGenerateTagMeaningsOKResponse,
   AdminOCRAssetList200,
   AdminOCRAssetListParams,
   AdminOCRAssetSkip200,
@@ -355,6 +356,66 @@ export const useAdminOCRReindex = <
 
   const swrKey = swrOptions?.swrKey ?? getAdminOCRReindexMutationKey();
   const swrFn = getAdminOCRReindexMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Draft meanings for tags that are used by several threads but have no
+meaning configured yet. The language model reads sample thread titles
+of each tag and describes the tag in a few English words. Ambiguous
+tags are skipped. Nothing is saved: the result contains the existing
+meanings with the drafted lines appended, for an admin to review.
+
+ */
+export const adminGenerateTagMeanings = () => {
+  return fetcher<AdminGenerateTagMeaningsOKResponse>({
+    url: `/admin/ai/tag-meanings`,
+    method: "POST",
+  });
+};
+
+export const getAdminGenerateTagMeaningsMutationFetcher = () => {
+  return (
+    _: Key,
+    __: { arg: Arguments },
+  ): Promise<AdminGenerateTagMeaningsOKResponse> => {
+    return adminGenerateTagMeanings();
+  };
+};
+export const getAdminGenerateTagMeaningsMutationKey = () =>
+  [`/admin/ai/tag-meanings`] as const;
+
+export type AdminGenerateTagMeaningsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminGenerateTagMeanings>>
+>;
+export type AdminGenerateTagMeaningsMutationError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useAdminGenerateTagMeanings = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof adminGenerateTagMeanings>>,
+    TError,
+    Key,
+    Arguments,
+    Awaited<ReturnType<typeof adminGenerateTagMeanings>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAdminGenerateTagMeaningsMutationKey();
+  const swrFn = getAdminGenerateTagMeaningsMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

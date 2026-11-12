@@ -136,7 +136,7 @@ export function CategoryMenu(props: Props) {
     isEditingEnabled && (onMoveUp || onMoveDown || onPromote || canMoveInto);
 
   return (
-    <Menu.Root onSelect={handlers.handleSelect}>
+    <Menu.Root lazyMount onSelect={handlers.handleSelect}>
       <Menu.Trigger asChild>
         <MoreAction size="xs" />
       </Menu.Trigger>
@@ -187,6 +187,7 @@ export function CategoryMenu(props: Props) {
                   )}
                   {canMoveInto && (
                     <Menu.Root
+                      lazyMount
                       size="xs"
                       positioning={{ placement: "right-start", gutter: -2 }}
                       onSelect={handlers.handleSelect}
@@ -261,6 +262,7 @@ function CategoryMoveIntoNode({
 
   return (
     <Menu.Root
+      lazyMount
       size="xs"
       positioning={{ placement: "right-start", gutter: -2 }}
       onSelect={onSelect}

@@ -57,6 +57,12 @@ test("admin moves a category into another category from the sidebar menu", async
   await dismissOnboarding(page);
 
   await expect(
+    page.locator('[data-part="trigger-item"]', {
+      hasText: "Move into category",
+    }),
+  ).toHaveCount(0);
+
+  await expect(
     sidebarBranch(page, target).locator('[data-part="branch-text"]', {
       hasText: new RegExp(`^${moved}$`),
     }),

@@ -61,7 +61,7 @@ export function MemberOptionsMenu({
   }
 
   return (
-    <Menu.Root onSelect={handleSelect}>
+    <Menu.Root lazyMount onSelect={handleSelect}>
       <Menu.Trigger
         className="member-options-menu__trigger"
         maxW="full"

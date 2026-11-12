@@ -63,8 +63,6 @@ export function PresenceIndicator() {
           gap="1.5"
           px="2.5"
           h="7"
-          minW="0"
-          overflow="hidden"
           borderRadius="full"
           borderWidth="thin"
           borderColor="border.subtle"
@@ -80,17 +78,22 @@ export function PresenceIndicator() {
           _hover={{ color: "fg.default", borderColor: "border.default" }}
         >
           <span className={styles["dot"]} />
-          <styled.span minW="0" overflow="hidden" textOverflow="ellipsis">
-            {onlineLabel}
-          </styled.span>
+          <styled.span flexShrink="0">{onlineLabel}</styled.span>
           {inCategoryLabel && (
             <>
               <styled.span
                 h="3"
+                flexShrink="0"
                 borderLeftWidth="thin"
                 borderColor="border.default"
               />
-              <styled.span color="fg.default" data-testid="presence-in-category">
+              <styled.span
+                minW="0"
+                overflow="hidden"
+                textOverflow="ellipsis"
+                color="fg.default"
+                data-testid="presence-in-category"
+              >
                 {inCategoryLabel}
               </styled.span>
             </>

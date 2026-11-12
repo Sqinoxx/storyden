@@ -13,6 +13,7 @@ import {
 import { useSession } from "@/auth";
 import { Byline } from "@/components/content/Byline";
 import { CollectionMenu } from "@/components/content/CollectionMenu/CollectionMenu";
+import { LinkPreviewCard } from "@/components/library/links/LinkPreviewCard";
 import { TagBadgeList } from "@/components/tag/TagBadgeList";
 
 import { Card } from "@/components/ui/rich-card";
@@ -366,7 +367,14 @@ export const ThreadReferenceCard = memo(
         .map((a) => getAssetURL(a.path))
         .filter(Boolean) as string[]
     );
-    const imageUrls = extractImageUrlsFromThread(thread);
+    const locked = thread.access?.locked === true;
+    const showLinkPreview = Boolean(thread.link) && !locked && !isInReview;
+    const linkPreviewImage = showLinkPreview
+      ? getAssetURL(thread.link?.primary_image?.path)
+      : undefined;
+    const imageUrls = extractImageUrlsFromThread(thread).filter(
+      (u) => u !== linkPreviewImage,
+    );
     // Only show in the thumbnail strip images NOT already shown as an asset badge
     const extraImageUrls = imageUrls.filter((u) => !assetImageUrls.has(u));
 
@@ -402,7 +410,6 @@ export const ThreadReferenceCard = memo(
       textDescription = undefined;
     }
 
-    const locked = thread.access?.locked === true;
     if (locked && thread.access) {
       textDescription = t.access.lockedPreview.replace(
         "{pass}",
@@ -529,6 +536,16 @@ export const ThreadReferenceCard = memo(
                   +{extraImageUrls.length - 5}
                 </styled.div>
               )}
+            </styled.div>
+          )}
+          {showLinkPreview && thread.link && (
+            <styled.div
+              position="relative"
+              zIndex="docked"
+              w="full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <LinkPreviewCard link={thread.link} />
             </styled.div>
           )}
           <Byline

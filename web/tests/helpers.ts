@@ -1,5 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
+import { withAdminAccessKey } from "./access_key_admin_assignment";
+
 export const PASSWORD = "TestPassword123!";
 
 /**
@@ -52,7 +54,41 @@ export async function login(page: Page, username: string) {
 export async function logout(page: Page) {
   await page.getByRole("button", { name: "Account menu" }).click();
   await page.getByRole("menuitem", { name: "Logout" }).click();
-  await expect(page.getByRole("link", { name: "Login" })).toBeVisible();
+  await page.waitForURL("/login", { timeout: 10000 });
+}
+
+let threadCategory: Promise<string> | undefined;
+
+// Members may only publish into a category, so threads go into one shared
+// category created once per worker.
+export function ensureThreadCategory(): Promise<string> {
+  threadCategory ??= withAdminAccessKey(async ({ categoryCreate }) => {
+    const slug = unique("threads");
+    const name = `Threads ${slug}`;
+    await categoryCreate({
+      colour: "#3b82f6",
+      description: name,
+      name,
+      slug,
+    });
+    return name;
+  });
+  return threadCategory;
+}
+
+export async function selectCategory(page: Page, name: string) {
+  await page.getByRole("button", { name: "Select category" }).click();
+  await page
+    .getByTestId("category-tree-panel")
+    .locator('[data-part="branch-text"]')
+    .filter({ hasText: name })
+    .click();
+}
+
+// The composer loads categories when it mounts, so call ensureThreadCategory
+// before opening it.
+export async function selectThreadCategory(page: Page) {
+  await selectCategory(page, await ensureThreadCategory());
 }
 
 export async function createThread(
@@ -60,10 +96,12 @@ export async function createThread(
   title: string,
   body: string,
 ): Promise<string> {
-  // Several landing pages render more than one "Post" entry point (sidebar and
-  // empty-state call to action), and which page sign-in lands on varies.
-  await page.getByRole("link", { name: "Post", exact: true }).first().click();
-  await expect(page).toHaveURL("/new", { timeout: 5000 });
+  await ensureThreadCategory();
+
+  // A full load rather than the header link: client navigation reuses the
+  // category list cached before the thread category existed.
+  await page.goto("/new");
+  await dismissOnboarding(page);
 
   await page.locator("#title-input").fill(title);
 
@@ -73,7 +111,9 @@ export async function createThread(
   const editor = page.locator(".ProseMirror").first();
   await editor.fill(body);
 
-  const post = page.getByRole("button", { name: "Post" });
+  await selectThreadCategory(page);
+
+  const post = page.getByRole("button", { name: "Post", exact: true });
   await expect(post).toBeEnabled({ timeout: 10000 });
   await post.click();
 
@@ -81,6 +121,16 @@ export async function createThread(
   await dismissOnboarding(page);
 
   return page.url();
+}
+
+export async function openSidebar(page: Page) {
+  const open = page.getByRole("button", { name: "Open navigation sidebar" });
+  const close = page.getByRole("button", { name: "Close navigation sidebar" });
+  await expect(open.or(close).first()).toBeVisible({ timeout: 10000 });
+  if (await open.isVisible()) {
+    await open.click();
+  }
+  await expect(close.first()).toBeVisible();
 }
 
 export async function navigateToThread(page: Page, threadUrl: string) {

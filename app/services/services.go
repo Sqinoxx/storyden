@@ -55,6 +55,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/semdex/robot"
 	"github.com/Southclaws/storyden/app/services/semdex/semdex_indexer"
 	"github.com/Southclaws/storyden/app/services/semester_suggest"
+	"github.com/Southclaws/storyden/app/services/tag/tag_suggest"
 	"github.com/Southclaws/storyden/app/services/semdex/semdexer"
 	"github.com/Southclaws/storyden/app/services/system/instance_info"
 	"github.com/Southclaws/storyden/app/services/tag/autotagger"
@@ -99,6 +100,7 @@ func Build() fx.Option {
 		semdexer.Build(),
 		semdex_indexer.Build(),
 		semester_suggest.Build(),
+		tag_suggest.Build(),
 		event.Build(),
 		listing.Build(),
 		moderation.Build(),

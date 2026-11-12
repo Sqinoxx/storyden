@@ -21,7 +21,7 @@ test.describe("Login", () => {
     await page.getByRole("button", { name: "Account menu" }).click();
     await page.getByRole("menuitem", { name: "Logout" }).click();
 
-    await page.getByRole("link", { name: "Login" }).click();
+    await page.waitForURL("/login", { timeout: 10000 });
     await page.locator('input[autocomplete="username"]').fill(username);
     await page
       .locator('input[autocomplete="current-password"]')
@@ -53,7 +53,7 @@ test.describe("Login", () => {
     await page.getByRole("button", { name: "Account menu" }).click();
     await page.getByRole("menuitem", { name: "Logout" }).click();
 
-    await page.getByRole("link", { name: "Login" }).click();
+    await page.waitForURL("/login", { timeout: 10000 });
     await page.locator('input[autocomplete="username"]').fill(username);
     await page
       .locator('input[autocomplete="current-password"]')

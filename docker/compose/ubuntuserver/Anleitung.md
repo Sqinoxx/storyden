@@ -495,6 +495,11 @@ verlassen den Server. Der Ollama-Container ist auf 4 GB RAM begrenzt.
    Modell in `.env` eintragen und Schritt 3 mit dem neuen Namen wiederholen.
    Nach einem Wechsel des Embedding-Modells `data/semdex` loeschen, damit der
    Index neu aufgebaut wird.
+5. Automatische KI-Tags im Thread-Editor: im Admin-Bereich unter
+   Interface → "AI tag meanings" pro Zeile `tag: Bedeutung` eintragen
+   (z. B. `endo: endodontics (root canal treatment)`). Nur dort gelistete,
+   bereits existierende Tags werden automatisch gesetzt. Tags mit unklarer
+   Bedeutung weglassen. Englische Beschreibungen funktionieren am besten.
 
 Ausschalten: die Zeilen in `.env` wieder auskommentieren,
 `docker compose up -d storyden` und `docker compose stop ollama`.

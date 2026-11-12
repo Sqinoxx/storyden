@@ -5,6 +5,8 @@ import { useCategoryList } from "@/api/openapi-client/categories";
 import { useTagList } from "@/api/openapi-client/tags";
 import { Asset, Category } from "@/api/openapi-schema";
 
+import { useAiTagSuggestions } from "./useAiTagSuggestions";
+
 export const DEFAULT_NEW_THREAD_TAGS = ["Altklausur"];
 
 export type AttachmentItem =
@@ -21,6 +23,7 @@ interface UseAutoTagDetectionProps<T extends FieldValues> {
   defaultTags?: string[];
   categoryHint?: string;
   resetKey?: string;
+  aiSuggest?: boolean;
 }
 
 export function useAutoTagDetection<T extends FieldValues>({
@@ -32,6 +35,7 @@ export function useAutoTagDetection<T extends FieldValues>({
   defaultTags,
   categoryHint,
   resetKey,
+  aiSuggest = false,
 }: UseAutoTagDetectionProps<T>) {
   const { data: tagListData } = useTagList();
   const { data: categoryListData } = useCategoryList();
@@ -54,6 +58,8 @@ export function useAutoTagDetection<T extends FieldValues>({
     control,
     name: "files" as Path<T>,
   }) as AttachmentItem[] | undefined;
+
+  const aiTagsLower = useAiTagSuggestions(title, body, enabled && aiSuggest);
 
   const manuallyRemovedTagsRef = useRef<Set<string>>(new Set());
   const categoryAddedTagsRef = useRef<Set<string>>(new Set());
@@ -152,13 +158,19 @@ export function useAutoTagDetection<T extends FieldValues>({
       const isTextMatched =
         combinedText.includes(tagNameLower) ||
         normalizedText.includes(tagNameLower);
+      const isAiMatched = aiTagsLower.has(tagNameLower);
       const isCategoryMatched = categoryKeys.has(tagNameLower);
       const isDefault = defaultTagsLower.has(tagNameLower);
 
-      if (isTextMatched || isCategoryMatched || isDefault) {
+      if (isTextMatched || isAiMatched || isCategoryMatched || isDefault) {
         if (shouldAdd(tagNameLower)) {
           tagsToAdd.push(tagName);
-          if (isCategoryMatched && !isTextMatched && !isDefault) {
+          if (
+            isCategoryMatched &&
+            !isTextMatched &&
+            !isAiMatched &&
+            !isDefault
+          ) {
             categoryAddedTagsRef.current.add(tagNameLower);
           }
         }
@@ -194,6 +206,7 @@ export function useAutoTagDetection<T extends FieldValues>({
     watchedFiles,
     tagListData,
     categoryKeys,
+    aiTagsLower,
     defaultTags,
     defaultTagsLower,
     currentTags,

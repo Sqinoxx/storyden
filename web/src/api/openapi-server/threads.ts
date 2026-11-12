@@ -16,6 +16,8 @@ import type {
   ThreadListParams,
   ThreadSuggestSemesterBody,
   ThreadSuggestSemesterOKResponse,
+  ThreadSuggestTagsBody,
+  ThreadSuggestTagsOKResponse,
   ThreadUpdateBody,
   ThreadUpdateOKResponse,
 } from "../openapi-schema";
@@ -114,6 +116,37 @@ export const threadSuggestSemester = async (
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
       body: JSON.stringify(threadSuggestSemesterBody),
+    },
+  );
+};
+
+/**
+ * Suggest existing tags for a thread being composed. Only tags that have
+a meaning configured by an administrator are considered, and a tag is
+only returned when both the language model and embedding similarity
+agree. Returns an empty list when language model features are off.
+
+ */
+export type threadSuggestTagsResponse = {
+  data: ThreadSuggestTagsOKResponse;
+  status: number;
+};
+
+export const getThreadSuggestTagsUrl = () => {
+  return `/threads/tag-suggestion`;
+};
+
+export const threadSuggestTags = async (
+  threadSuggestTagsBody: ThreadSuggestTagsBody,
+  options?: RequestInit,
+): Promise<threadSuggestTagsResponse> => {
+  return fetcher<Promise<threadSuggestTagsResponse>>(
+    getThreadSuggestTagsUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(threadSuggestTagsBody),
     },
   );
 };

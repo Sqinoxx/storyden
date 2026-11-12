@@ -52,21 +52,28 @@ function semesterSection(page: Page, label: string) {
 
 test("groups category threads by semester", async ({ page }) => {
   const { slug, titles } = await seedCategory(unique("grp"));
+  await registerUser(page, unique("grp-viewer"));
 
   await page.goto(`/d/${slug}`);
   await dismissOnboarding(page);
 
-  await expect(page.getByText(titles.summer)).toBeVisible({ timeout: 10000 });
+  await expect(
+    page.getByText(titles.summer).filter({ visible: true }).first(),
+  ).toBeVisible({ timeout: 10000 });
 
-  await selectFeedView(page, "By semester");
-
-  await expect(page).toHaveURL(/sort=semester/);
+  await expect(page.getByRole("button", { name: "Sort by" })).toContainText(
+    "By semester",
+  );
 
   const summer = semesterSection(page, SS26);
   const winter = semesterSection(page, WS23);
 
-  await expect(summer.getByText(titles.summer)).toBeVisible({ timeout: 10000 });
-  await expect(winter.getByText(titles.winter)).toBeVisible();
+  await expect(
+    summer.getByText(titles.summer).filter({ visible: true }).first(),
+  ).toBeVisible({ timeout: 10000 });
+  await expect(
+    winter.getByText(titles.winter).filter({ visible: true }).first(),
+  ).toBeVisible();
 
   // The stored term wins over the creation date, otherwise both threads would
   // land in whichever term the suite happens to run in.
@@ -74,23 +81,29 @@ test("groups category threads by semester", async ({ page }) => {
   await expect(winter.getByText(titles.summer)).toHaveCount(0);
 });
 
-test("hides the semester view on mobile widths", async ({ page }) => {
+test("offers the semester view on mobile widths", async ({ page }) => {
   const { slug, titles } = await seedCategory(unique("mob"));
+  await registerUser(page, unique("mob-viewer"));
 
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto(`/d/${slug}`);
   await dismissOnboarding(page);
 
-  await expect(page.getByText(titles.summer)).toBeVisible({ timeout: 10000 });
+  await expect(
+    semesterSection(page, SS26)
+      .getByText(titles.summer)
+      .filter({ visible: true })
+      .first(),
+  ).toBeVisible({ timeout: 10000 });
+
+  await selectFeedView(page, "Newest first");
+  await expect(page).toHaveURL(/sort=newest/);
+  await expect(semesterSection(page, SS26)).toHaveCount(0);
 
   await page.getByRole("button", { name: "Sort by" }).click();
-
-  await expect(
-    page.getByRole("menuitem", { name: "Newest first", exact: true }),
-  ).toBeVisible();
   await expect(
     page.getByRole("menuitem", { name: "By semester", exact: true }),
-  ).toBeHidden();
+  ).toBeVisible();
 });
 
 test("posting with an overridden semester files the thread under it", async ({

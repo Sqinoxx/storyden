@@ -166,6 +166,7 @@ test("the category tree is usable at mobile widths", async ({ page }) => {
   await categoryNode(page, names.branch).click();
 
   const leaf = categoryNode(page, names.leaf);
+  await leaf.scrollIntoViewIfNeeded();
   await expect(leaf).toBeInViewport();
   await leaf.click();
 

@@ -8,7 +8,6 @@ import { accessGrantSet } from "@/api/openapi-client/access";
 import { AccessPass } from "@/api/openapi-schema";
 import { ModalDrawer } from "@/components/site/Modaldrawer/Modaldrawer";
 import { FormControl } from "@/components/ui/FormControl";
-import { FormHelperText } from "@/components/ui/FormHelperText";
 import { FormLabel } from "@/components/ui/FormLabel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +20,8 @@ import {
 import { useAccessRevalidate } from "@/lib/access/useAccessRevalidate";
 import { useTranslation } from "@/lib/i18n";
 import { HStack, LStack, styled } from "@/styled-system/jsx";
+
+import { MemberPicker } from "./MemberPicker";
 
 type Choice = ExpiryPreset["key"] | "custom";
 
@@ -115,15 +116,8 @@ function GrantDialogContent({
       >
         {!memberHandle && (
           <FormControl>
-            <FormLabel>{t.access.manage.memberHandle}</FormLabel>
-            <Input
-              id="access-grant-handle"
-              aria-label={t.access.manage.memberHandle}
-              value={handleInput}
-              onChange={(e) => setHandleInput(e.currentTarget.value)}
-              autoComplete="off"
-            />
-            <FormHelperText>{t.access.manage.memberHandleHint}</FormHelperText>
+            <FormLabel>{t.access.manage.memberSearch}</FormLabel>
+            <MemberPicker onChange={setHandleInput} />
           </FormControl>
         )}
 

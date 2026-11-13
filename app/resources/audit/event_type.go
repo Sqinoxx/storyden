@@ -18,4 +18,5 @@ const (
 	eventTypeAccountPasswordResetTokenIssued eventTypeEnum = "account_password_reset_token_issued"
 	eventTypeAccountPasswordResetEmailSent   eventTypeEnum = "account_password_reset_email_sent"
 	eventTypeAccessGrantUpdated              eventTypeEnum = "access_grant_updated"
+	eventTypeAccessPassUpdated               eventTypeEnum = "access_pass_updated"
 )

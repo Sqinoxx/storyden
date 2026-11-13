@@ -106,6 +106,11 @@ func Note(v string) predicate.AccessGrant {
 	return predicate.AccessGrant(sql.FieldEQ(FieldNote, v))
 }
 
+// Reason applies equality check predicate on the "reason" field. It's identical to ReasonEQ.
+func Reason(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldEQ(FieldReason, v))
+}
+
 // ExpiryNotifiedAt applies equality check predicate on the "expiry_notified_at" field. It's identical to ExpiryNotifiedAtEQ.
 func ExpiryNotifiedAt(v time.Time) predicate.AccessGrant {
 	return predicate.AccessGrant(sql.FieldEQ(FieldExpiryNotifiedAt, v))
@@ -709,6 +714,71 @@ func NoteEqualFold(v string) predicate.AccessGrant {
 // NoteContainsFold applies the ContainsFold predicate on the "note" field.
 func NoteContainsFold(v string) predicate.AccessGrant {
 	return predicate.AccessGrant(sql.FieldContainsFold(FieldNote, v))
+}
+
+// ReasonEQ applies the EQ predicate on the "reason" field.
+func ReasonEQ(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldEQ(FieldReason, v))
+}
+
+// ReasonNEQ applies the NEQ predicate on the "reason" field.
+func ReasonNEQ(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldNEQ(FieldReason, v))
+}
+
+// ReasonIn applies the In predicate on the "reason" field.
+func ReasonIn(vs ...string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldIn(FieldReason, vs...))
+}
+
+// ReasonNotIn applies the NotIn predicate on the "reason" field.
+func ReasonNotIn(vs ...string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldNotIn(FieldReason, vs...))
+}
+
+// ReasonGT applies the GT predicate on the "reason" field.
+func ReasonGT(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldGT(FieldReason, v))
+}
+
+// ReasonGTE applies the GTE predicate on the "reason" field.
+func ReasonGTE(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldGTE(FieldReason, v))
+}
+
+// ReasonLT applies the LT predicate on the "reason" field.
+func ReasonLT(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldLT(FieldReason, v))
+}
+
+// ReasonLTE applies the LTE predicate on the "reason" field.
+func ReasonLTE(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldLTE(FieldReason, v))
+}
+
+// ReasonContains applies the Contains predicate on the "reason" field.
+func ReasonContains(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldContains(FieldReason, v))
+}
+
+// ReasonHasPrefix applies the HasPrefix predicate on the "reason" field.
+func ReasonHasPrefix(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldHasPrefix(FieldReason, v))
+}
+
+// ReasonHasSuffix applies the HasSuffix predicate on the "reason" field.
+func ReasonHasSuffix(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldHasSuffix(FieldReason, v))
+}
+
+// ReasonEqualFold applies the EqualFold predicate on the "reason" field.
+func ReasonEqualFold(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldEqualFold(FieldReason, v))
+}
+
+// ReasonContainsFold applies the ContainsFold predicate on the "reason" field.
+func ReasonContainsFold(v string) predicate.AccessGrant {
+	return predicate.AccessGrant(sql.FieldContainsFold(FieldReason, v))
 }
 
 // ExpiryNotifiedAtEQ applies the EQ predicate on the "expiry_notified_at" field.

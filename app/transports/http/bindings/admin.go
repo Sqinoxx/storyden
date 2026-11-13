@@ -1666,6 +1666,10 @@ func serialiseAuditEvent(in *audit.AuditLog) openapi.AuditEvent {
 		if raw := metadataString(in.Metadata, "note"); raw != "" {
 			note = &raw
 		}
+		var reason *string
+		if raw := metadataString(in.Metadata, "reason"); raw != "" {
+			reason = &raw
+		}
 		err = out.FromAuditEventAccessGrantUpdated(openapi.AuditEventAccessGrantUpdated{
 			Type:      openapi.AccessGrantUpdated,
 			AccountId: openapi.Identifier(metadataString(in.Metadata, "account_id")),
@@ -1674,6 +1678,15 @@ func serialiseAuditEvent(in *audit.AuditLog) openapi.AuditEvent {
 			Status:    openapi.AccessGrantStatus(metadataString(in.Metadata, "status")),
 			ExpiresAt: expiresAt,
 			Note:      note,
+			Reason:    reason,
+		})
+
+	case audit.EventTypeAccessPassUpdated:
+		err = out.FromAuditEventAccessPassUpdated(openapi.AuditEventAccessPassUpdated{
+			Type:     openapi.AccessPassUpdated,
+			PassId:   openapi.Identifier(metadataString(in.Metadata, "pass_id")),
+			PassName: metadataString(in.Metadata, "pass_name"),
+			Action:   openapi.AuditEventAccessPassUpdatedAction(metadataString(in.Metadata, "action")),
 		})
 	}
 

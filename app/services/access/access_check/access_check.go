@@ -281,6 +281,111 @@ func (c *Checker) RequirePost(ctx context.Context, postID xid.ID) error {
 	return nil
 }
 
+// LockedPosts reports which of the given posts, threads or replies, the
+// requester may not read.
+func (c *Checker) LockedPosts(ctx context.Context, ids ...xid.ID) (map[xid.ID]struct{}, error) {
+	out := map[xid.ID]struct{}{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+
+	d, err := c.Resolve(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if d.bypass {
+		return out, nil
+	}
+
+	owners, err := c.repo.PostThreads(ctx, ids...)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	for id, o := range owners {
+		if d.ownershipLock(o).Ok() {
+			out[id] = struct{}{}
+		}
+	}
+
+	return out, nil
+}
+
+// LockedLinks reports which links the requester may not see because every
+// post that mentions them is locked. Links found on library pages or added on
+// their own stay visible.
+func (c *Checker) LockedLinks(ctx context.Context, ids ...xid.ID) (map[xid.ID]struct{}, error) {
+	out := map[xid.ID]struct{}{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+
+	d, err := c.Resolve(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if d.bypass {
+		return out, nil
+	}
+
+	refs, err := c.repo.LinkReferences(ctx, ids...)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	postIDs := []xid.ID{}
+	for _, r := range refs {
+		postIDs = append(postIDs, r.Posts...)
+	}
+
+	if len(postIDs) == 0 {
+		return out, nil
+	}
+
+	owners, err := c.repo.PostThreads(ctx, postIDs...)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	for linkID, r := range refs {
+		if r.HasNodes || len(r.Posts) == 0 {
+			continue
+		}
+
+		locked := true
+		for _, pid := range r.Posts {
+			o, ok := owners[pid]
+			if !ok || !d.ownershipLock(o).Ok() {
+				locked = false
+				break
+			}
+		}
+
+		if locked {
+			out[linkID] = struct{}{}
+		}
+	}
+
+	return out, nil
+}
+
+// ThreadOf resolves a post, thread or reply, to the ID of its thread.
+func (c *Checker) ThreadOf(ctx context.Context, postID xid.ID) (opt.Optional[xid.ID], error) {
+	owners, err := c.repo.PostThreads(ctx, postID)
+	if err != nil {
+		return opt.NewEmpty[xid.ID](), fault.Wrap(err, fctx.With(ctx))
+	}
+
+	o, ok := owners[postID]
+	if !ok {
+		return opt.NewEmpty[xid.ID](), nil
+	}
+
+	return opt.New(o.ThreadID), nil
+}
+
 // AssetReadable reports whether the requester may download an asset. An
 // asset is withheld only when every post it is attached to is locked, so a
 // file reused in an open thread stays available there.
@@ -458,6 +563,25 @@ func (c *Checker) Covered(ctx context.Context, postID xid.ID) (bool, error) {
 
 	_, covered := locks[category.CategoryID(o.CategoryID)]
 	return covered, nil
+}
+
+// FilterItem applies FilterItems to a single item and returns nil when the
+// item is withheld entirely.
+func (c *Checker) FilterItem(ctx context.Context, item datagraph.Item) (datagraph.Item, error) {
+	if item == nil {
+		return nil, nil
+	}
+
+	kept, err := c.FilterItems(ctx, []datagraph.Item{item})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(kept) == 0 {
+		return nil, nil
+	}
+
+	return kept[0], nil
 }
 
 // FilterWrapped applies FilterItems to any list whose elements carry a

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { handle } from "@/api/client";
 import {
+  accessGrantList,
   accessGrantRemove,
   useAccessGrantList,
 } from "@/api/openapi-client/access";
@@ -16,6 +17,7 @@ import {
 import { Unready } from "@/components/site/Unready";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { downloadCsv, grantsToCsv } from "@/lib/access/csv";
 import { useAccessRevalidate } from "@/lib/access/useAccessRevalidate";
 import { useTranslation } from "@/lib/i18n";
 import { Grid, LStack, styled } from "@/styled-system/jsx";
@@ -51,6 +53,7 @@ export function GrantsTab({ passes }: { passes: AccessPass[] }) {
   const [passID, setPassID] = useState("");
   const [query, setQuery] = useState("");
   const [dialog, setDialog] = useState<{ grant?: AccessGrant } | undefined>();
+  const [exporting, setExporting] = useState(false);
 
   const { data, error } = useAccessGrantList({
     status,
@@ -67,10 +70,30 @@ export function GrantsTab({ passes }: { passes: AccessPass[] }) {
     );
   }, [data, query]);
 
-  async function revoke(g: AccessGrant) {
+  async function exportCsv() {
+    setExporting(true);
+    await handle(
+      async () => {
+        const all = await accessGrantList(passID ? { pass_id: passID } : {});
+        const pass = passes.find((p) => p.id === passID);
+        const date = new Date().toISOString().slice(0, 10);
+        const name = (pass?.name ?? m.allPasses)
+          .replace(/[^\p{L}\p{N}]+/gu, "-")
+          .replace(/^-|-$/g, "");
+        downloadCsv(
+          `${name}-${date}.csv`,
+          grantsToCsv(all.grants, m.csv, (s) => t.access.status[s]),
+        );
+      },
+      { cleanup: async () => setExporting(false) },
+    );
+  }
+
+  async function revoke(g: AccessGrant, reason: string) {
     await handle(async () => {
       await accessGrantRemove(g.pass.id, g.account.handle, {
         action: "revoke",
+        ...(reason ? { reason } : {}),
       });
       await revalidate();
       toast.success(m.revoked);
@@ -85,7 +108,7 @@ export function GrantsTab({ passes }: { passes: AccessPass[] }) {
         alignItems="center"
         gridTemplateColumns={{
           base: "repeat(2, minmax(0, 1fr))",
-          md: "auto auto minmax(0, 1fr) auto",
+          md: "auto auto minmax(0, 1fr) auto auto",
         }}
       >
         <styled.select
@@ -126,9 +149,13 @@ export function GrantsTab({ passes }: { passes: AccessPass[] }) {
         />
         <Button
           size="sm"
-          gridColumn={{ base: "span 2", md: "auto" }}
-          onClick={() => setDialog({})}
+          variant="outline"
+          loading={exporting}
+          onClick={exportCsv}
         >
+          {m.exportCsv}
+        </Button>
+        <Button size="sm" onClick={() => setDialog({})}>
           {m.grantMember}
         </Button>
       </Grid>
@@ -157,7 +184,9 @@ export function GrantsTab({ passes }: { passes: AccessPass[] }) {
                 {g.status === "active" && (
                   <ConfirmButton
                     confirmLabel={m.revokeConfirm}
-                    onConfirm={() => revoke(g)}
+                    reasonLabel={m.reasonLabel}
+                    reasonPlaceholder={m.reasonPlaceholder}
+                    onConfirm={(reason) => revoke(g, reason)}
                   >
                     {m.revoke}
                   </ConfirmButton>

@@ -11,4 +11,8 @@ import type { AccessGrantRemoveAction } from "./accessGrantRemoveAction";
 
 export type AccessGrantRemoveParams = {
   action: AccessGrantRemoveAction;
+  /**
+   * Shown to the member on their access card.
+   */
+  reason?: string;
 };

@@ -99,6 +99,10 @@ func init() {
 	accessgrantDescNote := accessgrantFields[7].Descriptor()
 	// accessgrant.DefaultNote holds the default value on creation for the note field.
 	accessgrant.DefaultNote = accessgrantDescNote.Default.(string)
+	// accessgrantDescReason is the schema descriptor for reason field.
+	accessgrantDescReason := accessgrantFields[8].Descriptor()
+	// accessgrant.DefaultReason holds the default value on creation for the reason field.
+	accessgrant.DefaultReason = accessgrantDescReason.Default.(string)
 	// accessgrantDescID is the schema descriptor for id field.
 	accessgrantDescID := accessgrantMixinFields0[0].Descriptor()
 	// accessgrant.DefaultID holds the default value on creation for the id field.

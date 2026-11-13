@@ -6,6 +6,7 @@ import (
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/fault/fmsg"
+	"github.com/Southclaws/fault/ftag"
 	"github.com/Southclaws/opt"
 	"github.com/rs/xid"
 
@@ -27,6 +28,10 @@ func (s *Mutator) Create(
 ) (*reply.Reply, error) {
 	if err := s.access.RequirePost(ctx, xid.ID(parentID)); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := s.requireSameThread(ctx, parentID, partial.ReplyTo); err != nil {
+		return nil, err
 	}
 
 	if content, ok := partial.Content.Get(); ok {
@@ -92,4 +97,27 @@ func (s *Mutator) Create(
 	}
 
 	return p, nil
+}
+
+var ErrReplyToOtherThread = fault.New("reply_to must be a post in the same thread", ftag.With(ftag.InvalidArgument))
+
+// requireSameThread stops a reply from quoting a post of another thread, which
+// would copy that post into a thread with different readers.
+func (s *Mutator) requireSameThread(ctx context.Context, parentID post.ID, replyTo opt.Optional[post.ID]) error {
+	target, ok := replyTo.Get()
+	if !ok {
+		return nil
+	}
+
+	threadID, err := s.access.ThreadOf(ctx, xid.ID(target))
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if id, found := threadID.Get(); !found || id != xid.ID(parentID) {
+		return fault.Wrap(ErrReplyToOtherThread, fctx.With(ctx),
+			fmsg.WithDesc("reply_to", "You can only reply to posts in the same thread."))
+	}
+
+	return nil
 }

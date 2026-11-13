@@ -155,6 +155,17 @@ export function AccessPassCard({ pass, categoryNames }: Props) {
               {t.access.revoked}
             </styled.p>
           )}
+          {(status === "rejected" || status === "revoked") &&
+            membership?.reason && (
+              <styled.p
+                fontSize="sm"
+                color="fg.warning"
+                overflowWrap="anywhere"
+                data-testid="access-reason"
+              >
+                {t.access.reason.replace("{reason}", membership.reason)}
+              </styled.p>
+            )}
 
           <styled.ol display="flex" flexDir="column" gap="2" w="full">
             <Step index={1} done={isRequested} label={t.access.stepRequest} />

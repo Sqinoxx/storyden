@@ -31,10 +31,11 @@ export function RequestsTab({ passes }: { passes: AccessPass[] }) {
 
   if (!data) return <Unready error={error} />;
 
-  async function reject(g: AccessGrant) {
+  async function reject(g: AccessGrant, reason: string) {
     await handle(async () => {
       await accessGrantRemove(g.pass.id, g.account.handle, {
         action: "reject",
+        ...(reason ? { reason } : {}),
       });
       await revalidate();
       toast.success(t.access.manage.rejected);
@@ -57,7 +58,9 @@ export function RequestsTab({ passes }: { passes: AccessPass[] }) {
                 </Button>
                 <ConfirmButton
                   confirmLabel={t.access.manage.rejectConfirm}
-                  onConfirm={() => reject(g)}
+                  reasonLabel={t.access.manage.reasonLabel}
+                  reasonPlaceholder={t.access.manage.reasonPlaceholder}
+                  onConfirm={(reason) => reject(g, reason)}
                 >
                   {t.access.manage.reject}
                 </ConfirmButton>

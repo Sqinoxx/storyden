@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 import {
   createAdmin,
@@ -92,7 +93,23 @@ test("managers confirm payment, extend and revoke access", async ({
     timeout: 10000,
   });
 
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export CSV" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/\.csv$/);
+  const csv = await readFile((await download.path())!, "utf-8");
+  const row = csv
+    .split(/\r?\n/)
+    .find((l) => l.includes(`;${memberHandle};`));
+  expect(row).toBeDefined();
+  expect(row).toContain(pass.name);
+  expect(row).toContain("10 € bar");
+
+  const reason = `Doppelt bezahlt ${seed}`;
   await granted.getByRole("button", { name: "Revoke" }).click();
+  await granted
+    .getByRole("textbox", { name: "Reason for the member (optional)" })
+    .fill(reason);
   await granted.getByRole("button", { name: "Revoke this access?" }).click();
   await expect(granted).toHaveCount(0, { timeout: 10000 });
 
@@ -101,6 +118,9 @@ test("managers confirm payment, extend and revoke access", async ({
     timeout: 10000,
   });
   await expect(member.getByText(secret)).toHaveCount(0);
+  await expect(member.getByTestId("access-reason").first()).toContainText(
+    reason,
+  );
 
   await memberContext.close();
 });

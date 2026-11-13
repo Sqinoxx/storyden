@@ -6,12 +6,14 @@ import { BookmarkAction } from "@/components/site/Action/Bookmark";
 import { Unready } from "@/components/site/Unready";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AddIcon } from "@/components/ui/icons/Add";
+import { CreateFolderIcon } from "@/components/ui/icons/CreateFolder";
 import { RemoveIcon } from "@/components/ui/icons/Remove";
 import * as Menu from "@/components/ui/menu";
 import { Box, Center, HStack } from "@/styled-system/jsx";
+import { useTranslation } from "@/lib/i18n";
 import { useDisclosure } from "@/utils/useDisclosure";
 
-import { CollectionCreateTrigger } from "../CollectionCreate/CollectionCreateTrigger";
+import { CollectionCreateModal } from "../CollectionCreate/CollectionCreateModal";
 
 import { Props, useCollectionMenu } from "./useCollectionMenu";
 
@@ -41,6 +43,8 @@ export function CollectionMenu(props: Props) {
     onClose: handleReset,
   });
 
+  const createDisclosure = useDisclosure();
+
   return (
     <Box onKeyDown={handleKeyDown} onKeyUp={handleKeyUp}>
       <Menu.Root
@@ -62,19 +66,31 @@ export function CollectionMenu(props: Props) {
 
         <Portal>
           <Menu.Positioner>
-            <LazyLoadedMenuContent {...props} multiSelect={multiSelect} />
+            <LazyLoadedMenuContent
+              {...props}
+              multiSelect={multiSelect}
+              onCreate={createDisclosure.onOpen}
+            />
           </Menu.Positioner>
         </Portal>
       </Menu.Root>
+
+      <CollectionCreateModal
+        session={props.account}
+        isOpen={createDisclosure.isOpen}
+        onClose={createDisclosure.onClose}
+      />
     </Box>
   );
 }
 
 type LazyLoadedMenuContentProps = Props & {
   multiSelect: boolean;
+  onCreate: () => void;
 };
 
 function LazyLoadedMenuContent(props: LazyLoadedMenuContentProps) {
+  const t = useTranslation();
   const { ready, error, collections, handleSelect } = useCollectionMenu(props);
 
   if (!ready) {
@@ -84,8 +100,13 @@ function LazyLoadedMenuContent(props: LazyLoadedMenuContentProps) {
   return (
     <Menu.Content userSelect="none" overflowY="scroll" maxH="60">
       <Menu.ItemGroup>
-        <Menu.Item value="create-collection" closeOnSelect={false} asChild>
-          <CollectionCreateTrigger session={props.account} variant="ghost" />
+        <Menu.Item value="create-collection" onClick={props.onCreate}>
+          <HStack>
+            <Center w="5">
+              <CreateFolderIcon />
+            </Center>
+            {t.collections.collection}
+          </HStack>
         </Menu.Item>
 
         {collections.map((c) => (

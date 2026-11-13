@@ -42,5 +42,6 @@ export const NotificationEvent = {
   access_requested: "access_requested",
   access_granted: "access_granted",
   access_rejected: "access_rejected",
+  access_revoked: "access_revoked",
   access_expiring: "access_expiring",
 } as const;

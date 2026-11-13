@@ -188,6 +188,20 @@ func (_u *AccessGrantUpdate) SetNillableNote(v *string) *AccessGrantUpdate {
 	return _u
 }
 
+// SetReason sets the "reason" field.
+func (_u *AccessGrantUpdate) SetReason(v string) *AccessGrantUpdate {
+	_u.mutation.SetReason(v)
+	return _u
+}
+
+// SetNillableReason sets the "reason" field if the given value is not nil.
+func (_u *AccessGrantUpdate) SetNillableReason(v *string) *AccessGrantUpdate {
+	if v != nil {
+		_u.SetReason(*v)
+	}
+	return _u
+}
+
 // SetExpiryNotifiedAt sets the "expiry_notified_at" field.
 func (_u *AccessGrantUpdate) SetExpiryNotifiedAt(v time.Time) *AccessGrantUpdate {
 	_u.mutation.SetExpiryNotifiedAt(v)
@@ -345,6 +359,9 @@ func (_u *AccessGrantUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(accessgrant.FieldNote, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Reason(); ok {
+		_spec.SetField(accessgrant.FieldReason, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ExpiryNotifiedAt(); ok {
 		_spec.SetField(accessgrant.FieldExpiryNotifiedAt, field.TypeTime, value)
@@ -588,6 +605,20 @@ func (_u *AccessGrantUpdateOne) SetNillableNote(v *string) *AccessGrantUpdateOne
 	return _u
 }
 
+// SetReason sets the "reason" field.
+func (_u *AccessGrantUpdateOne) SetReason(v string) *AccessGrantUpdateOne {
+	_u.mutation.SetReason(v)
+	return _u
+}
+
+// SetNillableReason sets the "reason" field if the given value is not nil.
+func (_u *AccessGrantUpdateOne) SetNillableReason(v *string) *AccessGrantUpdateOne {
+	if v != nil {
+		_u.SetReason(*v)
+	}
+	return _u
+}
+
 // SetExpiryNotifiedAt sets the "expiry_notified_at" field.
 func (_u *AccessGrantUpdateOne) SetExpiryNotifiedAt(v time.Time) *AccessGrantUpdateOne {
 	_u.mutation.SetExpiryNotifiedAt(v)
@@ -775,6 +806,9 @@ func (_u *AccessGrantUpdateOne) sqlSave(ctx context.Context) (_node *AccessGrant
 	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(accessgrant.FieldNote, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Reason(); ok {
+		_spec.SetField(accessgrant.FieldReason, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ExpiryNotifiedAt(); ok {
 		_spec.SetField(accessgrant.FieldExpiryNotifiedAt, field.TypeTime, value)

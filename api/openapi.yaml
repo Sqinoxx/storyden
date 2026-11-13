@@ -1615,6 +1615,11 @@ paths:
           in: query
           required: true
           schema: { $ref: "#/components/schemas/AccessGrantRemoveAction" }
+        - name: reason
+          in: query
+          required: false
+          description: Shown to the member on their access card.
+          schema: { type: string, maxLength: 500 }
       responses:
         default: { $ref: "#/components/responses/InternalServerError" }
         "400": { $ref: "#/components/responses/BadRequest" }
@@ -9591,6 +9596,7 @@ components:
         - account_password_reset_token_issued
         - account_password_reset_email_sent
         - access_grant_updated
+        - access_pass_updated
 
     AuditEventProps:
       required: [id, type, timestamp]
@@ -9621,6 +9627,7 @@ components:
           account_password_reset_token_issued: "#/components/schemas/AuditEventAccountPasswordResetTokenIssued"
           account_password_reset_email_sent: "#/components/schemas/AuditEventAccountPasswordResetEmailSent"
           access_grant_updated: "#/components/schemas/AuditEventAccessGrantUpdated"
+          access_pass_updated: "#/components/schemas/AuditEventAccessPassUpdated"
       oneOf:
         - $ref: "#/components/schemas/AuditEventThreadDeleted"
         - $ref: "#/components/schemas/AuditEventThreadReplyDeleted"
@@ -9635,6 +9642,18 @@ components:
         - $ref: "#/components/schemas/AuditEventAccountPasswordResetTokenIssued"
         - $ref: "#/components/schemas/AuditEventAccountPasswordResetEmailSent"
         - $ref: "#/components/schemas/AuditEventAccessGrantUpdated"
+        - $ref: "#/components/schemas/AuditEventAccessPassUpdated"
+
+    AuditEventAccessPassUpdated:
+      type: object
+      required: [type, pass_id, pass_name, action]
+      properties:
+        type: { $ref: "#/components/schemas/AuditEventType" }
+        pass_id: { $ref: "#/components/schemas/Identifier" }
+        pass_name: { type: string }
+        action:
+          type: string
+          enum: [created, updated, deleted]
 
     AuditEventAccessGrantUpdated:
       type: object
@@ -9647,6 +9666,7 @@ components:
         status: { $ref: "#/components/schemas/AccessGrantStatus" }
         expires_at: { type: string, format: date-time }
         note: { type: string }
+        reason: { type: string }
 
     AuditEventThreadDeleted:
       type: object
@@ -10321,6 +10341,9 @@ components:
         expires_at: { type: string, format: date-time }
         requested_at: { type: string, format: date-time }
         decided_at: { type: string, format: date-time }
+        reason:
+          type: string
+          description: Why a request was rejected or access was revoked.
 
     AccessGrantStatus:
       type: string
@@ -10357,6 +10380,9 @@ components:
         note:
           type: string
           description: Internal note for whoever manages access.
+        reason:
+          type: string
+          description: Why a request was rejected or access was revoked, shown to the member.
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
 
@@ -12295,6 +12321,7 @@ components:
         - access_requested
         - access_granted
         - access_rejected
+        - access_revoked
         - access_expiring
 
     NotificationStatus:

@@ -76,6 +76,9 @@ func (b *Browser) ListRoots(ctx context.Context) (drive.Folders, error) {
 	}
 	for _, f := range visible {
 		f.Access = decision.FolderLock(xid.ID(f.ID))
+		if f.Access.Ok() {
+			f.DriveID = ""
+		}
 	}
 
 	return visible, nil
@@ -115,6 +118,10 @@ func (b *Browser) Contents(ctx context.Context, id drive.FolderID, childID strin
 				fmsg.WithDesc("list file", "That is a file, not a folder."))
 		}
 
+		if err := b.requireNested(ctx, root, descendants); err != nil {
+			return nil, err
+		}
+
 		target = childID
 		crumbs = append(crumbs, descendants...)
 	}
@@ -152,7 +159,12 @@ func (b *Browser) Open(ctx context.Context, id drive.FolderID, fileID string) (*
 			fmsg.WithDesc("download folder", "Folders cannot be downloaded."))
 	}
 
-	if _, err := b.ancestry(ctx, root.DriveID, fileID); err != nil {
+	path, err := b.ancestry(ctx, root.DriveID, fileID)
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	if err := b.requireNested(ctx, root, path); err != nil {
 		return nil, nil, "", err
 	}
 
@@ -190,6 +202,53 @@ func (b *Browser) resolveRoot(ctx context.Context, id drive.FolderID) (*drive.Fo
 	}
 
 	return folder, nil
+}
+
+// requireNested applies the rules of every registered folder on the way from
+// the root to the target, so a locked or hidden folder registered inside an
+// open one cannot be reached through the open one.
+func (b *Browser) requireNested(ctx context.Context, root *drive.Folder, path []Crumb) error {
+	if len(path) == 0 {
+		return nil
+	}
+
+	all, err := b.repo.List(ctx)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	byDriveID := make(map[string]*drive.Folder, len(all))
+	for _, f := range all {
+		byDriveID[f.DriveID] = f
+	}
+
+	decision, err := b.access.ResolveDrive(ctx)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	admin := isAdmin(ctx)
+	_, member := session.GetOptAccountID(ctx).Get()
+
+	for _, c := range path {
+		f, registered := byDriveID[c.ID]
+		if !registered || f.ID == root.ID {
+			continue
+		}
+
+		if !permitted(f.Visibility, member, admin) {
+			return fault.New("drive folder not visible",
+				fctx.With(ctx),
+				ftag.With(ftag.NotFound),
+				fmsg.WithDesc("visibility", "This folder is not available."))
+		}
+
+		if err := decision.RequireFolder(ctx, xid.ID(f.ID)); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (b *Browser) list(ctx context.Context, folderID string, pageToken string) (*gdrive.Listing, error) {

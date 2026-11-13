@@ -18,12 +18,11 @@ import (
 )
 
 type Access struct {
-	repo    *access_repo.Repository
 	manager *access_manage.Manager
 }
 
-func NewAccess(repo *access_repo.Repository, manager *access_manage.Manager) Access {
-	return Access{repo: repo, manager: manager}
+func NewAccess(manager *access_manage.Manager) Access {
+	return Access{manager: manager}
 }
 
 func (h *Access) AccessPassList(ctx context.Context, request openapi.AccessPassListRequestObject) (openapi.AccessPassListResponseObject, error) {
@@ -83,6 +82,7 @@ func (h *Access) AccessGrantRemove(ctx context.Context, request openapi.AccessGr
 		string(request.AccountHandle),
 		access.PassID(openapi.ParseID(request.AccessPassId)),
 		access_manage.RemoveAction(request.Params.Action),
+		opt.NewPtr(request.Params.Reason).OrZero(),
 	)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -119,7 +119,7 @@ func (h *Access) AccessPassCreate(ctx context.Context, request openapi.AccessPas
 
 	opts := accessPassOptions(b.Description, b.PriceLabel, b.PaymentInfo, b.Colour, b.Sort, b.Requestable, b.CategoryIds, b.DriveFolderIds)
 
-	p, err := h.repo.CreatePass(ctx, b.Name, opts...)
+	p, err := h.manager.CreatePass(ctx, b.Name, opts...)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -137,7 +137,7 @@ func (h *Access) AccessPassUpdate(ctx context.Context, request openapi.AccessPas
 		opts = append(opts, access_repo.WithName(*b.Name))
 	}
 
-	p, err := h.repo.UpdatePass(ctx, access.PassID(openapi.ParseID(request.AccessPassId)), opts...)
+	p, err := h.manager.UpdatePass(ctx, access.PassID(openapi.ParseID(request.AccessPassId)), opts...)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -148,7 +148,7 @@ func (h *Access) AccessPassUpdate(ctx context.Context, request openapi.AccessPas
 }
 
 func (h *Access) AccessPassDelete(ctx context.Context, request openapi.AccessPassDeleteRequestObject) (openapi.AccessPassDeleteResponseObject, error) {
-	if err := h.repo.DeletePass(ctx, access.PassID(openapi.ParseID(request.AccessPassId))); err != nil {
+	if err := h.manager.DeletePass(ctx, access.PassID(openapi.ParseID(request.AccessPassId))); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
@@ -235,6 +235,7 @@ func serialiseAccessPassWithMembership(in *access_manage.PassWithMembership) ope
 			ExpiresAt:     g.ExpiresAt.Ptr(),
 			RequestedAt:   g.RequestedAt.Ptr(),
 			DecidedAt:     g.DecidedAt.Ptr(),
+			Reason:        opt.NewSafe(g.Reason, g.Reason != "").Ptr(),
 		}
 	}).Ptr()
 	return out
@@ -252,6 +253,7 @@ func serialiseAccessGrant(in *access.Grant) openapi.AccessGrant {
 		DecidedAt:     in.DecidedAt.Ptr(),
 		DecidedBy:     opt.Map(in.DecidedByMember, serialiseProfileReference).Ptr(),
 		Note:          in.Note,
+		Reason:        opt.NewSafe(in.Reason, in.Reason != "").Ptr(),
 		CreatedAt:     in.CreatedAt,
 		UpdatedAt:     in.UpdatedAt,
 	}

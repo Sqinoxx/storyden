@@ -28,6 +28,7 @@ export const EVENT_TYPE_LABELS: Record<AuditEventType, string> = {
   [AuditEventType.account_password_reset_email_sent]:
     "Password Reset Email Sent",
   [AuditEventType.access_grant_updated]: "Access Grant Updated",
+  [AuditEventType.access_pass_updated]: "Access Pass Updated",
 };
 
 export const ALL_EVENT_TYPES: MultiSelectPickerItem[] = Object.entries(

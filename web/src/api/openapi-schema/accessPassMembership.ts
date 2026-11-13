@@ -17,6 +17,8 @@ for members who never requested or held it.
 export interface AccessPassMembership {
   decided_at?: string;
   expires_at?: string;
+  /** Why a request was rejected or access was revoked. */
+  reason?: string;
   /** Put this on the offline payment so it can be matched. */
   reference_code: string;
   requested_at?: string;

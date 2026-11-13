@@ -159,6 +159,7 @@ type AccessGrantMutation struct {
 	decided_by         *xid.ID
 	decided_at         *time.Time
 	note               *string
+	reason             *string
 	expiry_notified_at *time.Time
 	clearedFields      map[string]struct{}
 	account            *xid.ID
@@ -722,6 +723,42 @@ func (m *AccessGrantMutation) ResetNote() {
 	m.note = nil
 }
 
+// SetReason sets the "reason" field.
+func (m *AccessGrantMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *AccessGrantMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the AccessGrant entity.
+// If the AccessGrant object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessGrantMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *AccessGrantMutation) ResetReason() {
+	m.reason = nil
+}
+
 // SetExpiryNotifiedAt sets the "expiry_notified_at" field.
 func (m *AccessGrantMutation) SetExpiryNotifiedAt(t time.Time) {
 	m.expiry_notified_at = &t
@@ -859,7 +896,7 @@ func (m *AccessGrantMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AccessGrantMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, accessgrant.FieldCreatedAt)
 	}
@@ -892,6 +929,9 @@ func (m *AccessGrantMutation) Fields() []string {
 	}
 	if m.note != nil {
 		fields = append(fields, accessgrant.FieldNote)
+	}
+	if m.reason != nil {
+		fields = append(fields, accessgrant.FieldReason)
 	}
 	if m.expiry_notified_at != nil {
 		fields = append(fields, accessgrant.FieldExpiryNotifiedAt)
@@ -926,6 +966,8 @@ func (m *AccessGrantMutation) Field(name string) (ent.Value, bool) {
 		return m.DecidedAt()
 	case accessgrant.FieldNote:
 		return m.Note()
+	case accessgrant.FieldReason:
+		return m.Reason()
 	case accessgrant.FieldExpiryNotifiedAt:
 		return m.ExpiryNotifiedAt()
 	}
@@ -959,6 +1001,8 @@ func (m *AccessGrantMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldDecidedAt(ctx)
 	case accessgrant.FieldNote:
 		return m.OldNote(ctx)
+	case accessgrant.FieldReason:
+		return m.OldReason(ctx)
 	case accessgrant.FieldExpiryNotifiedAt:
 		return m.OldExpiryNotifiedAt(ctx)
 	}
@@ -1046,6 +1090,13 @@ func (m *AccessGrantMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNote(v)
+		return nil
+	case accessgrant.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
 		return nil
 	case accessgrant.FieldExpiryNotifiedAt:
 		v, ok := value.(time.Time)
@@ -1168,6 +1219,9 @@ func (m *AccessGrantMutation) ResetField(name string) error {
 		return nil
 	case accessgrant.FieldNote:
 		m.ResetNote()
+		return nil
+	case accessgrant.FieldReason:
+		m.ResetReason()
 		return nil
 	case accessgrant.FieldExpiryNotifiedAt:
 		m.ResetExpiryNotifiedAt()

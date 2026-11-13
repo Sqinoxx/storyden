@@ -6,6 +6,7 @@ package access_manage
 import (
 	"context"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/Southclaws/fault"
@@ -215,7 +216,7 @@ func (m *Manager) Grant(ctx context.Context, handle string, passID access.PassID
 	return m.repo.GetGrantDetailed(ctx, memberID, passID)
 }
 
-func (m *Manager) Remove(ctx context.Context, handle string, passID access.PassID, action RemoveAction) (*access.Grant, error) {
+func (m *Manager) Remove(ctx context.Context, handle string, passID access.PassID, action RemoveAction, reason string) (*access.Grant, error) {
 	managerID, err := session.GetAccountID(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -251,6 +252,7 @@ func (m *Manager) Remove(ctx context.Context, handle string, passID access.PassI
 
 	g, err := m.repo.SetGrant(ctx, memberID, passID, status, access_repo.GrantOptions{
 		DecidedBy: opt.New(managerID),
+		Reason:    strings.TrimSpace(reason),
 	})
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -258,10 +260,12 @@ func (m *Manager) Remove(ctx context.Context, handle string, passID access.PassI
 
 	m.recordAudit(ctx, managerID, g)
 
-	if status == access.GrantStatusRejected {
-		if err := m.notifier.Send(ctx, memberID, opt.New(managerID), notification.EventAccessRejected, nil); err != nil {
-			m.logger.Error("failed to notify member of access rejection", slog.String("error", err.Error()))
-		}
+	event := notification.EventAccessRejected
+	if status == access.GrantStatusRevoked {
+		event = notification.EventAccessRevoked
+	}
+	if err := m.notifier.Send(ctx, memberID, opt.New(managerID), event, nil); err != nil {
+		m.logger.Error("failed to notify member of access decision", slog.String("error", err.Error()))
 	}
 
 	return m.repo.GetGrantDetailed(ctx, memberID, passID)
@@ -309,7 +313,9 @@ func (m *Manager) notifyManagers(ctx context.Context, requester account.AccountI
 
 	for _, acc := range managers {
 		if err := m.notifier.Send(ctx, acc.ID, opt.New(requester), notification.EventAccessRequested, nil); err != nil {
-			return fault.Wrap(err, fctx.With(ctx))
+			m.logger.Error("failed to notify access manager",
+				slog.String("manager_id", acc.ID.String()),
+				slog.String("error", err.Error()))
 		}
 	}
 
@@ -333,8 +339,68 @@ func (m *Manager) recordAudit(ctx context.Context, managerID account.AccountID, 
 	if g.Note != "" {
 		meta["note"] = g.Note
 	}
+	if g.Reason != "" {
+		meta["reason"] = g.Reason
+	}
 
 	if _, err := m.auditWriter.Create(ctx, audit.EventTypeAccessGrantUpdated, opt.New(managerID), opt.NewEmpty[datagraph.Ref](), meta); err != nil {
 		m.logger.Error("failed to write access audit log", slog.String("error", err.Error()))
+	}
+}
+
+type PassAction string
+
+const (
+	PassActionCreated PassAction = "created"
+	PassActionUpdated PassAction = "updated"
+	PassActionDeleted PassAction = "deleted"
+)
+
+func (m *Manager) CreatePass(ctx context.Context, name string, opts ...access_repo.PassOption) (*access.Pass, error) {
+	p, err := m.repo.CreatePass(ctx, name, opts...)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	m.recordPassAudit(ctx, p.PassRef, PassActionCreated)
+
+	return p, nil
+}
+
+func (m *Manager) UpdatePass(ctx context.Context, id access.PassID, opts ...access_repo.PassOption) (*access.Pass, error) {
+	p, err := m.repo.UpdatePass(ctx, id, opts...)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	m.recordPassAudit(ctx, p.PassRef, PassActionUpdated)
+
+	return p, nil
+}
+
+func (m *Manager) DeletePass(ctx context.Context, id access.PassID) error {
+	p, err := m.repo.GetPass(ctx, id)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := m.repo.DeletePass(ctx, id); err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	m.recordPassAudit(ctx, p.PassRef, PassActionDeleted)
+
+	return nil
+}
+
+func (m *Manager) recordPassAudit(ctx context.Context, p access.PassRef, action PassAction) {
+	meta := map[string]any{
+		"pass_id":   p.ID.String(),
+		"pass_name": p.Name,
+		"action":    string(action),
+	}
+
+	if _, err := m.auditWriter.Create(ctx, audit.EventTypeAccessPassUpdated, session.GetOptAccountID(ctx), opt.NewEmpty[datagraph.Ref](), meta); err != nil {
+		m.logger.Error("failed to write access pass audit log", slog.String("error", err.Error()))
 	}
 }

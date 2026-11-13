@@ -9,6 +9,7 @@ import (
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/opt"
+	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/datagraph"
 	"github.com/Southclaws/storyden/app/resources/event"
@@ -17,6 +18,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/event/location"
 	"github.com/Southclaws/storyden/app/resources/event/participation"
 	"github.com/Southclaws/storyden/app/resources/post/category"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/event/event_management"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 )
@@ -24,16 +26,28 @@ import (
 type Events struct {
 	eventQuerier *event_querier.Querier
 	eventManager *event_management.Manager
+	access       *access_check.Checker
 }
 
 func NewEvents(
 	eventQuerier *event_querier.Querier,
 	eventManager *event_management.Manager,
+	access *access_check.Checker,
 ) Events {
 	return Events{
 		eventQuerier: eventQuerier,
 		eventManager: eventManager,
+		access:       access,
 	}
+}
+
+func (h *Events) withhold(ctx context.Context, evt *event.Event) error {
+	d, err := h.access.Resolve(ctx)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+	d.Redact(&evt.Thread)
+	return nil
 }
 
 func (h *Events) EventList(ctx context.Context, request openapi.EventListRequestObject) (openapi.EventListResponseObject, error) {
@@ -77,6 +91,14 @@ func (h *Events) EventCreate(ctx context.Context, request openapi.EventCreateReq
 
 	catID := category.CategoryID(openapi.ParseID(request.Body.ThreadCategoryId))
 
+	d, err := h.access.Resolve(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	if err := d.RequireCategory(ctx, xid.ID(catID)); err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
 	partial := event_management.Partial{
 		Slug:        opt.NewPtr(request.Body.Slug),
 		Description: opt.NewPtr(request.Body.Description),
@@ -117,6 +139,10 @@ func (h *Events) EventGet(ctx context.Context, request openapi.EventGetRequestOb
 	evt, err := h.eventQuerier.Get(ctx, mk)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := h.withhold(ctx, evt); err != nil {
+		return nil, err
 	}
 
 	return openapi.EventGet200JSONResponse{

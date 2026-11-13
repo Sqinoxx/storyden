@@ -88,7 +88,7 @@ func (s *Suggester) Suggest(ctx context.Context, in Input) (*Suggestion, error) 
 		return nil, nil
 	}
 
-	if _, ok := s.prompter.(*ai.OpenAI); !ok {
+	if !ai.IsOpenAI(s.prompter) {
 		return nil, nil
 	}
 

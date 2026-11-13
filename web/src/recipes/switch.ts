@@ -22,7 +22,16 @@ export const switchRecipe = defineSlotRecipe({
       transitionProperty: "background",
       transitionTimingFunction: "default",
       _checked: {
-        background: "bg.emphasized",
+        background: "accent.default",
+      },
+      _disabled: {
+        cursor: "not-allowed",
+        opacity: "0.5",
+      },
+      _focusVisible: {
+        outline: "2px solid",
+        outlineColor: "border.outline",
+        outlineOffset: "2px",
       },
     },
     label: {
@@ -38,7 +47,7 @@ export const switchRecipe = defineSlotRecipe({
       transitionTimingFunction: "default",
       _checked: {
         transform: "translateX(100%)",
-        background: "fg.muted",
+        background: "bg.default",
       },
     },
   },

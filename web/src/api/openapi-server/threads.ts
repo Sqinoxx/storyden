@@ -8,6 +8,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 import type {
+  ThreadAttachmentSummaryGetOKResponse,
+  ThreadAttachmentSummaryStreamOKResponse,
   ThreadCreateBody,
   ThreadCreateOKResponse,
   ThreadGetParams,
@@ -177,6 +179,74 @@ export const threadSummarise = async (
     {
       ...options,
       method: "POST",
+    },
+  );
+};
+
+/**
+ * Get the stored language model summary of a PDF attached to the thread
+or one of its replies. When no summary exists yet, a quick overview
+built without the language model is returned so the client can show
+something immediately and open the summary stream.
+
+ */
+export type threadAttachmentSummaryGetResponse = {
+  data: ThreadAttachmentSummaryGetOKResponse;
+  status: number;
+};
+
+export const getThreadAttachmentSummaryGetUrl = (
+  threadMark: string,
+  assetId: string,
+) => {
+  return `/threads/${threadMark}/attachments/${assetId}/summary`;
+};
+
+export const threadAttachmentSummaryGet = async (
+  threadMark: string,
+  assetId: string,
+  options?: RequestInit,
+): Promise<threadAttachmentSummaryGetResponse> => {
+  return fetcher<Promise<threadAttachmentSummaryGetResponse>>(
+    getThreadAttachmentSummaryGetUrl(threadMark, assetId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * Summarise a PDF attached to the thread with the language model and
+stream the answer as server-sent events. Each `message` event carries
+a JSON object `{"t": "<text>"}` with the next piece of the answer. A
+final `done` event carries `{"summary": "<html>"}`, an `error` event
+carries `{"message": "<reason>"}`. The result is stored, later calls
+to the summary endpoint return it directly.
+
+ */
+export type threadAttachmentSummaryStreamResponse = {
+  data: ThreadAttachmentSummaryStreamOKResponse;
+  status: number;
+};
+
+export const getThreadAttachmentSummaryStreamUrl = (
+  threadMark: string,
+  assetId: string,
+) => {
+  return `/threads/${threadMark}/attachments/${assetId}/summary/stream`;
+};
+
+export const threadAttachmentSummaryStream = async (
+  threadMark: string,
+  assetId: string,
+  options?: RequestInit,
+): Promise<threadAttachmentSummaryStreamResponse> => {
+  return fetcher<Promise<threadAttachmentSummaryStreamResponse>>(
+    getThreadAttachmentSummaryStreamUrl(threadMark, assetId),
+    {
+      ...options,
+      method: "GET",
     },
   );
 };

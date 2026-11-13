@@ -122,6 +122,9 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
       - LANGUAGE_MODEL_CHAT_MODEL=${LANGUAGE_MODEL_CHAT_MODEL:-qwen2.5:3b}
+      # Kleineres Modell fuer Live-Antworten (PDF zusammenfassen), ca. doppelt
+      # so schnell. Leer lassen = LANGUAGE_MODEL_CHAT_MODEL.
+      - LANGUAGE_MODEL_FAST_MODEL=${LANGUAGE_MODEL_FAST_MODEL:-qwen2.5:1.5b}
       - LANGUAGE_MODEL_EMBEDDING_MODEL=${LANGUAGE_MODEL_EMBEDDING_MODEL:-bge-m3}
       - SEMDEX_PROVIDER=${SEMDEX_PROVIDER:-}
 
@@ -130,7 +133,9 @@ services:
 
   # Lokale KI (kostenlos, keine Daten verlassen den Server). Startet nur mit
   # "docker compose --profile ai up -d". 8 GB RAM ohne GPU: kleine Modelle,
-  # Speicher auf 4 GB begrenzt, damit Postgres und Storyden Luft behalten.
+  # Speicher auf 5 GB begrenzt, damit Postgres und Storyden Luft behalten.
+  # qwen2.5:3b (~2,3 GB) und qwen2.5:1.5b (~1,1 GB) passen gemeinsam hinein,
+  # bge-m3 wird bei Bedarf nachgeladen (MAX_LOADED_MODELS=2).
   ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
@@ -140,7 +145,7 @@ services:
       - "11434"
     volumes:
       - ollama-data:/root/.ollama
-    mem_limit: 4g
+    mem_limit: 5g
     environment:
       - OLLAMA_NUM_PARALLEL=1
       - OLLAMA_MAX_LOADED_MODELS=2

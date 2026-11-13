@@ -19,6 +19,7 @@ import { Download, Eye, Trash2 } from "lucide-react";
 import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
 import { downloadAsset, getCleanFilename } from "@/utils/asset";
+import { AttachmentSummaryButton } from "@/components/post/AttachmentSummary/AttachmentSummary";
 import { FilePreviewModal, isPreviewableAsset } from "@/components/post/FilePreviewModal";
 import { useTranslation } from "@/lib/i18n";
 
@@ -146,6 +147,13 @@ function Component(props: NodeViewProps) {
 
           {!isUploading && (
             <styled.span display="inline-flex" alignItems="center" gap="1.5" color="fg.muted" ml="1">
+              {href && !isEditable && (
+                <AttachmentSummaryButton
+                  assetRef={href}
+                  filename={rawFileName}
+                  displayName={fileName}
+                />
+              )}
               {/* Preview eye */}
               {href && canPreview && (
                 <styled.button

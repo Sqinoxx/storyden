@@ -12,6 +12,7 @@ import {
   normalizeFilename,
 } from "@/utils/asset";
 import { styled } from "@/styled-system/jsx";
+import { AttachmentSummaryButton } from "./AttachmentSummary/AttachmentSummary";
 import { FilePreviewModal, isPreviewableAsset } from "./FilePreviewModal";
 import { extractDocumentAssetsFromThread } from "./ThreadCard";
 
@@ -127,6 +128,14 @@ export function FileAttachmentBadge({
 
         {/* Action buttons */}
         <styled.span display="flex" alignItems="center" gap="1.5" flexShrink="0" ml="1">
+          {!onRemove && (
+            <AttachmentSummaryButton
+              assetRef={asset.id || asset.path}
+              filename={asset.filename}
+              mimeType={asset.mime_type}
+              displayName={displayName}
+            />
+          )}
           {/* Preview eye icon – only for supported formats */}
           {canPreview && (
             <styled.button

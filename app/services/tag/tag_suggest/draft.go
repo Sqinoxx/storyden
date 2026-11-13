@@ -36,7 +36,7 @@ func (s *Suggester) DraftMeanings(ctx context.Context) (*MeaningsDraft, error) {
 	raw := rawMeanings(set.Metadata.OrZero())
 	draft := &MeaningsDraft{Meanings: raw, Added: []string{}, Skipped: []string{}}
 
-	if _, ok := s.prompter.(*ai.OpenAI); !ok {
+	if !ai.IsOpenAI(s.prompter) {
 		return draft, nil
 	}
 

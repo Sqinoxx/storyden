@@ -139,6 +139,62 @@ func (_c *AssetCreate) SetNillableOcrProcessedAt(v *time.Time) *AssetCreate {
 	return _c
 }
 
+// SetAiSummary sets the "ai_summary" field.
+func (_c *AssetCreate) SetAiSummary(v string) *AssetCreate {
+	_c.mutation.SetAiSummary(v)
+	return _c
+}
+
+// SetNillableAiSummary sets the "ai_summary" field if the given value is not nil.
+func (_c *AssetCreate) SetNillableAiSummary(v *string) *AssetCreate {
+	if v != nil {
+		_c.SetAiSummary(*v)
+	}
+	return _c
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (_c *AssetCreate) SetAiSummaryHash(v string) *AssetCreate {
+	_c.mutation.SetAiSummaryHash(v)
+	return _c
+}
+
+// SetNillableAiSummaryHash sets the "ai_summary_hash" field if the given value is not nil.
+func (_c *AssetCreate) SetNillableAiSummaryHash(v *string) *AssetCreate {
+	if v != nil {
+		_c.SetAiSummaryHash(*v)
+	}
+	return _c
+}
+
+// SetAiSummaryQuality sets the "ai_summary_quality" field.
+func (_c *AssetCreate) SetAiSummaryQuality(v asset.AiSummaryQuality) *AssetCreate {
+	_c.mutation.SetAiSummaryQuality(v)
+	return _c
+}
+
+// SetNillableAiSummaryQuality sets the "ai_summary_quality" field if the given value is not nil.
+func (_c *AssetCreate) SetNillableAiSummaryQuality(v *asset.AiSummaryQuality) *AssetCreate {
+	if v != nil {
+		_c.SetAiSummaryQuality(*v)
+	}
+	return _c
+}
+
+// SetAiSummaryStatus sets the "ai_summary_status" field.
+func (_c *AssetCreate) SetAiSummaryStatus(v asset.AiSummaryStatus) *AssetCreate {
+	_c.mutation.SetAiSummaryStatus(v)
+	return _c
+}
+
+// SetNillableAiSummaryStatus sets the "ai_summary_status" field if the given value is not nil.
+func (_c *AssetCreate) SetNillableAiSummaryStatus(v *asset.AiSummaryStatus) *AssetCreate {
+	if v != nil {
+		_c.SetAiSummaryStatus(*v)
+	}
+	return _c
+}
+
 // SetAccountID sets the "account_id" field.
 func (_c *AssetCreate) SetAccountID(v xid.ID) *AssetCreate {
 	_c.mutation.SetAccountID(v)
@@ -355,6 +411,10 @@ func (_c *AssetCreate) defaults() {
 		v := asset.DefaultOcrStatus
 		_c.mutation.SetOcrStatus(v)
 	}
+	if _, ok := _c.mutation.AiSummaryStatus(); !ok {
+		v := asset.DefaultAiSummaryStatus
+		_c.mutation.SetAiSummaryStatus(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := asset.DefaultID()
 		_c.mutation.SetID(v)
@@ -384,6 +444,19 @@ func (_c *AssetCreate) check() error {
 	if v, ok := _c.mutation.OcrStatus(); ok {
 		if err := asset.OcrStatusValidator(v); err != nil {
 			return &ValidationError{Name: "ocr_status", err: fmt.Errorf(`ent: validator failed for field "Asset.ocr_status": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.AiSummaryQuality(); ok {
+		if err := asset.AiSummaryQualityValidator(v); err != nil {
+			return &ValidationError{Name: "ai_summary_quality", err: fmt.Errorf(`ent: validator failed for field "Asset.ai_summary_quality": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.AiSummaryStatus(); !ok {
+		return &ValidationError{Name: "ai_summary_status", err: errors.New(`ent: missing required field "Asset.ai_summary_status"`)}
+	}
+	if v, ok := _c.mutation.AiSummaryStatus(); ok {
+		if err := asset.AiSummaryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "ai_summary_status", err: fmt.Errorf(`ent: validator failed for field "Asset.ai_summary_status": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.AccountID(); !ok {
@@ -472,6 +545,22 @@ func (_c *AssetCreate) createSpec() (*Asset, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.OcrProcessedAt(); ok {
 		_spec.SetField(asset.FieldOcrProcessedAt, field.TypeTime, value)
 		_node.OcrProcessedAt = &value
+	}
+	if value, ok := _c.mutation.AiSummary(); ok {
+		_spec.SetField(asset.FieldAiSummary, field.TypeString, value)
+		_node.AiSummary = &value
+	}
+	if value, ok := _c.mutation.AiSummaryHash(); ok {
+		_spec.SetField(asset.FieldAiSummaryHash, field.TypeString, value)
+		_node.AiSummaryHash = &value
+	}
+	if value, ok := _c.mutation.AiSummaryQuality(); ok {
+		_spec.SetField(asset.FieldAiSummaryQuality, field.TypeEnum, value)
+		_node.AiSummaryQuality = &value
+	}
+	if value, ok := _c.mutation.AiSummaryStatus(); ok {
+		_spec.SetField(asset.FieldAiSummaryStatus, field.TypeEnum, value)
+		_node.AiSummaryStatus = value
 	}
 	if nodes := _c.mutation.PostsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -809,6 +898,72 @@ func (u *AssetUpsert) ClearOcrProcessedAt() *AssetUpsert {
 	return u
 }
 
+// SetAiSummary sets the "ai_summary" field.
+func (u *AssetUpsert) SetAiSummary(v string) *AssetUpsert {
+	u.Set(asset.FieldAiSummary, v)
+	return u
+}
+
+// UpdateAiSummary sets the "ai_summary" field to the value that was provided on create.
+func (u *AssetUpsert) UpdateAiSummary() *AssetUpsert {
+	u.SetExcluded(asset.FieldAiSummary)
+	return u
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (u *AssetUpsert) ClearAiSummary() *AssetUpsert {
+	u.SetNull(asset.FieldAiSummary)
+	return u
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (u *AssetUpsert) SetAiSummaryHash(v string) *AssetUpsert {
+	u.Set(asset.FieldAiSummaryHash, v)
+	return u
+}
+
+// UpdateAiSummaryHash sets the "ai_summary_hash" field to the value that was provided on create.
+func (u *AssetUpsert) UpdateAiSummaryHash() *AssetUpsert {
+	u.SetExcluded(asset.FieldAiSummaryHash)
+	return u
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (u *AssetUpsert) ClearAiSummaryHash() *AssetUpsert {
+	u.SetNull(asset.FieldAiSummaryHash)
+	return u
+}
+
+// SetAiSummaryQuality sets the "ai_summary_quality" field.
+func (u *AssetUpsert) SetAiSummaryQuality(v asset.AiSummaryQuality) *AssetUpsert {
+	u.Set(asset.FieldAiSummaryQuality, v)
+	return u
+}
+
+// UpdateAiSummaryQuality sets the "ai_summary_quality" field to the value that was provided on create.
+func (u *AssetUpsert) UpdateAiSummaryQuality() *AssetUpsert {
+	u.SetExcluded(asset.FieldAiSummaryQuality)
+	return u
+}
+
+// ClearAiSummaryQuality clears the value of the "ai_summary_quality" field.
+func (u *AssetUpsert) ClearAiSummaryQuality() *AssetUpsert {
+	u.SetNull(asset.FieldAiSummaryQuality)
+	return u
+}
+
+// SetAiSummaryStatus sets the "ai_summary_status" field.
+func (u *AssetUpsert) SetAiSummaryStatus(v asset.AiSummaryStatus) *AssetUpsert {
+	u.Set(asset.FieldAiSummaryStatus, v)
+	return u
+}
+
+// UpdateAiSummaryStatus sets the "ai_summary_status" field to the value that was provided on create.
+func (u *AssetUpsert) UpdateAiSummaryStatus() *AssetUpsert {
+	u.SetExcluded(asset.FieldAiSummaryStatus)
+	return u
+}
+
 // SetAccountID sets the "account_id" field.
 func (u *AssetUpsert) SetAccountID(v xid.ID) *AssetUpsert {
 	u.Set(asset.FieldAccountID, v)
@@ -1048,6 +1203,83 @@ func (u *AssetUpsertOne) UpdateOcrProcessedAt() *AssetUpsertOne {
 func (u *AssetUpsertOne) ClearOcrProcessedAt() *AssetUpsertOne {
 	return u.Update(func(s *AssetUpsert) {
 		s.ClearOcrProcessedAt()
+	})
+}
+
+// SetAiSummary sets the "ai_summary" field.
+func (u *AssetUpsertOne) SetAiSummary(v string) *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetAiSummary(v)
+	})
+}
+
+// UpdateAiSummary sets the "ai_summary" field to the value that was provided on create.
+func (u *AssetUpsertOne) UpdateAiSummary() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateAiSummary()
+	})
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (u *AssetUpsertOne) ClearAiSummary() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearAiSummary()
+	})
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (u *AssetUpsertOne) SetAiSummaryHash(v string) *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetAiSummaryHash(v)
+	})
+}
+
+// UpdateAiSummaryHash sets the "ai_summary_hash" field to the value that was provided on create.
+func (u *AssetUpsertOne) UpdateAiSummaryHash() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateAiSummaryHash()
+	})
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (u *AssetUpsertOne) ClearAiSummaryHash() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearAiSummaryHash()
+	})
+}
+
+// SetAiSummaryQuality sets the "ai_summary_quality" field.
+func (u *AssetUpsertOne) SetAiSummaryQuality(v asset.AiSummaryQuality) *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetAiSummaryQuality(v)
+	})
+}
+
+// UpdateAiSummaryQuality sets the "ai_summary_quality" field to the value that was provided on create.
+func (u *AssetUpsertOne) UpdateAiSummaryQuality() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateAiSummaryQuality()
+	})
+}
+
+// ClearAiSummaryQuality clears the value of the "ai_summary_quality" field.
+func (u *AssetUpsertOne) ClearAiSummaryQuality() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearAiSummaryQuality()
+	})
+}
+
+// SetAiSummaryStatus sets the "ai_summary_status" field.
+func (u *AssetUpsertOne) SetAiSummaryStatus(v asset.AiSummaryStatus) *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetAiSummaryStatus(v)
+	})
+}
+
+// UpdateAiSummaryStatus sets the "ai_summary_status" field to the value that was provided on create.
+func (u *AssetUpsertOne) UpdateAiSummaryStatus() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateAiSummaryStatus()
 	})
 }
 
@@ -1462,6 +1694,83 @@ func (u *AssetUpsertBulk) UpdateOcrProcessedAt() *AssetUpsertBulk {
 func (u *AssetUpsertBulk) ClearOcrProcessedAt() *AssetUpsertBulk {
 	return u.Update(func(s *AssetUpsert) {
 		s.ClearOcrProcessedAt()
+	})
+}
+
+// SetAiSummary sets the "ai_summary" field.
+func (u *AssetUpsertBulk) SetAiSummary(v string) *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetAiSummary(v)
+	})
+}
+
+// UpdateAiSummary sets the "ai_summary" field to the value that was provided on create.
+func (u *AssetUpsertBulk) UpdateAiSummary() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateAiSummary()
+	})
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (u *AssetUpsertBulk) ClearAiSummary() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearAiSummary()
+	})
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (u *AssetUpsertBulk) SetAiSummaryHash(v string) *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetAiSummaryHash(v)
+	})
+}
+
+// UpdateAiSummaryHash sets the "ai_summary_hash" field to the value that was provided on create.
+func (u *AssetUpsertBulk) UpdateAiSummaryHash() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateAiSummaryHash()
+	})
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (u *AssetUpsertBulk) ClearAiSummaryHash() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearAiSummaryHash()
+	})
+}
+
+// SetAiSummaryQuality sets the "ai_summary_quality" field.
+func (u *AssetUpsertBulk) SetAiSummaryQuality(v asset.AiSummaryQuality) *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetAiSummaryQuality(v)
+	})
+}
+
+// UpdateAiSummaryQuality sets the "ai_summary_quality" field to the value that was provided on create.
+func (u *AssetUpsertBulk) UpdateAiSummaryQuality() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateAiSummaryQuality()
+	})
+}
+
+// ClearAiSummaryQuality clears the value of the "ai_summary_quality" field.
+func (u *AssetUpsertBulk) ClearAiSummaryQuality() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearAiSummaryQuality()
+	})
+}
+
+// SetAiSummaryStatus sets the "ai_summary_status" field.
+func (u *AssetUpsertBulk) SetAiSummaryStatus(v asset.AiSummaryStatus) *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetAiSummaryStatus(v)
+	})
+}
+
+// UpdateAiSummaryStatus sets the "ai_summary_status" field to the value that was provided on create.
+func (u *AssetUpsertBulk) UpdateAiSummaryStatus() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateAiSummaryStatus()
 	})
 }
 

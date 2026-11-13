@@ -191,6 +191,7 @@ func serialiseAIFeatures(info *instance_info.Info) *openapi.AIFeatureFlags {
 		TagSuggestion:      genAI && info.Settings.AITagSuggestionEnabled(),
 		SemesterSuggestion: info.Settings.AISemesterSuggestionEnabled(),
 		LibraryAssist:      genAI && info.Settings.AILibraryAssistEnabled(),
+		PdfSummary:         genAI && info.Settings.AIPDFSummaryEnabled(),
 	}
 }
 

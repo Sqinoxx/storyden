@@ -4,7 +4,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { handle } from "@/api/client";
-import { adminGenerateTagMeanings } from "@/api/openapi-client/admin";
+import {
+  adminGenerateTagMeanings,
+  useAdminOCRStats,
+} from "@/api/openapi-client/admin";
 import { useTranslation } from "@/lib/i18n";
 import { useCapability } from "@/lib/settings/capabilities";
 import { useSettingsMutation } from "@/lib/settings/mutation";
@@ -19,6 +22,9 @@ export const FormSchema = z.object({
   tagSuggestion: z.boolean(),
   semesterSuggestion: z.boolean(),
   libraryAssist: z.boolean(),
+  pdfSummary: z.boolean(),
+  pdfSummaryBackground: z.boolean(),
+  pdfSummaryNightOnly: z.boolean(),
   tagMeanings: z.string().max(10000),
 });
 export type Form = z.infer<typeof FormSchema>;
@@ -31,6 +37,7 @@ export function useAISettings({ settings }: Props) {
   const [draftResult, setDraftResult] = useState<string | null>(null);
 
   const ai = settings.services?.ai;
+  const { data: stats } = useAdminOCRStats();
   const form = useForm<Form>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -38,6 +45,9 @@ export function useAISettings({ settings }: Props) {
       tagSuggestion: ai?.tag_suggestion ?? true,
       semesterSuggestion: ai?.semester_suggestion ?? true,
       libraryAssist: ai?.library_assist ?? true,
+      pdfSummary: ai?.pdf_summary ?? false,
+      pdfSummaryBackground: ai?.pdf_summary_background ?? true,
+      pdfSummaryNightOnly: ai?.pdf_summary_night_only ?? false,
       tagMeanings: settings.metadata.ai.tagMeanings,
     },
   });
@@ -58,6 +68,9 @@ export function useAISettings({ settings }: Props) {
               tag_suggestion: data.tagSuggestion,
               semester_suggestion: data.semesterSuggestion,
               library_assist: data.libraryAssist,
+              pdf_summary: data.pdfSummary,
+              pdf_summary_background: data.pdfSummaryBackground,
+              pdf_summary_night_only: data.pdfSummaryNightOnly,
             },
           },
         });
@@ -97,8 +110,17 @@ export function useAISettings({ settings }: Props) {
     );
   };
 
+  const pdfProgress =
+    stats?.pdf_summaries_total !== undefined
+      ? t.aiSettings.pdfSummaryProgress
+          .replace("{done}", String(stats.pdf_summaries_done ?? 0))
+          .replace("{total}", String(stats.pdf_summaries_total))
+      : null;
+
   return {
     configured,
+    pdfProgress,
+    watch: form.watch,
     control: form.control,
     register: form.register,
     formState: form.formState,

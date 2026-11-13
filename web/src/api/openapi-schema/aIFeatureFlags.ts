@@ -17,6 +17,7 @@ language model.
  */
 export interface AIFeatureFlags {
   library_assist: boolean;
+  pdf_summary: boolean;
   semester_suggestion: boolean;
   tag_suggestion: boolean;
   thread_summary: boolean;

@@ -8963,6 +8963,10 @@ type AssetMutation struct {
 	ocr_status         *asset.OcrStatus
 	ocr_error          *string
 	ocr_processed_at   *time.Time
+	ai_summary         *string
+	ai_summary_hash    *string
+	ai_summary_quality *asset.AiSummaryQuality
+	ai_summary_status  *asset.AiSummaryStatus
 	clearedFields      map[string]struct{}
 	posts              map[xid.ID]struct{}
 	removedposts       map[xid.ID]struct{}
@@ -9528,6 +9532,189 @@ func (m *AssetMutation) OcrProcessedAtCleared() bool {
 func (m *AssetMutation) ResetOcrProcessedAt() {
 	m.ocr_processed_at = nil
 	delete(m.clearedFields, asset.FieldOcrProcessedAt)
+}
+
+// SetAiSummary sets the "ai_summary" field.
+func (m *AssetMutation) SetAiSummary(s string) {
+	m.ai_summary = &s
+}
+
+// AiSummary returns the value of the "ai_summary" field in the mutation.
+func (m *AssetMutation) AiSummary() (r string, exists bool) {
+	v := m.ai_summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAiSummary returns the old "ai_summary" field's value of the Asset entity.
+// If the Asset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AssetMutation) OldAiSummary(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAiSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAiSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAiSummary: %w", err)
+	}
+	return oldValue.AiSummary, nil
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (m *AssetMutation) ClearAiSummary() {
+	m.ai_summary = nil
+	m.clearedFields[asset.FieldAiSummary] = struct{}{}
+}
+
+// AiSummaryCleared returns if the "ai_summary" field was cleared in this mutation.
+func (m *AssetMutation) AiSummaryCleared() bool {
+	_, ok := m.clearedFields[asset.FieldAiSummary]
+	return ok
+}
+
+// ResetAiSummary resets all changes to the "ai_summary" field.
+func (m *AssetMutation) ResetAiSummary() {
+	m.ai_summary = nil
+	delete(m.clearedFields, asset.FieldAiSummary)
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (m *AssetMutation) SetAiSummaryHash(s string) {
+	m.ai_summary_hash = &s
+}
+
+// AiSummaryHash returns the value of the "ai_summary_hash" field in the mutation.
+func (m *AssetMutation) AiSummaryHash() (r string, exists bool) {
+	v := m.ai_summary_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAiSummaryHash returns the old "ai_summary_hash" field's value of the Asset entity.
+// If the Asset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AssetMutation) OldAiSummaryHash(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAiSummaryHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAiSummaryHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAiSummaryHash: %w", err)
+	}
+	return oldValue.AiSummaryHash, nil
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (m *AssetMutation) ClearAiSummaryHash() {
+	m.ai_summary_hash = nil
+	m.clearedFields[asset.FieldAiSummaryHash] = struct{}{}
+}
+
+// AiSummaryHashCleared returns if the "ai_summary_hash" field was cleared in this mutation.
+func (m *AssetMutation) AiSummaryHashCleared() bool {
+	_, ok := m.clearedFields[asset.FieldAiSummaryHash]
+	return ok
+}
+
+// ResetAiSummaryHash resets all changes to the "ai_summary_hash" field.
+func (m *AssetMutation) ResetAiSummaryHash() {
+	m.ai_summary_hash = nil
+	delete(m.clearedFields, asset.FieldAiSummaryHash)
+}
+
+// SetAiSummaryQuality sets the "ai_summary_quality" field.
+func (m *AssetMutation) SetAiSummaryQuality(asq asset.AiSummaryQuality) {
+	m.ai_summary_quality = &asq
+}
+
+// AiSummaryQuality returns the value of the "ai_summary_quality" field in the mutation.
+func (m *AssetMutation) AiSummaryQuality() (r asset.AiSummaryQuality, exists bool) {
+	v := m.ai_summary_quality
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAiSummaryQuality returns the old "ai_summary_quality" field's value of the Asset entity.
+// If the Asset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AssetMutation) OldAiSummaryQuality(ctx context.Context) (v *asset.AiSummaryQuality, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAiSummaryQuality is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAiSummaryQuality requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAiSummaryQuality: %w", err)
+	}
+	return oldValue.AiSummaryQuality, nil
+}
+
+// ClearAiSummaryQuality clears the value of the "ai_summary_quality" field.
+func (m *AssetMutation) ClearAiSummaryQuality() {
+	m.ai_summary_quality = nil
+	m.clearedFields[asset.FieldAiSummaryQuality] = struct{}{}
+}
+
+// AiSummaryQualityCleared returns if the "ai_summary_quality" field was cleared in this mutation.
+func (m *AssetMutation) AiSummaryQualityCleared() bool {
+	_, ok := m.clearedFields[asset.FieldAiSummaryQuality]
+	return ok
+}
+
+// ResetAiSummaryQuality resets all changes to the "ai_summary_quality" field.
+func (m *AssetMutation) ResetAiSummaryQuality() {
+	m.ai_summary_quality = nil
+	delete(m.clearedFields, asset.FieldAiSummaryQuality)
+}
+
+// SetAiSummaryStatus sets the "ai_summary_status" field.
+func (m *AssetMutation) SetAiSummaryStatus(ass asset.AiSummaryStatus) {
+	m.ai_summary_status = &ass
+}
+
+// AiSummaryStatus returns the value of the "ai_summary_status" field in the mutation.
+func (m *AssetMutation) AiSummaryStatus() (r asset.AiSummaryStatus, exists bool) {
+	v := m.ai_summary_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAiSummaryStatus returns the old "ai_summary_status" field's value of the Asset entity.
+// If the Asset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AssetMutation) OldAiSummaryStatus(ctx context.Context) (v asset.AiSummaryStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAiSummaryStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAiSummaryStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAiSummaryStatus: %w", err)
+	}
+	return oldValue.AiSummaryStatus, nil
+}
+
+// ResetAiSummaryStatus resets all changes to the "ai_summary_status" field.
+func (m *AssetMutation) ResetAiSummaryStatus() {
+	m.ai_summary_status = nil
 }
 
 // SetAccountID sets the "account_id" field.
@@ -10107,7 +10294,7 @@ func (m *AssetMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AssetMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 16)
 	if m.created_at != nil {
 		fields = append(fields, asset.FieldCreatedAt)
 	}
@@ -10137,6 +10324,18 @@ func (m *AssetMutation) Fields() []string {
 	}
 	if m.ocr_processed_at != nil {
 		fields = append(fields, asset.FieldOcrProcessedAt)
+	}
+	if m.ai_summary != nil {
+		fields = append(fields, asset.FieldAiSummary)
+	}
+	if m.ai_summary_hash != nil {
+		fields = append(fields, asset.FieldAiSummaryHash)
+	}
+	if m.ai_summary_quality != nil {
+		fields = append(fields, asset.FieldAiSummaryQuality)
+	}
+	if m.ai_summary_status != nil {
+		fields = append(fields, asset.FieldAiSummaryStatus)
 	}
 	if m.owner != nil {
 		fields = append(fields, asset.FieldAccountID)
@@ -10172,6 +10371,14 @@ func (m *AssetMutation) Field(name string) (ent.Value, bool) {
 		return m.OcrError()
 	case asset.FieldOcrProcessedAt:
 		return m.OcrProcessedAt()
+	case asset.FieldAiSummary:
+		return m.AiSummary()
+	case asset.FieldAiSummaryHash:
+		return m.AiSummaryHash()
+	case asset.FieldAiSummaryQuality:
+		return m.AiSummaryQuality()
+	case asset.FieldAiSummaryStatus:
+		return m.AiSummaryStatus()
 	case asset.FieldAccountID:
 		return m.AccountID()
 	case asset.FieldParentAssetID:
@@ -10205,6 +10412,14 @@ func (m *AssetMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldOcrError(ctx)
 	case asset.FieldOcrProcessedAt:
 		return m.OldOcrProcessedAt(ctx)
+	case asset.FieldAiSummary:
+		return m.OldAiSummary(ctx)
+	case asset.FieldAiSummaryHash:
+		return m.OldAiSummaryHash(ctx)
+	case asset.FieldAiSummaryQuality:
+		return m.OldAiSummaryQuality(ctx)
+	case asset.FieldAiSummaryStatus:
+		return m.OldAiSummaryStatus(ctx)
 	case asset.FieldAccountID:
 		return m.OldAccountID(ctx)
 	case asset.FieldParentAssetID:
@@ -10288,6 +10503,34 @@ func (m *AssetMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetOcrProcessedAt(v)
 		return nil
+	case asset.FieldAiSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAiSummary(v)
+		return nil
+	case asset.FieldAiSummaryHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAiSummaryHash(v)
+		return nil
+	case asset.FieldAiSummaryQuality:
+		v, ok := value.(asset.AiSummaryQuality)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAiSummaryQuality(v)
+		return nil
+	case asset.FieldAiSummaryStatus:
+		v, ok := value.(asset.AiSummaryStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAiSummaryStatus(v)
+		return nil
 	case asset.FieldAccountID:
 		v, ok := value.(xid.ID)
 		if !ok {
@@ -10359,6 +10602,15 @@ func (m *AssetMutation) ClearedFields() []string {
 	if m.FieldCleared(asset.FieldOcrProcessedAt) {
 		fields = append(fields, asset.FieldOcrProcessedAt)
 	}
+	if m.FieldCleared(asset.FieldAiSummary) {
+		fields = append(fields, asset.FieldAiSummary)
+	}
+	if m.FieldCleared(asset.FieldAiSummaryHash) {
+		fields = append(fields, asset.FieldAiSummaryHash)
+	}
+	if m.FieldCleared(asset.FieldAiSummaryQuality) {
+		fields = append(fields, asset.FieldAiSummaryQuality)
+	}
 	if m.FieldCleared(asset.FieldParentAssetID) {
 		fields = append(fields, asset.FieldParentAssetID)
 	}
@@ -10387,6 +10639,15 @@ func (m *AssetMutation) ClearField(name string) error {
 		return nil
 	case asset.FieldOcrProcessedAt:
 		m.ClearOcrProcessedAt()
+		return nil
+	case asset.FieldAiSummary:
+		m.ClearAiSummary()
+		return nil
+	case asset.FieldAiSummaryHash:
+		m.ClearAiSummaryHash()
+		return nil
+	case asset.FieldAiSummaryQuality:
+		m.ClearAiSummaryQuality()
 		return nil
 	case asset.FieldParentAssetID:
 		m.ClearParentAssetID()
@@ -10428,6 +10689,18 @@ func (m *AssetMutation) ResetField(name string) error {
 		return nil
 	case asset.FieldOcrProcessedAt:
 		m.ResetOcrProcessedAt()
+		return nil
+	case asset.FieldAiSummary:
+		m.ResetAiSummary()
+		return nil
+	case asset.FieldAiSummaryHash:
+		m.ResetAiSummaryHash()
+		return nil
+	case asset.FieldAiSummaryQuality:
+		m.ResetAiSummaryQuality()
+		return nil
+	case asset.FieldAiSummaryStatus:
+		m.ResetAiSummaryStatus()
 		return nil
 	case asset.FieldAccountID:
 		m.ResetAccountID()

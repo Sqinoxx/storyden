@@ -20,6 +20,7 @@ const (
 type OpenAI struct {
 	client *openai.Client
 	model  string
+	fast   string
 	ef     func(ctx context.Context, text string) ([]float32, error)
 }
 
@@ -51,16 +52,33 @@ func newOpenAI(cfg config.Config) (*OpenAI, error) {
 	opts = append(opts, option.WithAPIKey(key))
 	client := openai.NewClient(opts...)
 
-	return &OpenAI{client: &client, model: model, ef: ef}, nil
+	fast := cfg.LanguageModelFastModel
+	if fast == "" {
+		fast = model
+	}
+
+	return &OpenAI{client: &client, model: model, fast: fast, ef: ef}, nil
 }
 
-func (o *OpenAI) Prompt(ctx context.Context, input string) (*Result, error) {
-	res, err := o.client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+func (o *OpenAI) params(input string, opts []Option) openai.ChatCompletionNewParams {
+	opt := applyOptions(opts)
+	p := openai.ChatCompletionNewParams{
 		Model: o.model,
 		Messages: []openai.ChatCompletionMessageParamUnion{
 			openai.UserMessage(input),
 		},
-	})
+	}
+	if opt.Fast {
+		p.Model = o.fast
+	}
+	if opt.MaxTokens > 0 {
+		p.MaxTokens = openai.Int(int64(opt.MaxTokens))
+	}
+	return p
+}
+
+func (o *OpenAI) Prompt(ctx context.Context, input string, opts ...Option) (*Result, error) {
+	res, err := o.client.Chat.Completions.New(ctx, o.params(input, opts))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -74,14 +92,10 @@ func (o *OpenAI) Prompt(ctx context.Context, input string) (*Result, error) {
 	}, nil
 }
 
-func (o *OpenAI) PromptStream(ctx context.Context, input string) (func(yield func(string, error) bool), error) {
+func (o *OpenAI) PromptStream(ctx context.Context, input string, opts ...Option) (func(yield func(string, error) bool), error) {
+	params := o.params(input, opts)
 	iter := func(yield func(string, error) bool) {
-		stream := o.client.Chat.Completions.NewStreaming(ctx, openai.ChatCompletionNewParams{
-			Model: o.model,
-			Messages: []openai.ChatCompletionMessageParamUnion{
-				openai.UserMessage(input),
-			},
-		})
+		stream := o.client.Chat.Completions.NewStreaming(ctx, params)
 
 		for {
 			select {

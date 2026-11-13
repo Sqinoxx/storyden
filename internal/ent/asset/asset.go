@@ -36,6 +36,14 @@ const (
 	FieldOcrError = "ocr_error"
 	// FieldOcrProcessedAt holds the string denoting the ocr_processed_at field in the database.
 	FieldOcrProcessedAt = "ocr_processed_at"
+	// FieldAiSummary holds the string denoting the ai_summary field in the database.
+	FieldAiSummary = "ai_summary"
+	// FieldAiSummaryHash holds the string denoting the ai_summary_hash field in the database.
+	FieldAiSummaryHash = "ai_summary_hash"
+	// FieldAiSummaryQuality holds the string denoting the ai_summary_quality field in the database.
+	FieldAiSummaryQuality = "ai_summary_quality"
+	// FieldAiSummaryStatus holds the string denoting the ai_summary_status field in the database.
+	FieldAiSummaryStatus = "ai_summary_status"
 	// FieldAccountID holds the string denoting the account_id field in the database.
 	FieldAccountID = "account_id"
 	// FieldParentAssetID holds the string denoting the parent_asset_id field in the database.
@@ -124,6 +132,10 @@ var Columns = []string{
 	FieldOcrStatus,
 	FieldOcrError,
 	FieldOcrProcessedAt,
+	FieldAiSummary,
+	FieldAiSummaryHash,
+	FieldAiSummaryQuality,
+	FieldAiSummaryStatus,
 	FieldAccountID,
 	FieldParentAssetID,
 }
@@ -195,6 +207,58 @@ func OcrStatusValidator(os OcrStatus) error {
 	}
 }
 
+// AiSummaryQuality defines the type for the "ai_summary_quality" enum field.
+type AiSummaryQuality string
+
+// AiSummaryQuality values.
+const (
+	AiSummaryQualityQuick AiSummaryQuality = "quick"
+	AiSummaryQualityFull  AiSummaryQuality = "full"
+)
+
+func (asq AiSummaryQuality) String() string {
+	return string(asq)
+}
+
+// AiSummaryQualityValidator is a validator for the "ai_summary_quality" field enum values. It is called by the builders before save.
+func AiSummaryQualityValidator(asq AiSummaryQuality) error {
+	switch asq {
+	case AiSummaryQualityQuick, AiSummaryQualityFull:
+		return nil
+	default:
+		return fmt.Errorf("asset: invalid enum value for ai_summary_quality field: %q", asq)
+	}
+}
+
+// AiSummaryStatus defines the type for the "ai_summary_status" enum field.
+type AiSummaryStatus string
+
+// AiSummaryStatusNone is the default value of the AiSummaryStatus enum.
+const DefaultAiSummaryStatus = AiSummaryStatusNone
+
+// AiSummaryStatus values.
+const (
+	AiSummaryStatusNone    AiSummaryStatus = "none"
+	AiSummaryStatusQueued  AiSummaryStatus = "queued"
+	AiSummaryStatusDone    AiSummaryStatus = "done"
+	AiSummaryStatusFailed  AiSummaryStatus = "failed"
+	AiSummaryStatusSkipped AiSummaryStatus = "skipped"
+)
+
+func (ass AiSummaryStatus) String() string {
+	return string(ass)
+}
+
+// AiSummaryStatusValidator is a validator for the "ai_summary_status" field enum values. It is called by the builders before save.
+func AiSummaryStatusValidator(ass AiSummaryStatus) error {
+	switch ass {
+	case AiSummaryStatusNone, AiSummaryStatusQueued, AiSummaryStatusDone, AiSummaryStatusFailed, AiSummaryStatusSkipped:
+		return nil
+	default:
+		return fmt.Errorf("asset: invalid enum value for ai_summary_status field: %q", ass)
+	}
+}
+
 // OrderOption defines the ordering options for the Asset queries.
 type OrderOption func(*sql.Selector)
 
@@ -246,6 +310,26 @@ func ByOcrError(opts ...sql.OrderTermOption) OrderOption {
 // ByOcrProcessedAt orders the results by the ocr_processed_at field.
 func ByOcrProcessedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOcrProcessedAt, opts...).ToFunc()
+}
+
+// ByAiSummary orders the results by the ai_summary field.
+func ByAiSummary(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAiSummary, opts...).ToFunc()
+}
+
+// ByAiSummaryHash orders the results by the ai_summary_hash field.
+func ByAiSummaryHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAiSummaryHash, opts...).ToFunc()
+}
+
+// ByAiSummaryQuality orders the results by the ai_summary_quality field.
+func ByAiSummaryQuality(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAiSummaryQuality, opts...).ToFunc()
+}
+
+// ByAiSummaryStatus orders the results by the ai_summary_status field.
+func ByAiSummaryStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAiSummaryStatus, opts...).ToFunc()
 }
 
 // ByAccountID orders the results by the account_id field.

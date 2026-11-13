@@ -985,6 +985,12 @@
       description: |-
         The chat model used for generative features such as tag, title and summary suggestions.
 
+    - env: "LANGUAGE_MODEL_FAST_MODEL"
+      name: LanguageModelFastModel
+      type: string
+      description: |-
+        An optional smaller chat model for features where a member is waiting for the answer, such as live PDF summaries. Leave empty to use `LANGUAGE_MODEL_CHAT_MODEL`. With Ollama on a CPU-only server `qwen2.5:1.5b` answers about twice as fast as `qwen2.5:3b`.
+
     - env: "LANGUAGE_MODEL_EMBEDDING_MODEL"
       name: LanguageModelEmbeddingModel
       type: string

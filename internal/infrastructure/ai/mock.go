@@ -14,7 +14,7 @@ func newMock() (*Mock, error) {
 	return &Mock{}, nil
 }
 
-func (o *Mock) Prompt(ctx context.Context, input string) (*Result, error) {
+func (o *Mock) Prompt(ctx context.Context, input string, opts ...Option) (*Result, error) {
 	var output string
 	if len(input) < 120 {
 		output = input
@@ -26,7 +26,7 @@ func (o *Mock) Prompt(ctx context.Context, input string) (*Result, error) {
 	}, nil
 }
 
-func (o *Mock) PromptStream(ctx context.Context, input string) (func(yield func(string, error) bool), error) {
+func (o *Mock) PromptStream(ctx context.Context, input string, opts ...Option) (func(yield func(string, error) bool), error) {
 	// Simulating incremental streaming
 	parts := []string{
 		"An answer for:",

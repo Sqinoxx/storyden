@@ -72,7 +72,7 @@ func New(logger *slog.Logger, prompter ai.Prompter, settings *settings.SettingsR
 }
 
 func (s *Suggester) Suggest(ctx context.Context, title, body string) ([]string, error) {
-	if _, ok := s.prompter.(*ai.OpenAI); !ok {
+	if !ai.IsOpenAI(s.prompter) {
 		return nil, nil
 	}
 

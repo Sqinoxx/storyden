@@ -11,6 +11,10 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 export type AdminOCRStats200 = {
   completed: number;
   failed: number;
+  /** PDFs that already have a stored summary. */
+  pdf_summaries_done?: number;
+  /** PDFs with extracted text that can be summarised. */
+  pdf_summaries_total?: number;
   pending: number;
   processing: number;
   skipped: number;

@@ -196,6 +196,10 @@ var (
 		{Name: "ocr_status", Type: field.TypeEnum, Enums: []string{"pending", "processing", "completed", "failed", "skipped"}, Default: "pending"},
 		{Name: "ocr_error", Type: field.TypeString, Nullable: true},
 		{Name: "ocr_processed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "ai_summary", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "ai_summary_hash", Type: field.TypeString, Nullable: true},
+		{Name: "ai_summary_quality", Type: field.TypeEnum, Nullable: true, Enums: []string{"quick", "full"}},
+		{Name: "ai_summary_status", Type: field.TypeEnum, Enums: []string{"none", "queued", "done", "failed", "skipped"}, Default: "none"},
 		{Name: "account_id", Type: field.TypeString, Size: 20},
 		{Name: "parent_asset_id", Type: field.TypeString, Nullable: true, Size: 20},
 	}
@@ -207,13 +211,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "assets_accounts_assets",
-				Columns:    []*schema.Column{AssetsColumns[11]},
+				Columns:    []*schema.Column{AssetsColumns[15]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "assets_assets_assets",
-				Columns:    []*schema.Column{AssetsColumns[12]},
+				Columns:    []*schema.Column{AssetsColumns[16]},
 				RefColumns: []*schema.Column{AssetsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -228,6 +232,11 @@ var (
 				Name:    "asset_ocr_status",
 				Unique:  false,
 				Columns: []*schema.Column{AssetsColumns[8]},
+			},
+			{
+				Name:    "asset_ai_summary_status",
+				Unique:  false,
+				Columns: []*schema.Column{AssetsColumns[14]},
 			},
 		},
 	}

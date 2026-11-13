@@ -46,6 +46,8 @@ export function AISettingsForm(props: Props) {
   const t = useTranslation();
   const {
     configured,
+    pdfProgress,
+    watch,
     control,
     register,
     formState,
@@ -92,6 +94,36 @@ export function AISettingsForm(props: Props) {
           help={t.aiSettings.threadSummaryHelp}
           disabled={!configured}
         />
+        <Toggle
+          control={control}
+          name="pdfSummary"
+          label={t.aiSettings.pdfSummaryLabel}
+          help={t.aiSettings.pdfSummaryHelp}
+          disabled={!configured}
+        />
+        {watch("pdfSummary") && (
+          <styled.div pl="6" display="flex" flexDirection="column" gap="3">
+            <Toggle
+              control={control}
+              name="pdfSummaryBackground"
+              label={t.aiSettings.pdfSummaryBackgroundLabel}
+              help={t.aiSettings.pdfSummaryBackgroundHelp}
+              disabled={!configured}
+            />
+            <Toggle
+              control={control}
+              name="pdfSummaryNightOnly"
+              label={t.aiSettings.pdfSummaryNightOnlyLabel}
+              help={t.aiSettings.pdfSummaryNightOnlyHelp}
+              disabled={!configured || !watch("pdfSummaryBackground")}
+            />
+            {pdfProgress && (
+              <styled.p fontSize="sm" color="fg.muted">
+                {pdfProgress}
+              </styled.p>
+            )}
+          </styled.div>
+        )}
         <Toggle
           control={control}
           name="tagSuggestion"

@@ -103,3 +103,11 @@ func inRange(t semester.Term, now time.Time) bool {
 	elapsed := t.Elapsed(current)
 	return elapsed >= -termsForward && elapsed <= termsBack
 }
+
+func DetectTerm(text string, now time.Time) (semester.Term, bool) {
+	found := detect(text, now)
+	if len(found) != 1 {
+		return semester.Term{}, false
+	}
+	return found[0].term, true
+}

@@ -30,6 +30,7 @@ export const Switch = forwardRef<HTMLLabelElement, SwitchProps>(
         className={cx(styles.root, css(cssProps), className)}
         {...rootProps}
       >
+        <ArkSwitch.HiddenInput />
         <ArkSwitch.Control className={styles.control}>
           <ArkSwitch.Thumb className={styles.thumb} />
         </ArkSwitch.Control>

@@ -427,6 +427,7 @@ func TestThreads(t *testing.T) {
 					}, session))(t, http.StatusOK)
 
 				url := "https://ogp.me"
+				tests.RequireReachable(t, url)
 				thread1create := tests.AssertRequest(
 					cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
 						Body:       opt.New("<p>this is a thread</p>").Ptr(),

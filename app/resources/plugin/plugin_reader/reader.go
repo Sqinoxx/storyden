@@ -121,6 +121,9 @@ func (r *Reader) LoadBinary(ctx context.Context, id plugin.InstallationID) ([]by
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.NotFound))
 	}
+	if closer, ok := reader.(io.Closer); ok {
+		defer closer.Close()
+	}
 
 	bin, err := io.ReadAll(reader)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -67,7 +68,7 @@ func New(
 		settings: settings,
 		tokens:   tokens,
 		config:   cfg,
-		client:   httpsafe.NewClient(httpsafe.Config{DialTimeout: probeTimeout}),
+		client:   newOutboundClient(cfg),
 	}
 
 	lc.Append(fx.StartHook(func() error {
@@ -75,6 +76,15 @@ func New(
 	}))
 
 	return &m
+}
+
+func newOutboundClient(cfg config.Config) *http.Client {
+	if cfg.RobotMCPAllowPrivateHosts {
+		return &http.Client{Transport: &http.Transport{
+			DialContext: (&net.Dialer{Timeout: probeTimeout}).DialContext,
+		}}
+	}
+	return httpsafe.NewClient(httpsafe.Config{DialTimeout: probeTimeout})
 }
 
 func (m *Manager) Start(ctx context.Context) error {

@@ -82,6 +82,7 @@ func TestRoleAssignment(t *testing.T) {
 				"LIST_COLLECTIONS",
 				"READ_COLLECTION",
 				"COLLECTION_SUBMIT",
+				"CREATE_TAGS",
 			}, role1.Permissions)
 			role2 := findRole(guest1Get.JSON200.Roles, role.JSON200.Id)
 			r.NotNil(role2, "new role not found")

@@ -958,6 +958,15 @@
 
         See [the documentation](https://storyden.org/docs/introduction/mcp) for more information.
 
+    - env: "ROBOT_MCP_ALLOW_PRIVATE_HOSTS"
+      name: RobotMCPAllowPrivateHosts
+      type: bool
+      default: false
+      description: |-
+        Allow robots to connect to external MCP servers on loopback or private network addresses.
+
+        Off by default to protect against server-side request forgery. Only enable when the MCP servers you configure live on a trusted internal network, or for local development and testing.
+
     - env: "LANGUAGE_MODEL_PROVIDER"
       name: LanguageModelProvider
       type: string

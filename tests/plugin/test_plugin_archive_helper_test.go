@@ -40,7 +40,11 @@ func packageTestPluginArchive(t *testing.T, fixtureDir, pluginName string) strin
 	}
 
 	tempDir := t.TempDir()
-	binaryPath := filepath.Join(tempDir, pluginName)
+	binaryName := pluginName
+	if runtime.GOOS == "windows" {
+		binaryName += ".exe"
+	}
+	binaryPath := filepath.Join(tempDir, binaryName)
 
 	cmd := exec.Command("go", "build", "-trimpath", "-ldflags", "-s -w", "-o", binaryPath, ".")
 	cmd.Dir = absFixture
@@ -51,11 +55,7 @@ func packageTestPluginArchive(t *testing.T, fixtureDir, pluginName string) strin
 	}
 
 	if _, err := os.Stat(binaryPath); err != nil {
-		binaryPathWithExe := binaryPath + ".exe"
-		if _, altErr := os.Stat(binaryPathWithExe); altErr != nil {
-			t.Fatalf("built plugin binary missing (%q / %q): %v", binaryPath, binaryPathWithExe, err)
-		}
-		binaryPath = binaryPathWithExe
+		t.Fatalf("built plugin binary missing (%q): %v", binaryPath, err)
 	}
 
 	tmpArchivePath := filepath.Join(tempDir, pluginName+".zip")
@@ -67,7 +67,7 @@ func packageTestPluginArchive(t *testing.T, fixtureDir, pluginName string) strin
 	zipWriter := zip.NewWriter(archiveFile)
 
 	addFileToZip(t, zipWriter, filepath.Join(absFixture, "manifest.json"), "manifest.json", 0o644)
-	addFileToZip(t, zipWriter, binaryPath, pluginName, 0o755)
+	addFileToZip(t, zipWriter, binaryPath, binaryName, 0o755)
 
 	if err := zipWriter.Close(); err != nil {
 		t.Fatalf("failed to finalize plugin archive %q: %v", tmpArchivePath, err)

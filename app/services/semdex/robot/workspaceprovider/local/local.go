@@ -374,7 +374,7 @@ func (w *Workspace) resolve(relpath string) (string, string, error) {
 	if relpath == "." || relpath == "" {
 		return "", "", errors.New("path is required")
 	}
-	if filepath.IsAbs(relpath) || strings.HasPrefix(relpath, ".."+string(filepath.Separator)) || relpath == ".." {
+	if filepath.IsAbs(relpath) || filepath.VolumeName(relpath) != "" || strings.HasPrefix(relpath, "/") || strings.HasPrefix(relpath, `\`) || strings.HasPrefix(relpath, ".."+string(filepath.Separator)) || relpath == ".." {
 		return "", "", fmt.Errorf("path %q must stay inside the workspace", relpath)
 	}
 	target := filepath.Join(w.root, relpath)

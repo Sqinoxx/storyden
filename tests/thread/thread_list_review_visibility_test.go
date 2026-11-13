@@ -40,11 +40,13 @@ func TestThreadListReviewVisibility(t *testing.T) {
 			sessionAdmin := sh.WithSession(adminCtx)
 			sessionMember := sh.WithSession(memberCtx)
 			sessionOther := sh.WithSession(otherCtx)
+			category := createCategory(t, root, cl, sessionAdmin)
 
 			publishedThread, err := cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
 				Body:       opt.New("<p>Published thread</p>").Ptr(),
 				Title:      "Published Thread",
 				Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+				Category:   category,
 			}, sessionMember)
 			tests.Ok(t, err, publishedThread)
 
@@ -52,6 +54,7 @@ func TestThreadListReviewVisibility(t *testing.T) {
 				Body:       opt.New("<p>Review thread</p>").Ptr(),
 				Title:      "Review Thread",
 				Visibility: opt.New(openapi.VisibilityReview).Ptr(),
+				Category:   category,
 			}, sessionMember)
 			tests.Ok(t, err, reviewThread)
 
@@ -59,6 +62,7 @@ func TestThreadListReviewVisibility(t *testing.T) {
 				Body:       opt.New("<p>Other review thread</p>").Ptr(),
 				Title:      "Other Review Thread",
 				Visibility: opt.New(openapi.VisibilityReview).Ptr(),
+				Category:   category,
 			}, sessionOther)
 			tests.Ok(t, err, otherReviewThread)
 

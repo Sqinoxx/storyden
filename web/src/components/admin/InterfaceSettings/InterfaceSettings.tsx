@@ -168,9 +168,10 @@ export function InterfaceSettingsForm(props: Props) {
             }
           />
           <FormHelperText>
-            One tag per line as &quot;tag: meaning&quot;. While a thread is
-            written, the AI adds matching tags automatically, but only tags
-            listed here. Leave out tags whose meaning is ambiguous.
+            Optional. While a thread is written, the AI adds the tags that the
+            most similar existing threads share, so suggestions improve as
+            posts are tagged. Tags listed here as &quot;tag: meaning&quot;, one
+            per line, are also suggested before they have been used much.
           </FormHelperText>
         </FormControl>
       </CardBox>

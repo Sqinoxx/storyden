@@ -8,6 +8,7 @@ import (
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/jmoiron/sqlx"
+	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/account/role/role_hydrate"
 	"github.com/Southclaws/storyden/app/resources/library"
@@ -41,6 +42,36 @@ from
 group by
   t.id
 `
+
+// PublishedThreadTags returns the tag names of each published, non-deleted
+// thread among ids. Threads without tags are omitted.
+func (q *Querier) PublishedThreadTags(ctx context.Context, ids []xid.ID) (map[xid.ID][]string, error) {
+	if len(ids) == 0 {
+		return map[xid.ID][]string{}, nil
+	}
+
+	posts, err := q.db.Post.Query().
+		Where(
+			ent_post.IDIn(ids...),
+			ent_post.RootPostIDIsNil(),
+			ent_post.DeletedAtIsNil(),
+			ent_post.VisibilityEQ(ent_post.VisibilityPublished),
+		).
+		WithTags().
+		All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	out := make(map[xid.ID][]string, len(posts))
+	for _, p := range posts {
+		for _, t := range p.Edges.Tags {
+			out[p.ID] = append(out[p.ID], t.Name)
+		}
+	}
+
+	return out, nil
+}
 
 func (q *Querier) List(ctx context.Context) (tag_ref.Tags, error) {
 	r, err := q.db.Tag.Query().All(ctx)

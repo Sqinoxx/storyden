@@ -208,9 +208,10 @@ export const useThreadSuggestSemester = <
   };
 };
 /**
- * Suggest existing tags for a thread being composed. Only tags that have
-a meaning configured by an administrator are considered, and a tag is
-only returned when both the language model and embedding similarity
+ * Suggest existing tags for a thread being composed. Tags shared by the
+most similar published threads are suggested when the semantic index
+is enabled. Tags with a meaning configured by an administrator are
+also suggested when both the language model and embedding similarity
 agree. Returns an empty list when language model features are off.
 
  */

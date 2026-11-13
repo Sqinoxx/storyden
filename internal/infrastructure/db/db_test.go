@@ -31,7 +31,7 @@ func TestGetDriverLibsqlLocalFilePath(t *testing.T) {
 	t.Parallel()
 
 	dbFile := filepath.Join(t.TempDir(), "storyden-libsql.db")
-	dsn := "libsql://" + dbFile + "?_pragma=foreign_keys(1)"
+	dsn := localLibsqlURL(dbFile) + "?_pragma=foreign_keys(1)"
 
 	driver, path, err := getDriver(dsn)
 	if err != nil {
@@ -60,7 +60,7 @@ func TestGetDriverLibsqlLocalAddsForeignKeysPragma(t *testing.T) {
 	t.Parallel()
 
 	dbFile := filepath.Join(t.TempDir(), "storyden-libsql-no-pragma.db")
-	dsn := "libsql://" + dbFile
+	dsn := localLibsqlURL(dbFile)
 
 	driver, path, err := getDriver(dsn)
 	if err != nil {
@@ -85,7 +85,7 @@ func TestGetDriverLibsqlLocalFilePathOpen(t *testing.T) {
 	t.Parallel()
 
 	dbFile := filepath.Join(t.TempDir(), "storyden-libsql-open.db")
-	dsn := "libsql://" + dbFile + "?_pragma=foreign_keys(1)"
+	dsn := localLibsqlURL(dbFile) + "?_pragma=foreign_keys(1)"
 
 	driver, path, err := getDriver(dsn)
 	if err != nil {
@@ -133,4 +133,8 @@ func TestGetDriverLibsqlRemotePreservesQueryParams(t *testing.T) {
 	if path != dsn {
 		t.Fatalf("expected remote libsql URL to be preserved as-is, got %q", path)
 	}
+}
+
+func localLibsqlURL(path string) string {
+	return "libsql:///" + strings.TrimPrefix(filepath.ToSlash(path), "/")
 }

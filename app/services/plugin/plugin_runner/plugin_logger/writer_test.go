@@ -23,6 +23,7 @@ func TestWriterRotation_DropsOldEntriesAtMaxBackups(t *testing.T) {
 	w := newWriter(config.Config{PluginDataPath: tmpDir})
 	writer, err := w.NewWriter(pluginID)
 	require.NoError(t, err)
+	t.Cleanup(func() { writer.Rotator.Close() })
 
 	for i := 1; i <= 5; i++ {
 		_, err := writer.Write([]byte(fmt.Sprintf("line %d\n", i)))

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/require"
@@ -15,6 +16,17 @@ var blockIDAttribute = regexp.MustCompile(`\sid="sdb_[^"]*"`)
 
 func StripBlockIDs(html string) string {
 	return blockIDAttribute.ReplaceAllString(html, "")
+}
+
+func RequireReachable(t *testing.T, url string) {
+	t.Helper()
+
+	client := http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get(url)
+	if err != nil {
+		t.Skipf("skipping, %s is unreachable: %v", url, err)
+	}
+	resp.Body.Close()
 }
 
 type WithStatusCode interface {

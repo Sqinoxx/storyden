@@ -244,7 +244,10 @@ func getDriver(databaseURL string) (string, string, error) {
 			path := u.Path
 			if u.Host == "." {
 				path = "." + u.Path
+			} else if filepath.VolumeName(path[1:]) != "" {
+				path = path[1:]
 			}
+			path = filepath.FromSlash(path)
 
 			if !filepath.IsAbs(path) {
 				absPath, err := filepath.Abs(path)
@@ -271,9 +274,14 @@ func getDriver(databaseURL string) (string, string, error) {
 				q.Add("_pragma", "foreign_keys(1)")
 			}
 
+			urlPath := filepath.ToSlash(path)
+			if !strings.HasPrefix(urlPath, "/") {
+				urlPath = "/" + urlPath
+			}
+
 			return "libsql", (&url.URL{
 				Scheme:   "file",
-				Path:     path,
+				Path:     urlPath,
 				RawQuery: q.Encode(),
 			}).String(), nil
 		}

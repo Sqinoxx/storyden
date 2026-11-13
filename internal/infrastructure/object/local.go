@@ -40,7 +40,7 @@ func NewLocalStorer(cfg config.Config) Storer {
 }
 
 func (s *localStorer) Exists(ctx context.Context, path string) (bool, error) {
-	_, err := fs.Stat(s.s, path)
+	_, err := fs.Stat(s.s, filepath.ToSlash(path))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil
@@ -52,7 +52,7 @@ func (s *localStorer) Exists(ctx context.Context, path string) (bool, error) {
 }
 
 func (s *localStorer) Read(ctx context.Context, path string) (io.Reader, int64, error) {
-	f, err := s.s.Open(path)
+	f, err := s.s.Open(filepath.ToSlash(path))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, 0, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.NotFound))
@@ -115,7 +115,7 @@ func (s *localStorer) Delete(ctx context.Context, path string) error {
 }
 
 func (s *localStorer) List(ctx context.Context, prefix string) ([]string, error) {
-	entries, err := fs.ReadDir(s.s, prefix)
+	entries, err := fs.ReadDir(s.s, filepath.ToSlash(prefix))
 	if err != nil {
 		// NOTE: The Storer interface is an abstraction over both S3-style and
 		// local filesystems. In the case of S3, listing a non-existent prefix

@@ -592,6 +592,12 @@ type Config struct {
 	*/
 	MCPEnabled bool `default:"false" envconfig:"MCP_ENABLED"`
 	/*
+	   Allow robots to connect to external MCP servers on loopback or private network addresses.
+
+	   Off by default to protect against server-side request forgery. Only enable when the MCP servers you configure live on a trusted internal network, or for local development and testing.
+	*/
+	RobotMCPAllowPrivateHosts bool `default:"false" envconfig:"ROBOT_MCP_ALLOW_PRIVATE_HOSTS"`
+	/*
 	   The provider for language model features.
 
 	   `openai` is currently the only supported provider. It works with any OpenAI-compatible API, such as a self-hosted Ollama instance, by setting `OPENAI_BASE_URL`.

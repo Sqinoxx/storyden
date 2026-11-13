@@ -39,7 +39,7 @@ func TestRobotMCPServerCreateDiscoversBearerProtectedTools(t *testing.T) {
 	t.Parallel()
 
 	integration.Test(t,
-		&config.Config{},
+		&config.Config{RobotMCPAllowPrivateHosts: true},
 		e2e.Setup(),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
@@ -103,7 +103,7 @@ func TestRobotMCPRefreshRecordsBearerFailure(t *testing.T) {
 	t.Parallel()
 
 	integration.Test(t,
-		&config.Config{},
+		&config.Config{RobotMCPAllowPrivateHosts: true},
 		e2e.Setup(),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
@@ -142,7 +142,7 @@ func TestRobotMCPProbeFallsBackToCommonMCPPath(t *testing.T) {
 	t.Parallel()
 
 	integration.Test(t,
-		&config.Config{},
+		&config.Config{RobotMCPAllowPrivateHosts: true},
 		e2e.Setup(),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
@@ -176,7 +176,7 @@ func TestRobotMCPServerDeleteRemovesLinkedOAuthConnection(t *testing.T) {
 	t.Parallel()
 
 	integration.Test(t,
-		&config.Config{},
+		&config.Config{RobotMCPAllowPrivateHosts: true},
 		e2e.Setup(),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
@@ -251,7 +251,7 @@ func TestRobotMCPOAuthRefreshesTokenForRefreshAndToolCall(t *testing.T) {
 	t.Parallel()
 
 	integration.Test(t,
-		&config.Config{},
+		&config.Config{RobotMCPAllowPrivateHosts: true},
 		e2e.Setup(),
 		fx.Invoke(func(
 			lc fx.Lifecycle,

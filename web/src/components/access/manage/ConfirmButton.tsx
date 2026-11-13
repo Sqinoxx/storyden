@@ -37,7 +37,12 @@ export function ConfirmButton({
   }
 
   return (
-    <HStack gap="1" flexWrap="wrap">
+    <HStack
+      gap="1"
+      flexWrap="wrap"
+      flexBasis={{ base: "full", sm: "max" }}
+      css={{ "& > *": { flex: { base: "1", sm: "initial" } } }}
+    >
       <Button
         size="sm"
         variant="solid"

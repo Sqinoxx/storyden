@@ -37,7 +37,7 @@ const selectStyle = {
   borderRadius: "sm",
   p: "2",
   bg: "bg.default",
-  fontSize: "sm",
+  fontSize: { base: "md", md: "sm" },
   minW: "0",
   w: "full",
 } as const;
@@ -118,6 +118,7 @@ export function GrantsTab({ passes }: { passes: AccessPass[] }) {
         </styled.select>
         <Input
           size="sm"
+          fontSize={{ base: "md", md: "sm" }}
           gridColumn={{ base: "span 2", md: "auto" }}
           placeholder={m.search}
           aria-label={m.search}

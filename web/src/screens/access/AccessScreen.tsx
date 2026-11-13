@@ -74,7 +74,13 @@ function ManagerTabs({ passes }: { passes: AccessPass[] }) {
       onValueChange={({ value }) => setTab(value)}
       lazyMount
     >
-      <Tabs.List flexWrap="wrap" height="auto!" rowGap="1" columnGap="1" py="1">
+      <Tabs.List
+        display={{ base: "grid!", sm: "flex!" }}
+        gridTemplateColumns="repeat(2, minmax(0, 1fr))"
+        height="auto!"
+        gap="1"
+        py="1"
+      >
         <Tabs.Trigger value="requests">
           {m.tabRequests}
           {openCount > 0 && (

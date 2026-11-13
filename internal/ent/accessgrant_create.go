@@ -148,6 +148,20 @@ func (_c *AccessGrantCreate) SetNillableNote(v *string) *AccessGrantCreate {
 	return _c
 }
 
+// SetReason sets the "reason" field.
+func (_c *AccessGrantCreate) SetReason(v string) *AccessGrantCreate {
+	_c.mutation.SetReason(v)
+	return _c
+}
+
+// SetNillableReason sets the "reason" field if the given value is not nil.
+func (_c *AccessGrantCreate) SetNillableReason(v *string) *AccessGrantCreate {
+	if v != nil {
+		_c.SetReason(*v)
+	}
+	return _c
+}
+
 // SetExpiryNotifiedAt sets the "expiry_notified_at" field.
 func (_c *AccessGrantCreate) SetExpiryNotifiedAt(v time.Time) *AccessGrantCreate {
 	_c.mutation.SetExpiryNotifiedAt(v)
@@ -233,6 +247,10 @@ func (_c *AccessGrantCreate) defaults() {
 		v := accessgrant.DefaultNote
 		_c.mutation.SetNote(v)
 	}
+	if _, ok := _c.mutation.Reason(); !ok {
+		v := accessgrant.DefaultReason
+		_c.mutation.SetReason(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := accessgrant.DefaultID()
 		_c.mutation.SetID(v)
@@ -271,6 +289,9 @@ func (_c *AccessGrantCreate) check() error {
 	}
 	if _, ok := _c.mutation.Note(); !ok {
 		return &ValidationError{Name: "note", err: errors.New(`ent: missing required field "AccessGrant.note"`)}
+	}
+	if _, ok := _c.mutation.Reason(); !ok {
+		return &ValidationError{Name: "reason", err: errors.New(`ent: missing required field "AccessGrant.reason"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := accessgrant.IDValidator(v.String()); err != nil {
@@ -354,6 +375,10 @@ func (_c *AccessGrantCreate) createSpec() (*AccessGrant, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Note(); ok {
 		_spec.SetField(accessgrant.FieldNote, field.TypeString, value)
 		_node.Note = value
+	}
+	if value, ok := _c.mutation.Reason(); ok {
+		_spec.SetField(accessgrant.FieldReason, field.TypeString, value)
+		_node.Reason = value
 	}
 	if value, ok := _c.mutation.ExpiryNotifiedAt(); ok {
 		_spec.SetField(accessgrant.FieldExpiryNotifiedAt, field.TypeTime, value)
@@ -586,6 +611,18 @@ func (u *AccessGrantUpsert) SetNote(v string) *AccessGrantUpsert {
 // UpdateNote sets the "note" field to the value that was provided on create.
 func (u *AccessGrantUpsert) UpdateNote() *AccessGrantUpsert {
 	u.SetExcluded(accessgrant.FieldNote)
+	return u
+}
+
+// SetReason sets the "reason" field.
+func (u *AccessGrantUpsert) SetReason(v string) *AccessGrantUpsert {
+	u.Set(accessgrant.FieldReason, v)
+	return u
+}
+
+// UpdateReason sets the "reason" field to the value that was provided on create.
+func (u *AccessGrantUpsert) UpdateReason() *AccessGrantUpsert {
+	u.SetExcluded(accessgrant.FieldReason)
 	return u
 }
 
@@ -823,6 +860,20 @@ func (u *AccessGrantUpsertOne) SetNote(v string) *AccessGrantUpsertOne {
 func (u *AccessGrantUpsertOne) UpdateNote() *AccessGrantUpsertOne {
 	return u.Update(func(s *AccessGrantUpsert) {
 		s.UpdateNote()
+	})
+}
+
+// SetReason sets the "reason" field.
+func (u *AccessGrantUpsertOne) SetReason(v string) *AccessGrantUpsertOne {
+	return u.Update(func(s *AccessGrantUpsert) {
+		s.SetReason(v)
+	})
+}
+
+// UpdateReason sets the "reason" field to the value that was provided on create.
+func (u *AccessGrantUpsertOne) UpdateReason() *AccessGrantUpsertOne {
+	return u.Update(func(s *AccessGrantUpsert) {
+		s.UpdateReason()
 	})
 }
 
@@ -1230,6 +1281,20 @@ func (u *AccessGrantUpsertBulk) SetNote(v string) *AccessGrantUpsertBulk {
 func (u *AccessGrantUpsertBulk) UpdateNote() *AccessGrantUpsertBulk {
 	return u.Update(func(s *AccessGrantUpsert) {
 		s.UpdateNote()
+	})
+}
+
+// SetReason sets the "reason" field.
+func (u *AccessGrantUpsertBulk) SetReason(v string) *AccessGrantUpsertBulk {
+	return u.Update(func(s *AccessGrantUpsert) {
+		s.SetReason(v)
+	})
+}
+
+// UpdateReason sets the "reason" field to the value that was provided on create.
+func (u *AccessGrantUpsertBulk) UpdateReason() *AccessGrantUpsertBulk {
+	return u.Update(func(s *AccessGrantUpsert) {
+		s.UpdateReason()
 	})
 }
 

@@ -30,5 +30,6 @@ const (
 	eventAccessRequested       eventEnum = "access_requested"
 	eventAccessGranted         eventEnum = "access_granted"
 	eventAccessRejected        eventEnum = "access_rejected"
+	eventAccessRevoked         eventEnum = "access_revoked"
 	eventAccessExpiring        eventEnum = "access_expiring"
 )

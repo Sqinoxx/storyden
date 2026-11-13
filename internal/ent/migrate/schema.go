@@ -20,6 +20,7 @@ var (
 		{Name: "decided_by", Type: field.TypeString, Nullable: true},
 		{Name: "decided_at", Type: field.TypeTime, Nullable: true},
 		{Name: "note", Type: field.TypeString, Default: ""},
+		{Name: "reason", Type: field.TypeString, Default: ""},
 		{Name: "expiry_notified_at", Type: field.TypeTime, Nullable: true},
 		{Name: "pass_id", Type: field.TypeString, Size: 20},
 		{Name: "account_id", Type: field.TypeString, Size: 20},
@@ -32,13 +33,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "access_grants_access_passes_grants",
-				Columns:    []*schema.Column{AccessGrantsColumns[11]},
+				Columns:    []*schema.Column{AccessGrantsColumns[12]},
 				RefColumns: []*schema.Column{AccessPassesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "access_grants_accounts_access_grants",
-				Columns:    []*schema.Column{AccessGrantsColumns[12]},
+				Columns:    []*schema.Column{AccessGrantsColumns[13]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -47,12 +48,12 @@ var (
 			{
 				Name:    "accessgrant_account_id_pass_id",
 				Unique:  true,
-				Columns: []*schema.Column{AccessGrantsColumns[12], AccessGrantsColumns[11]},
+				Columns: []*schema.Column{AccessGrantsColumns[13], AccessGrantsColumns[12]},
 			},
 			{
 				Name:    "accessgrant_pass_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{AccessGrantsColumns[11], AccessGrantsColumns[4]},
+				Columns: []*schema.Column{AccessGrantsColumns[12], AccessGrantsColumns[4]},
 			},
 		},
 	}

@@ -64,6 +64,7 @@ type Grant struct {
 	DecidedBy     opt.Optional[account.AccountID]
 	DecidedAt     opt.Optional[time.Time]
 	Note          string
+	Reason        string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 
@@ -158,6 +159,7 @@ func MapGrant(in *ent.AccessGrant) (*Grant, error) {
 		DecidedBy:     opt.Map(opt.NewPtr(in.DecidedBy), func(id xid.ID) account.AccountID { return account.AccountID(id) }),
 		DecidedAt:     opt.NewPtr(in.DecidedAt),
 		Note:          in.Note,
+		Reason:        in.Reason,
 		CreatedAt:     in.CreatedAt,
 		UpdatedAt:     in.UpdatedAt,
 	}, nil

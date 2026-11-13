@@ -13,6 +13,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/tag/tag_querier"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_writer"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/tag/tag_create"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 )
@@ -20,15 +21,18 @@ import (
 type Tags struct {
 	tagQuerier *tag_querier.Querier
 	tagWriter  *tag_writer.Writer
+	access     *access_check.Checker
 }
 
 func NewTags(
 	tagQuerier *tag_querier.Querier,
 	tagWriter *tag_writer.Writer,
+	access *access_check.Checker,
 ) Tags {
 	return Tags{
 		tagQuerier: tagQuerier,
 		tagWriter:  tagWriter,
+		access:     access,
 	}
 }
 
@@ -118,6 +122,11 @@ func (h Tags) TagGet(ctx context.Context, request openapi.TagGetRequestObject) (
 	name := tag_ref.NewName(request.TagName)
 
 	tag, err := h.tagQuerier.Get(ctx, name)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	tag.Items, err = h.access.FilterItems(ctx, tag.Items)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

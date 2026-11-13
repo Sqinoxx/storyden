@@ -96,9 +96,8 @@ func (i *Collections) CollectionGet(ctx context.Context, request openapi.Collect
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	coll.Items, err = access_check.FilterWrapped(ctx, i.access, coll.Items, func(ci *collection.CollectionItem) datagraph.Item { return ci.Item })
-	if err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
+	if err := i.withhold(ctx, coll); err != nil {
+		return nil, err
 	}
 
 	return openapi.CollectionGet200JSONResponse{
@@ -139,6 +138,10 @@ func (i *Collections) CollectionAddPost(ctx context.Context, request openapi.Col
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if err := i.withhold(ctx, c); err != nil {
+		return nil, err
+	}
+
 	return openapi.CollectionAddPost200JSONResponse{
 		CollectionAddPostOKJSONResponse: openapi.CollectionAddPostOKJSONResponse(serialiseCollectionWithItems(c)),
 	}, nil
@@ -150,6 +153,10 @@ func (i *Collections) CollectionRemovePost(ctx context.Context, request openapi.
 		post.ID(deserialiseID(request.PostId)))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := i.withhold(ctx, c); err != nil {
+		return nil, err
 	}
 
 	return openapi.CollectionRemovePost200JSONResponse{
@@ -165,6 +172,10 @@ func (i *Collections) CollectionAddNode(ctx context.Context, request openapi.Col
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if err := i.withhold(ctx, c); err != nil {
+		return nil, err
+	}
+
 	return openapi.CollectionAddNode200JSONResponse{
 		CollectionAddNodeOKJSONResponse: openapi.CollectionAddNodeOKJSONResponse(serialiseCollectionWithItems(c)),
 	}, nil
@@ -178,9 +189,22 @@ func (i *Collections) CollectionRemoveNode(ctx context.Context, request openapi.
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if err := i.withhold(ctx, c); err != nil {
+		return nil, err
+	}
+
 	return openapi.CollectionRemoveNode200JSONResponse{
 		CollectionRemoveNodeOKJSONResponse: openapi.CollectionRemoveNodeOKJSONResponse(serialiseCollectionWithItems(c)),
 	}, nil
+}
+
+func (i *Collections) withhold(ctx context.Context, c *collection.CollectionWithItems) error {
+	items, err := access_check.FilterWrapped(ctx, i.access, c.Items, func(ci *collection.CollectionItem) datagraph.Item { return ci.Item })
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+	c.Items = items
+	return nil
 }
 
 func serialiseCollection(in *collection.Collection) openapi.Collection {

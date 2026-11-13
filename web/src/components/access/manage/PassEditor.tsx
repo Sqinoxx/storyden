@@ -29,6 +29,7 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   pass?: AccessPass;
+  activeMembers?: number;
 };
 
 export function PassEditor(props: Props) {
@@ -54,7 +55,12 @@ function flatten(
   ]);
 }
 
-function PassEditorContent({ isOpen, onClose, pass }: Props) {
+function PassEditorContent({
+  isOpen,
+  onClose,
+  pass,
+  activeMembers = 0,
+}: Props) {
   const t = useTranslation();
   const m = t.access.manage;
   const revalidate = useAccessRevalidate();
@@ -264,6 +270,12 @@ function PassEditorContent({ isOpen, onClose, pass }: Props) {
         >
           {m.fieldRequestable}
         </Checkbox>
+
+        {pass && activeMembers > 0 && (
+          <styled.p fontSize="sm" color="fg.warning">
+            {m.deletePassWarning.replace("{count}", String(activeMembers))}
+          </styled.p>
+        )}
 
         <HStack gap="2" w="full" flexWrap="wrap">
           {pass && (

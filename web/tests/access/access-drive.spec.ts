@@ -54,7 +54,13 @@ test("drive folders behind a pass stay listed but locked until unlocked", async 
   await page.goto("/access?tab=grants");
   await page.getByRole("button", { name: "Unlock a member" }).click();
   const dialog = page.getByTestId("access-grant-dialog");
-  await dialog.getByRole("textbox", { name: "Username" }).fill(memberHandle);
+  await dialog.getByRole("textbox", { name: "Member" }).fill(memberHandle);
+  await dialog
+    .getByRole("option", { name: new RegExp(`@${memberHandle}$`) })
+    .click();
+  await expect(dialog.getByTestId("access-member-selected")).toContainText(
+    `@${memberHandle}`,
+  );
   await dialog.getByRole("combobox", { name: "Pass" }).selectOption({
     label: passName,
   });

@@ -38,6 +38,8 @@ const (
 	FieldDecidedAt = "decided_at"
 	// FieldNote holds the string denoting the note field in the database.
 	FieldNote = "note"
+	// FieldReason holds the string denoting the reason field in the database.
+	FieldReason = "reason"
 	// FieldExpiryNotifiedAt holds the string denoting the expiry_notified_at field in the database.
 	FieldExpiryNotifiedAt = "expiry_notified_at"
 	// EdgeAccount holds the string denoting the account edge name in mutations.
@@ -76,6 +78,7 @@ var Columns = []string{
 	FieldDecidedBy,
 	FieldDecidedAt,
 	FieldNote,
+	FieldReason,
 	FieldExpiryNotifiedAt,
 }
 
@@ -100,6 +103,8 @@ var (
 	ReferenceCodeValidator func(string) error
 	// DefaultNote holds the default value on creation for the "note" field.
 	DefaultNote string
+	// DefaultReason holds the default value on creation for the "reason" field.
+	DefaultReason string
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() xid.ID
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -192,6 +197,11 @@ func ByDecidedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByNote orders the results by the note field.
 func ByNote(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNote, opts...).ToFunc()
+}
+
+// ByReason orders the results by the reason field.
+func ByReason(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReason, opts...).ToFunc()
 }
 
 // ByExpiryNotifiedAt orders the results by the expiry_notified_at field.

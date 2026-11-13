@@ -95,3 +95,67 @@ func TestDriveAccessPass(t *testing.T) {
 		}))
 	}))
 }
+
+func TestDriveAccessPassNestedFolder(t *testing.T) {
+	t.Parallel()
+
+	integration.Test(t, nil, e2e.Setup(), withFakeDrive(fakeDrive()), fx.Invoke(func(
+		lc fx.Lifecycle,
+		root context.Context,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+
+			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			memberCtx, member := e2e.WithAccount(root, aw, seed.Account_003_Baldur)
+			admin := sh.WithSession(adminCtx)
+			memberSession := sh.WithSession(memberCtx)
+
+			outer := createFolder(t, cl, adminCtx, admin, "Kursmaterial", rootDriveID, "member")
+			inner := createFolder(t, cl, adminCtx, admin, "Altprotokolle", subDriveID, "member")
+
+			pass := tests.AssertRequest(cl.AccessPassCreateWithResponse(root, openapi.AccessPassInitialProps{
+				Name:           "Z1-Protokolle",
+				DriveFolderIds: &[]openapi.Identifier{inner},
+			}, admin))(t, http.StatusOK).JSON200
+
+			throughOuter := &openapi.DriveFolderContentsParams{ChildId: ptr(subDriveID)}
+
+			t.Run("locked_folder_not_reachable_through_open_parent", func(t *testing.T) {
+				r := require.New(t)
+
+				tests.AssertRequest(cl.DriveFolderContentsWithResponse(root, outer, nil, memberSession))(t, http.StatusOK)
+				tests.AssertRequest(cl.DriveFolderContentsWithResponse(root, outer, throughOuter, memberSession))(t, http.StatusForbidden)
+
+				resp, err := cl.DriveFileDownloadWithResponse(root, outer, deepFileID, nil, memberSession)
+				r.NoError(err)
+				r.Equal(http.StatusForbidden, resp.StatusCode())
+				r.NotContains(string(resp.Body), deepContent)
+
+				tests.AssertRequest(cl.DriveFolderContentsWithResponse(root, outer, throughOuter, admin))(t, http.StatusOK)
+			})
+
+			t.Run("google_id_hidden_while_locked", func(t *testing.T) {
+				r := require.New(t)
+				list := tests.AssertRequest(cl.DriveFolderListWithResponse(root, memberSession))(t, http.StatusOK).JSON200
+				for _, f := range list.Folders {
+					if f.Id == inner {
+						r.Empty(f.DriveFolderId)
+					} else {
+						r.NotEmpty(f.DriveFolderId)
+					}
+				}
+			})
+
+			t.Run("reachable_after_grant", func(t *testing.T) {
+				tests.AssertRequest(cl.AccessGrantSetWithResponse(root, pass.Id, member.Handle, openapi.AccessGrantMutableProps{}, admin))(t, http.StatusOK)
+				tests.AssertRequest(cl.DriveFolderContentsWithResponse(root, outer, throughOuter, memberSession))(t, http.StatusOK)
+				resp := tests.AssertRequest(cl.DriveFileDownloadWithResponse(root, outer, deepFileID, nil, memberSession))(t, http.StatusOK)
+				r.Equal(deepContent, string(resp.Body))
+			})
+		}))
+	}))
+}

@@ -11,12 +11,14 @@ import (
 	"github.com/Southclaws/fault/fmsg"
 	"github.com/Southclaws/fault/ftag"
 	"github.com/Southclaws/opt"
+	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/link"
 	"github.com/Southclaws/storyden/app/resources/link/link_querier"
 	"github.com/Southclaws/storyden/app/resources/link/link_ref"
 	"github.com/Southclaws/storyden/app/resources/link/link_writer"
-
+	"github.com/Southclaws/storyden/app/resources/post"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/link/fetcher"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 )
@@ -25,19 +27,24 @@ type Links struct {
 	fetcher     *fetcher.Fetcher
 	linkWriter  *link_writer.LinkWriter
 	linkQuerier *link_querier.LinkQuerier
+	access      *access_check.Checker
 }
 
 func NewLinks(
 	fetcher *fetcher.Fetcher,
 	linkWriter *link_writer.LinkWriter,
 	linkQuerier *link_querier.LinkQuerier,
+	access *access_check.Checker,
 ) Links {
 	return Links{
 		fetcher:     fetcher,
 		linkWriter:  linkWriter,
 		linkQuerier: linkQuerier,
+		access:      access,
 	}
 }
+
+var errLinkNotFound = fault.New("link not found", ftag.With(ftag.NotFound))
 
 func (i *Links) LinkCreate(ctx context.Context, request openapi.LinkCreateRequestObject) (openapi.LinkCreateResponseObject, error) {
 	u, err := url.Parse(request.Body.Url)
@@ -84,6 +91,15 @@ func (i *Links) LinkList(ctx context.Context, request openapi.LinkListRequestObj
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	locked, err := i.access.LockedLinks(ctx, dt.Map(result.Links, func(l *link_ref.LinkRef) xid.ID { return l.ID })...)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	result.Links = dt.Filter(result.Links, func(l *link_ref.LinkRef) bool {
+		_, hidden := locked[l.ID]
+		return !hidden
+	})
+
 	// API is 1-indexed, internally it's 0-indexed.
 	page = result.CurrentPage + 1
 
@@ -105,9 +121,43 @@ func (i *Links) LinkGet(ctx context.Context, request openapi.LinkGetRequestObjec
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if err := i.withhold(ctx, l); err != nil {
+		return nil, err
+	}
+
 	return openapi.LinkGet200JSONResponse{
 		LinkGetOKJSONResponse: openapi.LinkGetOKJSONResponse(serialiseLink(l)),
 	}, nil
+}
+
+// withhold hides links found only in locked posts and drops locked posts from
+// the list of places a link appears in.
+func (i *Links) withhold(ctx context.Context, l *link.Link) error {
+	id := xid.ID(l.ID)
+
+	locked, err := i.access.LockedLinks(ctx, id)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+	if _, hidden := locked[id]; hidden {
+		return fault.Wrap(errLinkNotFound, fctx.With(ctx))
+	}
+
+	lockedPosts, err := i.access.LockedPosts(ctx, dt.Map(l.Posts, func(p *post.Post) xid.ID { return xid.ID(p.ID) })...)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+	l.Posts = dt.Filter(l.Posts, func(p *post.Post) bool {
+		_, hidden := lockedPosts[xid.ID(p.ID)]
+		return !hidden
+	})
+
+	l.Related, err = i.access.FilterItems(ctx, l.Related)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return nil
 }
 
 func serialiseLink(in *link.Link) openapi.Link {

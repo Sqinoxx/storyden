@@ -36,6 +36,7 @@ var (
 	EventAccessRequested       = Event{eventAccessRequested}
 	EventAccessGranted         = Event{eventAccessGranted}
 	EventAccessRejected        = Event{eventAccessRejected}
+	EventAccessRevoked         = Event{eventAccessRevoked}
 	EventAccessExpiring        = Event{eventAccessExpiring}
 )
 
@@ -124,6 +125,8 @@ func NewEvent(__iNpUt__ string) (Event, error) {
 		return EventAccessGranted, nil
 	case string(eventAccessRejected):
 		return EventAccessRejected, nil
+	case string(eventAccessRevoked):
+		return EventAccessRevoked, nil
 	case string(eventAccessExpiring):
 		return EventAccessExpiring, nil
 	default:

@@ -86,6 +86,11 @@ export function GrantRow({ grant, showStatus, actions }: Props) {
             {grant.note}
           </styled.p>
         )}
+        {grant.reason && (
+          <styled.p fontSize="sm" color="fg.warning">
+            {t.access.reason.replace("{reason}", grant.reason)}
+          </styled.p>
+        )}
       </LStack>
       {actions && (
         <HStack

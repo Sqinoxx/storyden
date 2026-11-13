@@ -27,6 +27,8 @@ import (
 	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	ent_category "github.com/Southclaws/storyden/internal/ent/category"
 	ent_drivefolder "github.com/Southclaws/storyden/internal/ent/drivefolder"
+	ent_link "github.com/Southclaws/storyden/internal/ent/link"
+	ent_node "github.com/Southclaws/storyden/internal/ent/node"
 	ent_post "github.com/Southclaws/storyden/internal/ent/post"
 )
 
@@ -169,6 +171,7 @@ type GrantOptions struct {
 	ExpiresAt opt.Optional[time.Time]
 	DecidedBy opt.Optional[account.AccountID]
 	Note      opt.Optional[string]
+	Reason    string
 }
 
 // SetGrant moves the account's single grant row for a pass to the given
@@ -238,10 +241,12 @@ func applyGrantTransition(m *ent.AccessGrantMutation, status access.GrantStatus,
 		m.ClearDecidedAt()
 		m.ClearDecidedBy()
 		m.ClearExpiresAt()
+		m.SetReason("")
 
 	case access.GrantStatusActive:
 		m.SetDecidedAt(now)
 		m.ClearExpiryNotifiedAt()
+		m.SetReason("")
 		if exp, ok := opts.ExpiresAt.Get(); ok {
 			m.SetExpiresAt(exp)
 		} else {
@@ -250,6 +255,7 @@ func applyGrantTransition(m *ent.AccessGrantMutation, status access.GrantStatus,
 
 	default:
 		m.SetDecidedAt(now)
+		m.SetReason(opts.Reason)
 	}
 
 	if by, ok := opts.DecidedBy.Get(); ok {
@@ -304,8 +310,13 @@ func withMember(aq *ent.AccountQuery) {
 func (r *Repository) ListGrants(ctx context.Context, filter GrantFilter, now time.Time) ([]*access.Grant, error) {
 	q := r.db.AccessGrant.Query().
 		WithAccount(withMember).
-		WithPass().
-		Order(ent.Desc(accessgrant.FieldUpdatedAt))
+		WithPass()
+
+	if filter.Status.OrZero() == access.GrantStatusRequested.String() {
+		q.Order(ent.Asc(accessgrant.FieldRequestedAt))
+	} else {
+		q.Order(ent.Desc(accessgrant.FieldUpdatedAt))
+	}
 
 	if status, ok := filter.Status.Get(); ok {
 		switch status {
@@ -553,6 +564,7 @@ func ResolveCategoryLocks(parents map[xid.ID]xid.ID, direct map[xid.ID][]access.
 // PostOwnership is what an access decision needs to know about a post: the
 // thread author, who may always read their own thread, and its category.
 type PostOwnership struct {
+	ThreadID     xid.ID
 	ThreadAuthor account.AccountID
 	CategoryID   xid.ID
 }
@@ -601,9 +613,51 @@ func (r *Repository) PostThreads(ctx context.Context, ids ...xid.ID) (map[xid.ID
 		}
 
 		out[p.ID] = PostOwnership{
+			ThreadID:     thread.ID,
 			ThreadAuthor: account.AccountID(thread.AccountPosts),
 			CategoryID:   thread.CategoryID,
 		}
+	}
+
+	return out, nil
+}
+
+// LinkReferences describes where a link was found: the posts that carry it as
+// their preview or mention it in their text, and whether any library page does.
+type LinkReferences struct {
+	Posts    []xid.ID
+	HasNodes bool
+}
+
+func (r *Repository) LinkReferences(ctx context.Context, linkIDs ...xid.ID) (map[xid.ID]LinkReferences, error) {
+	out := map[xid.ID]LinkReferences{}
+	if len(linkIDs) == 0 {
+		return out, nil
+	}
+
+	links, err := r.db.Link.Query().
+		Where(ent_link.IDIn(linkIDs...)).
+		Select(ent_link.FieldID).
+		WithPosts(func(pq *ent.PostQuery) { pq.Select(ent_post.FieldID, ent_post.FieldLinkID) }).
+		WithPostContentReferences(func(pq *ent.PostQuery) { pq.Select(ent_post.FieldID) }).
+		WithNodes(func(nq *ent.NodeQuery) { nq.Select(ent_node.FieldID, ent_node.FieldLinkID) }).
+		WithNodeContentReferences(func(nq *ent.NodeQuery) { nq.Select(ent_node.FieldID) }).
+		All(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	for _, l := range links {
+		refs := LinkReferences{
+			HasNodes: len(l.Edges.Nodes) > 0 || len(l.Edges.NodeContentReferences) > 0,
+		}
+		for _, p := range l.Edges.Posts {
+			refs.Posts = append(refs.Posts, p.ID)
+		}
+		for _, p := range l.Edges.PostContentReferences {
+			refs.Posts = append(refs.Posts, p.ID)
+		}
+		out[l.ID] = refs
 	}
 
 	return out, nil

@@ -17,6 +17,7 @@ export interface AuditEventAccessGrantUpdated {
   note?: string;
   pass_id: Identifier;
   pass_name: string;
+  reason?: string;
   status: AccessGrantStatus;
   type: AuditEventAccessGrantUpdatedType;
 }

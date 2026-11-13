@@ -42,6 +42,8 @@ type AccessGrant struct {
 	DecidedAt *time.Time `json:"decided_at,omitempty"`
 	// Note holds the value of the "note" field.
 	Note string `json:"note,omitempty"`
+	// Reason holds the value of the "reason" field.
+	Reason string `json:"reason,omitempty"`
 	// ExpiryNotifiedAt holds the value of the "expiry_notified_at" field.
 	ExpiryNotifiedAt *time.Time `json:"expiry_notified_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -90,7 +92,7 @@ func (*AccessGrant) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case accessgrant.FieldDecidedBy:
 			values[i] = &sql.NullScanner{S: new(xid.ID)}
-		case accessgrant.FieldStatus, accessgrant.FieldReferenceCode, accessgrant.FieldNote:
+		case accessgrant.FieldStatus, accessgrant.FieldReferenceCode, accessgrant.FieldNote, accessgrant.FieldReason:
 			values[i] = new(sql.NullString)
 		case accessgrant.FieldCreatedAt, accessgrant.FieldUpdatedAt, accessgrant.FieldExpiresAt, accessgrant.FieldRequestedAt, accessgrant.FieldDecidedAt, accessgrant.FieldExpiryNotifiedAt:
 			values[i] = new(sql.NullTime)
@@ -187,6 +189,12 @@ func (_m *AccessGrant) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Note = value.String
 			}
+		case accessgrant.FieldReason:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field reason", values[i])
+			} else if value.Valid {
+				_m.Reason = value.String
+			}
 		case accessgrant.FieldExpiryNotifiedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field expiry_notified_at", values[i])
@@ -280,6 +288,9 @@ func (_m *AccessGrant) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("note=")
 	builder.WriteString(_m.Note)
+	builder.WriteString(", ")
+	builder.WriteString("reason=")
+	builder.WriteString(_m.Reason)
 	builder.WriteString(", ")
 	if v := _m.ExpiryNotifiedAt; v != nil {
 		builder.WriteString("expiry_notified_at=")

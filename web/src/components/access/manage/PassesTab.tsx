@@ -88,6 +88,7 @@ export function PassesTab({ passes }: { passes: AccessPass[] }) {
         isOpen={editing !== undefined}
         onClose={() => setEditing(undefined)}
         pass={editing?.pass}
+        activeMembers={editing?.pass ? counts.get(editing.pass.id) : undefined}
       />
     </LStack>
   );

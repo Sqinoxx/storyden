@@ -19,6 +19,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/account_writer"
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_account "github.com/Southclaws/storyden/internal/ent/account"
+	ent_accessgrant "github.com/Southclaws/storyden/internal/ent/accessgrant"
 	ent_accountfollow "github.com/Southclaws/storyden/internal/ent/accountfollow"
 	ent_accountroles "github.com/Southclaws/storyden/internal/ent/accountroles"
 	ent_authentication "github.com/Southclaws/storyden/internal/ent/authentication"
@@ -133,6 +134,7 @@ func (s *service) anonymizeAndDelete(ctx context.Context, acc *account.AccountWi
 	_, _ = s.db.OAuthRefreshToken.Delete().Where(ent_oauthrefreshtoken.HasAccountWith(ent_account.IDEQ(xidID))).Exec(ctx)
 	_, _ = s.db.AccountRoles.Delete().Where(ent_accountroles.HasAccountWith(ent_account.IDEQ(xidID))).Exec(ctx)
 	_, _ = s.db.AccountFollow.Delete().Where(ent_accountfollow.Or(ent_accountfollow.HasFollowerWith(ent_account.IDEQ(xidID)), ent_accountfollow.HasFollowingWith(ent_account.IDEQ(xidID)))).Exec(ctx)
+	_, _ = s.db.AccessGrant.Delete().Where(ent_accessgrant.AccountID(xidID)).Exec(ctx)
 	_, _ = s.db.Notification.Delete().Where(ent_notification.Or(ent_notification.HasOwnerWith(ent_account.IDEQ(xidID)), ent_notification.HasSourceWith(ent_account.IDEQ(xidID)))).Exec(ctx)
 
 	// Anonymize Account: change handle and name to "Deleted User" so posts are retained

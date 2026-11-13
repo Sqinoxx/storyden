@@ -206,6 +206,8 @@ function getNotificationContent(t: Translations, n: Notification) {
       return { description: d.accessGranted, url: "/access" };
     case "access_rejected":
       return { description: d.accessRejected, url: "/access" };
+    case "access_revoked":
+      return { description: d.accessRevoked, url: "/access" };
     case "access_expiring":
       return { description: d.accessExpiring, url: "/access" };
   }

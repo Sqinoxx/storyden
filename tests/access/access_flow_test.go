@@ -138,7 +138,7 @@ func TestAccessRequestFlow(t *testing.T) {
 				list := tests.AssertRequest(cl.AccessGrantListWithResponse(root, &openapi.AccessGrantListParams{Status: &status}, adminSession))(t, http.StatusOK).JSON200
 				r.Len(list.Grants, 2)
 				handles := []string{list.Grants[0].Account.Handle, list.Grants[1].Account.Handle}
-				r.ElementsMatch([]string{member.Handle, other.Handle}, handles)
+				r.Equal([]string{member.Handle, other.Handle}, handles, "oldest request first")
 				for _, g := range list.Grants {
 					r.Equal("Z1-Protokolle", g.Pass.Name)
 				}
@@ -229,24 +229,48 @@ func TestAccessRequestFlow(t *testing.T) {
 					Action: openapi.Reject,
 				}, adminSession))(t, http.StatusBadRequest)
 
+				reason := "Keine Zahlung eingegangen"
 				g := tests.AssertRequest(cl.AccessGrantRemoveWithResponse(root, pass.Id, other.Handle, &openapi.AccessGrantRemoveParams{
 					Action: openapi.Reject,
+					Reason: &reason,
 				}, adminSession))(t, http.StatusOK).JSON200
 				r.Equal(openapi.AccessGrantStatusRejected, g.Status)
+				r.NotNil(g.Reason)
+				r.Equal(reason, *g.Reason)
 
 				list := tests.AssertRequest(cl.AccessPassListWithResponse(root, otherSession))(t, http.StatusOK).JSON200
-				r.Equal(openapi.AccessGrantStatusRejected, findPass(list.Passes, pass.Id).Membership.Status)
+				mine := findPass(list.Passes, pass.Id).Membership
+				r.Equal(openapi.AccessGrantStatusRejected, mine.Status)
+				r.NotNil(mine.Reason, "the member sees why")
+				r.Equal(reason, *mine.Reason)
 
 				again := tests.AssertRequest(cl.AccessPassRequestWithResponse(root, pass.Id, otherSession))(t, http.StatusOK).JSON200
 				r.Equal(openapi.AccessGrantStatusRequested, again.Membership.Status, "rejected members may ask again")
+				r.Nil(again.Membership.Reason, "a new request clears the old reason")
 			})
 
 			t.Run("revoke", func(t *testing.T) {
 				r := require.New(t)
+				reason := "Doppelt freigeschaltet"
 				g := tests.AssertRequest(cl.AccessGrantRemoveWithResponse(root, pass.Id, member.Handle, &openapi.AccessGrantRemoveParams{
 					Action: openapi.Revoke,
+					Reason: &reason,
 				}, adminSession))(t, http.StatusOK).JSON200
 				r.Equal(openapi.AccessGrantStatusRevoked, g.Status)
+				r.Equal(reason, *g.Reason)
+
+				r.Eventually(func() bool {
+					n, err := cl.NotificationListWithResponse(root, &openapi.NotificationListParams{}, memberSession)
+					if err != nil || n.JSON200 == nil {
+						return false
+					}
+					for _, it := range n.JSON200.Notifications {
+						if it.Event == openapi.AccessRevoked {
+							return true
+						}
+					}
+					return false
+				}, 5*time.Second, 100*time.Millisecond, "members are told when access is revoked")
 
 				th := tests.AssertRequest(cl.ThreadGetWithResponse(root, protocol.Slug, nil, memberSession))(t, http.StatusOK).JSON200
 				r.NotNil(th.Access)
@@ -288,6 +312,35 @@ func TestAccessRequestFlow(t *testing.T) {
 				r.Equal(2, statuses[openapi.AccessGrantStatusActive])
 				r.Equal(1, statuses[openapi.AccessGrantStatusRejected])
 				r.Equal(1, statuses[openapi.AccessGrantStatusRevoked])
+			})
+
+			t.Run("pass_audit_log", func(t *testing.T) {
+				r := require.New(t)
+
+				temp := tests.AssertRequest(cl.AccessPassCreateWithResponse(root, openapi.AccessPassInitialProps{
+					Name: "Vorübergehend",
+				}, adminSession))(t, http.StatusOK).JSON200
+				tests.AssertRequest(cl.AccessPassUpdateWithResponse(root, temp.Id, openapi.AccessPassMutableProps{
+					Name: opt.New("Umbenannt").Ptr(),
+				}, adminSession))(t, http.StatusOK)
+				tests.AssertRequest(cl.AccessPassDeleteWithResponse(root, temp.Id, adminSession))(t, http.StatusOK)
+
+				types := openapi.AuditEventTypeFilterQuery{openapi.AccessPassUpdated}
+				res := tests.AssertRequest(cl.AuditEventListWithResponse(root, &openapi.AuditEventListParams{Types: &types}, adminSession))(t, http.StatusOK).JSON200
+
+				actions := map[openapi.AuditEventAccessPassUpdatedAction]string{}
+				for _, ev := range *res.Events {
+					d, err := ev.AsAuditEventAccessPassUpdated()
+					r.NoError(err)
+					if d.PassId == temp.Id {
+						actions[d.Action] = d.PassName
+					}
+				}
+				r.Equal(map[openapi.AuditEventAccessPassUpdatedAction]string{
+					openapi.Created: "Vorübergehend",
+					openapi.Updated: "Umbenannt",
+					openapi.Deleted: "Umbenannt",
+				}, actions)
 			})
 		}))
 	}))

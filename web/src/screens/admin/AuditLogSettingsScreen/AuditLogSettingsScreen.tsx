@@ -317,7 +317,24 @@ function EventDetails({ event }: { event: AuditEvent }) {
               {event.note}
             </styled.p>
           )}
+          {event.reason && (
+            <styled.p fontSize="sm" color="fg.subtle">
+              Reason: {event.reason}
+            </styled.p>
+          )}
         </LStack>
+      );
+
+    case AuditEventType.access_pass_updated:
+      return (
+        <HStack gap="1" flexWrap="wrap">
+          <styled.p fontSize="sm" color="fg.subtle">
+            {event.pass_name}:
+          </styled.p>
+          <Badge size="sm" variant="subtle">
+            {event.action}
+          </Badge>
+        </HStack>
       );
 
     default:

@@ -27,6 +27,7 @@ func (AccessGrant) Fields() []ent.Field {
 		field.String("decided_by").GoType(xid.ID{}).Optional().Nillable(),
 		field.Time("decided_at").Optional().Nillable(),
 		field.String("note").Default(""),
+		field.String("reason").Default(""),
 		field.Time("expiry_notified_at").Optional().Nillable(),
 	}
 }

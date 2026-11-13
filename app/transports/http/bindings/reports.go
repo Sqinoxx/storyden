@@ -15,6 +15,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/rbac"
 	"github.com/Southclaws/storyden/app/resources/report"
+	"github.com/Southclaws/storyden/app/services/access/access_check"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/report/member_report"
 	"github.com/Southclaws/storyden/app/services/report/report_manager"
@@ -24,16 +25,33 @@ import (
 type Reports struct {
 	memberReportMgr *member_report.Manager
 	reportMgr       *report_manager.Manager
+	access          *access_check.Checker
 }
 
 func NewReports(
 	memberReportMgr *member_report.Manager,
 	reportMgr *report_manager.Manager,
+	access *access_check.Checker,
 ) Reports {
 	return Reports{
 		memberReportMgr: memberReportMgr,
 		reportMgr:       reportMgr,
+		access:          access,
 	}
+}
+
+func (h *Reports) withhold(ctx context.Context, reports ...*report.Report) error {
+	for _, r := range reports {
+		if r.TargetItem == nil {
+			continue
+		}
+		item, err := h.access.FilterItem(ctx, r.TargetItem)
+		if err != nil {
+			return fault.Wrap(err, fctx.With(ctx))
+		}
+		r.TargetItem = item
+	}
+	return nil
 }
 
 func (h *Reports) ReportCreate(ctx context.Context, request openapi.ReportCreateRequestObject) (openapi.ReportCreateResponseObject, error) {
@@ -55,6 +73,10 @@ func (h *Reports) ReportCreate(ctx context.Context, request openapi.ReportCreate
 	)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := h.withhold(ctx, r); err != nil {
+		return nil, err
 	}
 
 	return openapi.ReportCreate200JSONResponse{
@@ -102,6 +124,10 @@ func (h *Reports) ReportList(ctx context.Context, request openapi.ReportListRequ
 		if err != nil {
 			return nil, fault.Wrap(err, fctx.With(ctx))
 		}
+	}
+
+	if err := h.withhold(ctx, result.Items...); err != nil {
+		return nil, err
 	}
 
 	return openapi.ReportList200JSONResponse{
@@ -162,6 +188,10 @@ func (h *Reports) ReportUpdate(ctx context.Context, request openapi.ReportUpdate
 		if err != nil {
 			return nil, fault.Wrap(err, fctx.With(ctx))
 		}
+	}
+
+	if err := h.withhold(ctx, r); err != nil {
+		return nil, err
 	}
 
 	return openapi.ReportUpdate200JSONResponse{

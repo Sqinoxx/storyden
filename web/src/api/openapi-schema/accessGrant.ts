@@ -22,6 +22,8 @@ export interface AccessGrant {
   /** Internal note for whoever manages access. */
   note: string;
   pass: AccessPassReference;
+  /** Why a request was rejected or access was revoked, shown to the member. */
+  reason?: string;
   reference_code: string;
   requested_at?: string;
   status: AccessGrantStatus;

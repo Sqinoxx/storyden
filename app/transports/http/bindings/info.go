@@ -2,6 +2,7 @@ package bindings
 
 import (
 	"context"
+	"slices"
 
 	"github.com/Southclaws/dt"
 	"github.com/Southclaws/fault"
@@ -174,11 +175,22 @@ func serialiseInfo(info *instance_info.Info) openapi.Info {
 		MarketplaceEnabled:             opt.New(info.Settings.MarketEnabled()).Ptr(),
 		MarketplaceCategories:          opt.New(serialiseMarketCategories(info.Settings.MarketCategories())).Ptr(),
 		MarketplaceListingDurationDays: opt.New(int(info.Settings.ListingDuration().Hours() / 24)).Ptr(),
+		AiFeatures:                     serialiseAIFeatures(info),
 		WebAddress:                     info.WebAddress.String(),
 		ApiAddress:                     info.APIAddress.String(),
 		MaxUploadSizeMb:                maxUploadSizeMB(info.Settings),
 		Metadata:                       (*openapi.Metadata)(info.Settings.Metadata.Ptr()),
 		Motd:                           opt.Map(info.Settings.Motd, serialiseMOTD).Ptr(),
+	}
+}
+
+func serialiseAIFeatures(info *instance_info.Info) *openapi.AIFeatureFlags {
+	genAI := slices.Contains(info.Capabilities, instance_info.CapabilityGenAI)
+	return &openapi.AIFeatureFlags{
+		ThreadSummary:      genAI && info.Settings.AIThreadSummaryEnabled(),
+		TagSuggestion:      genAI && info.Settings.AITagSuggestionEnabled(),
+		SemesterSuggestion: info.Settings.AISemesterSuggestionEnabled(),
+		LibraryAssist:      genAI && info.Settings.AILibraryAssistEnabled(),
 	}
 }
 

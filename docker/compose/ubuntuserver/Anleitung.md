@@ -495,11 +495,23 @@ verlassen den Server. Der Ollama-Container ist auf 4 GB RAM begrenzt.
    Modell in `.env` eintragen und Schritt 3 mit dem neuen Namen wiederholen.
    Nach einem Wechsel des Embedding-Modells `data/semdex` loeschen, damit der
    Index neu aufgebaut wird.
-5. Automatische KI-Tags im Thread-Editor: im Admin-Bereich unter
-   Interface → "AI tag meanings" pro Zeile `tag: Bedeutung` eintragen
-   (z. B. `endo: endodontics (root canal treatment)`). Nur dort gelistete,
-   bereits existierende Tags werden automatisch gesetzt. Tags mit unklarer
-   Bedeutung weglassen. Englische Beschreibungen funktionieren am besten.
+5. KI-Funktionen einzeln schalten: im Admin-Bereich unter dem Reiter
+   **KI**. Dort gibt es Schalter für
+   - "Lange Threads zusammenfassen" (standardmaessig aus): Button
+     "Zusammenfassen" ab 5 Antworten. Text aus angehaengten PDFs (per OCR
+     extrahiert) fliesst mit ein. Ergebnisse werden im Speicher
+     zwischengespeichert, bis eine neue Antwort kommt.
+   - "Tags beim Schreiben vorschlagen"
+   - "Semester beim Schreiben vorschlagen" (funktioniert auch ohne Ollama)
+   - "Bibliotheks-Assistent"
+6. Automatische KI-Tags im Thread-Editor: unter **KI** → "Tag-Bedeutungen"
+   pro Zeile `tag: Bedeutung` eintragen (z. B.
+   `endo: endodontics (root canal treatment)`). Der Button
+   **"Mit KI ergänzen"** schlaegt fuer bis zu 25 Tags mit mindestens 3
+   Threads eine Bedeutung vor (ein Modellaufruf pro Tag, dauert ein paar
+   Minuten). Unklare Tags werden uebersprungen. Nichts wird automatisch
+   gespeichert: Vorschlag pruefen, korrigieren und dann speichern. Nur
+   gelistete, bereits existierende Tags werden automatisch gesetzt.
 
 Ausschalten: die Zeilen in `.env` wieder auskommentieren,
 `docker compose up -d storyden` und `docker compose stop ollama`.

@@ -13,6 +13,7 @@ import type {
   AdminDriveCredentialsUploadBody,
   AdminDriveFolderCreateBody,
   AdminDriveFolderUpdateBody,
+  AdminGenerateTagMeaningsOKResponse,
   AdminOCRAssetList200,
   AdminOCRAssetListParams,
   AdminOCRAssetSkip200,
@@ -205,6 +206,35 @@ export const adminOCRReindex = async (
     ...options,
     method: "POST",
   });
+};
+
+/**
+ * Draft meanings for tags that are used by several threads but have no
+meaning configured yet. The language model reads sample thread titles
+of each tag and describes the tag in a few English words. Ambiguous
+tags are skipped. Nothing is saved: the result contains the existing
+meanings with the drafted lines appended, for an admin to review.
+
+ */
+export type adminGenerateTagMeaningsResponse = {
+  data: AdminGenerateTagMeaningsOKResponse;
+  status: number;
+};
+
+export const getAdminGenerateTagMeaningsUrl = () => {
+  return `/admin/ai/tag-meanings`;
+};
+
+export const adminGenerateTagMeanings = async (
+  options?: RequestInit,
+): Promise<adminGenerateTagMeaningsResponse> => {
+  return fetcher<Promise<adminGenerateTagMeaningsResponse>>(
+    getAdminGenerateTagMeaningsUrl(),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
 };
 
 /**

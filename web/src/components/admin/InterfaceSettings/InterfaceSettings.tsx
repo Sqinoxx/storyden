@@ -7,8 +7,8 @@ import { FormHelperText } from "@/components/ui/form/FormHelperText";
 import { FormLabel } from "@/components/ui/form/FormLabel";
 import { NumberInputField } from "@/components/ui/form/NumberInputField";
 import { RadioGroupField } from "@/components/ui/form/RadioGroupField";
-import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
+import { Input } from "@/components/ui/input";
 import { CardBox, WStack, styled } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
@@ -148,29 +148,6 @@ export function InterfaceSettingsForm(props: Props) {
           <FormHelperText>
             Renames the oldest selectable semester and groups all older threads
             under it. Leave empty to show the regular semester name.
-          </FormHelperText>
-        </FormControl>
-
-        <FormControl>
-          <FormLabel>AI tag meanings</FormLabel>
-          <styled.textarea
-            {...register("aiTagMeanings")}
-            width="full"
-            borderWidth="thin"
-            borderRadius="sm"
-            borderColor="border.default"
-            padding="2"
-            fontFamily="mono"
-            fontSize="sm"
-            rows={8}
-            placeholder={
-              "endo: endodontics (root canal treatment)\nkfo: orthodontics (braces, brackets, aligners)"
-            }
-          />
-          <FormHelperText>
-            One tag per line as &quot;tag: meaning&quot;. While a thread is
-            written, the AI adds matching tags automatically, but only tags
-            listed here. Leave out tags whose meaning is ambiguous.
           </FormHelperText>
         </FormControl>
       </CardBox>

@@ -2,6 +2,7 @@ package bindings
 
 import (
 	"context"
+	"github.com/Southclaws/storyden/app/services/thread_summary"
 	"net/url"
 	"strconv"
 
@@ -44,6 +45,7 @@ type Threads struct {
 	access          *access_check.Checker
 	semesters       *semester_suggest.Suggester
 	tagSuggester    *tag_suggest.Suggester
+	summariser      *thread_summary.Summariser
 }
 
 func NewThreads(
@@ -56,8 +58,46 @@ func NewThreads(
 	access *access_check.Checker,
 	semesters *semester_suggest.Suggester,
 	tagSuggester *tag_suggest.Suggester,
+	summariser *thread_summary.Summariser,
 ) Threads {
-	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings, access, semesters, tagSuggester}
+	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings, access, semesters, tagSuggester, summariser}
+}
+
+var errAIFeatureDisabled = fault.New("this AI feature is disabled", ftag.With(ftag.PermissionDenied))
+
+func (i *Threads) aiEnabled(ctx context.Context, enabled func(*settings.Settings) bool) (bool, error) {
+	set, err := i.settings.Get(ctx)
+	if err != nil {
+		return false, fault.Wrap(err, fctx.With(ctx))
+	}
+	return enabled(set), nil
+}
+
+func (i *Threads) ThreadSummarise(ctx context.Context, request openapi.ThreadSummariseRequestObject) (openapi.ThreadSummariseResponseObject, error) {
+	enabled, err := i.aiEnabled(ctx, (*settings.Settings).AIThreadSummaryEnabled)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	if !enabled {
+		return nil, fault.Wrap(errAIFeatureDisabled, fctx.With(ctx))
+	}
+
+	postID, err := i.thread_mark_svc.Lookup(ctx, string(request.ThreadMark))
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	sum, err := i.summariser.Summarise(ctx, postID)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.ThreadSummarise200JSONResponse{
+		ThreadSummariseOKJSONResponse: openapi.ThreadSummariseOKJSONResponse{
+			Summary:             sum.HTML,
+			IncludesAttachments: sum.IncludesAttachments,
+		},
+	}, nil
 }
 
 func (i *Threads) pageSizes(ctx context.Context) (replies int, threads int) {
@@ -366,6 +406,14 @@ func deserialiseCategorySlugQueryParam(in *openapi.CategorySlugListQuery) opt.Op
 }
 
 func (i *Threads) ThreadSuggestSemester(ctx context.Context, request openapi.ThreadSuggestSemesterRequestObject) (openapi.ThreadSuggestSemesterResponseObject, error) {
+	enabled, err := i.aiEnabled(ctx, (*settings.Settings).AISemesterSuggestionEnabled)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	if !enabled {
+		return openapi.ThreadSuggestSemester200JSONResponse{}, nil
+	}
+
 	in := semester_suggest.Input{
 		Title:     opt.NewPtr(request.Body.Title).OrZero(),
 		Filenames: opt.NewPtr(request.Body.Filenames).OrZero(),
@@ -397,6 +445,16 @@ func (i *Threads) ThreadSuggestSemester(ctx context.Context, request openapi.Thr
 }
 
 func (i *Threads) ThreadSuggestTags(ctx context.Context, request openapi.ThreadSuggestTagsRequestObject) (openapi.ThreadSuggestTagsResponseObject, error) {
+	enabled, err := i.aiEnabled(ctx, (*settings.Settings).AITagSuggestionEnabled)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	if !enabled {
+		return openapi.ThreadSuggestTags200JSONResponse{
+			ThreadSuggestTagsOKJSONResponse: openapi.ThreadSuggestTagsOKJSONResponse{Tags: []string{}},
+		}, nil
+	}
+
 	body := ""
 	if raw := opt.NewPtr(request.Body.Body).OrZero(); raw != "" {
 		content, err := datagraph.NewRichText(raw)

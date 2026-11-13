@@ -1,13 +1,12 @@
 import { useRef, useState } from "react";
 
 import { handle } from "@/api/client";
-import { InstanceCapability } from "@/api/openapi-schema";
 import { useLibraryMutation } from "@/lib/library/library";
-import { useCapability } from "@/lib/settings/capabilities";
+import { useAIFeature } from "@/lib/settings/ai-features";
 
 import { useLibraryPageContext } from "../../Context";
-import { useEditState } from "../../useEditState";
 import { useWatch } from "../../store";
+import { useEditState } from "../../useEditState";
 
 export function useLibraryPageTitleBlock() {
   const { store } = useLibraryPageContext();
@@ -17,7 +16,7 @@ export function useLibraryPageTitleBlock() {
 
   const { suggestTitle } = useLibraryMutation(draft);
   const [isLoading, setLoading] = useState(false);
-  const isTitleSuggestEnabled = useCapability(InstanceCapability.gen_ai);
+  const isTitleSuggestEnabled = useAIFeature("library_assist");
 
   const value = useWatch((s) => s.draft.name);
   const titleInputKey = `${editorSourceKey}:${titleResetVersion}`;

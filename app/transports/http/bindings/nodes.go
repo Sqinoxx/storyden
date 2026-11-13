@@ -2,6 +2,7 @@ package bindings
 
 import (
 	"context"
+	"github.com/Southclaws/storyden/app/resources/settings"
 	"net/url"
 	"strconv"
 
@@ -55,6 +56,7 @@ type Nodes struct {
 	ntr           node_traversal.Repository
 	schemaUpdater *node_property_schema.Updater
 	node_cache    *node_cache.Cache
+	settings      *settings.SettingsRepository
 }
 
 func NewNodes(
@@ -71,6 +73,7 @@ func NewNodes(
 	ntr node_traversal.Repository,
 	schemaUpdater *node_property_schema.Updater,
 	node_cache *node_cache.Cache,
+	settings *settings.SettingsRepository,
 ) Nodes {
 	return Nodes{
 		accountQuery:  accountQuery,
@@ -86,7 +89,19 @@ func NewNodes(
 		ntr:           ntr,
 		schemaUpdater: schemaUpdater,
 		node_cache:    node_cache,
+		settings:      settings,
 	}
+}
+
+func (c *Nodes) requireLibraryAssist(ctx context.Context) error {
+	set, err := c.settings.Get(ctx)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+	if !set.AILibraryAssistEnabled() {
+		return fault.Wrap(errAIFeatureDisabled, fctx.With(ctx))
+	}
+	return nil
 }
 
 func (c *Nodes) NodeCreate(ctx context.Context, request openapi.NodeCreateRequestObject) (openapi.NodeCreateResponseObject, error) {
@@ -386,6 +401,10 @@ func (c *Nodes) NodeUpdate(ctx context.Context, request openapi.NodeUpdateReques
 }
 
 func (c *Nodes) NodeGenerateContent(ctx context.Context, request openapi.NodeGenerateContentRequestObject) (openapi.NodeGenerateContentResponseObject, error) {
+	if err := c.requireLibraryAssist(ctx); err != nil {
+		return nil, err
+	}
+
 	content, err := datagraph.NewRichText(request.Body.Content)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
@@ -404,6 +423,10 @@ func (c *Nodes) NodeGenerateContent(ctx context.Context, request openapi.NodeGen
 }
 
 func (c *Nodes) NodeGenerateTags(ctx context.Context, request openapi.NodeGenerateTagsRequestObject) (openapi.NodeGenerateTagsResponseObject, error) {
+	if err := c.requireLibraryAssist(ctx); err != nil {
+		return nil, err
+	}
+
 	content, err := datagraph.NewRichText(request.Body.Content)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
@@ -424,6 +447,10 @@ func (c *Nodes) NodeGenerateTags(ctx context.Context, request openapi.NodeGenera
 }
 
 func (c *Nodes) NodeGenerateTitle(ctx context.Context, request openapi.NodeGenerateTitleRequestObject) (openapi.NodeGenerateTitleResponseObject, error) {
+	if err := c.requireLibraryAssist(ctx); err != nil {
+		return nil, err
+	}
+
 	content, err := datagraph.NewRichText(request.Body.Content)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))

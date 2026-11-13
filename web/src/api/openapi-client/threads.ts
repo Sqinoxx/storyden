@@ -15,6 +15,7 @@ import type { SWRMutationConfiguration } from "swr/mutation";
 import { fetcher } from "../client";
 import type {
   BadRequestResponse,
+  ForbiddenResponse,
   InternalServerErrorResponse,
   NotFoundResponse,
   NotModifiedResponse,
@@ -28,6 +29,7 @@ import type {
   ThreadSuggestSemesterOKResponse,
   ThreadSuggestTagsBody,
   ThreadSuggestTagsOKResponse,
+  ThreadSummariseOKResponse,
   ThreadUpdateBody,
   ThreadUpdateOKResponse,
   UnauthorisedResponse,
@@ -262,6 +264,70 @@ export const useThreadSuggestTags = <
 
   const swrKey = swrOptions?.swrKey ?? getThreadSuggestTagsMutationKey();
   const swrFn = getThreadSuggestTagsMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Summarise a long thread with the language model, including text
+extracted from attached PDF documents. Summaries are cached until the
+thread changes. Returns an empty summary for short threads.
+
+ */
+export const threadSummarise = (threadMark: string) => {
+  return fetcher<ThreadSummariseOKResponse>({
+    url: `/threads/${threadMark}/summary`,
+    method: "POST",
+  });
+};
+
+export const getThreadSummariseMutationFetcher = (threadMark: string) => {
+  return (
+    _: Key,
+    __: { arg: Arguments },
+  ): Promise<ThreadSummariseOKResponse> => {
+    return threadSummarise(threadMark);
+  };
+};
+export const getThreadSummariseMutationKey = (threadMark: string) =>
+  [`/threads/${threadMark}/summary`] as const;
+
+export type ThreadSummariseMutationResult = NonNullable<
+  Awaited<ReturnType<typeof threadSummarise>>
+>;
+export type ThreadSummariseMutationError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+  | InternalServerErrorResponse;
+
+export const useThreadSummarise = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+    | InternalServerErrorResponse,
+>(
+  threadMark: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof threadSummarise>>,
+      TError,
+      Key,
+      Arguments,
+      Awaited<ReturnType<typeof threadSummarise>>
+    > & { swrKey?: string };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey =
+    swrOptions?.swrKey ?? getThreadSummariseMutationKey(threadMark);
+  const swrFn = getThreadSummariseMutationFetcher(threadMark);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

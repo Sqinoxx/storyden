@@ -4,6 +4,7 @@ import { Control, FieldValues, Path, useWatch } from "react-hook-form";
 import { useCategoryList } from "@/api/openapi-client/categories";
 import { useTagList } from "@/api/openapi-client/tags";
 import { Asset, Category } from "@/api/openapi-schema";
+import { useAIFeature } from "@/lib/settings/ai-features";
 
 import { useAiTagSuggestions } from "./useAiTagSuggestions";
 
@@ -59,7 +60,12 @@ export function useAutoTagDetection<T extends FieldValues>({
     name: "files" as Path<T>,
   }) as AttachmentItem[] | undefined;
 
-  const aiTagsLower = useAiTagSuggestions(title, body, enabled && aiSuggest);
+  const aiTagsEnabled = useAIFeature("tag_suggestion");
+  const aiTagsLower = useAiTagSuggestions(
+    title,
+    body,
+    enabled && aiSuggest && aiTagsEnabled,
+  );
 
   const manuallyRemovedTagsRef = useRef<Set<string>>(new Set());
   const categoryAddedTagsRef = useRef<Set<string>>(new Set());
@@ -132,7 +138,8 @@ export function useAutoTagDetection<T extends FieldValues>({
     const cleanBody = (body || "").replace(/<[^>]*>/g, " ");
 
     // Include title, raw body (with html attributes like alt/data-filename), cleanBody, and attachment filenames
-    const combinedText = `${title || ""} ${body || ""} ${cleanBody} ${attachmentFilenames}`.toLowerCase();
+    const combinedText =
+      `${title || ""} ${body || ""} ${cleanBody} ${attachmentFilenames}`.toLowerCase();
     const normalizedText = combinedText.replace(/[-_./\\,]/g, " ");
 
     const existingTags = currentTags || [];

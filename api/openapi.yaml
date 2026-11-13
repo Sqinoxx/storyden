@@ -449,6 +449,23 @@ paths:
                 properties:
                   reindexed: { type: integer }
 
+  /admin/ai/tag-meanings:
+    post:
+      operationId: AdminGenerateTagMeanings
+      x-storyden: { rate-limit-cost: 10 }
+      description: |
+        Draft meanings for tags that are used by several threads but have no
+        meaning configured yet. The language model reads sample thread titles
+        of each tag and describes the tag in a few English words. Ambiguous
+        tags are skipped. Nothing is saved: the result contains the existing
+        meanings with the drafted lines appended, for an admin to review.
+      tags: [admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AdminGenerateTagMeaningsOK" }
+
   #
   #      888          d8b
   #      888          Y8P
@@ -3510,6 +3527,23 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorised" }
         "400": { $ref: "#/components/responses/BadRequest" }
         "200": { $ref: "#/components/responses/ThreadSuggestTagsOK" }
+
+  /threads/{thread_mark}/summary:
+    post:
+      operationId: ThreadSummarise
+      x-storyden: { rate-limit-cost: 10 }
+      description: |
+        Summarise a long thread with the language model, including text
+        extracted from attached PDF documents. Summaries are cached until the
+        thread changes. Returns an empty summary for short threads.
+      tags: [threads]
+      parameters: [$ref: "#/components/parameters/ThreadMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ThreadSummariseOK" }
 
   /threads/{thread_mark}:
     get:
@@ -7664,6 +7698,18 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/ThreadTagSuggestion" }
 
+    ThreadSummariseOK:
+      description: Thread summary, empty when the thread is too short.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ThreadSummary" }
+
+    AdminGenerateTagMeaningsOK:
+      description: Drafted tag meanings for review.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/TagMeaningsDraft" }
+
     ThreadCreateOK:
       description: Thread created.
       content:
@@ -8383,6 +8429,8 @@ components:
             admins and listing moderators can access it.
         marketplace_categories:
           $ref: "#/components/schemas/MarketCategoryList"
+        ai_features:
+          $ref: "#/components/schemas/AIFeatureFlags"
         marketplace_listing_duration_days:
           type: integer
           description: |
@@ -8459,6 +8507,21 @@ components:
         - oauth
         - robots
         - drive
+
+    AIFeatureFlags:
+      type: object
+      description: |
+        Language model features that are both configured on the server and
+        enabled by an administrator. Semester suggestions only depend on the
+        administrator setting because explicit terms are detected without a
+        language model.
+      required:
+        [thread_summary, tag_suggestion, semester_suggestion, library_assist]
+      properties:
+        thread_summary: { type: boolean }
+        tag_suggestion: { type: boolean }
+        semester_suggestion: { type: boolean }
+        library_assist: { type: boolean }
 
     InstanceCapabilityList:
       type: array
@@ -8995,6 +9058,8 @@ components:
           $ref: "#/components/schemas/AssetServiceSettings"
         market:
           $ref: "#/components/schemas/MarketServiceSettings"
+        ai:
+          $ref: "#/components/schemas/AIServiceSettings"
 
     StatisticsSeriesPoint:
       type: object
@@ -9229,6 +9294,22 @@ components:
         reportsLast30d:
           type: integer
           description: Reports submitted in the last 30 days.
+
+    AIServiceSettings:
+      type: object
+      properties:
+        thread_summary:
+          type: boolean
+          description: Members can summarise long threads. Off by default.
+        tag_suggestion:
+          type: boolean
+          description: Tags are suggested while a thread is written.
+        semester_suggestion:
+          type: boolean
+          description: The semester is suggested while a thread is written.
+        library_assist:
+          type: boolean
+          description: Titles, tags and content can be generated for pages.
 
     MarketServiceSettings:
       type: object
@@ -12908,6 +12989,32 @@ components:
       required: [tags]
       properties:
         tags:
+          type: array
+          items: { type: string }
+
+    ThreadSummary:
+      type: object
+      required: [summary, includes_attachments]
+      properties:
+        summary:
+          type: string
+          description: HTML summary, empty when nothing was summarised.
+        includes_attachments:
+          type: boolean
+          description: Whether text from attached documents was used.
+
+    TagMeaningsDraft:
+      type: object
+      required: [meanings, added, skipped]
+      properties:
+        meanings:
+          type: string
+          description: |
+            The existing "tag: meaning" lines followed by the drafted ones.
+        added:
+          type: array
+          items: { type: string }
+        skipped:
           type: array
           items: { type: string }
 

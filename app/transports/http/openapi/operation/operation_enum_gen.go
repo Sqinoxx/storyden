@@ -29,6 +29,7 @@ var (
 	OperationIDAdminOCRAssetList                      = OperationID{`AdminOCRAssetList`}
 	OperationIDAdminOCRAssetSkip                      = OperationID{`AdminOCRAssetSkip`}
 	OperationIDAdminOCRReindex                        = OperationID{`AdminOCRReindex`}
+	OperationIDAdminGenerateTagMeanings               = OperationID{`AdminGenerateTagMeanings`}
 	OperationIDAdminStatistics                        = OperationID{`AdminStatistics`}
 	OperationIDAdminDriveFolderList                   = OperationID{`AdminDriveFolderList`}
 	OperationIDAdminDriveFolderCreate                 = OperationID{`AdminDriveFolderCreate`}
@@ -200,6 +201,7 @@ var (
 	OperationIDThreadList                             = OperationID{`ThreadList`}
 	OperationIDThreadSuggestSemester                  = OperationID{`ThreadSuggestSemester`}
 	OperationIDThreadSuggestTags                      = OperationID{`ThreadSuggestTags`}
+	OperationIDThreadSummarise                        = OperationID{`ThreadSummarise`}
 	OperationIDThreadGet                              = OperationID{`ThreadGet`}
 	OperationIDThreadUpdate                           = OperationID{`ThreadUpdate`}
 	OperationIDThreadDelete                           = OperationID{`ThreadDelete`}
@@ -377,6 +379,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAdminOCRAssetSkip, nil
 	case string(`AdminOCRReindex`):
 		return OperationIDAdminOCRReindex, nil
+	case string(`AdminGenerateTagMeanings`):
+		return OperationIDAdminGenerateTagMeanings, nil
 	case string(`AdminStatistics`):
 		return OperationIDAdminStatistics, nil
 	case string(`AdminDriveFolderList`):
@@ -719,6 +723,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDThreadSuggestSemester, nil
 	case string(`ThreadSuggestTags`):
 		return OperationIDThreadSuggestTags, nil
+	case string(`ThreadSummarise`):
+		return OperationIDThreadSummarise, nil
 	case string(`ThreadGet`):
 		return OperationIDThreadGet, nil
 	case string(`ThreadUpdate`):

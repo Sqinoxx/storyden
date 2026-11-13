@@ -1189,3 +1189,11 @@ func (m *Mapping) ListingFavouriteAdd() (bool, *rbac.Permission) {
 func (m *Mapping) ListingFavouriteRemove() (bool, *rbac.Permission) {
 	return true, nil
 }
+
+func (m *Mapping) AdminGenerateTagMeanings() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
+func (m *Mapping) ThreadSummarise() (bool, *rbac.Permission) {
+	return false, &rbac.PermissionReadPublishedThreads
+}

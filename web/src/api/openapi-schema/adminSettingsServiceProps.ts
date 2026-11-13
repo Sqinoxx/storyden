@@ -7,6 +7,7 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 
  * OpenAPI spec version: v1.26.13-post
  */
+import type { AIServiceSettings } from "./aIServiceSettings";
 import type { AssetServiceSettings } from "./assetServiceSettings";
 import type { ClientIPServiceSettings } from "./clientIPServiceSettings";
 import type { ContentServiceSettings } from "./contentServiceSettings";
@@ -17,6 +18,7 @@ import type { RobotServiceSettings } from "./robotServiceSettings";
 import type { SessionServiceSettings } from "./sessionServiceSettings";
 
 export interface AdminSettingsServiceProps {
+  ai?: AIServiceSettings;
   assets?: AssetServiceSettings;
   client_ip?: ClientIPServiceSettings;
   content?: ContentServiceSettings;

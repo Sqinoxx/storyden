@@ -33,7 +33,7 @@ import { useLibraryPath } from "@/screens/library/useLibraryPath";
 import { slugify } from "@/utils/slugify";
 import { generateXid } from "@/utils/xid";
 
-import { useCapability } from "../settings/capabilities";
+import { useAIFeature } from "../settings/ai-features";
 
 import { CoverImage } from "./metadata";
 import { nodeListMutator, nodeMutator } from "./mutator-functions";
@@ -77,7 +77,7 @@ export type CoverImageArgs =
 // TODO: Remove slug params from API calls and use the node object instead.
 export function useLibraryMutation(node?: Node) {
   const session = useSession();
-  const genaiAvailable = useCapability("gen_ai");
+  const genaiAvailable = useAIFeature("library_assist");
   const { mutate } = useSWRConfig();
   const router = useRouter();
   const pathname = usePathname();

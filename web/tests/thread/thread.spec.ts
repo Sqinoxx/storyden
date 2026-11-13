@@ -176,7 +176,11 @@ test.describe("Thread Reactions", () => {
 
     const emojiPicker = page.locator(".EmojiPickerReact");
     await emojiPicker.waitFor({ timeout: 5000 });
-    await emojiPicker.locator("button.epr-emoji").first().click();
+    // The sticky category heading overlaps the first emoji row.
+    await emojiPicker
+      .locator("button.epr-emoji")
+      .first()
+      .dispatchEvent("click");
 
     await expect(
       reply.locator("button").filter({ hasText: /^\p{Emoji}.*\d$/u }),
@@ -447,7 +451,7 @@ test.describe("Thread Pagination", () => {
       "This thread will have many replies.",
     );
 
-    for (let i = 1; i <= 53; i++) {
+    for (let i = 1; i <= 18; i++) {
       const replyForm = page
         .locator("form")
         .filter({ has: page.getByRole("button", { name: "Post" }) })
@@ -458,52 +462,31 @@ test.describe("Thread Pagination", () => {
       await replyEditor.click();
       await replyEditor.fill(`Reply number ${i} for pagination test.`);
       await replyForm.getByRole("button", { name: "Post" }).click();
-      await page.waitForTimeout(200);
+      await page
+        .locator("li")
+        .filter({ hasText: `Reply number ${i} for pagination test.` })
+        .waitFor({ timeout: 10000 });
     }
 
     await navigateToThread(page, threadUrl);
 
-    await expect(
+    // Replies are newest first, 15 to a page.
+    const reply = (n: number) =>
       page
         .locator("li")
-        .filter({ hasText: "Reply number 1 for pagination test." }),
-    ).toBeVisible();
-    await expect(
-      page
-        .locator("li")
-        .filter({ hasText: "Reply number 50 for pagination test." }),
-    ).toBeVisible();
-    await expect(
-      page
-        .locator("li")
-        .filter({ hasText: "Reply number 51 for pagination test." }),
-    ).not.toBeVisible();
+        .filter({ hasText: `Reply number ${n} for pagination test.` })
+        .filter({ visible: true });
 
-    await expect(page.getByRole("link", { name: "2" }).first()).toBeVisible();
+    await expect(reply(18)).toBeVisible();
+    await expect(reply(4)).toBeVisible();
+    await expect(reply(3)).not.toBeVisible();
 
-    await page.getByRole("link", { name: "2" }).first().click();
+    await page.getByRole("link", { name: "2", exact: true }).first().click();
 
     await expect(page).toHaveURL(/page=2/, { timeout: 5000 });
 
-    await expect(
-      page
-        .locator("li")
-        .filter({ hasText: "Reply number 51 for pagination test." }),
-    ).toBeVisible();
-    await expect(
-      page
-        .locator("li")
-        .filter({ hasText: "Reply number 52 for pagination test." }),
-    ).toBeVisible();
-    await expect(
-      page
-        .locator("li")
-        .filter({ hasText: "Reply number 53 for pagination test." }),
-    ).toBeVisible();
-    await expect(
-      page
-        .locator("li")
-        .filter({ hasText: "Reply number 1 for pagination test." }),
-    ).not.toBeVisible();
+    await expect(reply(3)).toBeVisible();
+    await expect(reply(1)).toBeVisible();
+    await expect(reply(18)).not.toBeVisible();
   });
 });

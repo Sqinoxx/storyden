@@ -5,7 +5,7 @@ import {
   login,
   withAdminAccessKey,
 } from "../access_key_admin_assignment";
-import { PASSWORD, dismissOnboarding, unique } from "../helpers";
+import { PASSWORD, dismissOnboarding, openSidebar, unique } from "../helpers";
 
 function sidebarBranch(page: Page, name: string) {
   return page
@@ -55,6 +55,7 @@ test("admin moves a category into another category from the sidebar menu", async
   await login(page, admin, PASSWORD);
   await page.goto("/d");
   await dismissOnboarding(page);
+  await openSidebar(page);
 
   await expect(
     page.locator('[data-part="trigger-item"]', {

@@ -24,7 +24,9 @@ test.describe("Registration", () => {
     ).toBeVisible();
 
     await page.goto(`/m/${username}`);
-    await expect(page.getByText("3. Fachsemester")).toBeVisible();
+    await expect(
+      page.locator("main").getByText("3. Fachsemester"),
+    ).toBeVisible();
   });
 
   test("should fail to register with username that is too short", async ({

@@ -43,6 +43,7 @@ func (m *Middleware) WithCORS() func(next http.Handler) http.Handler {
 		"Link",
 		"Content-Type",
 		"Content-Length",
+		"Content-Disposition",
 		"X-Ratelimit-Limit",
 		"X-Ratelimit-Remaining",
 		"X-Ratelimit-Reset",

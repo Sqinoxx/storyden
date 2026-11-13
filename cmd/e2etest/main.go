@@ -9,6 +9,8 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -56,6 +58,7 @@ func run(ctx context.Context, playwrightArgs []string) error {
 		"RATE_LIMIT_EXPIRE=1s",
 		"LANGUAGE_MODEL_PROVIDER=mock",
 		"GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON=mock",
+		"JWT_SECRET=e2e-test-secret-e2e-test-secret!",
 	}
 	backendCmd.Stdout = os.Stdout
 	backendCmd.Stderr = os.Stderr
@@ -115,7 +118,11 @@ func stopProcess(name string, cmd *exec.Cmd) {
 
 	log.Println("Stopping", name, "...")
 
-	_ = cmd.Process.Signal(syscall.SIGTERM)
+	if runtime.GOOS == "windows" {
+		_ = exec.Command("taskkill", "/T", "/F", "/PID", strconv.Itoa(cmd.Process.Pid)).Run()
+	} else {
+		_ = cmd.Process.Signal(syscall.SIGTERM)
+	}
 
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()

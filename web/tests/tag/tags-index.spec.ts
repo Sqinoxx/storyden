@@ -159,7 +159,7 @@ test.describe("Tags index", () => {
 
     await page.goto("/admin/tags");
     await expect(
-      page.getByText("Nur für Moderatoren und Admins sichtbar."),
+      page.getByText("Nur mit der Berechtigung „Tags verwalten“ sichtbar."),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Create Tag" }),

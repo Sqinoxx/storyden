@@ -2,7 +2,6 @@ package bindings
 
 import (
 	"context"
-	"github.com/Southclaws/storyden/app/services/thread_summary"
 	"net/url"
 	"strconv"
 
@@ -29,8 +28,10 @@ import (
 	"github.com/Southclaws/storyden/app/services/reqinfo"
 	"github.com/Southclaws/storyden/app/services/semester_suggest"
 	"github.com/Southclaws/storyden/app/services/tag/tag_suggest"
+	"github.com/Southclaws/storyden/app/services/pdf_summary"
 	thread_service "github.com/Southclaws/storyden/app/services/thread"
 	"github.com/Southclaws/storyden/app/services/thread_mark"
+	"github.com/Southclaws/storyden/app/services/thread_summary"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 	ent_post "github.com/Southclaws/storyden/internal/ent/post"
 )
@@ -46,6 +47,7 @@ type Threads struct {
 	semesters       *semester_suggest.Suggester
 	tagSuggester    *tag_suggest.Suggester
 	summariser      *thread_summary.Summariser
+	pdfSummary      *pdf_summary.Service
 }
 
 func NewThreads(
@@ -59,8 +61,9 @@ func NewThreads(
 	semesters *semester_suggest.Suggester,
 	tagSuggester *tag_suggest.Suggester,
 	summariser *thread_summary.Summariser,
+	pdfSummary *pdf_summary.Service,
 ) Threads {
-	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings, access, semesters, tagSuggester, summariser}
+	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings, access, semesters, tagSuggester, summariser, pdfSummary}
 }
 
 var errAIFeatureDisabled = fault.New("this AI feature is disabled", ftag.With(ftag.PermissionDenied))

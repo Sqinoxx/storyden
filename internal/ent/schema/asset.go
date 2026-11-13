@@ -34,6 +34,11 @@ func (Asset) Fields() []ent.Field {
 		field.String("ocr_error").Optional().Nillable(),
 		field.Time("ocr_processed_at").Optional().Nillable(),
 
+		field.Text("ai_summary").Optional().Nillable(),
+		field.String("ai_summary_hash").Optional().Nillable(),
+		field.Enum("ai_summary_quality").Values("quick", "full").Optional().Nillable(),
+		field.Enum("ai_summary_status").Values("none", "queued", "done", "failed", "skipped").Default("none"),
+
 		// Edges
 		field.String("account_id").GoType(xid.ID{}),
 		field.String("parent_asset_id").GoType(xid.ID{}).Optional().Nillable(),
@@ -44,6 +49,7 @@ func (Asset) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("filename"),
 		index.Fields("ocr_status"),
+		index.Fields("ai_summary_status"),
 	}
 }
 

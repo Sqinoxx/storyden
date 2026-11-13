@@ -29,6 +29,16 @@ func PromptObject[T any](ctx context.Context, prompter Prompter, description, in
 // PromptSchema is PromptObject for schemas built at runtime, such as one that
 // constrains a field to an enum of values loaded from the database.
 func PromptSchema(ctx context.Context, prompter Prompter, description, input string, schema any, out any) error {
+	if q, ok := prompter.(*Queue); ok {
+		jctx, release, err := q.acquire(ctx, PriorityHigh)
+		if err != nil {
+			return err
+		}
+		defer release()
+		ctx = jctx
+		prompter = q.inner
+	}
+
 	s, ok := prompter.(*OpenAI)
 	if !ok {
 		return fault.New("structured prompt only supported with OpenAI prompter")

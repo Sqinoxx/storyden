@@ -362,6 +362,12 @@ paths:
                   completed: { type: integer }
                   failed: { type: integer }
                   skipped: { type: integer }
+                  pdf_summaries_total:
+                    type: integer
+                    description: PDFs with extracted text that can be summarised.
+                  pdf_summaries_done:
+                    type: integer
+                    description: PDFs that already have a stored summary.
 
   /admin/ocr/assets:
     get:
@@ -3550,6 +3556,48 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "401": { $ref: "#/components/responses/Unauthorised" }
         "200": { $ref: "#/components/responses/ThreadSummariseOK" }
+
+  /threads/{thread_mark}/attachments/{asset_id}/summary:
+    get:
+      operationId: ThreadAttachmentSummaryGet
+      x-storyden: { rate-limit-cost: 1 }
+      description: |
+        Get the stored language model summary of a PDF attached to the thread
+        or one of its replies. When no summary exists yet, a quick overview
+        built without the language model is returned so the client can show
+        something immediately and open the summary stream.
+      tags: [threads]
+      parameters:
+        - $ref: "#/components/parameters/ThreadMarkParam"
+        - $ref: "#/components/parameters/AssetIDParam"
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ThreadAttachmentSummaryGetOK" }
+
+  /threads/{thread_mark}/attachments/{asset_id}/summary/stream:
+    get:
+      operationId: ThreadAttachmentSummaryStream
+      x-storyden: { rate-limit-cost: 10 }
+      description: |
+        Summarise a PDF attached to the thread with the language model and
+        stream the answer as server-sent events. Each `message` event carries
+        a JSON object `{"t": "<text>"}` with the next piece of the answer. A
+        final `done` event carries `{"summary": "<html>"}`, an `error` event
+        carries `{"message": "<reason>"}`. The result is stored, later calls
+        to the summary endpoint return it directly.
+      tags: [threads]
+      parameters:
+        - $ref: "#/components/parameters/ThreadMarkParam"
+        - $ref: "#/components/parameters/AssetIDParam"
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ThreadAttachmentSummaryStreamOK" }
 
   /threads/{thread_mark}:
     get:
@@ -7710,6 +7758,19 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/ThreadSummary" }
 
+    ThreadAttachmentSummaryGetOK:
+      description: Stored summary or a quick overview of the attachment.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AttachmentSummary" }
+
+    ThreadAttachmentSummaryStreamOK:
+      description: Server-sent events stream of the attachment summary.
+      content:
+        text/event-stream:
+          schema:
+            type: string
+
     AdminGenerateTagMeaningsOK:
       description: Drafted tag meanings for review.
       content:
@@ -8522,9 +8583,16 @@ components:
         administrator setting because explicit terms are detected without a
         language model.
       required:
-        [thread_summary, tag_suggestion, semester_suggestion, library_assist]
+        [
+          thread_summary,
+          tag_suggestion,
+          semester_suggestion,
+          library_assist,
+          pdf_summary,
+        ]
       properties:
         thread_summary: { type: boolean }
+        pdf_summary: { type: boolean }
         tag_suggestion: { type: boolean }
         semester_suggestion: { type: boolean }
         library_assist: { type: boolean }
@@ -9316,6 +9384,15 @@ components:
         library_assist:
           type: boolean
           description: Titles, tags and content can be generated for pages.
+        pdf_summary:
+          type: boolean
+          description: Members can summarise PDFs attached to threads. Off by default.
+        pdf_summary_background:
+          type: boolean
+          description: PDF summaries are prepared in the background after upload.
+        pdf_summary_night_only:
+          type: boolean
+          description: Background PDF summaries only run between 01:00 and 07:00.
 
     MarketServiceSettings:
       type: object
@@ -13030,6 +13107,30 @@ components:
         includes_attachments:
           type: boolean
           description: Whether text from attached documents was used.
+
+    AttachmentSummary:
+      type: object
+      required: [status, preview]
+      properties:
+        status:
+          type: string
+          enum: [ready, pending, unavailable]
+          description: |
+            `ready` when a language model summary is stored, `pending` when
+            only the quick overview exists and the stream can be opened,
+            `unavailable` when no text could be extracted from the file.
+        summary:
+          type: string
+          description: HTML summary written by the language model.
+        quality:
+          type: string
+          enum: [quick, full]
+          description: |
+            `quick` summaries were generated live from a shorter excerpt and
+            are replaced by a `full` summary prepared in the background.
+        preview:
+          type: string
+          description: HTML overview built without the language model.
 
     TagMeaningsDraft:
       type: object

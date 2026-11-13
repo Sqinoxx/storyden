@@ -603,6 +603,8 @@ type Config struct {
 	OpenAIBaseURL string `envconfig:"OPENAI_BASE_URL"`
 	// The chat model used for generative features such as tag, title and summary suggestions.
 	LanguageModelChatModel string `default:"gpt-4.1" envconfig:"LANGUAGE_MODEL_CHAT_MODEL"`
+	// An optional smaller chat model for features where a member is waiting for the answer, such as live PDF summaries. Leave empty to use `LANGUAGE_MODEL_CHAT_MODEL`. With Ollama on a CPU-only server `qwen2.5:1.5b` answers about twice as fast as `qwen2.5:3b`.
+	LanguageModelFastModel string `envconfig:"LANGUAGE_MODEL_FAST_MODEL"`
 	// The embedding model used by the Semdex.
 	LanguageModelEmbeddingModel string `default:"text-embedding-3-large" envconfig:"LANGUAGE_MODEL_EMBEDDING_MODEL"`
 

@@ -157,13 +157,19 @@ func (a *Admin) AdminOCRStats(ctx context.Context, request openapi.AdminOCRStats
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
+	summaries, err := a.assetQuerier.GetSummaryStats(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
 	return openapi.AdminOCRStats200JSONResponse{
-		Total:      stats.Total,
-		Pending:    stats.Pending,
-		Processing: stats.Processing,
-		Completed:  stats.Completed,
-		Failed:     stats.Failed,
-		Skipped:    stats.Skipped,
+		PdfSummariesTotal: &summaries.Total,
+		PdfSummariesDone:  &summaries.Done,
+		Total:             stats.Total,
+		Pending:           stats.Pending,
+		Processing:        stats.Processing,
+		Completed:         stats.Completed,
+		Failed:            stats.Failed,
+		Skipped:           stats.Skipped,
 	}, nil
 }
 
@@ -652,10 +658,13 @@ func (a *Admin) AdminSettingsUpdate(ctx context.Context, request openapi.AdminSe
 		var ai opt.Optional[settings.AIServiceSettings]
 		if b := request.Body.Services.Ai; b != nil {
 			ai = opt.New(settings.AIServiceSettings{
-				ThreadSummary:      opt.NewPtr(b.ThreadSummary),
-				TagSuggestion:      opt.NewPtr(b.TagSuggestion),
-				SemesterSuggestion: opt.NewPtr(b.SemesterSuggestion),
-				LibraryAssist:      opt.NewPtr(b.LibraryAssist),
+				ThreadSummary:        opt.NewPtr(b.ThreadSummary),
+				TagSuggestion:        opt.NewPtr(b.TagSuggestion),
+				SemesterSuggestion:   opt.NewPtr(b.SemesterSuggestion),
+				LibraryAssist:        opt.NewPtr(b.LibraryAssist),
+				PDFSummary:           opt.NewPtr(b.PdfSummary),
+				PDFSummaryBackground: opt.NewPtr(b.PdfSummaryBackground),
+				PDFSummaryNightOnly:  opt.NewPtr(b.PdfSummaryNightOnly),
 			})
 		}
 
@@ -1401,10 +1410,13 @@ func serialiseServiceSettings(in settings.ServiceSettings) openapi.AdminSettings
 
 func serialiseAISettings(in settings.AIServiceSettings) openapi.AIServiceSettings {
 	return openapi.AIServiceSettings{
-		ThreadSummary:      in.ThreadSummary.Ptr(),
-		TagSuggestion:      in.TagSuggestion.Ptr(),
-		SemesterSuggestion: in.SemesterSuggestion.Ptr(),
-		LibraryAssist:      in.LibraryAssist.Ptr(),
+		ThreadSummary:        in.ThreadSummary.Ptr(),
+		TagSuggestion:        in.TagSuggestion.Ptr(),
+		SemesterSuggestion:   in.SemesterSuggestion.Ptr(),
+		LibraryAssist:        in.LibraryAssist.Ptr(),
+		PdfSummary:           in.PDFSummary.Ptr(),
+		PdfSummaryBackground: in.PDFSummaryBackground.Ptr(),
+		PdfSummaryNightOnly:  in.PDFSummaryNightOnly.Ptr(),
 	}
 }
 

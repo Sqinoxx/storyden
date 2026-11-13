@@ -51,20 +51,23 @@ func TestBuildInputBudget(t *testing.T) {
 	assert.Contains(t, in.text, "[c-pdf] z")
 }
 
-func TestSanitise(t *testing.T) {
-	out, err := sanitise("```html\n<p>ok</p><script>x</script>\n```")
-	require.NoError(t, err)
-	assert.Contains(t, out, "<p>ok</p>")
-	assert.NotContains(t, out, "script")
-	assert.NotContains(t, out, "```")
+func TestBuildInputPrefersStoredSummary(t *testing.T) {
+	thr := &thread.Thread{
+		Title: "T",
+		Post:  post.Post{Content: content(t, "Frage")},
+		Replies: pagination.Result[*reply.Reply]{Items: []*reply.Reply{
+			{Post: post.Post{ID: post.ID(xid.New()), Content: content(t, "Antwort")}},
+		}},
+	}
+	a := &asset.Asset{
+		ID:      asset.AssetID(xid.New()),
+		Name:    asset.NewFilename("klausur.pdf"),
+		OCRText: opt.New(strings.Repeat("roher text ", 500)),
+		Summary: opt.New(asset.Summary{HTML: "<ul><li>Kurzfassung der Klausur</li></ul>"}),
+	}
 
-	out, err = sanitise("   ")
-	require.NoError(t, err)
-	assert.Empty(t, out)
-}
-
-func TestDisplayName(t *testing.T) {
-	id := xid.New().String()
-	assert.Equal(t, "klausur-pdf", displayName(id+"-klausur-pdf"))
-	assert.Equal(t, "plain-name", displayName("plain-name"))
+	in := buildInput(thr, []*asset.Asset{a})
+	assert.Contains(t, in.text, "Kurzfassung der Klausur")
+	assert.NotContains(t, in.text, "roher text")
+	assert.NotContains(t, in.text, "<li>")
 }

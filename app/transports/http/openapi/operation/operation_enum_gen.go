@@ -202,6 +202,8 @@ var (
 	OperationIDThreadSuggestSemester                  = OperationID{`ThreadSuggestSemester`}
 	OperationIDThreadSuggestTags                      = OperationID{`ThreadSuggestTags`}
 	OperationIDThreadSummarise                        = OperationID{`ThreadSummarise`}
+	OperationIDThreadAttachmentSummaryGet             = OperationID{`ThreadAttachmentSummaryGet`}
+	OperationIDThreadAttachmentSummaryStream          = OperationID{`ThreadAttachmentSummaryStream`}
 	OperationIDThreadGet                              = OperationID{`ThreadGet`}
 	OperationIDThreadUpdate                           = OperationID{`ThreadUpdate`}
 	OperationIDThreadDelete                           = OperationID{`ThreadDelete`}
@@ -725,6 +727,10 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDThreadSuggestTags, nil
 	case string(`ThreadSummarise`):
 		return OperationIDThreadSummarise, nil
+	case string(`ThreadAttachmentSummaryGet`):
+		return OperationIDThreadAttachmentSummaryGet, nil
+	case string(`ThreadAttachmentSummaryStream`):
+		return OperationIDThreadAttachmentSummaryStream, nil
 	case string(`ThreadGet`):
 		return OperationIDThreadGet, nil
 	case string(`ThreadUpdate`):

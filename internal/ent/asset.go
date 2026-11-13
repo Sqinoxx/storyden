@@ -40,6 +40,14 @@ type Asset struct {
 	OcrError *string `json:"ocr_error,omitempty"`
 	// OcrProcessedAt holds the value of the "ocr_processed_at" field.
 	OcrProcessedAt *time.Time `json:"ocr_processed_at,omitempty"`
+	// AiSummary holds the value of the "ai_summary" field.
+	AiSummary *string `json:"ai_summary,omitempty"`
+	// AiSummaryHash holds the value of the "ai_summary_hash" field.
+	AiSummaryHash *string `json:"ai_summary_hash,omitempty"`
+	// AiSummaryQuality holds the value of the "ai_summary_quality" field.
+	AiSummaryQuality *asset.AiSummaryQuality `json:"ai_summary_quality,omitempty"`
+	// AiSummaryStatus holds the value of the "ai_summary_status" field.
+	AiSummaryStatus asset.AiSummaryStatus `json:"ai_summary_status,omitempty"`
 	// AccountID holds the value of the "account_id" field.
 	AccountID xid.ID `json:"account_id,omitempty"`
 	// ParentAssetID holds the value of the "parent_asset_id" field.
@@ -171,7 +179,7 @@ func (*Asset) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case asset.FieldSize:
 			values[i] = new(sql.NullInt64)
-		case asset.FieldFilename, asset.FieldMimeType, asset.FieldOcrText, asset.FieldOcrStatus, asset.FieldOcrError:
+		case asset.FieldFilename, asset.FieldMimeType, asset.FieldOcrText, asset.FieldOcrStatus, asset.FieldOcrError, asset.FieldAiSummary, asset.FieldAiSummaryHash, asset.FieldAiSummaryQuality, asset.FieldAiSummaryStatus:
 			values[i] = new(sql.NullString)
 		case asset.FieldCreatedAt, asset.FieldUpdatedAt, asset.FieldOcrProcessedAt:
 			values[i] = new(sql.NullTime)
@@ -262,6 +270,33 @@ func (_m *Asset) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.OcrProcessedAt = new(time.Time)
 				*_m.OcrProcessedAt = value.Time
+			}
+		case asset.FieldAiSummary:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ai_summary", values[i])
+			} else if value.Valid {
+				_m.AiSummary = new(string)
+				*_m.AiSummary = value.String
+			}
+		case asset.FieldAiSummaryHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ai_summary_hash", values[i])
+			} else if value.Valid {
+				_m.AiSummaryHash = new(string)
+				*_m.AiSummaryHash = value.String
+			}
+		case asset.FieldAiSummaryQuality:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ai_summary_quality", values[i])
+			} else if value.Valid {
+				_m.AiSummaryQuality = new(asset.AiSummaryQuality)
+				*_m.AiSummaryQuality = asset.AiSummaryQuality(value.String)
+			}
+		case asset.FieldAiSummaryStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ai_summary_status", values[i])
+			} else if value.Valid {
+				_m.AiSummaryStatus = asset.AiSummaryStatus(value.String)
 			}
 		case asset.FieldAccountID:
 			if value, ok := values[i].(*xid.ID); !ok {
@@ -392,6 +427,24 @@ func (_m *Asset) String() string {
 		builder.WriteString("ocr_processed_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	if v := _m.AiSummary; v != nil {
+		builder.WriteString("ai_summary=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.AiSummaryHash; v != nil {
+		builder.WriteString("ai_summary_hash=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.AiSummaryQuality; v != nil {
+		builder.WriteString("ai_summary_quality=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("ai_summary_status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AiSummaryStatus))
 	builder.WriteString(", ")
 	builder.WriteString("account_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.AccountID))

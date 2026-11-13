@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rs/xid"
-
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/app/resources/post/thread"
+	"github.com/Southclaws/storyden/app/services/summary_text"
 )
 
 const (
@@ -26,7 +25,7 @@ type input struct {
 
 func buildInput(t *thread.Thread, attachments []*asset.Asset) input {
 	var b strings.Builder
-	fmt.Fprintf(&b, "Title: %s\n\nOpening post:\n%s\n", t.Title, clip(t.Content.Plaintext(), maxOpeningChars))
+	fmt.Fprintf(&b, "Title: %s\n\nOpening post:\n%s\n", t.Title, summary_text.Clip(t.Content.Plaintext(), maxOpeningChars))
 
 	assets := append(append([]*asset.Asset{}, t.Assets...), attachments...)
 
@@ -34,7 +33,7 @@ func buildInput(t *thread.Thread, attachments []*asset.Asset) input {
 	used := 0
 	replies := 0
 	for _, r := range t.Replies.Items {
-		text := clip(r.Content.Plaintext(), maxReplyChars)
+		text := summary_text.Clip(r.Content.Plaintext(), maxReplyChars)
 		if text == "" {
 			continue
 		}
@@ -54,7 +53,11 @@ func buildInput(t *thread.Thread, attachments []*asset.Asset) input {
 			continue
 		}
 		seen[a.ID] = true
-		text := clip(a.OCRText.OrZero(), maxAttachmentChars)
+		raw := a.OCRText.OrZero()
+		if sum, ok := a.Summary.Get(); ok {
+			raw = summary_text.StripTags(sum.HTML)
+		}
+		text := summary_text.Clip(raw, maxAttachmentChars)
 		if text == "" || sum+len(text) > maxAttachmentsSum {
 			continue
 		}
@@ -63,25 +66,8 @@ func buildInput(t *thread.Thread, attachments []*asset.Asset) input {
 		}
 		attached++
 		sum += len(text)
-		fmt.Fprintf(&b, "[%s] %s\n", displayName(a.Name.String()), text)
+		fmt.Fprintf(&b, "[%s] %s\n", summary_text.DisplayName(a.Name.String()), text)
 	}
 
 	return input{text: b.String(), replies: replies, attachments: attached}
-}
-
-func clip(s string, max int) string {
-	s = strings.Join(strings.Fields(s), " ")
-	if r := []rune(s); len(r) > max {
-		s = string(r[:max]) + "…"
-	}
-	return s
-}
-
-func displayName(stored string) string {
-	if id, rest, ok := strings.Cut(stored, "-"); ok {
-		if _, err := xid.FromString(id); err == nil {
-			return rest
-		}
-	}
-	return stored
 }

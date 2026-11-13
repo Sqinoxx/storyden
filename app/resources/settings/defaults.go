@@ -125,6 +125,18 @@ func (s *Settings) AILibraryAssistEnabled() bool {
 	return s.aiSettings().LibraryAssist.Or(true)
 }
 
+func (s *Settings) AIPDFSummaryEnabled() bool {
+	return s.aiSettings().PDFSummary.Or(false)
+}
+
+func (s *Settings) AIPDFSummaryBackgroundEnabled() bool {
+	return s.AIPDFSummaryEnabled() && s.aiSettings().PDFSummaryBackground.Or(true)
+}
+
+func (s *Settings) AIPDFSummaryNightOnly() bool {
+	return s.aiSettings().PDFSummaryNightOnly.Or(false)
+}
+
 var DefaultMarketCategories = []MarketCategory{
 	{ID: "books", Name: "Bücher & Skripten"},
 	{ID: "instruments", Name: "Instrumente & Ausrüstung"},

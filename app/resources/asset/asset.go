@@ -27,6 +27,14 @@ type Asset struct {
 	OCRStatus      string
 	OCRError       opt.Optional[string]
 	OCRProcessedAt opt.Optional[time.Time]
+	Summary        opt.Optional[Summary]
+	SummaryStatus  string
+}
+
+type Summary struct {
+	HTML    string
+	Hash    string
+	Quality string
 }
 
 func Map(a *ent.Asset) *Asset {
@@ -47,6 +55,18 @@ func Map(a *ent.Asset) *Asset {
 		ocrProcessedAt = opt.New(*a.OcrProcessedAt)
 	}
 
+	summary := opt.NewEmpty[Summary]()
+	if a.AiSummary != nil && *a.AiSummary != "" {
+		sum := Summary{HTML: *a.AiSummary}
+		if a.AiSummaryHash != nil {
+			sum.Hash = *a.AiSummaryHash
+		}
+		if a.AiSummaryQuality != nil {
+			sum.Quality = a.AiSummaryQuality.String()
+		}
+		summary = opt.New(sum)
+	}
+
 	return &Asset{
 		ID: AssetID(a.ID),
 		Name: Filename{
@@ -62,6 +82,8 @@ func Map(a *ent.Asset) *Asset {
 		OCRStatus:      string(a.OcrStatus),
 		OCRError:       ocrError,
 		OCRProcessedAt: ocrProcessedAt,
+		Summary:        summary,
+		SummaryStatus:  string(a.AiSummaryStatus),
 	}
 }
 

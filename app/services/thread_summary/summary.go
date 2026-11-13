@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"log/slog"
-	"strings"
 	"sync"
 	"time"
 
@@ -14,10 +13,10 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/Southclaws/storyden/app/resources/asset/asset_querier"
-	"github.com/Southclaws/storyden/app/resources/datagraph"
 	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/post"
 	"github.com/Southclaws/storyden/app/resources/post/thread_querier"
+	"github.com/Southclaws/storyden/app/services/summary_text"
 	thread_service "github.com/Southclaws/storyden/app/services/thread"
 	"github.com/Southclaws/storyden/internal/infrastructure/ai"
 )
@@ -98,7 +97,7 @@ func (s *Summariser) Summarise(ctx context.Context, threadID post.ID) (*Summary,
 		return &Summary{}, nil
 	}
 
-	html, err := sanitise(res.Answer)
+	html, err := summary_text.SanitiseHTML(res.Answer)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -117,23 +116,6 @@ func (s *Summariser) store(key [32]byte, v Summary) {
 		clear(s.cache)
 	}
 	s.cache[key] = v
-}
-
-func sanitise(answer string) (string, error) {
-	answer = strings.TrimSpace(answer)
-	answer = strings.TrimPrefix(answer, "```html")
-	answer = strings.TrimPrefix(answer, "```")
-	answer = strings.TrimSuffix(answer, "```")
-	answer = strings.TrimSpace(answer)
-	if answer == "" {
-		return "", nil
-	}
-
-	content, err := datagraph.NewRichText(answer)
-	if err != nil {
-		return "", err
-	}
-	return content.HTML(), nil
 }
 
 const prompt = `Summarise this discussion thread from a German dentistry students' forum for someone who has not read it.

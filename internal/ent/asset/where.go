@@ -96,6 +96,16 @@ func OcrProcessedAt(v time.Time) predicate.Asset {
 	return predicate.Asset(sql.FieldEQ(FieldOcrProcessedAt, v))
 }
 
+// AiSummary applies equality check predicate on the "ai_summary" field. It's identical to AiSummaryEQ.
+func AiSummary(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldAiSummary, v))
+}
+
+// AiSummaryHash applies equality check predicate on the "ai_summary_hash" field. It's identical to AiSummaryHashEQ.
+func AiSummaryHash(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldAiSummaryHash, v))
+}
+
 // AccountID applies equality check predicate on the "account_id" field. It's identical to AccountIDEQ.
 func AccountID(v xid.ID) predicate.Asset {
 	return predicate.Asset(sql.FieldEQ(FieldAccountID, v))
@@ -584,6 +594,206 @@ func OcrProcessedAtIsNil() predicate.Asset {
 // OcrProcessedAtNotNil applies the NotNil predicate on the "ocr_processed_at" field.
 func OcrProcessedAtNotNil() predicate.Asset {
 	return predicate.Asset(sql.FieldNotNull(FieldOcrProcessedAt))
+}
+
+// AiSummaryEQ applies the EQ predicate on the "ai_summary" field.
+func AiSummaryEQ(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldAiSummary, v))
+}
+
+// AiSummaryNEQ applies the NEQ predicate on the "ai_summary" field.
+func AiSummaryNEQ(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldNEQ(FieldAiSummary, v))
+}
+
+// AiSummaryIn applies the In predicate on the "ai_summary" field.
+func AiSummaryIn(vs ...string) predicate.Asset {
+	return predicate.Asset(sql.FieldIn(FieldAiSummary, vs...))
+}
+
+// AiSummaryNotIn applies the NotIn predicate on the "ai_summary" field.
+func AiSummaryNotIn(vs ...string) predicate.Asset {
+	return predicate.Asset(sql.FieldNotIn(FieldAiSummary, vs...))
+}
+
+// AiSummaryGT applies the GT predicate on the "ai_summary" field.
+func AiSummaryGT(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldGT(FieldAiSummary, v))
+}
+
+// AiSummaryGTE applies the GTE predicate on the "ai_summary" field.
+func AiSummaryGTE(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldGTE(FieldAiSummary, v))
+}
+
+// AiSummaryLT applies the LT predicate on the "ai_summary" field.
+func AiSummaryLT(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldLT(FieldAiSummary, v))
+}
+
+// AiSummaryLTE applies the LTE predicate on the "ai_summary" field.
+func AiSummaryLTE(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldLTE(FieldAiSummary, v))
+}
+
+// AiSummaryContains applies the Contains predicate on the "ai_summary" field.
+func AiSummaryContains(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldContains(FieldAiSummary, v))
+}
+
+// AiSummaryHasPrefix applies the HasPrefix predicate on the "ai_summary" field.
+func AiSummaryHasPrefix(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldHasPrefix(FieldAiSummary, v))
+}
+
+// AiSummaryHasSuffix applies the HasSuffix predicate on the "ai_summary" field.
+func AiSummaryHasSuffix(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldHasSuffix(FieldAiSummary, v))
+}
+
+// AiSummaryIsNil applies the IsNil predicate on the "ai_summary" field.
+func AiSummaryIsNil() predicate.Asset {
+	return predicate.Asset(sql.FieldIsNull(FieldAiSummary))
+}
+
+// AiSummaryNotNil applies the NotNil predicate on the "ai_summary" field.
+func AiSummaryNotNil() predicate.Asset {
+	return predicate.Asset(sql.FieldNotNull(FieldAiSummary))
+}
+
+// AiSummaryEqualFold applies the EqualFold predicate on the "ai_summary" field.
+func AiSummaryEqualFold(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEqualFold(FieldAiSummary, v))
+}
+
+// AiSummaryContainsFold applies the ContainsFold predicate on the "ai_summary" field.
+func AiSummaryContainsFold(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldContainsFold(FieldAiSummary, v))
+}
+
+// AiSummaryHashEQ applies the EQ predicate on the "ai_summary_hash" field.
+func AiSummaryHashEQ(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashNEQ applies the NEQ predicate on the "ai_summary_hash" field.
+func AiSummaryHashNEQ(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldNEQ(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashIn applies the In predicate on the "ai_summary_hash" field.
+func AiSummaryHashIn(vs ...string) predicate.Asset {
+	return predicate.Asset(sql.FieldIn(FieldAiSummaryHash, vs...))
+}
+
+// AiSummaryHashNotIn applies the NotIn predicate on the "ai_summary_hash" field.
+func AiSummaryHashNotIn(vs ...string) predicate.Asset {
+	return predicate.Asset(sql.FieldNotIn(FieldAiSummaryHash, vs...))
+}
+
+// AiSummaryHashGT applies the GT predicate on the "ai_summary_hash" field.
+func AiSummaryHashGT(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldGT(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashGTE applies the GTE predicate on the "ai_summary_hash" field.
+func AiSummaryHashGTE(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldGTE(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashLT applies the LT predicate on the "ai_summary_hash" field.
+func AiSummaryHashLT(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldLT(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashLTE applies the LTE predicate on the "ai_summary_hash" field.
+func AiSummaryHashLTE(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldLTE(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashContains applies the Contains predicate on the "ai_summary_hash" field.
+func AiSummaryHashContains(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldContains(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashHasPrefix applies the HasPrefix predicate on the "ai_summary_hash" field.
+func AiSummaryHashHasPrefix(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldHasPrefix(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashHasSuffix applies the HasSuffix predicate on the "ai_summary_hash" field.
+func AiSummaryHashHasSuffix(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldHasSuffix(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashIsNil applies the IsNil predicate on the "ai_summary_hash" field.
+func AiSummaryHashIsNil() predicate.Asset {
+	return predicate.Asset(sql.FieldIsNull(FieldAiSummaryHash))
+}
+
+// AiSummaryHashNotNil applies the NotNil predicate on the "ai_summary_hash" field.
+func AiSummaryHashNotNil() predicate.Asset {
+	return predicate.Asset(sql.FieldNotNull(FieldAiSummaryHash))
+}
+
+// AiSummaryHashEqualFold applies the EqualFold predicate on the "ai_summary_hash" field.
+func AiSummaryHashEqualFold(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEqualFold(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashContainsFold applies the ContainsFold predicate on the "ai_summary_hash" field.
+func AiSummaryHashContainsFold(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldContainsFold(FieldAiSummaryHash, v))
+}
+
+// AiSummaryQualityEQ applies the EQ predicate on the "ai_summary_quality" field.
+func AiSummaryQualityEQ(v AiSummaryQuality) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldAiSummaryQuality, v))
+}
+
+// AiSummaryQualityNEQ applies the NEQ predicate on the "ai_summary_quality" field.
+func AiSummaryQualityNEQ(v AiSummaryQuality) predicate.Asset {
+	return predicate.Asset(sql.FieldNEQ(FieldAiSummaryQuality, v))
+}
+
+// AiSummaryQualityIn applies the In predicate on the "ai_summary_quality" field.
+func AiSummaryQualityIn(vs ...AiSummaryQuality) predicate.Asset {
+	return predicate.Asset(sql.FieldIn(FieldAiSummaryQuality, vs...))
+}
+
+// AiSummaryQualityNotIn applies the NotIn predicate on the "ai_summary_quality" field.
+func AiSummaryQualityNotIn(vs ...AiSummaryQuality) predicate.Asset {
+	return predicate.Asset(sql.FieldNotIn(FieldAiSummaryQuality, vs...))
+}
+
+// AiSummaryQualityIsNil applies the IsNil predicate on the "ai_summary_quality" field.
+func AiSummaryQualityIsNil() predicate.Asset {
+	return predicate.Asset(sql.FieldIsNull(FieldAiSummaryQuality))
+}
+
+// AiSummaryQualityNotNil applies the NotNil predicate on the "ai_summary_quality" field.
+func AiSummaryQualityNotNil() predicate.Asset {
+	return predicate.Asset(sql.FieldNotNull(FieldAiSummaryQuality))
+}
+
+// AiSummaryStatusEQ applies the EQ predicate on the "ai_summary_status" field.
+func AiSummaryStatusEQ(v AiSummaryStatus) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldAiSummaryStatus, v))
+}
+
+// AiSummaryStatusNEQ applies the NEQ predicate on the "ai_summary_status" field.
+func AiSummaryStatusNEQ(v AiSummaryStatus) predicate.Asset {
+	return predicate.Asset(sql.FieldNEQ(FieldAiSummaryStatus, v))
+}
+
+// AiSummaryStatusIn applies the In predicate on the "ai_summary_status" field.
+func AiSummaryStatusIn(vs ...AiSummaryStatus) predicate.Asset {
+	return predicate.Asset(sql.FieldIn(FieldAiSummaryStatus, vs...))
+}
+
+// AiSummaryStatusNotIn applies the NotIn predicate on the "ai_summary_status" field.
+func AiSummaryStatusNotIn(vs ...AiSummaryStatus) predicate.Asset {
+	return predicate.Asset(sql.FieldNotIn(FieldAiSummaryStatus, vs...))
 }
 
 // AccountIDEQ applies the EQ predicate on the "account_id" field.

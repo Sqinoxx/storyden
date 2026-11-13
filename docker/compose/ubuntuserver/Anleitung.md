@@ -473,9 +473,9 @@ tar xzf backups/assets-2026-08-16-0330.tar.gz
 
 Tag-, Titel- und Zusammenfassungs-Vorschlaege sowie die semantische Suche
 laufen ueber ein lokales Ollama. Es entstehen keine Kosten, und keine Daten
-verlassen den Server. Der Ollama-Container ist auf 4 GB RAM begrenzt.
+verlassen den Server. Der Ollama-Container ist auf 5 GB RAM begrenzt.
 
-1. Vorher pruefen, ob genug RAM frei ist (ca. 3-4 GB):
+1. Vorher pruefen, ob genug RAM frei ist (ca. 4-5 GB):
    ```bash
    free -h
    docker stats --no-stream
@@ -485,6 +485,7 @@ verlassen den Server. Der Ollama-Container ist auf 4 GB RAM begrenzt.
    ```bash
    docker compose --profile ai up -d
    docker compose exec ollama ollama pull qwen2.5:3b
+   docker compose exec ollama ollama pull qwen2.5:1.5b
    docker compose exec ollama ollama pull bge-m3
    docker compose up -d storyden
    ```
@@ -501,6 +502,27 @@ verlassen den Server. Der Ollama-Container ist auf 4 GB RAM begrenzt.
      "Zusammenfassen" ab 5 Antworten. Text aus angehaengten PDFs (per OCR
      extrahiert) fliesst mit ein. Ergebnisse werden im Speicher
      zwischengespeichert, bis eine neue Antwort kommt.
+   - "PDFs zusammenfassen" (standardmaessig aus): Button an jeder PDF im
+     Thread, unabhaengig von der Zahl der Antworten. Ablauf:
+     - Ist schon eine Zusammenfassung gespeichert, erscheint sie sofort.
+     - Sonst erscheint sofort ein Schnellueberblick ohne KI (Art des
+       Dokuments, Semester, Ueberschriften, Stichworte), und die
+       KI-Zusammenfassung wird live mit `qwen2.5:1.5b` geschrieben
+       (erste Woerter nach ca. 5-8 s, fertig nach ca. 12-20 s) und gespeichert.
+     - Vorher waehlt Storyden die wichtigsten Stellen aus dem ganzen PDF aus
+       (2.500 Zeichen live, 6.000 im Hintergrund), damit das Modell nicht das
+       ganze Dokument lesen muss.
+     - "Im Hintergrund vorbereiten": neue und alte PDFs werden mit
+       `qwen2.5:3b` ausfuehrlicher zusammengefasst, wenn 30 s lang niemand die
+       KI benutzt hat (ca. 1 min pro PDF). Nutzt jemand die KI, wird der
+       Hintergrund-Job sofort abgebrochen und spaeter wiederholt.
+     - "Nur nachts (01-07 Uhr)": Hintergrund-Jobs nur nachts.
+     - Fortschritt steht im KI-Reiter ("X von Y PDFs vorbereitet").
+     - Es laeuft immer nur ein KI-Aufruf gleichzeitig. Warten mehr als 3
+       Mitglieder, bekommt der naechste "KI ist gerade ausgelastet".
+     - Dauer pro Zusammenfassung im Log: `docker compose logs storyden | grep
+       "pdf summary"`. Ist die Live-Antwort zu langsam, statt `qwen2.5:1.5b`
+       `qwen2.5:0.5b` testen (schneller, aber ungenauer).
    - "Tags beim Schreiben vorschlagen"
    - "Semester beim Schreiben vorschlagen" (funktioniert auch ohne Ollama)
    - "Bibliotheks-Assistent"

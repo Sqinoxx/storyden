@@ -1269,6 +1269,15 @@ Base URL of an OpenAI-compatible API. Leave empty for the official OpenAI API. F
 
 The chat model used for generative features such as tag, title and summary suggestions.
 
+### `LANGUAGE_MODEL_FAST_MODEL`
+
+<table>
+<tr><td>type</td><td>`string`</td></tr>
+<tr><td>default</td><td>none</td></tr>
+</table>
+
+An optional smaller chat model for features where a member is waiting for the answer, such as live PDF summaries. Leave empty to use `LANGUAGE_MODEL_CHAT_MODEL`. With Ollama on a CPU-only server `qwen2.5:1.5b` answers about twice as fast as `qwen2.5:3b`.
+
 ### `LANGUAGE_MODEL_EMBEDDING_MODEL`
 
 <table>

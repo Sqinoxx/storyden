@@ -178,6 +178,80 @@ func (_u *AssetUpdate) ClearOcrProcessedAt() *AssetUpdate {
 	return _u
 }
 
+// SetAiSummary sets the "ai_summary" field.
+func (_u *AssetUpdate) SetAiSummary(v string) *AssetUpdate {
+	_u.mutation.SetAiSummary(v)
+	return _u
+}
+
+// SetNillableAiSummary sets the "ai_summary" field if the given value is not nil.
+func (_u *AssetUpdate) SetNillableAiSummary(v *string) *AssetUpdate {
+	if v != nil {
+		_u.SetAiSummary(*v)
+	}
+	return _u
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (_u *AssetUpdate) ClearAiSummary() *AssetUpdate {
+	_u.mutation.ClearAiSummary()
+	return _u
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (_u *AssetUpdate) SetAiSummaryHash(v string) *AssetUpdate {
+	_u.mutation.SetAiSummaryHash(v)
+	return _u
+}
+
+// SetNillableAiSummaryHash sets the "ai_summary_hash" field if the given value is not nil.
+func (_u *AssetUpdate) SetNillableAiSummaryHash(v *string) *AssetUpdate {
+	if v != nil {
+		_u.SetAiSummaryHash(*v)
+	}
+	return _u
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (_u *AssetUpdate) ClearAiSummaryHash() *AssetUpdate {
+	_u.mutation.ClearAiSummaryHash()
+	return _u
+}
+
+// SetAiSummaryQuality sets the "ai_summary_quality" field.
+func (_u *AssetUpdate) SetAiSummaryQuality(v asset.AiSummaryQuality) *AssetUpdate {
+	_u.mutation.SetAiSummaryQuality(v)
+	return _u
+}
+
+// SetNillableAiSummaryQuality sets the "ai_summary_quality" field if the given value is not nil.
+func (_u *AssetUpdate) SetNillableAiSummaryQuality(v *asset.AiSummaryQuality) *AssetUpdate {
+	if v != nil {
+		_u.SetAiSummaryQuality(*v)
+	}
+	return _u
+}
+
+// ClearAiSummaryQuality clears the value of the "ai_summary_quality" field.
+func (_u *AssetUpdate) ClearAiSummaryQuality() *AssetUpdate {
+	_u.mutation.ClearAiSummaryQuality()
+	return _u
+}
+
+// SetAiSummaryStatus sets the "ai_summary_status" field.
+func (_u *AssetUpdate) SetAiSummaryStatus(v asset.AiSummaryStatus) *AssetUpdate {
+	_u.mutation.SetAiSummaryStatus(v)
+	return _u
+}
+
+// SetNillableAiSummaryStatus sets the "ai_summary_status" field if the given value is not nil.
+func (_u *AssetUpdate) SetNillableAiSummaryStatus(v *asset.AiSummaryStatus) *AssetUpdate {
+	if v != nil {
+		_u.SetAiSummaryStatus(*v)
+	}
+	return _u
+}
+
 // SetAccountID sets the "account_id" field.
 func (_u *AssetUpdate) SetAccountID(v xid.ID) *AssetUpdate {
 	_u.mutation.SetAccountID(v)
@@ -554,6 +628,16 @@ func (_u *AssetUpdate) check() error {
 			return &ValidationError{Name: "ocr_status", err: fmt.Errorf(`ent: validator failed for field "Asset.ocr_status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.AiSummaryQuality(); ok {
+		if err := asset.AiSummaryQualityValidator(v); err != nil {
+			return &ValidationError{Name: "ai_summary_quality", err: fmt.Errorf(`ent: validator failed for field "Asset.ai_summary_quality": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.AiSummaryStatus(); ok {
+		if err := asset.AiSummaryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "ai_summary_status", err: fmt.Errorf(`ent: validator failed for field "Asset.ai_summary_status": %w`, err)}
+		}
+	}
 	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Asset.owner"`)
 	}
@@ -619,6 +703,27 @@ func (_u *AssetUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.OcrProcessedAtCleared() {
 		_spec.ClearField(asset.FieldOcrProcessedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.AiSummary(); ok {
+		_spec.SetField(asset.FieldAiSummary, field.TypeString, value)
+	}
+	if _u.mutation.AiSummaryCleared() {
+		_spec.ClearField(asset.FieldAiSummary, field.TypeString)
+	}
+	if value, ok := _u.mutation.AiSummaryHash(); ok {
+		_spec.SetField(asset.FieldAiSummaryHash, field.TypeString, value)
+	}
+	if _u.mutation.AiSummaryHashCleared() {
+		_spec.ClearField(asset.FieldAiSummaryHash, field.TypeString)
+	}
+	if value, ok := _u.mutation.AiSummaryQuality(); ok {
+		_spec.SetField(asset.FieldAiSummaryQuality, field.TypeEnum, value)
+	}
+	if _u.mutation.AiSummaryQualityCleared() {
+		_spec.ClearField(asset.FieldAiSummaryQuality, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.AiSummaryStatus(); ok {
+		_spec.SetField(asset.FieldAiSummaryStatus, field.TypeEnum, value)
 	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1156,6 +1261,80 @@ func (_u *AssetUpdateOne) ClearOcrProcessedAt() *AssetUpdateOne {
 	return _u
 }
 
+// SetAiSummary sets the "ai_summary" field.
+func (_u *AssetUpdateOne) SetAiSummary(v string) *AssetUpdateOne {
+	_u.mutation.SetAiSummary(v)
+	return _u
+}
+
+// SetNillableAiSummary sets the "ai_summary" field if the given value is not nil.
+func (_u *AssetUpdateOne) SetNillableAiSummary(v *string) *AssetUpdateOne {
+	if v != nil {
+		_u.SetAiSummary(*v)
+	}
+	return _u
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (_u *AssetUpdateOne) ClearAiSummary() *AssetUpdateOne {
+	_u.mutation.ClearAiSummary()
+	return _u
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (_u *AssetUpdateOne) SetAiSummaryHash(v string) *AssetUpdateOne {
+	_u.mutation.SetAiSummaryHash(v)
+	return _u
+}
+
+// SetNillableAiSummaryHash sets the "ai_summary_hash" field if the given value is not nil.
+func (_u *AssetUpdateOne) SetNillableAiSummaryHash(v *string) *AssetUpdateOne {
+	if v != nil {
+		_u.SetAiSummaryHash(*v)
+	}
+	return _u
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (_u *AssetUpdateOne) ClearAiSummaryHash() *AssetUpdateOne {
+	_u.mutation.ClearAiSummaryHash()
+	return _u
+}
+
+// SetAiSummaryQuality sets the "ai_summary_quality" field.
+func (_u *AssetUpdateOne) SetAiSummaryQuality(v asset.AiSummaryQuality) *AssetUpdateOne {
+	_u.mutation.SetAiSummaryQuality(v)
+	return _u
+}
+
+// SetNillableAiSummaryQuality sets the "ai_summary_quality" field if the given value is not nil.
+func (_u *AssetUpdateOne) SetNillableAiSummaryQuality(v *asset.AiSummaryQuality) *AssetUpdateOne {
+	if v != nil {
+		_u.SetAiSummaryQuality(*v)
+	}
+	return _u
+}
+
+// ClearAiSummaryQuality clears the value of the "ai_summary_quality" field.
+func (_u *AssetUpdateOne) ClearAiSummaryQuality() *AssetUpdateOne {
+	_u.mutation.ClearAiSummaryQuality()
+	return _u
+}
+
+// SetAiSummaryStatus sets the "ai_summary_status" field.
+func (_u *AssetUpdateOne) SetAiSummaryStatus(v asset.AiSummaryStatus) *AssetUpdateOne {
+	_u.mutation.SetAiSummaryStatus(v)
+	return _u
+}
+
+// SetNillableAiSummaryStatus sets the "ai_summary_status" field if the given value is not nil.
+func (_u *AssetUpdateOne) SetNillableAiSummaryStatus(v *asset.AiSummaryStatus) *AssetUpdateOne {
+	if v != nil {
+		_u.SetAiSummaryStatus(*v)
+	}
+	return _u
+}
+
 // SetAccountID sets the "account_id" field.
 func (_u *AssetUpdateOne) SetAccountID(v xid.ID) *AssetUpdateOne {
 	_u.mutation.SetAccountID(v)
@@ -1545,6 +1724,16 @@ func (_u *AssetUpdateOne) check() error {
 			return &ValidationError{Name: "ocr_status", err: fmt.Errorf(`ent: validator failed for field "Asset.ocr_status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.AiSummaryQuality(); ok {
+		if err := asset.AiSummaryQualityValidator(v); err != nil {
+			return &ValidationError{Name: "ai_summary_quality", err: fmt.Errorf(`ent: validator failed for field "Asset.ai_summary_quality": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.AiSummaryStatus(); ok {
+		if err := asset.AiSummaryStatusValidator(v); err != nil {
+			return &ValidationError{Name: "ai_summary_status", err: fmt.Errorf(`ent: validator failed for field "Asset.ai_summary_status": %w`, err)}
+		}
+	}
 	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Asset.owner"`)
 	}
@@ -1627,6 +1816,27 @@ func (_u *AssetUpdateOne) sqlSave(ctx context.Context) (_node *Asset, err error)
 	}
 	if _u.mutation.OcrProcessedAtCleared() {
 		_spec.ClearField(asset.FieldOcrProcessedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.AiSummary(); ok {
+		_spec.SetField(asset.FieldAiSummary, field.TypeString, value)
+	}
+	if _u.mutation.AiSummaryCleared() {
+		_spec.ClearField(asset.FieldAiSummary, field.TypeString)
+	}
+	if value, ok := _u.mutation.AiSummaryHash(); ok {
+		_spec.SetField(asset.FieldAiSummaryHash, field.TypeString, value)
+	}
+	if _u.mutation.AiSummaryHashCleared() {
+		_spec.ClearField(asset.FieldAiSummaryHash, field.TypeString)
+	}
+	if value, ok := _u.mutation.AiSummaryQuality(); ok {
+		_spec.SetField(asset.FieldAiSummaryQuality, field.TypeEnum, value)
+	}
+	if _u.mutation.AiSummaryQualityCleared() {
+		_spec.ClearField(asset.FieldAiSummaryQuality, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.AiSummaryStatus(); ok {
+		_spec.SetField(asset.FieldAiSummaryStatus, field.TypeEnum, value)
 	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{

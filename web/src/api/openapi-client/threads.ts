@@ -19,6 +19,8 @@ import type {
   InternalServerErrorResponse,
   NotFoundResponse,
   NotModifiedResponse,
+  ThreadAttachmentSummaryGetOKResponse,
+  ThreadAttachmentSummaryStreamOKResponse,
   ThreadCreateBody,
   ThreadCreateOKResponse,
   ThreadGetParams,
@@ -331,6 +333,144 @@ export const useThreadSummarise = <
   const swrFn = getThreadSummariseMutationFetcher(threadMark);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Get the stored language model summary of a PDF attached to the thread
+or one of its replies. When no summary exists yet, a quick overview
+built without the language model is returned so the client can show
+something immediately and open the summary stream.
+
+ */
+export const threadAttachmentSummaryGet = (
+  threadMark: string,
+  assetId: string,
+) => {
+  return fetcher<ThreadAttachmentSummaryGetOKResponse>({
+    url: `/threads/${threadMark}/attachments/${assetId}/summary`,
+    method: "GET",
+  });
+};
+
+export const getThreadAttachmentSummaryGetKey = (
+  threadMark: string,
+  assetId: string,
+) => [`/threads/${threadMark}/attachments/${assetId}/summary`] as const;
+
+export type ThreadAttachmentSummaryGetQueryResult = NonNullable<
+  Awaited<ReturnType<typeof threadAttachmentSummaryGet>>
+>;
+export type ThreadAttachmentSummaryGetQueryError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+  | InternalServerErrorResponse;
+
+export const useThreadAttachmentSummaryGet = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+    | InternalServerErrorResponse,
+>(
+  threadMark: string,
+  assetId: string,
+  options?: {
+    swr?: SWRConfiguration<
+      Awaited<ReturnType<typeof threadAttachmentSummaryGet>>,
+      TError
+    > & { swrKey?: Key; enabled?: boolean };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false && !!(threadMark && assetId);
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() =>
+      isEnabled ? getThreadAttachmentSummaryGetKey(threadMark, assetId) : null);
+  const swrFn = () => threadAttachmentSummaryGet(threadMark, assetId);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Summarise a PDF attached to the thread with the language model and
+stream the answer as server-sent events. Each `message` event carries
+a JSON object `{"t": "<text>"}` with the next piece of the answer. A
+final `done` event carries `{"summary": "<html>"}`, an `error` event
+carries `{"message": "<reason>"}`. The result is stored, later calls
+to the summary endpoint return it directly.
+
+ */
+export const threadAttachmentSummaryStream = (
+  threadMark: string,
+  assetId: string,
+) => {
+  return fetcher<ThreadAttachmentSummaryStreamOKResponse>({
+    url: `/threads/${threadMark}/attachments/${assetId}/summary/stream`,
+    method: "GET",
+  });
+};
+
+export const getThreadAttachmentSummaryStreamKey = (
+  threadMark: string,
+  assetId: string,
+) => [`/threads/${threadMark}/attachments/${assetId}/summary/stream`] as const;
+
+export type ThreadAttachmentSummaryStreamQueryResult = NonNullable<
+  Awaited<ReturnType<typeof threadAttachmentSummaryStream>>
+>;
+export type ThreadAttachmentSummaryStreamQueryError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+  | InternalServerErrorResponse;
+
+export const useThreadAttachmentSummaryStream = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+    | InternalServerErrorResponse,
+>(
+  threadMark: string,
+  assetId: string,
+  options?: {
+    swr?: SWRConfiguration<
+      Awaited<ReturnType<typeof threadAttachmentSummaryStream>>,
+      TError
+    > & { swrKey?: Key; enabled?: boolean };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false && !!(threadMark && assetId);
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() =>
+      isEnabled
+        ? getThreadAttachmentSummaryStreamKey(threadMark, assetId)
+        : null);
+  const swrFn = () => threadAttachmentSummaryStream(threadMark, assetId);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
 
   return {
     swrKey,

@@ -42,6 +42,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/notification"
 	"github.com/Southclaws/storyden/app/services/ocr"
 	"github.com/Southclaws/storyden/app/services/onboarding"
+	"github.com/Southclaws/storyden/app/services/pdf_summary"
 	"github.com/Southclaws/storyden/app/services/plugin"
 	"github.com/Southclaws/storyden/app/services/presence"
 	"github.com/Southclaws/storyden/app/services/profile/following"
@@ -103,6 +104,7 @@ func Build() fx.Option {
 		semester_suggest.Build(),
 		tag_suggest.Build(),
 		thread_summary.Build(),
+		pdf_summary.Build(),
 		event.Build(),
 		listing.Build(),
 		moderation.Build(),

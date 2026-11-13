@@ -74,10 +74,13 @@ type ServiceSettings struct {
 
 // MarketServiceSettings controls the Flohmarkt classifieds feature.
 type AIServiceSettings struct {
-	ThreadSummary      opt.Optional[bool]
-	TagSuggestion      opt.Optional[bool]
-	SemesterSuggestion opt.Optional[bool]
-	LibraryAssist      opt.Optional[bool]
+	ThreadSummary        opt.Optional[bool]
+	TagSuggestion        opt.Optional[bool]
+	SemesterSuggestion   opt.Optional[bool]
+	LibraryAssist        opt.Optional[bool]
+	PDFSummary           opt.Optional[bool]
+	PDFSummaryBackground opt.Optional[bool]
+	PDFSummaryNightOnly  opt.Optional[bool]
 }
 
 type MarketServiceSettings struct {

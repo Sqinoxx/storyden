@@ -11,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 
+
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
 	"github.com/Southclaws/fault/fmsg"
@@ -21,6 +22,7 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/account/loginguard"
 	"github.com/Southclaws/storyden/internal/ent"
+	"github.com/Southclaws/storyden/internal/infrastructure/ai"
 )
 
 const ProblemJSONMediaType = "application/problem+json"
@@ -179,6 +181,8 @@ func statusFromErrorKind(k ftag.Kind) int {
 		return http.StatusBadGateway
 	case loginguard.KindLockedOut:
 		return http.StatusTooManyRequests
+	case ai.KindBusy:
+		return http.StatusServiceUnavailable
 	default:
 		return http.StatusInternalServerError
 	}

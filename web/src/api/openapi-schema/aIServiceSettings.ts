@@ -11,6 +11,12 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
 export interface AIServiceSettings {
   /** Titles, tags and content can be generated for pages. */
   library_assist?: boolean;
+  /** Members can summarise PDFs attached to threads. Off by default. */
+  pdf_summary?: boolean;
+  /** PDF summaries are prepared in the background after upload. */
+  pdf_summary_background?: boolean;
+  /** Background PDF summaries only run between 01:00 and 07:00. */
+  pdf_summary_night_only?: boolean;
   /** The semester is suggested while a thread is written. */
   semester_suggestion?: boolean;
   /** Tags are suggested while a thread is written. */

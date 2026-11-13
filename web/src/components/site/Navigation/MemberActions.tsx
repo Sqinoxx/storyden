@@ -22,7 +22,7 @@ type Props = {
 export function MemberActions({ session, canRegister }: Props) {
   const account = useSession(session);
   return (
-    <HStack w="full" gap="2" alignItems="center" justify="end" pr="1" minW="0">
+    <HStack gap="2" alignItems="center" justify="end" pr="1">
       {account ? (
         <>
           <PresenceIndicator />

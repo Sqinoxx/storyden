@@ -14,6 +14,7 @@ import (
 	"github.com/blevesearch/bleve/v2/search"
 	"github.com/blevesearch/bleve/v2/search/query"
 	"github.com/rs/xid"
+	"go.uber.org/fx"
 
 	"github.com/Southclaws/dt"
 	"github.com/Southclaws/fault"
@@ -45,7 +46,7 @@ type BleveSearcher struct {
 	hydrator *hydrate.Hydrator
 }
 
-func New(ctx context.Context, cfg config.Config, hydrator *hydrate.Hydrator) (*BleveSearcher, error) {
+func New(ctx context.Context, lc fx.Lifecycle, cfg config.Config, hydrator *hydrate.Hydrator) (*BleveSearcher, error) {
 	if cfg.SearchProvider != "bleve" {
 		return nil, nil
 	}
@@ -58,6 +59,10 @@ func New(ctx context.Context, cfg config.Config, hydrator *hydrate.Hydrator) (*B
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("failed to open or create bleve index"))
 	}
+
+	lc.Append(fx.StopHook(func() error {
+		return index.Close()
+	}))
 
 	return &BleveSearcher{
 		client:   index,

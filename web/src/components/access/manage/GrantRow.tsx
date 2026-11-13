@@ -47,8 +47,8 @@ export function GrantRow({ grant, showStatus, actions }: Props) {
       className={CardBox()}
       p="3"
       gap="3"
-      alignItems="center"
-      flexWrap="wrap"
+      flexDirection={{ base: "column", sm: "row" }}
+      alignItems={{ base: "stretch", sm: "center" }}
       aria-label={`${grant.account.name} ${grant.pass.name}`}
       data-testid="access-grant-row"
     >
@@ -58,7 +58,13 @@ export function GrantRow({ grant, showStatus, actions }: Props) {
             <styled.span fontWeight="semibold">
               {grant.account.name}
             </styled.span>{" "}
-            <styled.span color="fg.muted">@{grant.account.handle}</styled.span>
+            <styled.span
+              color="fg.muted"
+              display={{ base: "block", sm: "inline" }}
+              fontSize={{ base: "sm", sm: "md" }}
+            >
+              @{grant.account.handle}
+            </styled.span>
           </Link>
           {showStatus && (
             <Badge size="sm" variant="subtle">
@@ -88,6 +94,7 @@ export function GrantRow({ grant, showStatus, actions }: Props) {
           flexShrink="0"
           w={{ base: "full", sm: "auto" }}
           justify={{ base: "start", sm: "end" }}
+          css={{ "& > *": { flexGrow: { base: "1", sm: "0" } } }}
         >
           {actions}
         </HStack>

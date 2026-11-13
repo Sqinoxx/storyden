@@ -38,6 +38,8 @@ func TestThreadModerationWordLists(t *testing.T) {
 
 			userCtx, user := e2e.WithAccount(root, aw, seed.Account_003_Baldur)
 			sessionUser := sh.WithSession(userCtx)
+			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			category := createCategory(t, root, cl, sh.WithSession(adminCtx))
 
 			updateModerationSettings(t, root, settingsRepo, bus, settings.ModerationServiceSettings{
 				WordBlockList:  opt.New([]string{"banned"}),
@@ -48,6 +50,7 @@ func TestThreadModerationWordLists(t *testing.T) {
 				Body:       opt.New("<p>This contains a banned topic</p>").Ptr(),
 				Title:      "Banned content",
 				Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+				Category:   category,
 			}, sessionUser)
 			tests.Status(t, err, blockedThread, http.StatusBadRequest)
 			r.NotNil(blockedThread.JSONDefault)
@@ -65,6 +68,7 @@ func TestThreadModerationWordLists(t *testing.T) {
 				Body:       opt.New("<p>This should be flagged for review</p>").Ptr(),
 				Title:      "Flagged thread",
 				Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+				Category:   category,
 			}, sessionUser)
 			tests.Ok(t, err, reviewThread)
 			r.Equal(openapi.VisibilityReview, reviewThread.JSON200.Visibility, "thread with report-listed content should be sent to review")

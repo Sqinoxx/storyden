@@ -34,11 +34,13 @@ func TestThreadVisibilityWithReviewReplies(t *testing.T) {
 			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
 			sessionMember := sh.WithSession(memberCtx)
 			sessionAdmin := sh.WithSession(adminCtx)
+			category := createCategory(t, root, cl, sessionAdmin)
 
 			threadCreate, err := cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
 				Body:       opt.New("<p>This is a test thread</p>").Ptr(),
 				Title:      "Test Thread for Visibility",
 				Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+				Category:   category,
 			}, sessionMember)
 			tests.Ok(t, err, threadCreate)
 

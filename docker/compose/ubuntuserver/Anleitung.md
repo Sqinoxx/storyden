@@ -504,14 +504,17 @@ verlassen den Server. Der Ollama-Container ist auf 4 GB RAM begrenzt.
    - "Tags beim Schreiben vorschlagen"
    - "Semester beim Schreiben vorschlagen" (funktioniert auch ohne Ollama)
    - "Bibliotheks-Assistent"
-6. Automatische KI-Tags im Thread-Editor: unter **KI** → "Tag-Bedeutungen"
-   pro Zeile `tag: Bedeutung` eintragen (z. B.
-   `endo: endodontics (root canal treatment)`). Der Button
-   **"Mit KI ergänzen"** schlaegt fuer bis zu 25 Tags mit mindestens 3
-   Threads eine Bedeutung vor (ein Modellaufruf pro Tag, dauert ein paar
-   Minuten). Unklare Tags werden uebersprungen. Nichts wird automatisch
-   gespeichert: Vorschlag pruefen, korrigieren und dann speichern. Nur
-   gelistete, bereits existierende Tags werden automatisch gesetzt.
+6. Automatische KI-Tags im Thread-Editor: funktionieren ohne Pflege. Beim
+   Schreiben werden die 5 aehnlichsten bereits getaggten Threads gesucht;
+   Tags, die mindestens 2 davon mit klarer Mehrheit teilen, werden gesetzt.
+   Je mehr Threads getaggt sind, desto besser die Vorschlaege. Optional unter
+   **KI** → "Tag-Bedeutungen" pro Zeile `tag: Bedeutung` eintragen (z. B.
+   `endo: endodontics (root canal treatment)`), damit neue, noch selten
+   genutzte Tags ebenfalls erkannt werden. Der Button **"Mit KI ergaenzen"**
+   schlaegt fuer bis zu 25 Tags mit mindestens 3 Threads eine Bedeutung vor
+   (ein Modellaufruf pro Tag, dauert ein paar Minuten). Unklare Tags werden
+   uebersprungen. Nichts wird automatisch gespeichert: Vorschlag pruefen,
+   korrigieren und dann speichern.
 
 Ausschalten: die Zeilen in `.env` wieder auskommentieren,
 `docker compose up -d storyden` und `docker compose stop ollama`.

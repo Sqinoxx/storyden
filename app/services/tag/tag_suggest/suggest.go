@@ -1,6 +1,9 @@
-// Small models guess wrongly at abbreviated tag names and pad their answer to
-// the maximum count, so a tag is only suggested when it has an admin-written
-// meaning, the model picks it and it is also among the embedding-nearest tags.
+// Tags are suggested from two sources. Learned: the tags of the most similar
+// already-tagged threads in the semdex vote, weighted by similarity, so the
+// suggestions improve as members tag posts and need no maintenance or language
+// model. Meanings: small models guess wrongly at abbreviated tag names and pad
+// their answer, so a tag with an admin-written meaning is only suggested when
+// the model picks it and it is also among the embedding-nearest tags.
 package tag_suggest
 
 import (
@@ -15,10 +18,15 @@ import (
 
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
+	"github.com/rs/xid"
 	"go.uber.org/fx"
 
+	"github.com/Southclaws/storyden/app/resources/datagraph"
+	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_querier"
+	"github.com/Southclaws/storyden/app/services/search/searcher"
+	"github.com/Southclaws/storyden/app/services/semdex"
 	"github.com/Southclaws/storyden/internal/infrastructure/ai"
 )
 
@@ -29,6 +37,12 @@ const (
 	minInputChars  = 20
 	maxInputChars  = 4000
 	requestTimeout = 20 * time.Second
+
+	searchCandidates       = 20
+	nearestThreads         = 5
+	minNeighbourSimilarity = 0.65
+	minVotes               = 2
+	minVoteShare           = 0.6
 )
 
 type Suggester struct {
@@ -36,6 +50,7 @@ type Suggester struct {
 	prompter ai.Prompter
 	settings *settings.SettingsRepository
 	tags     *tag_querier.Querier
+	semdex   semdex.Searcher
 
 	mu      sync.Mutex
 	vectors map[string][]float32
@@ -45,12 +60,13 @@ func Build() fx.Option {
 	return fx.Provide(New)
 }
 
-func New(logger *slog.Logger, prompter ai.Prompter, settings *settings.SettingsRepository, tags *tag_querier.Querier) *Suggester {
+func New(logger *slog.Logger, prompter ai.Prompter, settings *settings.SettingsRepository, tags *tag_querier.Querier, semdex semdex.Searcher) *Suggester {
 	return &Suggester{
 		logger:   logger,
 		prompter: prompter,
 		settings: settings,
 		tags:     tags,
+		semdex:   semdex,
 		vectors:  map[string][]float32{},
 	}
 }
@@ -68,6 +84,23 @@ func (s *Suggester) Suggest(ctx context.Context, title, body string) ([]string, 
 		body = body[:maxInputChars]
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
+
+	fromMeanings, err := s.fromMeanings(ctx, title, body)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	learned, err := s.fromSimilarThreads(ctx, title+"\n\n"+body)
+	if err != nil {
+		s.logger.Warn("tag suggestion from similar threads failed", slog.String("error", err.Error()))
+	}
+
+	return merge(maxTags, fromMeanings, learned), nil
+}
+
+func (s *Suggester) fromMeanings(ctx context.Context, title, body string) ([]string, error) {
 	meanings, err := s.meanings(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -75,9 +108,6 @@ func (s *Suggester) Suggest(ctx context.Context, title, body string) ([]string, 
 	if len(meanings) == 0 {
 		return nil, nil
 	}
-
-	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
-	defer cancel()
 
 	picked, err := s.pick(ctx, title, body, meanings)
 	if err != nil {
@@ -102,6 +132,123 @@ func (s *Suggester) Suggest(ctx context.Context, title, body string) ([]string, 
 	}
 
 	return out, nil
+}
+
+func (s *Suggester) fromSimilarThreads(ctx context.Context, text string) ([]string, error) {
+	if s.semdex == nil {
+		return nil, nil
+	}
+	if _, disabled := s.semdex.(*semdex.Disabled); disabled {
+		return nil, nil
+	}
+
+	res, err := s.semdex.SearchRefs(ctx, text, pagination.NewPageParams(1, searchCandidates), searcher.Options{})
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	var neighbours []Neighbour
+	var ids []xid.ID
+	for _, r := range res.Items {
+		if len(neighbours) == nearestThreads {
+			break
+		}
+		if r.Kind == datagraph.KindThread && r.Relevance >= minNeighbourSimilarity {
+			ids = append(ids, r.ID)
+			neighbours = append(neighbours, Neighbour{ID: r.ID, Similarity: r.Relevance})
+		}
+	}
+
+	tags, err := s.tags.PublishedThreadTags(ctx, ids)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	for i := range neighbours {
+		neighbours[i].Tags = tags[neighbours[i].ID]
+	}
+
+	return Vote(neighbours), nil
+}
+
+type Neighbour struct {
+	ID         xid.ID
+	Similarity float64
+	Tags       []string
+}
+
+// Vote suggests the tags carried by at least minVotes of the tagged neighbours
+// that together hold at least minVoteShare of their similarity weight.
+func Vote(neighbours []Neighbour) []string {
+	type tally struct {
+		name  string
+		score float64
+		votes int
+	}
+
+	var total float64
+	byKey := map[string]*tally{}
+	for _, n := range neighbours {
+		if len(n.Tags) == 0 {
+			continue
+		}
+		total += n.Similarity
+
+		seen := map[string]bool{}
+		for _, name := range n.Tags {
+			key := strings.ToLower(name)
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+
+			t, ok := byKey[key]
+			if !ok {
+				t = &tally{name: name}
+				byKey[key] = t
+			}
+			t.score += n.Similarity
+			t.votes++
+		}
+	}
+	if total == 0 {
+		return nil
+	}
+
+	var winners []*tally
+	for _, t := range byKey {
+		if t.votes >= minVotes && t.score/total >= minVoteShare {
+			winners = append(winners, t)
+		}
+	}
+	sort.Slice(winners, func(i, j int) bool {
+		if winners[i].score != winners[j].score {
+			return winners[i].score > winners[j].score
+		}
+		return winners[i].name < winners[j].name
+	})
+
+	var out []string
+	for i := 0; i < len(winners) && i < maxTags; i++ {
+		out = append(out, winners[i].name)
+	}
+	return out
+}
+
+func merge(limit int, lists ...[]string) []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, list := range lists {
+		for _, t := range list {
+			key := strings.ToLower(t)
+			if seen[key] || len(out) >= limit {
+				continue
+			}
+			seen[key] = true
+			out = append(out, t)
+		}
+	}
+	return out
 }
 
 type meaning struct {

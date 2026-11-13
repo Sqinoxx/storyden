@@ -30,7 +30,11 @@ export function PassesTab({ passes }: { passes: AccessPass[] }) {
 
   return (
     <LStack gap="3" w="full">
-      <Button size="sm" onClick={() => setEditing({})}>
+      <Button
+        size="sm"
+        w={{ base: "full", sm: "auto" }}
+        onClick={() => setEditing({})}
+      >
         {m.createPass}
       </Button>
 
@@ -43,8 +47,8 @@ export function PassesTab({ passes }: { passes: AccessPass[] }) {
             className={CardBox()}
             p="3"
             gap="3"
-            alignItems="center"
-            flexWrap="wrap"
+            flexDirection={{ base: "column", sm: "row" }}
+            alignItems={{ base: "stretch", sm: "center" }}
             aria-label={p.name}
           >
             <LStack gap="1" minW="0" flex="1" overflowWrap="anywhere">

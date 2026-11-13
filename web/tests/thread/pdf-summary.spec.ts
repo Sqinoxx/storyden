@@ -43,7 +43,7 @@ test.describe("PDF summary", () => {
 
     await attachFiles(page, [
       {
-        name: "altklausur-endo.pdf",
+        name: "endoklausur.pdf",
         mimeType: "application/pdf",
         buffer: textPDF(LINES),
       },
@@ -51,14 +51,14 @@ test.describe("PDF summary", () => {
 
     const form = replyForm(page);
     const editor = form.locator(".ProseMirror[contenteditable='true']");
-    await expect(editor.getByText("altklausur-endo.pdf")).toBeVisible({
+    await expect(editor.getByText("endoklausur.pdf")).toBeVisible({
       timeout: 15000,
     });
     await form.getByRole("button", { name: "Post" }).click();
 
     const reply = page
       .locator("li")
-      .filter({ hasText: "altklausur-endo.pdf" })
+      .filter({ hasText: "endoklausur.pdf" })
       .last();
     const button = reply.getByRole("button", { name: "Summarise PDF" });
     await expect(button).toBeVisible({ timeout: 15000 });
@@ -79,7 +79,7 @@ test.describe("PDF summary", () => {
     await expect(dialog.getByTestId("pdf-summary")).toContainText(
       "An answer for",
     );
-    await expect(dialog).toContainText("altklausur-endo.pdf");
+    await expect(dialog).toContainText("endoklausur.pdf");
 
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);

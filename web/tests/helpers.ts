@@ -20,6 +20,20 @@ export async function dismissOnboarding(page: Page) {
 }
 
 /**
+ * The onboarding checklist and the navigation sidebar can sit over page
+ * content and intercept clicks, so close whichever of them is open.
+ */
+export async function clearOverlays(page: Page) {
+  await page.waitForLoadState("networkidle");
+  for (const name of ["Skip", "Hide this message", "Close navigation sidebar"]) {
+    const button = page.getByRole("button", { name });
+    if (await button.first().isVisible({ timeout: 1500 }).catch(() => false)) {
+      await button.first().click();
+    }
+  }
+}
+
+/**
  * Where a successful sign-in lands depends on instance configuration (the feed,
  * the discussion index, ...), so the durable signal is "no longer on the auth
  * page, and the session controls are present" rather than a fixed URL.

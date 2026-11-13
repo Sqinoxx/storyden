@@ -5,7 +5,7 @@ import {
   login,
   withAdminAccessKey,
 } from "../access_key_admin_assignment";
-import { PASSWORD, dismissOnboarding, unique } from "../helpers";
+import { PASSWORD, clearOverlays, unique } from "../helpers";
 
 const LABEL = "Library assistance";
 
@@ -26,7 +26,7 @@ test.describe("Admin AI settings", () => {
     await login(page, admin, PASSWORD);
 
     await page.goto("/admin?tab=ai");
-    await dismissOnboarding(page);
+    await clearOverlays(page);
 
     const input = page.getByLabel(LABEL);
     await expect(input).toBeChecked();
@@ -38,6 +38,7 @@ test.describe("Admin AI settings", () => {
     await expect(page.getByText("Settings saved")).toBeVisible();
 
     await page.reload();
+    await clearOverlays(page);
     await expect(page.getByLabel(LABEL)).not.toBeChecked();
   });
 });

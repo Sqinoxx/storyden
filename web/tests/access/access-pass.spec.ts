@@ -67,8 +67,8 @@ test("members request access, get unlocked and see the content", async ({
   const threadCard = page.getByRole("region", { name: pass.name });
   await threadCard.getByRole("button", { name: "Request access" }).click();
 
-  await expect(threadCard.getByTestId("access-reference-code")).toHaveText(
-    /^[A-Z0-9]{1,4}-[A-Z2-9]{4}$/,
+  await expect(threadCard.getByTestId("access-tell-handle")).toContainText(
+    `@${handle}`,
   );
   await expect(
     threadCard.getByRole("button", { name: "Withdraw request" }),

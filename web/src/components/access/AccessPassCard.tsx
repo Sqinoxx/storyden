@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Lock, LockOpen } from "lucide-react";
+import { Check, Lock, LockOpen } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -15,7 +15,6 @@ import { useSession } from "@/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
-import { IconButton } from "@/components/ui/icon-button";
 import { LinkButton } from "@/components/ui/link-button";
 import { membershipAction } from "@/lib/access/access";
 import { useAccessPasses } from "@/lib/access/useAccess";
@@ -71,16 +70,6 @@ export function AccessPassCard({ pass, categoryNames }: Props) {
       },
       { cleanup: async () => setBusy(false) },
     );
-  }
-
-  async function onCopy() {
-    if (!membership) return;
-    try {
-      await navigator.clipboard.writeText(membership.reference_code);
-      toast.success(t.access.copied);
-    } catch {
-      toast.error(t.access.copyFailed);
-    }
   }
 
   return (
@@ -169,7 +158,15 @@ export function AccessPassCard({ pass, categoryNames }: Props) {
 
           <styled.ol display="flex" flexDir="column" gap="2" w="full">
             <Step index={1} done={isRequested} label={t.access.stepRequest} />
-            <Step index={2} done={false} label={t.access.stepPay}>
+            <Step
+              index={2}
+              done={false}
+              label={
+                pass.price_label
+                  ? t.access.stepPayPrice.replace("{price}", pass.price_label)
+                  : t.access.stepPay
+              }
+            >
               {pass.payment_info && (
                 <styled.p
                   fontSize="sm"
@@ -180,27 +177,16 @@ export function AccessPassCard({ pass, categoryNames }: Props) {
                   {pass.payment_info}
                 </styled.p>
               )}
-              {isRequested && membership && (
-                <HStack gap="2" flexWrap="wrap">
-                  <styled.span fontSize="sm" color="fg.muted">
-                    {t.access.referenceCode}:
-                  </styled.span>
-                  <styled.code
-                    fontWeight="bold"
-                    data-testid="access-reference-code"
-                  >
-                    {membership.reference_code}
-                  </styled.code>
-                  <IconButton
-                    size="xs"
-                    variant="ghost"
-                    onClick={onCopy}
-                    aria-label={t.access.copy}
-                    title={t.access.copy}
-                  >
-                    <Copy />
-                  </IconButton>
-                </HStack>
+              {session && (
+                <styled.p
+                  fontSize="sm"
+                  color="fg.muted"
+                  data-testid="access-tell-handle"
+                >
+                  {t.access.tellHandle.split("{handle}")[0]}
+                  <styled.code fontWeight="bold">@{session.handle}</styled.code>
+                  {t.access.tellHandle.split("{handle}")[1]}
+                </styled.p>
               )}
             </Step>
             <Step index={3} done={false} label={t.access.stepWait} />

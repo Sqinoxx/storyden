@@ -63,8 +63,7 @@ export function GrantsTab({ passes }: { passes: AccessPass[] }) {
     return (data?.grants ?? []).filter(
       (g) =>
         g.account.name.toLowerCase().includes(q) ||
-        g.account.handle.toLowerCase().includes(q) ||
-        g.reference_code.toLowerCase().includes(q),
+        g.account.handle.toLowerCase().includes(q),
     );
   }, [data, query]);
 

@@ -68,9 +68,6 @@ export function GrantRow({ grant, showStatus, actions }: Props) {
         </HStack>
         <HStack gap="2" flexWrap="wrap" fontSize="sm" color="fg.muted">
           <styled.span>{grant.pass.name}</styled.span>
-          <styled.code data-testid="access-grant-reference">
-            {grant.reference_code}
-          </styled.code>
           {when && <styled.span>{when}</styled.span>}
           {grant.decided_by && grant.status !== "requested" && (
             <styled.span>

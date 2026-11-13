@@ -44,10 +44,9 @@ test("managers confirm payment, extend and revoke access", async ({
   await member.goto(`/t/${thread.slug}`);
   const card = member.getByRole("region", { name: pass.name });
   await card.getByRole("button", { name: "Request access" }).click();
-  const reference = await card
-    .getByTestId("access-reference-code")
-    .textContent();
-  expect(reference).toMatch(/^[A-Z0-9]{1,4}-[A-Z2-9]{4}$/);
+  await expect(card.getByTestId("access-tell-handle")).toContainText(
+    `@${memberHandle}`,
+  );
 
   const adminHandle = unique("kassenwart");
   await createAdmin(page.context(), adminHandle, PASSWORD);
@@ -59,9 +58,6 @@ test("managers confirm payment, extend and revoke access", async ({
     .getByTestId("access-grant-row")
     .filter({ hasText: `@${memberHandle}` });
   await expect(request).toBeVisible({ timeout: 10000 });
-  await expect(request.getByTestId("access-grant-reference")).toHaveText(
-    reference!,
-  );
 
   await request.getByRole("button", { name: "Paid – unlock" }).click();
   const dialog = page.getByTestId("access-grant-dialog");
@@ -134,7 +130,7 @@ test("managers create a pass for a category", async ({ page }) => {
   await editor.getByRole("textbox", { name: "Name" }).fill(name);
   await editor.getByRole("textbox", { name: "Price label" }).fill("10 €");
   await editor
-    .getByRole("textbox", { name: "Payment instructions" })
+    .getByRole("textbox", { name: "Additional note (optional)" })
     .fill("Bar im Fachschaftsraum");
   await editor.getByText(category.name, { exact: true }).click();
   await editor.getByRole("button", { name: "Save" }).click();

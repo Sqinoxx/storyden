@@ -7,7 +7,7 @@ import { API_ADDRESS } from "@/config";
 export function getAssetURL(filename?: string, downloadName?: string) {
   if (!filename) return "";
   if (filename.startsWith("http://") || filename.startsWith("https://")) {
-    return filename;
+    return rebaseAssetURL(filename);
   }
   const prefix = filename.startsWith("/") ? "" : "/";
   const url = `${API_ADDRESS}${prefix}${filename}`;
@@ -15,6 +15,29 @@ export function getAssetURL(filename?: string, downloadName?: string) {
 
   const separator = url.includes("?") ? "&" : "?";
   return `${url}${separator}filename=${encodeURIComponent(downloadName)}`;
+}
+
+const ASSET_PATH_PREFIX = "/api/assets/";
+
+/**
+ * Post bodies store asset links as absolute URLs on whatever address the API had
+ * at upload time, so links from before a domain move point at the old host.
+ * Going through its redirect makes the request cross-site, which can drop the
+ * session cookie and always breaks credentialed fetches.
+ */
+export function rebaseAssetURL(url: string): string {
+  if (!/^https?:\/\//i.test(url)) return url;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return url;
+  }
+
+  if (!parsed.pathname.startsWith(ASSET_PATH_PREFIX)) return url;
+
+  return `${API_ADDRESS}${parsed.pathname}${parsed.search}${parsed.hash}`;
 }
 
 /**

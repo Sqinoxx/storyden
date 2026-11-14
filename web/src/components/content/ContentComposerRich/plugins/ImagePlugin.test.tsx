@@ -49,3 +49,34 @@ describe("ImageExtended", () => {
     expect(inside).toBe(false);
   });
 });
+
+describe("legacy asset links", () => {
+  it("rebases attachments and images uploaded under a previous domain", () => {
+    const e = editor(
+      '<p><img src="https://unidentists.social/api/assets/a.png"></p>' +
+        '<p><a href="https://unidentists.social/api/assets/b-pdf" data-type="file-attachment" data-filename="b.pdf">b.pdf</a></p>' +
+        '<p><a href="https://unidentists.social/api/assets/c.pdf">c.pdf</a></p>',
+    );
+
+    const attrs: Record<string, unknown>[] = [];
+    e.state.doc.descendants((node) => {
+      if (node.type.name === "image" || node.type.name === "fileAttachment") {
+        attrs.push(node.attrs);
+      }
+    });
+
+    expect(attrs.map((a) => a["src"] ?? a["href"])).toEqual([
+      "http://localhost:8000/api/assets/a.png",
+      "http://localhost:8000/api/assets/b-pdf",
+      "http://localhost:8000/api/assets/c.pdf",
+    ]);
+  });
+
+  it("keeps links to other sites as they are", () => {
+    const e = editor(
+      '<p><a href="https://example.com/files/d.pdf" data-type="file-attachment" data-filename="d.pdf">d.pdf</a></p>',
+    );
+
+    expect(e.getHTML()).toContain('href="https://example.com/files/d.pdf"');
+  });
+});

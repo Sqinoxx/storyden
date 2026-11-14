@@ -15,6 +15,7 @@ import { ProgressCircle } from "@/components/ui/progress";
 import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
 import { useTranslation } from "@/lib/i18n";
+import { rebaseAssetURL } from "@/utils/asset";
 
 // NOTE: This is the name of the component that will be used in the HTML.
 // It cannot be changed.
@@ -147,6 +148,13 @@ export const ImageExtended = Image.extend<ImageOptions & Options>({
   addAttributes() {
     return {
       ...this.parent?.(),
+      src: {
+        default: null,
+        parseHTML: (element) => {
+          const src = element.getAttribute("src");
+          return src ? rebaseAssetURL(src) : null;
+        },
+      },
       "data-upload-id": {
         default: null,
         parseHTML: (element) => element.getAttribute("data-upload-id"),

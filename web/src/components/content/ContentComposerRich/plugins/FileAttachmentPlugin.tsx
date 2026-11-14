@@ -18,7 +18,7 @@ import { ProgressCircle } from "@/components/ui/progress";
 import { Download, Eye, Trash2 } from "lucide-react";
 import { css } from "@/styled-system/css";
 import { styled } from "@/styled-system/jsx";
-import { downloadAsset, getCleanFilename } from "@/utils/asset";
+import { downloadAsset, getCleanFilename, rebaseAssetURL } from "@/utils/asset";
 import { AttachmentSummaryButton } from "@/components/post/AttachmentSummary/AttachmentSummary";
 import { FilePreviewModal, isPreviewableAsset } from "@/components/post/FilePreviewModal";
 import { useTranslation } from "@/lib/i18n";
@@ -293,7 +293,10 @@ export const FileAttachmentExtended = Node.create<FileAttachmentOptions>({
     return {
       href: {
         default: null,
-        parseHTML: (element) => element.getAttribute("href"),
+        parseHTML: (element) => {
+          const href = element.getAttribute("href");
+          return href ? rebaseAssetURL(href) : null;
+        },
         renderHTML: (attributes) => {
           if (!attributes["href"]) return {};
           return { href: attributes["href"] };

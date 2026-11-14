@@ -1464,4 +1464,17 @@ export const de: Translations = {
   easterEgg: {
     unlocked: "Geheimnis gelüftet! Du hast den Konami-Code gefunden. 🎮",
   },
+  filePreview: {
+    showImage: "Bild anzeigen",
+    showImageText: "Text im Bild anzeigen",
+    imageText: "Text im Bild",
+    download: "Herunterladen",
+    close: "Schließen",
+    ocrHeading: "Extrahierter Text (OCR)",
+    loading: "Wird geladen…",
+    loadFailed: "Die Datei konnte nicht geladen werden.",
+    noPreview: "Keine Vorschau verfügbar",
+    sessionExpired: "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an, um die Datei zu öffnen.",
+    signIn: "Anmelden",
+  },
 };

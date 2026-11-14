@@ -39,7 +39,7 @@ const ACCOUNT_URL = "/accounts";
 
 let sessionRecheck: Promise<unknown> | undefined;
 
-function recheckSession() {
+export function recheckSession() {
   if (sessionRecheck) return;
 
   sessionRecheck = mutate([ACCOUNT_URL]).finally(() => {

@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { PropsWithChildren, useEffect, useState } from "react";
 import { Portal } from "@ark-ui/react";
 import { X, Download, FileText } from "lucide-react";
+
+import { recheckSession } from "@/api/client";
+import { LinkButton } from "@/components/ui/link-button";
+import { useTranslation } from "@/lib/i18n";
 import { styled } from "@/styled-system/jsx";
 
 /** Mime types / extensions that can be previewed inline in the browser. */
@@ -54,6 +58,44 @@ function detectPreviewType(
   return null;
 }
 
+type AssetAccess = "checking" | "ok" | "unauthenticated" | "failed";
+
+type AssetProbe = { access: AssetAccess; text?: string };
+
+/**
+ * The PDF and image viewers render whatever the server returns, so an expired
+ * session would show the API's raw 401 body. Probing first lets that case be
+ * shown as a sign-in prompt instead.
+ */
+async function probeAsset(
+  url: string,
+  readText: boolean,
+  signal: AbortSignal,
+): Promise<AssetProbe> {
+  const init: RequestInit = readText
+    ? { credentials: "include", signal }
+    : {
+        credentials: "include",
+        signal,
+        cache: "no-store",
+        headers: { Range: "bytes=0-0" },
+      };
+
+  try {
+    const response = await fetch(url, init);
+
+    if (response.status === 401) return { access: "unauthenticated" };
+    if (!response.ok) return { access: "failed" };
+    if (readText) return { access: "ok", text: await response.text() };
+
+    void response.body?.cancel().catch(() => {});
+    return { access: "ok" };
+  } catch {
+    // Links to other sites fail CORS here even though a viewer can load them.
+    return { access: readText ? "failed" : "ok" };
+  }
+}
+
 interface FilePreviewModalProps {
   url: string;
   displayName: string;
@@ -71,8 +113,9 @@ export function FilePreviewModal({
   onClose,
   onDownload,
 }: FilePreviewModalProps) {
+  const t = useTranslation();
   const previewType = detectPreviewType(mimeType, displayName);
-  const [textContent, setTextContent] = useState<string | null>(null);
+  const [probe, setProbe] = useState<AssetProbe>({ access: "checking" });
   const [showOcr, setShowOcr] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -89,14 +132,21 @@ export function FilePreviewModal({
     return () => mql.removeEventListener("change", update);
   }, []);
 
-  // Load text files
   useEffect(() => {
-    if (previewType === "text" && url) {
-      fetch(url, { credentials: "include" })
-        .then((r) => r.text())
-        .then(setTextContent)
-        .catch(() => setTextContent("(Datei konnte nicht geladen werden)"));
-    }
+    if (!previewType || !url) return;
+
+    const controller = new AbortController();
+    setProbe({ access: "checking" });
+
+    probeAsset(url, previewType === "text", controller.signal).then(
+      (result) => {
+        if (controller.signal.aborted) return;
+        if (result.access === "unauthenticated") recheckSession();
+        setProbe(result);
+      },
+    );
+
+    return () => controller.abort();
   }, [previewType, url]);
 
   // Close on Escape
@@ -195,7 +245,7 @@ export function FilePreviewModal({
               <styled.button
                 type="button"
                 onClick={() => setShowOcr((prev) => !prev)}
-                title={showOcr ? "Bild anzeigen" : "Text im Bild anzeigen"}
+                title={showOcr ? t.filePreview.showImage : t.filePreview.showImageText}
                 display="inline-flex"
                 alignItems="center"
                 gap="1.5"
@@ -212,7 +262,7 @@ export function FilePreviewModal({
                 style={{ transition: "all 0.15s ease" }}
               >
                 <FileText size={14} />
-                <span>{showOcr ? "Bild anzeigen" : "Text im Bild"}</span>
+                <span>{showOcr ? t.filePreview.showImage : t.filePreview.imageText}</span>
               </styled.button>
             )}
 
@@ -220,7 +270,7 @@ export function FilePreviewModal({
             <styled.button
               type="button"
               onClick={onDownload}
-              title="Herunterladen"
+              title={t.filePreview.download}
               display="inline-flex"
               alignItems="center"
               justifyContent="center"
@@ -238,7 +288,7 @@ export function FilePreviewModal({
             <styled.button
               type="button"
               onClick={onClose}
-              title="Schließen"
+              title={t.filePreview.close}
               display="inline-flex"
               alignItems="center"
               justifyContent="center"
@@ -265,7 +315,7 @@ export function FilePreviewModal({
               bgColor="bg.subtle"
             >
               <styled.h4 fontSize="xs" fontWeight="bold" textTransform="uppercase" color="fg.muted" mb="3">
-                Extrahierter Text (OCR)
+                {t.filePreview.ocrHeading}
               </styled.h4>
               <styled.pre
                 fontSize="sm"
@@ -283,76 +333,122 @@ export function FilePreviewModal({
               </styled.pre>
             </styled.div>
           ) : (
-            <>
-              {previewType === "pdf" && (
-                <iframe
-                  src={url}
-                  title={displayName}
-                  style={{ width: "100%", height: "100%", border: "none" }}
-                />
-              )}
-
-              {previewType === "image" && (
-                <styled.div
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  w="full"
-                  h="full"
-                  p="4"
-                  overflow="auto"
-                  bgColor="bg.subtle"
-                >
-                  <styled.img
-                    src={url}
-                    alt={displayName}
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      objectFit: "contain",
-                      borderRadius: "8px",
-                    }}
-                  />
-                </styled.div>
-              )}
-            </>
-          )}
-
-          {previewType === "text" && (
-            <styled.div
-              w="full"
-              h="full"
-              overflow="auto"
-              p="4"
-              bgColor="bg.subtle"
-            >
-              <styled.pre
-                fontSize="sm"
-                fontFamily="mono"
-                color="fg.default"
-                whiteSpace="pre-wrap"
-                wordBreak="break-all"
-              >
-                {textContent ?? "Wird geladen…"}
-              </styled.pre>
-            </styled.div>
-          )}
-
-          {!previewType && (
-            <styled.div
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              w="full"
-              h="full"
-              color="fg.muted"
-              fontSize="sm"
-            >
-              Keine Vorschau verfügbar
-            </styled.div>
+            <PreviewBody
+              previewType={previewType}
+              probe={probe}
+              url={url}
+              displayName={displayName}
+            />
           )}
         </styled.div>
       </styled.div>
     </Portal>
+  );
+}
+
+function PreviewBody({
+  previewType,
+  probe,
+  url,
+  displayName,
+}: {
+  previewType: PreviewType;
+  probe: AssetProbe;
+  url: string;
+  displayName: string;
+}) {
+  const t = useTranslation();
+
+  if (!previewType) {
+    return <PreviewNotice>{t.filePreview.noPreview}</PreviewNotice>;
+  }
+
+  switch (probe.access) {
+    case "checking":
+      return <PreviewNotice>{t.filePreview.loading}</PreviewNotice>;
+
+    case "unauthenticated":
+      return (
+        <PreviewNotice>
+          <span>{t.filePreview.sessionExpired}</span>
+          <LinkButton href="/login" size="sm">
+            {t.filePreview.signIn}
+          </LinkButton>
+        </PreviewNotice>
+      );
+
+    case "failed":
+      return <PreviewNotice>{t.filePreview.loadFailed}</PreviewNotice>;
+  }
+
+  switch (previewType) {
+    case "pdf":
+      return (
+        <iframe
+          src={url}
+          title={displayName}
+          style={{ width: "100%", height: "100%", border: "none" }}
+        />
+      );
+
+    case "image":
+      return (
+        <styled.div
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          w="full"
+          h="full"
+          p="4"
+          overflow="auto"
+          bgColor="bg.subtle"
+        >
+          <styled.img
+            src={url}
+            alt={displayName}
+            style={{
+              maxWidth: "100%",
+              maxHeight: "100%",
+              objectFit: "contain",
+              borderRadius: "8px",
+            }}
+          />
+        </styled.div>
+      );
+
+    case "text":
+      return (
+        <styled.div w="full" h="full" overflow="auto" p="4" bgColor="bg.subtle">
+          <styled.pre
+            fontSize="sm"
+            fontFamily="mono"
+            color="fg.default"
+            whiteSpace="pre-wrap"
+            wordBreak="break-all"
+          >
+            {probe.text}
+          </styled.pre>
+        </styled.div>
+      );
+  }
+}
+
+function PreviewNotice({ children }: PropsWithChildren) {
+  return (
+    <styled.div
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      gap="3"
+      w="full"
+      h="full"
+      p="6"
+      color="fg.muted"
+      fontSize="sm"
+      textAlign="center"
+    >
+      {children}
+    </styled.div>
   );
 }

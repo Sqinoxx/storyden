@@ -1462,6 +1462,19 @@ export const en = {
   easterEgg: {
     unlocked: "Secret unlocked! You found the Konami code. 🎮",
   },
+  filePreview: {
+    showImage: "Show image",
+    showImageText: "Show text in image",
+    imageText: "Text in image",
+    download: "Download",
+    close: "Close",
+    ocrHeading: "Extracted text (OCR)",
+    loading: "Loading…",
+    loadFailed: "This file could not be loaded.",
+    noPreview: "No preview available",
+    sessionExpired: "Your session has expired. Please sign in again to open this file.",
+    signIn: "Sign in",
+  },
 };
 
 export type Translations = typeof en;

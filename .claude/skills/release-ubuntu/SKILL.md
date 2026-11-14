@@ -161,5 +161,16 @@ Everything written to the forum after the release is lost. Confirm with the user
   (onboarding covers the collapsed sidebar on a fresh test DB). Not a release blocker.
 - Foreground `Start-Sleep` is blocked; long steps go in `run_in_background` and you get notified.
 - Never write DB dumps, `.env` copies or keys under tracked paths (`transfer/` is gitignored).
+- `backup.sh` exits 1 with `tar: ./data/assets: Datei hat sich beim Lesen geändert` when an upload
+  lands during the backup. The archive is still complete; verify it as in step 4 and continue.
+- After `up -d`, check `docker inspect storyden-storyden-1 --format '{{.RestartCount}}'`. A status
+  like `Up Less than a second` after the 40 s sleep means a crash loop (2026-11-14: a startup
+  backfill panicked because it uploaded an asset without a session in the context). Roll back
+  at once with `STORYDEN_IMAGE=storyden-server:<previous tag>` + `docker compose up -d storyden`;
+  no DB restore is needed if the release had no migration. Set it back to `latest` afterwards.
+- If the build output stops for over 10 minutes (often in `Creating an optimized production build`)
+  and `docker info` hangs, the Docker daemon is stuck. Stop the build, kill `Docker Desktop`,
+  `com.docker.backend` and `docker`, run `wsl.exe --terminate docker-desktop`, then start
+  `C:\Users\schmi\AppData\Local\Programs\DockerDesktop\Docker Desktop.exe` and rebuild.
 - Final report to the user: build tag + commit, backup file names/sizes, container status,
   perf-check numbers, anything skipped. Remind them to change any password they pasted into chat.

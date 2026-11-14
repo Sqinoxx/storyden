@@ -121,6 +121,34 @@ func (r Content) Links() []string {
 	return r.links
 }
 
+// LinkCards returns the URLs of embedded link preview cards, in document order.
+func (r Content) LinkCards() []string {
+	cards := []string{}
+	if r.html == nil {
+		return cards
+	}
+
+	var walk func(n *html.Node)
+	walk = func(n *html.Node) {
+		if n.Type == html.ElementNode {
+			attrs := lo.SliceToMap(n.Attr, func(a html.Attribute) (string, string) {
+				return strings.ToLower(a.Key), a.Val
+			})
+			if attrs["data-display"] == "card" {
+				if parsed, err := url.Parse(attrs["data-href"]); err == nil && (parsed.Scheme == "http" || parsed.Scheme == "https") {
+					cards = append(cards, parsed.String())
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(r.html)
+
+	return cards
+}
+
 func (r Content) Media() []string {
 	return r.media
 }

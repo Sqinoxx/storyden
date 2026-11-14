@@ -166,6 +166,13 @@ func TestContentAccessors(t *testing.T) {
 	assert.False(t, c.IsEmpty())
 }
 
+func TestContentLinkCards(t *testing.T) {
+	c := mustContent(t, `<body><p>See <a href="https://example.com/a">a</a></p><div data-href="https://unimedics.de/" data-display="card"></div><div data-href="javascript:alert(1)" data-display="card"></div><div data-href="https://example.com/b" data-display="card"></div></body>`)
+
+	assert.Equal(t, []string{"https://unimedics.de/", "https://example.com/b"}, c.LinkCards())
+	assert.Empty(t, Content{}.LinkCards())
+}
+
 func TestContentImageOnlyIsNotEmpty(t *testing.T) {
 	c := mustContent(t, `<img src="https://example.com/image.jpg" alt="Example image">`)
 

@@ -192,7 +192,11 @@ export function ThreadScreen(props: Props) {
               )}
             </LStack>
 
-            {thread.link && !locked && <LinkPreviewCard link={thread.link} />}
+            {thread.link &&
+              !locked &&
+              !thread.body.includes('data-display="card"') && (
+                <LinkPreviewCard link={thread.link} />
+              )}
 
             {locked && thread.access && (
               <LockedContentNotice

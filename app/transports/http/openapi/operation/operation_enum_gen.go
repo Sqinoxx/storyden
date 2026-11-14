@@ -31,6 +31,7 @@ var (
 	OperationIDAdminOCRReindex                        = OperationID{`AdminOCRReindex`}
 	OperationIDAdminGenerateTagMeanings               = OperationID{`AdminGenerateTagMeanings`}
 	OperationIDAdminStatistics                        = OperationID{`AdminStatistics`}
+	OperationIDAdminServerMetrics                     = OperationID{`AdminServerMetrics`}
 	OperationIDAdminDriveFolderList                   = OperationID{`AdminDriveFolderList`}
 	OperationIDAdminDriveFolderCreate                 = OperationID{`AdminDriveFolderCreate`}
 	OperationIDAdminDriveFolderUpdate                 = OperationID{`AdminDriveFolderUpdate`}
@@ -385,6 +386,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAdminGenerateTagMeanings, nil
 	case string(`AdminStatistics`):
 		return OperationIDAdminStatistics, nil
+	case string(`AdminServerMetrics`):
+		return OperationIDAdminServerMetrics, nil
 	case string(`AdminDriveFolderList`):
 		return OperationIDAdminDriveFolderList, nil
 	case string(`AdminDriveFolderCreate`):

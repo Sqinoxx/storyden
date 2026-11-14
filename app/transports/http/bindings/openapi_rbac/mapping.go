@@ -74,6 +74,10 @@ func (m *Mapping) AdminStatistics() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionAdministrator
 }
 
+func (m *Mapping) AdminServerMetrics() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
 func (m *Mapping) AdminOCRReindex() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionAdministrator
 }

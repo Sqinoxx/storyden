@@ -58,6 +58,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/semdex/semdexer"
 	"github.com/Southclaws/storyden/app/services/semester_suggest"
 	"github.com/Southclaws/storyden/app/services/system/instance_info"
+	"github.com/Southclaws/storyden/app/services/system/server_metrics"
 	"github.com/Southclaws/storyden/app/services/tag/autotagger"
 	"github.com/Southclaws/storyden/app/services/tag/tag_create"
 	"github.com/Southclaws/storyden/app/services/tag/tag_suggest"
@@ -117,6 +118,7 @@ func Build() fx.Option {
 		fx.Provide(autotagger.New),
 		fx.Provide(tag_create.New),
 		fx.Provide(instance_info.New),
+		server_metrics.Build(),
 		ocr.Build(),
 		semester.Build(),
 		drive_credentials.Build(),

@@ -25,6 +25,7 @@ import type {
   AdminOCRAssetSkip200,
   AdminOCRReindex200,
   AdminOCRStats200,
+  AdminServerMetricsParams,
   AdminSettingsGetOKResponse,
   AdminSettingsUpdateBody,
   AdminSettingsUpdateOKResponse,
@@ -57,6 +58,7 @@ import type {
   OAuthRemoteConnectionOKResponse,
   OAuthRemoteDiscoverBody,
   OAuthRemoteDiscoverOKResponse,
+  ServerMetrics,
   UnauthorisedResponse,
 } from "../openapi-schema";
 
@@ -464,6 +466,61 @@ export const useAdminStatistics = <
   const swrKey =
     swrOptions?.swrKey ?? (() => (isEnabled ? getAdminStatisticsKey() : null));
   const swrFn = () => adminStatistics();
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Live resource usage of the machine running the instance (CPU, memory,
+disk, network), request throughput and latency, database and
+background work, plus an in-memory history of up to 24 hours. History
+restarts empty whenever the process restarts.
+
+ */
+export const adminServerMetrics = (params?: AdminServerMetricsParams) => {
+  return fetcher<ServerMetrics>({
+    url: `/admin/server/metrics`,
+    method: "GET",
+    params,
+  });
+};
+
+export const getAdminServerMetricsKey = (params?: AdminServerMetricsParams) =>
+  [`/admin/server/metrics`, ...(params ? [params] : [])] as const;
+
+export type AdminServerMetricsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminServerMetrics>>
+>;
+export type AdminServerMetricsQueryError =
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useAdminServerMetrics = <
+  TError = UnauthorisedResponse | InternalServerErrorResponse,
+>(
+  params?: AdminServerMetricsParams,
+  options?: {
+    swr?: SWRConfiguration<
+      Awaited<ReturnType<typeof adminServerMetrics>>,
+      TError
+    > & { swrKey?: Key; enabled?: boolean };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() => (isEnabled ? getAdminServerMetricsKey(params) : null));
+  const swrFn = () => adminServerMetrics(params);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
     swrKey,

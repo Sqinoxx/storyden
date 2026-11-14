@@ -704,6 +704,35 @@ paths:
                     items: { $ref: "#/components/schemas/StatisticsTagPoint" }
                   trends: { $ref: "#/components/schemas/StatisticsTrends" }
 
+  /admin/server/metrics:
+    get:
+      operationId: AdminServerMetrics
+      description: |
+        Live resource usage of the machine running the instance (CPU, memory,
+        disk, network), request throughput and latency, database and
+        background work, plus an in-memory history of up to 24 hours. History
+        restarts empty whenever the process restarts.
+      tags: [admin]
+      parameters:
+        - name: range
+          in: query
+          required: false
+          description: |
+            `live` returns the last 5 minutes at 5 second resolution, `1h` the
+            last hour at 5 second resolution, `24h` the last day per minute.
+          schema:
+            type: string
+            enum: [live, 1h, 24h]
+            default: live
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServerMetrics" }
+
   /admin/drive/folders:
     get:
       operationId: AdminDriveFolderList
@@ -9267,6 +9296,125 @@ components:
           type: string
         threadCount:
           type: integer
+
+    ServerMetrics:
+      type: object
+      required: [static, current, history]
+      properties:
+        static: { $ref: "#/components/schemas/ServerMetricsStatic" }
+        current: { $ref: "#/components/schemas/ServerMetricsCurrent" }
+        history:
+          type: array
+          items: { $ref: "#/components/schemas/ServerMetricsPoint" }
+
+    ServerMetricsStatic:
+      type: object
+      required: [cpu_model, cores, os, kernel_version, app_started_at]
+      properties:
+        cpu_model: { type: string }
+        cores: { type: integer }
+        os: { type: string }
+        kernel_version: { type: string }
+        app_started_at: { type: string, format: date-time }
+
+    ServerMetricsCurrent:
+      type: object
+      required:
+        - time
+        - cpu_percent
+        - cpu_per_core
+        - load1
+        - load5
+        - load15
+        - mem_total
+        - mem_used
+        - mem_available
+        - swap_total
+        - swap_used
+        - disk_total
+        - disk_used
+        - disk_read_bps
+        - disk_write_bps
+        - net_in_bps
+        - net_out_bps
+        - requests_per_sec
+        - avg_latency_ms
+        - p95_latency_ms
+        - errors
+        - goroutines
+        - heap_bytes
+        - process_cpu_percent
+        - process_rss
+        - host_uptime_seconds
+        - db_open
+        - db_in_use
+        - ai_models
+      properties:
+        time: { type: string, format: date-time }
+        cpu_percent: { type: number }
+        cpu_per_core:
+          type: array
+          items: { type: number }
+        load1: { type: number }
+        load5: { type: number }
+        load15: { type: number }
+        mem_total: { type: integer, format: int64 }
+        mem_used: { type: integer, format: int64 }
+        mem_available: { type: integer, format: int64 }
+        swap_total: { type: integer, format: int64 }
+        swap_used: { type: integer, format: int64 }
+        disk_total: { type: integer, format: int64 }
+        disk_used: { type: integer, format: int64 }
+        disk_read_bps: { type: number }
+        disk_write_bps: { type: number }
+        net_in_bps: { type: number }
+        net_out_bps: { type: number }
+        requests_per_sec: { type: number }
+        avg_latency_ms: { type: number }
+        p95_latency_ms: { type: number }
+        errors:
+          type: integer
+          description: Server errors (5xx) in the latest 5 second window.
+        goroutines: { type: integer }
+        heap_bytes: { type: integer, format: int64 }
+        process_cpu_percent: { type: number }
+        process_rss: { type: integer, format: int64 }
+        host_uptime_seconds: { type: integer, format: int64 }
+        temperature_c: { type: number }
+        db_open: { type: integer }
+        db_in_use: { type: integer }
+        db_active: { type: integer }
+        db_total: { type: integer }
+        db_size_bytes: { type: integer, format: int64 }
+        ocr_queue: { type: integer }
+        ai_enabled:
+          type: boolean
+          description: Whether a local Ollama server answered the last check.
+        ai_models:
+          type: array
+          items: { $ref: "#/components/schemas/ServerMetricsAIModel" }
+
+    ServerMetricsAIModel:
+      type: object
+      required: [name, size_bytes]
+      properties:
+        name: { type: string }
+        size_bytes: { type: integer, format: int64 }
+
+    ServerMetricsPoint:
+      type: object
+      required: [t, cpu, mem, net_in, net_out, disk_read, disk_write, rps, p95_ms, errors]
+      properties:
+        t: { type: string, format: date-time }
+        cpu: { type: number }
+        mem: { type: number }
+        net_in: { type: number }
+        net_out: { type: number }
+        disk_read: { type: number }
+        disk_write: { type: number }
+        rps: { type: number }
+        p95_ms: { type: number }
+        errors: { type: number }
 
     StatisticsTrend:
       type: object

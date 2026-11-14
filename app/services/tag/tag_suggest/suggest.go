@@ -71,7 +71,17 @@ func New(logger *slog.Logger, prompter ai.Prompter, settings *settings.SettingsR
 	}
 }
 
+func (s *Suggester) Enabled() bool {
+	return ai.IsOpenAI(s.prompter)
+}
+
 func (s *Suggester) Suggest(ctx context.Context, title, body string) ([]string, error) {
+	return s.SuggestExcluding(ctx, title, body, xid.NilID())
+}
+
+// SuggestExcluding ignores the thread itself when an existing thread is
+// re-tagged, otherwise its own tags would vote for themselves.
+func (s *Suggester) SuggestExcluding(ctx context.Context, title, body string, exclude xid.ID) ([]string, error) {
 	if !ai.IsOpenAI(s.prompter) {
 		return nil, nil
 	}
@@ -80,8 +90,8 @@ func (s *Suggester) Suggest(ctx context.Context, title, body string) ([]string, 
 	if len([]rune(title+body)) < minInputChars {
 		return nil, nil
 	}
-	if len(body) > maxInputChars {
-		body = body[:maxInputChars]
+	if r := []rune(body); len(r) > maxInputChars {
+		body = string(r[:maxInputChars])
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
@@ -92,7 +102,7 @@ func (s *Suggester) Suggest(ctx context.Context, title, body string) ([]string, 
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	learned, err := s.fromSimilarThreads(ctx, title+"\n\n"+body)
+	learned, err := s.fromSimilarThreads(ctx, title+"\n\n"+body, exclude)
 	if err != nil {
 		s.logger.Warn("tag suggestion from similar threads failed", slog.String("error", err.Error()))
 	}
@@ -134,7 +144,7 @@ func (s *Suggester) fromMeanings(ctx context.Context, title, body string) ([]str
 	return out, nil
 }
 
-func (s *Suggester) fromSimilarThreads(ctx context.Context, text string) ([]string, error) {
+func (s *Suggester) fromSimilarThreads(ctx context.Context, text string, exclude xid.ID) ([]string, error) {
 	if s.semdex == nil {
 		return nil, nil
 	}
@@ -152,6 +162,9 @@ func (s *Suggester) fromSimilarThreads(ctx context.Context, text string) ([]stri
 	for _, r := range res.Items {
 		if len(neighbours) == nearestThreads {
 			break
+		}
+		if r.ID == exclude {
+			continue
 		}
 		if r.Kind == datagraph.KindThread && r.Relevance >= minNeighbourSimilarity {
 			ids = append(ids, r.ID)

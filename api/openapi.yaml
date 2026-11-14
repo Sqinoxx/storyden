@@ -472,6 +472,56 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "200": { $ref: "#/components/responses/AdminGenerateTagMeaningsOK" }
 
+  /admin/ai/tag-backfill:
+    get:
+      operationId: AdminTagBackfillStatus
+      description: |
+        Progress of the background run that suggests additional tags for
+        existing threads, with the suggestions collected so far.
+      tags: [admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AdminTagBackfillOK" }
+    post:
+      operationId: AdminTagBackfillStart
+      x-storyden: { rate-limit-cost: 10 }
+      description: |
+        Start suggesting additional tags for every published thread in the
+        background. Nothing is changed until suggestions are applied.
+      tags: [admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AdminTagBackfillOK" }
+    delete:
+      operationId: AdminTagBackfillCancel
+      description: Stop the background run, keeping the suggestions so far.
+      tags: [admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AdminTagBackfillOK" }
+
+  /admin/ai/tag-backfill/apply:
+    post:
+      operationId: AdminTagBackfillApply
+      description: |
+        Add the reviewed tags to the threads. Only existing tags are added,
+        no tags are removed and the threads' updated time is unchanged.
+      tags: [admin]
+      requestBody: { $ref: "#/components/requestBodies/AdminTagBackfillApply" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AdminTagBackfillOK" }
+
   #
   #      888          d8b
   #      888          Y8P
@@ -6452,6 +6502,18 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/AdminSettingsMutableProps" }
 
+    AdminTagBackfillApply:
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [items]
+            properties:
+              items:
+                type: array
+                maxItems: 1000
+                items: { $ref: "#/components/schemas/TagBackfillApplyItem" }
+
     AdminDriveFolderCreate:
       content:
         application/json:
@@ -7799,6 +7861,12 @@ components:
         text/event-stream:
           schema:
             type: string
+
+    AdminTagBackfillOK:
+      description: State of the tag backfill run.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/TagBackfillStatus" }
 
     AdminGenerateTagMeaningsOK:
       description: Drafted tag meanings for review.
@@ -13279,6 +13347,48 @@ components:
         preview:
           type: string
           description: HTML overview built without the language model.
+
+    TagBackfillStatus:
+      type: object
+      required: [running, checked, total, failed, applied, proposals]
+      properties:
+        running: { type: boolean }
+        checked: { type: integer }
+        total: { type: integer }
+        failed: { type: integer }
+        applied:
+          type: integer
+          description: Tags added by the apply request that returned this.
+        started_at: { type: string, format: date-time }
+        finished_at: { type: string, format: date-time }
+        error: { type: string }
+        proposals:
+          type: array
+          items: { $ref: "#/components/schemas/TagBackfillProposal" }
+
+    TagBackfillProposal:
+      type: object
+      required: [thread_id, slug, title, current, add]
+      properties:
+        thread_id: { $ref: "#/components/schemas/Identifier" }
+        slug: { type: string }
+        title: { type: string }
+        current:
+          type: array
+          items: { type: string }
+        add:
+          type: array
+          items: { type: string }
+
+    TagBackfillApplyItem:
+      type: object
+      required: [thread_id, tags]
+      properties:
+        thread_id: { $ref: "#/components/schemas/Identifier" }
+        tags:
+          type: array
+          maxItems: 10
+          items: { type: string }
 
     TagMeaningsDraft:
       type: object

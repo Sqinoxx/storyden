@@ -30,6 +30,8 @@ import type {
   AdminSettingsUpdateBody,
   AdminSettingsUpdateOKResponse,
   AdminStatistics200,
+  AdminTagBackfillApplyBody,
+  AdminTagBackfillOKResponse,
   AuditEventCreatedOKResponse,
   AuditEventGetOKResponse,
   AuditEventListOKResponse,
@@ -418,6 +420,236 @@ export const useAdminGenerateTagMeanings = <
 
   const swrKey = swrOptions?.swrKey ?? getAdminGenerateTagMeaningsMutationKey();
   const swrFn = getAdminGenerateTagMeaningsMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Progress of the background run that suggests additional tags for
+existing threads, with the suggestions collected so far.
+
+ */
+export const adminTagBackfillStatus = () => {
+  return fetcher<AdminTagBackfillOKResponse>({
+    url: `/admin/ai/tag-backfill`,
+    method: "GET",
+  });
+};
+
+export const getAdminTagBackfillStatusKey = () =>
+  [`/admin/ai/tag-backfill`] as const;
+
+export type AdminTagBackfillStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminTagBackfillStatus>>
+>;
+export type AdminTagBackfillStatusQueryError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useAdminTagBackfillStatus = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRConfiguration<
+    Awaited<ReturnType<typeof adminTagBackfillStatus>>,
+    TError
+  > & { swrKey?: Key; enabled?: boolean };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() => (isEnabled ? getAdminTagBackfillStatusKey() : null));
+  const swrFn = () => adminTagBackfillStatus();
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Start suggesting additional tags for every published thread in the
+background. Nothing is changed until suggestions are applied.
+
+ */
+export const adminTagBackfillStart = () => {
+  return fetcher<AdminTagBackfillOKResponse>({
+    url: `/admin/ai/tag-backfill`,
+    method: "POST",
+  });
+};
+
+export const getAdminTagBackfillStartMutationFetcher = () => {
+  return (
+    _: Key,
+    __: { arg: Arguments },
+  ): Promise<AdminTagBackfillOKResponse> => {
+    return adminTagBackfillStart();
+  };
+};
+export const getAdminTagBackfillStartMutationKey = () =>
+  [`/admin/ai/tag-backfill`] as const;
+
+export type AdminTagBackfillStartMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminTagBackfillStart>>
+>;
+export type AdminTagBackfillStartMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useAdminTagBackfillStart = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof adminTagBackfillStart>>,
+    TError,
+    Key,
+    Arguments,
+    Awaited<ReturnType<typeof adminTagBackfillStart>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAdminTagBackfillStartMutationKey();
+  const swrFn = getAdminTagBackfillStartMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Stop the background run, keeping the suggestions so far.
+ */
+export const adminTagBackfillCancel = () => {
+  return fetcher<AdminTagBackfillOKResponse>({
+    url: `/admin/ai/tag-backfill`,
+    method: "DELETE",
+  });
+};
+
+export const getAdminTagBackfillCancelMutationFetcher = () => {
+  return (
+    _: Key,
+    __: { arg: Arguments },
+  ): Promise<AdminTagBackfillOKResponse> => {
+    return adminTagBackfillCancel();
+  };
+};
+export const getAdminTagBackfillCancelMutationKey = () =>
+  [`/admin/ai/tag-backfill`] as const;
+
+export type AdminTagBackfillCancelMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminTagBackfillCancel>>
+>;
+export type AdminTagBackfillCancelMutationError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useAdminTagBackfillCancel = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof adminTagBackfillCancel>>,
+    TError,
+    Key,
+    Arguments,
+    Awaited<ReturnType<typeof adminTagBackfillCancel>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAdminTagBackfillCancelMutationKey();
+  const swrFn = getAdminTagBackfillCancelMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Add the reviewed tags to the threads. Only existing tags are added,
+no tags are removed and the threads' updated time is unchanged.
+
+ */
+export const adminTagBackfillApply = (
+  adminTagBackfillApplyBody: AdminTagBackfillApplyBody,
+) => {
+  return fetcher<AdminTagBackfillOKResponse>({
+    url: `/admin/ai/tag-backfill/apply`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: adminTagBackfillApplyBody,
+  });
+};
+
+export const getAdminTagBackfillApplyMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: AdminTagBackfillApplyBody },
+  ): Promise<AdminTagBackfillOKResponse> => {
+    return adminTagBackfillApply(arg);
+  };
+};
+export const getAdminTagBackfillApplyMutationKey = () =>
+  [`/admin/ai/tag-backfill/apply`] as const;
+
+export type AdminTagBackfillApplyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminTagBackfillApply>>
+>;
+export type AdminTagBackfillApplyMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useAdminTagBackfillApply = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof adminTagBackfillApply>>,
+    TError,
+    Key,
+    AdminTagBackfillApplyBody,
+    Awaited<ReturnType<typeof adminTagBackfillApply>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getAdminTagBackfillApplyMutationKey();
+  const swrFn = getAdminTagBackfillApplyMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

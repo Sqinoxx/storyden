@@ -24,6 +24,8 @@ import type {
   AdminSettingsUpdateBody,
   AdminSettingsUpdateOKResponse,
   AdminStatistics200,
+  AdminTagBackfillApplyBody,
+  AdminTagBackfillOKResponse,
   AuditEventCreatedOKResponse,
   AuditEventGetOKResponse,
   AuditEventListOKResponse,
@@ -235,6 +237,111 @@ export const adminGenerateTagMeanings = async (
     {
       ...options,
       method: "POST",
+    },
+  );
+};
+
+/**
+ * Progress of the background run that suggests additional tags for
+existing threads, with the suggestions collected so far.
+
+ */
+export type adminTagBackfillStatusResponse = {
+  data: AdminTagBackfillOKResponse;
+  status: number;
+};
+
+export const getAdminTagBackfillStatusUrl = () => {
+  return `/admin/ai/tag-backfill`;
+};
+
+export const adminTagBackfillStatus = async (
+  options?: RequestInit,
+): Promise<adminTagBackfillStatusResponse> => {
+  return fetcher<Promise<adminTagBackfillStatusResponse>>(
+    getAdminTagBackfillStatusUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * Start suggesting additional tags for every published thread in the
+background. Nothing is changed until suggestions are applied.
+
+ */
+export type adminTagBackfillStartResponse = {
+  data: AdminTagBackfillOKResponse;
+  status: number;
+};
+
+export const getAdminTagBackfillStartUrl = () => {
+  return `/admin/ai/tag-backfill`;
+};
+
+export const adminTagBackfillStart = async (
+  options?: RequestInit,
+): Promise<adminTagBackfillStartResponse> => {
+  return fetcher<Promise<adminTagBackfillStartResponse>>(
+    getAdminTagBackfillStartUrl(),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+/**
+ * Stop the background run, keeping the suggestions so far.
+ */
+export type adminTagBackfillCancelResponse = {
+  data: AdminTagBackfillOKResponse;
+  status: number;
+};
+
+export const getAdminTagBackfillCancelUrl = () => {
+  return `/admin/ai/tag-backfill`;
+};
+
+export const adminTagBackfillCancel = async (
+  options?: RequestInit,
+): Promise<adminTagBackfillCancelResponse> => {
+  return fetcher<Promise<adminTagBackfillCancelResponse>>(
+    getAdminTagBackfillCancelUrl(),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+/**
+ * Add the reviewed tags to the threads. Only existing tags are added,
+no tags are removed and the threads' updated time is unchanged.
+
+ */
+export type adminTagBackfillApplyResponse = {
+  data: AdminTagBackfillOKResponse;
+  status: number;
+};
+
+export const getAdminTagBackfillApplyUrl = () => {
+  return `/admin/ai/tag-backfill/apply`;
+};
+
+export const adminTagBackfillApply = async (
+  adminTagBackfillApplyBody: AdminTagBackfillApplyBody,
+  options?: RequestInit,
+): Promise<adminTagBackfillApplyResponse> => {
+  return fetcher<Promise<adminTagBackfillApplyResponse>>(
+    getAdminTagBackfillApplyUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(adminTagBackfillApplyBody),
     },
   );
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import { MenuSelectionDetails, Portal } from "@ark-ui/react";
+import { useState } from "react";
 
 import { Account, Permission } from "@/api/openapi-schema";
 import { BugReportModal } from "@/components/bug-report/BugReportModal";
@@ -28,6 +29,7 @@ import { TagManagementMenuItem, TagsMenuItem } from "../Anchors/Tags";
 import { ThemeMenuItem } from "../Anchors/Theme";
 
 import { BuildInfo } from "./BuildInfo";
+import { ServerLoadBadge } from "./ServerLoadBadge";
 import {
   InvitationID,
   InvitationMenuItem,
@@ -60,6 +62,13 @@ export function AccountMenu({
   const invitation = useInvitation();
   const bugReportDisclosure = useDisclosure();
   const suggestionDisclosure = useDisclosure();
+  const [internalOpen, setInternalOpen] = useState(false);
+  const menuOpen = open ?? internalOpen;
+
+  function handleOpenChange(details: { open: boolean }) {
+    setInternalOpen(details.open);
+    onOpenChange?.(details);
+  }
 
   async function handleInvitationSelect() {
     invitationDisclosure.onOpen();
@@ -83,7 +92,7 @@ export function AccountMenu({
       <Menu.Root
         size="md"
         open={open}
-        onOpenChange={onOpenChange}
+        onOpenChange={handleOpenChange}
         onSelect={handleSelect}
         positioning={{
           fitViewport: true,
@@ -140,6 +149,7 @@ export function AccountMenu({
                 <LogoutMenuItem />
               </Menu.ItemGroup>
 
+              {isAdmin && <ServerLoadBadge active={menuOpen} />}
               {isAdmin && <BuildInfo />}
             </Menu.Content>
           </Menu.Positioner>

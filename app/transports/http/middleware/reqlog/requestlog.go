@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"net/url"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/Southclaws/storyden/app/services/reqinfo"
+	"github.com/Southclaws/storyden/app/services/system/server_metrics"
 	"github.com/Southclaws/storyden/app/transports/http/middleware/origin"
 	"github.com/Southclaws/storyden/internal/infrastructure/instrumentation/kv"
 	"github.com/Southclaws/storyden/internal/infrastructure/instrumentation/spanner"
@@ -49,13 +51,26 @@ func redactedQuery(u *url.URL) string {
 }
 
 type Middleware struct {
-	ins spanner.Instrumentation
+	ins      spanner.Instrumentation
+	requests *server_metrics.Requests
 }
 
-func New(ins spanner.Builder) *Middleware {
+func New(ins spanner.Builder, requests *server_metrics.Requests) *Middleware {
 	return &Middleware{
-		ins: ins.Build(),
+		ins:      ins.Build(),
+		requests: requests,
 	}
+}
+
+var unmeteredPaths = []string{"/api/admin/server/metrics", "/sse/"}
+
+func metered(path string) bool {
+	for _, p := range unmeteredPaths {
+		if strings.HasPrefix(path, p) {
+			return false
+		}
+	}
+	return true
 }
 
 type withStatus struct {
@@ -98,8 +113,17 @@ func (m *Middleware) WithLogger() func(http.Handler) http.Handler {
 			defer span.End()
 
 			defer func() {
+				duration := time.Since(start)
+				if metered(r.URL.Path) {
+					status := wr.statusCode
+					if status == 0 {
+						status = http.StatusOK
+					}
+					m.requests.Observe(duration, status)
+				}
+
 				span.Annotate(
-					kv.Duration("duration", time.Since(start)),
+					kv.Duration("duration", duration),
 					kv.Int("http.response.status_code", wr.statusCode),
 				)
 

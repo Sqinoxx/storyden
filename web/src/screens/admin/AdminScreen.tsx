@@ -28,6 +28,7 @@ import { OAuthSettingsScreen } from "./OAuthSettingsScreen";
 import { OCRSettingsScreen } from "./OCRSettingsScreen/OCRSettingsScreen";
 import { PluginSettingsScreen } from "./PluginSettingsScreen";
 import { RobotsSettingsScreen } from "./RobotsSettingsScreen/RobotsSettingsScreen";
+import { ServerSettingsScreen } from "./ServerSettingsScreen/ServerSettingsScreen";
 import { SessionSettingsScreen } from "./SessionSettingsScreen";
 import { StatisticsSettingsScreen } from "./StatisticsSettingsScreen/StatisticsSettingsScreen";
 import { SystemSettingsScreen } from "./SystemSettingsScreen";
@@ -65,7 +66,7 @@ export function AdminScreen() {
       setTab(DEFAULT_TAB);
     }
 
-    if (!canViewStatistics && tab === "statistics") {
+    if (!canViewStatistics && (tab === "statistics" || tab === "server")) {
       setTab(DEFAULT_TAB);
     }
 
@@ -128,6 +129,9 @@ export function AdminScreen() {
           {canViewStatistics && (
             <Tabs.Trigger value="statistics">Statistiken</Tabs.Trigger>
           )}
+          {canViewStatistics && (
+            <Tabs.Trigger value="server">Server</Tabs.Trigger>
+          )}
           {canViewBugReports && (
             <Tabs.Trigger value="bug_reports">Feedback</Tabs.Trigger>
           )}
@@ -181,6 +185,12 @@ export function AdminScreen() {
         {canViewStatistics && (
           <Tabs.Content value="statistics">
             {tab === "statistics" && <StatisticsSettingsScreen />}
+          </Tabs.Content>
+        )}
+
+        {canViewStatistics && (
+          <Tabs.Content value="server">
+            {tab === "server" && <ServerSettingsScreen />}
           </Tabs.Content>
         )}
 

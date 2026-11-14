@@ -19,6 +19,7 @@ import type {
   AdminOCRAssetSkip200,
   AdminOCRReindex200,
   AdminOCRStats200,
+  AdminServerMetricsParams,
   AdminSettingsGetOKResponse,
   AdminSettingsUpdateBody,
   AdminSettingsUpdateOKResponse,
@@ -47,6 +48,7 @@ import type {
   OAuthRemoteConnectionOKResponse,
   OAuthRemoteDiscoverBody,
   OAuthRemoteDiscoverOKResponse,
+  ServerMetrics,
 } from "../openapi-schema";
 import { fetcher } from "../server";
 
@@ -263,6 +265,45 @@ export const adminStatistics = async (
     ...options,
     method: "GET",
   });
+};
+
+/**
+ * Live resource usage of the machine running the instance (CPU, memory,
+disk, network), request throughput and latency, database and
+background work, plus an in-memory history of up to 24 hours. History
+restarts empty whenever the process restarts.
+
+ */
+export type adminServerMetricsResponse = {
+  data: ServerMetrics;
+  status: number;
+};
+
+export const getAdminServerMetricsUrl = (params?: AdminServerMetricsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  return normalizedParams.size
+    ? `/admin/server/metrics?${normalizedParams.toString()}`
+    : `/admin/server/metrics`;
+};
+
+export const adminServerMetrics = async (
+  params?: AdminServerMetricsParams,
+  options?: RequestInit,
+): Promise<adminServerMetricsResponse> => {
+  return fetcher<Promise<adminServerMetricsResponse>>(
+    getAdminServerMetricsUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
 };
 
 /**

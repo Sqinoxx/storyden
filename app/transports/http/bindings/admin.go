@@ -51,6 +51,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/moderation/warning_manager"
 	"github.com/Southclaws/storyden/app/services/ocr"
 	"github.com/Southclaws/storyden/app/services/system/instance_info"
+	"github.com/Southclaws/storyden/app/services/system/server_metrics"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 	ent_asset "github.com/Southclaws/storyden/internal/ent/asset"
 	"github.com/Southclaws/storyden/internal/infrastructure/pubsub"
@@ -79,6 +80,7 @@ type Admin struct {
 	ocrProcessor      *ocr.Processor
 	bus               *pubsub.Bus
 	tagSuggester      *tag_suggest.Suggester
+	serverMetrics     *server_metrics.Service
 }
 
 func NewAdmin(
@@ -103,6 +105,7 @@ func NewAdmin(
 	bus *pubsub.Bus,
 	router *echo.Echo,
 	tagSuggester *tag_suggest.Suggester,
+	serverMetrics *server_metrics.Service,
 ) Admin {
 	a := Admin{
 		accountQuery:      accountQuery,
@@ -125,6 +128,7 @@ func NewAdmin(
 		ocrProcessor:      ocrProcessor,
 		bus:               bus,
 		tagSuggester:      tagSuggester,
+		serverMetrics:     serverMetrics,
 	}
 
 	router.Use(func(next echo.HandlerFunc) echo.HandlerFunc {

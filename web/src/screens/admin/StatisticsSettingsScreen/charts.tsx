@@ -49,18 +49,30 @@ export function MultiLineChart({
   series,
   xKey = "label",
   legend = series.length > 1,
+  yMax,
+  yFormatter,
+  animate = true,
 }: {
   data: object[];
   series: LineSeries[];
   xKey?: string;
   legend?: boolean;
+  yMax?: number;
+  yFormatter?: (value: number) => string;
+  animate?: boolean;
 }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <CartesianGrid stroke={GRID_STROKE} vertical={false} />
         <XAxis dataKey={xKey} {...AXIS_PROPS} minTickGap={16} />
-        <YAxis {...AXIS_PROPS} allowDecimals={false} width={36} />
+        <YAxis
+          {...AXIS_PROPS}
+          allowDecimals={false}
+          width={yFormatter ? 56 : 36}
+          domain={yMax === undefined ? undefined : [0, yMax]}
+          tickFormatter={yFormatter}
+        />
         <Tooltip content={ChartTooltip} />
         {legend && (
           <Legend
@@ -81,6 +93,7 @@ export function MultiLineChart({
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4 }}
+            isAnimationActive={animate}
           />
         ))}
       </LineChart>

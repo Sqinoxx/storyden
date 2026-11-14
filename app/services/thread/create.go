@@ -68,6 +68,10 @@ func (s *service) Create(ctx context.Context,
 		opts = append(opts, thread_writer.WithContent(c))
 	}
 
+	if c, ok := partial.Content.Get(); ok && !partial.URL.Ok() {
+		partial.URL = firstCardURL(c)
+	}
+
 	if u, ok := partial.URL.Get(); ok {
 		ln, err := s.fetcher.Fetch(ctx, u)
 		if err == nil {

@@ -113,6 +113,12 @@ func WithLink(id xid.ID) Option {
 	}
 }
 
+func WithoutLink() Option {
+	return func(pm *ent.PostMutation) {
+		pm.ClearLink()
+	}
+}
+
 func WithContentLinks(ids ...xid.ID) Option {
 	return func(pm *ent.PostMutation) {
 		pm.AddContentLinkIDs(ids...)

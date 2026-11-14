@@ -127,6 +127,13 @@ func (s *service) Update(ctx context.Context, threadID post.ID, partial Partial)
 		opts = append(opts, thread_writer.WithTagsRemove(removeIDs...))
 	}
 
+	if c, ok := partial.Content.Get(); ok && !partial.URL.Ok() {
+		partial.URL = firstCardURL(c)
+		if !partial.URL.Ok() && isStaleCardLink(thr, c) {
+			opts = append(opts, thread_writer.WithoutLink())
+		}
+	}
+
 	if u, ok := partial.URL.Get(); ok {
 		ln, err := s.fetcher.Fetch(ctx, u)
 		if err == nil {

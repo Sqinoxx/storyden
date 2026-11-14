@@ -21,6 +21,10 @@ type OperationPermissions interface {
 	AdminOCRAssetSkip() (bool, *rbac.Permission)
 	AdminOCRReindex() (bool, *rbac.Permission)
 	AdminGenerateTagMeanings() (bool, *rbac.Permission)
+	AdminTagBackfillStatus() (bool, *rbac.Permission)
+	AdminTagBackfillStart() (bool, *rbac.Permission)
+	AdminTagBackfillCancel() (bool, *rbac.Permission)
+	AdminTagBackfillApply() (bool, *rbac.Permission)
 	AdminStatistics() (bool, *rbac.Permission)
 	AdminServerMetrics() (bool, *rbac.Permission)
 	AdminDriveFolderList() (bool, *rbac.Permission)
@@ -340,6 +344,14 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.AdminOCRReindex()
 	case "AdminGenerateTagMeanings":
 		return optable.AdminGenerateTagMeanings()
+	case "AdminTagBackfillStatus":
+		return optable.AdminTagBackfillStatus()
+	case "AdminTagBackfillStart":
+		return optable.AdminTagBackfillStart()
+	case "AdminTagBackfillCancel":
+		return optable.AdminTagBackfillCancel()
+	case "AdminTagBackfillApply":
+		return optable.AdminTagBackfillApply()
 	case "AdminStatistics":
 		return optable.AdminStatistics()
 	case "AdminServerMetrics":

@@ -1198,6 +1198,22 @@ func (m *Mapping) AdminGenerateTagMeanings() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionAdministrator
 }
 
+func (m *Mapping) AdminTagBackfillStatus() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
+func (m *Mapping) AdminTagBackfillStart() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
+func (m *Mapping) AdminTagBackfillCancel() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
+func (m *Mapping) AdminTagBackfillApply() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
 func (m *Mapping) ThreadSummarise() (bool, *rbac.Permission) {
 	return false, &rbac.PermissionReadPublishedThreads
 }

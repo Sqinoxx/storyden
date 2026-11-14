@@ -11,6 +11,7 @@ import { useTranslation } from "@/lib/i18n";
 import { CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
+import { TagBackfill } from "./TagBackfill";
 import { Form, Props, useAISettings } from "./useAISettings";
 
 type ToggleName = Exclude<keyof Form, "tagMeanings">;
@@ -186,6 +187,8 @@ export function AISettingsForm(props: Props) {
           <FormHelperText>{t.aiSettings.tagMeaningsHelp}</FormHelperText>
         </FormControl>
       </CardBox>
+
+      <TagBackfill configured={configured} />
     </styled.form>
   );
 }

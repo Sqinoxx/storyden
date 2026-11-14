@@ -30,6 +30,10 @@ var (
 	OperationIDAdminOCRAssetSkip                      = OperationID{`AdminOCRAssetSkip`}
 	OperationIDAdminOCRReindex                        = OperationID{`AdminOCRReindex`}
 	OperationIDAdminGenerateTagMeanings               = OperationID{`AdminGenerateTagMeanings`}
+	OperationIDAdminTagBackfillStatus                 = OperationID{`AdminTagBackfillStatus`}
+	OperationIDAdminTagBackfillStart                  = OperationID{`AdminTagBackfillStart`}
+	OperationIDAdminTagBackfillCancel                 = OperationID{`AdminTagBackfillCancel`}
+	OperationIDAdminTagBackfillApply                  = OperationID{`AdminTagBackfillApply`}
 	OperationIDAdminStatistics                        = OperationID{`AdminStatistics`}
 	OperationIDAdminServerMetrics                     = OperationID{`AdminServerMetrics`}
 	OperationIDAdminDriveFolderList                   = OperationID{`AdminDriveFolderList`}
@@ -384,6 +388,14 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAdminOCRReindex, nil
 	case string(`AdminGenerateTagMeanings`):
 		return OperationIDAdminGenerateTagMeanings, nil
+	case string(`AdminTagBackfillStatus`):
+		return OperationIDAdminTagBackfillStatus, nil
+	case string(`AdminTagBackfillStart`):
+		return OperationIDAdminTagBackfillStart, nil
+	case string(`AdminTagBackfillCancel`):
+		return OperationIDAdminTagBackfillCancel, nil
+	case string(`AdminTagBackfillApply`):
+		return OperationIDAdminTagBackfillApply, nil
 	case string(`AdminStatistics`):
 		return OperationIDAdminStatistics, nil
 	case string(`AdminServerMetrics`):

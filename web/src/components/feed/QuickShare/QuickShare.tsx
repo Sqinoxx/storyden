@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useId, useState } from "react";
+import { FormProvider } from "react-hook-form";
 import { match } from "ts-pattern";
 
 import { LinkReference } from "@/api/openapi-schema";
@@ -8,6 +9,7 @@ import { blockSubmitWhileUploading } from "@/components/content/blockSubmitWhile
 import { useAttachmentUpload } from "@/components/content/useAttachmentUpload";
 import { FileAttachmentBadge } from "@/components/post/FileAttachmentList";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
+import { SemesterSuggestionHint } from "@/components/thread/SemesterSelect/SemesterSuggestionHint";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { DEFAULT_NEW_THREAD_TAGS } from "@/components/thread/useAutoTagDetection";
 import { Spinner } from "@/components/ui/Spinner";
@@ -51,161 +53,168 @@ export function QuickShare(props: Props) {
       transitionTimingFunction="default"
       style={{ transitionProperty: "padding, box-shadow" }}
     >
-      <styled.form
-        className={lstack({
-          gap: "2",
-        })}
-        ref={formRef}
-        onFocus={handlers.handleFocus}
-        onSubmit={blockSubmitWhileUploading(
-          isUploading || isComposerUploading,
-          handlers.handlePost,
-        )}
-        minHeight={editing ? "48" : "0"}
-        transitionDuration="slower"
-        transitionTimingFunction="default"
-        style={{ transitionProperty: "min-height" }}
-      >
-        <Input
-          {...form.register("title")}
-          placeholder={t.editor.titlePlaceholder}
-          fontWeight="semibold"
-          fontSize="md"
-          px="3"
-          py="2"
-          h="auto"
-          w="full"
-          borderRadius="md"
-          borderColor="border.subtle"
-          bg="bg.subtle/30"
-          _focus={{
-            borderColor: "accent.default",
-            bg: "bg.default",
-          }}
-        />
-
-        <Box
-          display="grid"
-          flex="1"
-          minH="0"
-          maxH="48"
-          w="full"
-          overflowX="hidden"
-          overflowY="auto"
-        >
-          <ComposeField
-            control={form.control}
-            name="body"
-            placeholder={t.feed.quickSharePlaceholder}
-            resetKey={resetKey}
-            inlineAttachments
-            onAssetUpload={handlers.handleComposerAssetUpload}
-            onUploadingChange={setComposerUploading}
-          />
-        </Box>
-
-        <Box display="flex" flexDirection="column" w="full" gap="2">
-          {props.showCategorySelect && (
-            <HStack alignItems="center" flexWrap="wrap" gap="2">
-              <CategoryTreeSelect
-                control={form.control}
-                name="category"
-                rootId={props.initialCategory?.id}
-              />
-
-              <FormErrorText>
-                {form.formState.errors["category"]?.message}
-              </FormErrorText>
-            </HStack>
+      <FormProvider {...form}>
+        <styled.form
+          className={lstack({
+            gap: "2",
+          })}
+          ref={formRef}
+          onFocus={handlers.handleFocus}
+          onSubmit={blockSubmitWhileUploading(
+            isUploading || isComposerUploading,
+            handlers.handlePost,
           )}
+          minHeight={editing ? "48" : "0"}
+          transitionDuration="slower"
+          transitionTimingFunction="default"
+          style={{ transitionProperty: "min-height" }}
+        >
+          <Input
+            {...form.register("title")}
+            placeholder={t.editor.titlePlaceholder}
+            fontWeight="semibold"
+            fontSize="md"
+            px="3"
+            py="2"
+            h="auto"
+            w="full"
+            borderRadius="md"
+            borderColor="border.subtle"
+            bg="bg.subtle/30"
+            _focus={{
+              borderColor: "accent.default",
+              bg: "bg.default",
+            }}
+          />
 
           <Box
-            display={{ base: "grid", md: "flex" }}
-            gridTemplateColumns="1fr auto"
-            alignItems="center"
-            gap="2"
+            display="grid"
+            flex="1"
+            minH="0"
+            maxH="48"
             w="full"
+            overflowX="hidden"
+            overflowY="auto"
           >
-            <Box minW="0" flex={{ md: "none" }} order={{ md: 1 }}>
-              <SemesterSelect control={form.control} name="semester" />
-            </Box>
-
-            <HStack
-              gap="2"
-              flexShrink="0"
-              order={{ md: 3 }}
-              ml={{ md: "auto" }}
-            >
-              <styled.label
-                className={button({ size: "sm", variant: "ghost" })}
-                htmlFor={fileInputId}
-                title={t.editor.uploadFileHint}
-                aria-disabled={isUploading}
-                opacity={isUploading ? "5" : "full"}
-                pointerEvents={isUploading ? "none" : "auto"}
-              >
-                📎 {t.editor.uploadFile}
-              </styled.label>
-              <styled.input
-                id={fileInputId}
-                type="file"
-                multiple
-                display="none"
-                accept="*"
-                disabled={isUploading}
-                onChange={async (e) => {
-                  const files = Array.from(e.currentTarget.files ?? []);
-                  e.currentTarget.value = "";
-
-                  const uploaded = await upload(files);
-
-                  for (const { markup } of uploaded) {
-                    const current = form.getValues("body") ?? "";
-                    form.setValue("body", current + "<p>" + markup + "</p>");
-                  }
-
-                  if (uploaded.length > 0) {
-                    handlers.handleAddAssets(uploaded.map((u) => u.asset));
-                  }
-                }}
-              />
-            </HStack>
-
-            <Box minW="0" flex={{ md: "1" }} order={{ md: 2 }}>
-              <TagListField
-                name="tags"
-                control={form.control}
-                attachments={uploadedAssets}
-                defaultTags={DEFAULT_NEW_THREAD_TAGS}
-                categoryHint={props.initialCategory?.id}
-                resetKey={resetKey}
-                triggerProps={{ w: "full", minW: "0", maxW: "full" }}
-              />
-            </Box>
-
-            <Box flexShrink="0" order={{ md: 4 }} justifySelf="end">
-              <Button
-                type="submit"
-                size="sm"
-                variant="subtle"
-                loading={
-                  form.formState.isSubmitting ||
-                  isUploading ||
-                  isComposerUploading
-                }
-                loadingText={
-                  isUploading || isComposerUploading
-                    ? t.toasts.uploading
-                    : undefined
-                }
-              >
-                {t.feed.share}
-                <SendIcon />
-              </Button>
-            </Box>
+            <ComposeField
+              control={form.control}
+              name="body"
+              placeholder={t.feed.quickSharePlaceholder}
+              resetKey={resetKey}
+              inlineAttachments
+              onAssetUpload={handlers.handleComposerAssetUpload}
+              onUploadingChange={setComposerUploading}
+            />
           </Box>
-        </Box>
-      </styled.form>
+
+          <Box display="flex" flexDirection="column" w="full" gap="2">
+            {props.showCategorySelect && (
+              <HStack alignItems="center" flexWrap="wrap" gap="2">
+                <CategoryTreeSelect
+                  control={form.control}
+                  name="category"
+                  rootId={props.initialCategory?.id}
+                />
+
+                <FormErrorText>
+                  {form.formState.errors["category"]?.message}
+                </FormErrorText>
+              </HStack>
+            )}
+
+            <Box
+              display={{ base: "grid", md: "flex" }}
+              gridTemplateColumns="1fr auto"
+              alignItems="center"
+              gap="2"
+              w="full"
+            >
+              <Box minW="0" flex={{ md: "none" }} order={{ md: 1 }}>
+                <SemesterSelect control={form.control} name="semester" />
+              </Box>
+
+              <HStack
+                gap="2"
+                flexShrink="0"
+                order={{ md: 3 }}
+                ml={{ md: "auto" }}
+              >
+                <styled.label
+                  className={button({ size: "sm", variant: "ghost" })}
+                  htmlFor={fileInputId}
+                  title={t.editor.uploadFileHint}
+                  aria-disabled={isUploading}
+                  opacity={isUploading ? "5" : "full"}
+                  pointerEvents={isUploading ? "none" : "auto"}
+                >
+                  📎 {t.editor.uploadFile}
+                </styled.label>
+                <styled.input
+                  id={fileInputId}
+                  type="file"
+                  multiple
+                  display="none"
+                  accept="*"
+                  disabled={isUploading}
+                  onChange={async (e) => {
+                    const files = Array.from(e.currentTarget.files ?? []);
+                    e.currentTarget.value = "";
+
+                    const uploaded = await upload(files);
+
+                    for (const { markup } of uploaded) {
+                      const current = form.getValues("body") ?? "";
+                      form.setValue("body", current + "<p>" + markup + "</p>");
+                    }
+
+                    if (uploaded.length > 0) {
+                      handlers.handleAddAssets(uploaded.map((u) => u.asset));
+                    }
+                  }}
+                />
+              </HStack>
+
+              <Box minW="0" flex={{ md: "1" }} order={{ md: 2 }}>
+                <TagListField
+                  name="tags"
+                  control={form.control}
+                  attachments={uploadedAssets}
+                  defaultTags={DEFAULT_NEW_THREAD_TAGS}
+                  categoryHint={props.initialCategory?.id}
+                  resetKey={resetKey}
+                  triggerProps={{ w: "full", minW: "0", maxW: "full" }}
+                />
+              </Box>
+
+              <Box flexShrink="0" order={{ md: 4 }} justifySelf="end">
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="subtle"
+                  loading={
+                    form.formState.isSubmitting ||
+                    isUploading ||
+                    isComposerUploading
+                  }
+                  loadingText={
+                    isUploading || isComposerUploading
+                      ? t.toasts.uploading
+                      : undefined
+                  }
+                >
+                  {t.feed.share}
+                  <SendIcon />
+                </Button>
+              </Box>
+            </Box>
+
+            <SemesterSuggestionHint
+              name="semester"
+              attachments={uploadedAssets}
+            />
+          </Box>
+        </styled.form>
+      </FormProvider>
 
       {match(hydratedLink)
         .with(null, () => null)

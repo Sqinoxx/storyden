@@ -3,6 +3,7 @@
 import {
   TreeView as ArkTreeView,
   createTreeCollection,
+  useTreeViewNodeContext,
 } from "@ark-ui/react/tree-view";
 import { Lock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -178,6 +179,7 @@ export function CategoryListTree({
       <ArkTreeView.Root
         className={styles.root}
         collection={collection}
+        expandOnClick={false}
         expandedValue={expandedValue}
         onExpandedChange={handleExpandedChange}
       >
@@ -189,7 +191,7 @@ export function CategoryListTree({
               parent={null}
               category={cat}
               styles={styles}
-              indexPath={[]}
+              indexPath={[index]}
               siblings={rootNodes}
               siblingIndex={index}
               tree={tree}
@@ -201,6 +203,35 @@ export function CategoryListTree({
         </ArkTreeView.Tree>
       </ArkTreeView.Root>
     </LStack>
+  );
+}
+
+const branchControlStyles = css({
+  position: "relative",
+  isolation: "isolate",
+  cursor: "pointer",
+});
+
+const branchTriggerStyles = css({
+  position: "relative",
+  zIndex: "docked",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer",
+});
+
+function CategoryBranchTrigger({ className }: { className: string }) {
+  const t = useTranslation();
+  const { expanded } = useTreeViewNodeContext();
+
+  return (
+    <ArkTreeView.BranchTrigger
+      className={cx(className, branchTriggerStyles)}
+      aria-label={expanded ? t.nav.collapseSection : t.nav.expandSection}
+    >
+      <ChevronRightIcon />
+    </ArkTreeView.BranchTrigger>
   );
 }
 
@@ -292,15 +323,21 @@ function CategoryTreeNode({
     >
       <ArkTreeView.Branch className={cx(styles.branch)}>
         <ArkTreeView.BranchControl
-          className={cx("group", styles.branchControl, highlightStyles)}
+          className={cx(
+            "group",
+            styles.branchControl,
+            branchControlStyles,
+            highlightStyles,
+          )}
+          style={{ paddingInlineStart: "calc((var(--depth) - 1) * 22px)" }}
         >
-          <ArkTreeView.BranchIndicator className={styles.branchIndicator}>
-            {category.children.length > 0 ? (
-              <ChevronRightIcon />
-            ) : (
+          {category.children.length > 0 ? (
+            <CategoryBranchTrigger className={styles.branchIndicator} />
+          ) : (
+            <span className={styles.branchIndicator}>
               <BulletIcon />
-            )}
-          </ArkTreeView.BranchIndicator>
+            </span>
+          )}
 
           <ArkTreeView.BranchText asChild className={styles.branchText}>
             <Anchor
@@ -311,6 +348,11 @@ function CategoryTreeNode({
                 gap: "2",
                 flex: "1",
                 _hover: { textDecoration: "none" },
+                _after: {
+                  content: '""',
+                  position: "absolute",
+                  inset: "0",
+                },
               })}
             >
               {category.name}
@@ -327,6 +369,7 @@ function CategoryTreeNode({
 
           {canManageCategories && (
             <HStack
+              position="relative"
               gap="1"
               opacity={{
                 base: "0",

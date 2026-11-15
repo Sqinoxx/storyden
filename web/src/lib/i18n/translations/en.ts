@@ -822,6 +822,7 @@ export const en = {
     markAsRead: "Mark as read",
     markAsUnread: "Mark as unread",
     markAllAsRead: "Mark all as read",
+    archiveAll: "Archive all",
     archived: "Archived",
     events: {
       threadReply: "replied to your post",

@@ -8,7 +8,7 @@ import { SettingsIcon } from "@/components/ui/icons/Settings";
 import { LinkButton } from "@/components/ui/link-button";
 import * as Menu from "@/components/ui/menu";
 import { useTranslation } from "@/lib/i18n";
-import { Center, LStack, WStack, styled } from "@/styled-system/jsx";
+import { Center, HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { hstack } from "@/styled-system/patterns";
 import { deriveError } from "@/utils/error";
 
@@ -57,13 +57,25 @@ export function NotificationsMenu(props: Props) {
                       {t.nav.notifications} ({unreads})
                     </styled.p>
 
-                    <LinkButton
-                      href="/notifications"
-                      size="xs"
-                      variant="outline"
-                    >
-                      {t.notifications.seeAll}
-                    </LinkButton>
+                    <HStack gap="1">
+                      {!isEmpty && (
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          onClick={handlers.handleMarkAllAsRead}
+                        >
+                          <ArchiveIcon />
+                          {t.notifications.archiveAll}
+                        </Button>
+                      )}
+                      <LinkButton
+                        href="/notifications"
+                        size="xs"
+                        variant="outline"
+                      >
+                        {t.notifications.seeAll}
+                      </LinkButton>
+                    </HStack>
                   </WStack>
                 </LStack>
               </Menu.ItemGroupLabel>

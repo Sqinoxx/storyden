@@ -101,6 +101,7 @@ function Component(props: NodeViewProps) {
         as="span"
         className={css({
           display: "inline-block",
+          maxWidth: "full",
           marginLeft: "1",
           marginRight: "1",
           verticalAlign: "middle",
@@ -110,6 +111,7 @@ function Component(props: NodeViewProps) {
           display="inline-flex"
           alignItems="center"
           gap="2"
+          maxWidth="full"
           padding="2"
           paddingRight="3"
           borderRadius="md"
@@ -141,12 +143,12 @@ function Component(props: NodeViewProps) {
             </styled.span>
           )}
 
-          <styled.span fontSize="sm" fontWeight="medium" truncate maxWidth="xs">
+          <styled.span fontSize="sm" fontWeight="medium" truncate maxWidth="xs" minWidth="0">
             {fileName}
           </styled.span>
 
           {!isUploading && (
-            <styled.span display="inline-flex" alignItems="center" gap="1.5" color="fg.muted" ml="1">
+            <styled.span display="inline-flex" alignItems="center" gap="1.5" color="fg.muted" ml="1" flexShrink="0">
               {href && !isEditable && (
                 <AttachmentSummaryButton
                   assetRef={href}

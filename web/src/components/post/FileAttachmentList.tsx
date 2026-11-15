@@ -88,7 +88,7 @@ export function FileAttachmentBadge({
         color="fg.default"
         fontSize="sm"
         fontWeight="medium"
-        maxWidth="xs"
+        maxWidth={{ base: "full", sm: "xs" }}
         overflow="hidden"
         position="relative"
         title={canPreview ? `${displayName} – Vorschau öffnen` : `${displayName} – Herunterladen`}

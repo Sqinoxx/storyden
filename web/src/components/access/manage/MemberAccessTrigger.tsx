@@ -7,6 +7,7 @@ import { useAccessPasses } from "@/lib/access/useAccess";
 import { useDisclosure } from "@/utils/useDisclosure";
 
 import { GrantDialog } from "./GrantDialog";
+import { GrantHistoryDialog } from "./GrantHistoryDialog";
 
 type Props = {
   children: ReactNode;
@@ -36,6 +37,28 @@ export function MemberAccessTrigger({ children, profile }: Props) {
         passes={passes}
         memberHandle={profile.handle}
         memberName={profile.name}
+      />
+    </>
+  );
+}
+
+export function MemberAccessHistoryTrigger({ children, profile }: Props) {
+  const { onOpen, onClose, isOpen } = useDisclosure();
+
+  const trigger = React.isValidElement<{ onClick?: React.MouseEventHandler }>(
+    children,
+  )
+    ? React.cloneElement(children, { onClick: onOpen })
+    : children;
+
+  return (
+    <>
+      {trigger}
+      <GrantHistoryDialog
+        isOpen={isOpen}
+        onClose={onClose}
+        handle={profile.handle}
+        name={profile.name}
       />
     </>
   );

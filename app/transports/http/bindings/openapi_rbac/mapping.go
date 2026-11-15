@@ -310,6 +310,10 @@ func (m *Mapping) AccessGrantList() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageAccess
 }
 
+func (m *Mapping) AccessGrantHistory() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionManageAccess
+}
+
 func (m *Mapping) RoleCreate() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionManageRoles
 }

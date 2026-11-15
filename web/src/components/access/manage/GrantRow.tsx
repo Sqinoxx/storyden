@@ -1,12 +1,18 @@
 "use client";
 
+import { HistoryIcon } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { AccessGrant } from "@/api/openapi-schema";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useLanguage } from "@/lib/i18n";
 import { HStack, LStack, WStack, styled } from "@/styled-system/jsx";
 import { CardBox } from "@/styled-system/patterns";
+
+import { GrantHistoryDialog } from "./GrantHistoryDialog";
 
 export function formatAccessDate(iso: string | undefined, language: string) {
   if (!iso) return "";
@@ -21,11 +27,20 @@ type Props = {
   grant: AccessGrant;
   showStatus?: boolean;
   actions?: React.ReactNode;
+  selected?: boolean;
+  onSelectedChange?: (checked: boolean) => void;
 };
 
-export function GrantRow({ grant, showStatus, actions }: Props) {
+export function GrantRow({
+  grant,
+  showStatus,
+  actions,
+  selected,
+  onSelectedChange,
+}: Props) {
   const { t, language } = useLanguage();
   const m = t.access.manage;
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const when =
     grant.status === "requested"
@@ -52,46 +67,62 @@ export function GrantRow({ grant, showStatus, actions }: Props) {
       aria-label={`${grant.account.name} ${grant.pass.name}`}
       data-testid="access-grant-row"
     >
-      <LStack gap="1" minW="0" flex="1" overflowWrap="anywhere">
-        <HStack gap="2" flexWrap="wrap">
-          <Link href={`/m/${grant.account.handle}`}>
-            <styled.span fontWeight="semibold">
-              {grant.account.name}
-            </styled.span>{" "}
-            <styled.span
-              color="fg.muted"
-              display={{ base: "block", sm: "inline" }}
-              fontSize={{ base: "sm", sm: "md" }}
-            >
-              @{grant.account.handle}
-            </styled.span>
-          </Link>
-          {showStatus && (
-            <Badge size="sm" variant="subtle">
-              {t.access.status[grant.status]}
-            </Badge>
-          )}
-        </HStack>
-        <HStack gap="2" flexWrap="wrap" fontSize="sm" color="fg.muted">
-          <styled.span>{grant.pass.name}</styled.span>
-          {when && <styled.span>{when}</styled.span>}
-          {grant.decided_by && grant.status !== "requested" && (
+      <HStack gap="3" minW="0" flex="1" alignItems="start">
+        {onSelectedChange && (
+          <Checkbox
+            size="sm"
+            mt="1"
+            checked={selected ?? false}
+            aria-label={m.selectRow.replace("{name}", grant.account.name)}
+            onCheckedChange={({ checked }) =>
+              onSelectedChange(checked === true)
+            }
+          />
+        )}
+        <LStack gap="1" minW="0" flex="1" overflowWrap="anywhere">
+          <HStack gap="2" flexWrap="wrap">
+            <Link href={`/m/${grant.account.handle}`}>
+              <styled.span fontWeight="semibold">
+                {grant.account.name}
+              </styled.span>{" "}
+              <styled.span
+                color="fg.muted"
+                display={{ base: "block", sm: "inline" }}
+                fontSize={{ base: "sm", sm: "md" }}
+              >
+                @{grant.account.handle}
+              </styled.span>
+            </Link>
+            {showStatus && (
+              <Badge size="sm" variant="subtle">
+                {t.access.status[grant.status]}
+              </Badge>
+            )}
+          </HStack>
+          <HStack gap="2" flexWrap="wrap" fontSize="sm" color="fg.muted">
+            <styled.span>{grant.pass.name}</styled.span>
+            {when && <styled.span>{when}</styled.span>}
             <styled.span>
-              {m.decidedBy.replace("{name}", grant.decided_by.name)}
+              {m.reference.replace("{code}", grant.reference_code)}
             </styled.span>
+            {grant.decided_by && grant.status !== "requested" && (
+              <styled.span>
+                {m.decidedBy.replace("{name}", grant.decided_by.name)}
+              </styled.span>
+            )}
+          </HStack>
+          {grant.note && (
+            <styled.p fontSize="sm" color="fg.subtle">
+              {grant.note}
+            </styled.p>
           )}
-        </HStack>
-        {grant.note && (
-          <styled.p fontSize="sm" color="fg.subtle">
-            {grant.note}
-          </styled.p>
-        )}
-        {grant.reason && (
-          <styled.p fontSize="sm" color="fg.warning">
-            {t.access.reason.replace("{reason}", grant.reason)}
-          </styled.p>
-        )}
-      </LStack>
+          {grant.reason && (
+            <styled.p fontSize="sm" color="fg.warning">
+              {t.access.reason.replace("{reason}", grant.reason)}
+            </styled.p>
+          )}
+        </LStack>
+      </HStack>
       {actions && (
         <HStack
           gap="2"
@@ -102,8 +133,24 @@ export function GrantRow({ grant, showStatus, actions }: Props) {
           css={{ "& > *": { flexGrow: { base: "1", sm: "0" } } }}
         >
           {actions}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setHistoryOpen(true)}
+          >
+            <HistoryIcon />
+            {m.history}
+          </Button>
         </HStack>
       )}
+      <GrantHistoryDialog
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        handle={grant.account.handle}
+        name={grant.account.name}
+        passID={grant.pass.id}
+        requestedAt={grant.requested_at}
+      />
     </WStack>
   );
 }

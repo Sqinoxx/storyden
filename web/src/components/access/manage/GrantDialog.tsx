@@ -11,6 +11,7 @@ import { FormControl } from "@/components/ui/FormControl";
 import { FormLabel } from "@/components/ui/FormLabel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { runBulk } from "@/lib/access/bulk";
 import {
   ExpiryPreset,
   dateInputValue,
@@ -21,9 +22,12 @@ import { useAccessRevalidate } from "@/lib/access/useAccessRevalidate";
 import { useTranslation } from "@/lib/i18n";
 import { HStack, LStack, styled } from "@/styled-system/jsx";
 
+import { announceBulk } from "./BulkBar";
 import { MemberPicker } from "./MemberPicker";
 
 type Choice = ExpiryPreset["key"] | "custom";
+
+export type GrantTarget = { passID: string; handle: string };
 
 export type GrantDialogProps = {
   isOpen: boolean;
@@ -34,6 +38,8 @@ export type GrantDialogProps = {
   memberName?: string;
   note?: string;
   defaultChoice?: Choice;
+  targets?: GrantTarget[];
+  onDone?: () => void;
 };
 
 export function GrantDialog(props: GrantDialogProps) {
@@ -50,6 +56,8 @@ function GrantDialogContent({
   memberName,
   note: initialNote,
   defaultChoice = "thisTerm",
+  targets,
+  onDone,
 }: GrantDialogProps) {
   const t = useTranslation();
   const revalidate = useAccessRevalidate();
@@ -71,21 +79,46 @@ function GrantDialogContent({
     return presets.find((p) => p.key === choice)?.expiresAt;
   })();
 
+  const bulk = targets !== undefined;
+
   const canSubmit =
-    selectedPass !== "" &&
-    handleInput.trim() !== "" &&
+    (bulk
+      ? targets.length > 0
+      : selectedPass !== "" && handleInput.trim() !== "") &&
     (choice !== "custom" || expiresAt !== undefined);
 
-  const title = t.access.manage.grantTitle.replace(
-    "{name}",
-    memberName ?? (handleInput || t.access.manage.memberHandle),
-  );
+  const title = bulk
+    ? t.access.manage.bulkGrantTitle.replace("{count}", String(targets.length))
+    : t.access.manage.grantTitle.replace(
+        "{name}",
+        memberName ?? (handleInput || t.access.manage.memberHandle),
+      );
+
+  async function submitBulk(list: GrantTarget[]) {
+    const body = {
+      expires_at: expiresAt?.toISOString(),
+      note: note.trim() || undefined,
+    };
+    const result = await runBulk(list, (g) =>
+      accessGrantSet(g.passID, g.handle, body),
+    );
+    await revalidate();
+    announceBulk(t, result);
+    onDone?.();
+    onClose();
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
 
     setBusy(true);
+    if (targets !== undefined) {
+      await handle(() => submitBulk(targets), {
+        cleanup: async () => setBusy(false),
+      });
+      return;
+    }
     await handle(
       async () => {
         await accessGrantSet(
@@ -114,14 +147,14 @@ function GrantDialogContent({
         onSubmit={onSubmit}
         data-testid="access-grant-dialog"
       >
-        {!memberHandle && (
+        {!memberHandle && !bulk && (
           <FormControl>
             <FormLabel>{t.access.manage.memberSearch}</FormLabel>
             <MemberPicker onChange={setHandleInput} />
           </FormControl>
         )}
 
-        {!passID && (
+        {!passID && !bulk && (
           <FormControl>
             <FormLabel>{t.access.manage.pass}</FormLabel>
             <styled.select

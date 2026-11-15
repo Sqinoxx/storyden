@@ -14,6 +14,8 @@ import type { SWRMutationConfiguration } from "swr/mutation";
 
 import { fetcher } from "../client";
 import type {
+  AccessGrantHistoryOKResponse,
+  AccessGrantHistoryParams,
   AccessGrantListOKResponse,
   AccessGrantListParams,
   AccessGrantOKResponse,
@@ -593,6 +595,65 @@ export const useAccessGrantList = <
     swrOptions?.swrKey ??
     (() => (isEnabled ? getAccessGrantListKey(params) : null));
   const swrFn = () => accessGrantList(params);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * List past access decisions for a member, newest first. Optionally
+narrowed to a single pass.
+
+ */
+export const accessGrantHistory = (params: AccessGrantHistoryParams) => {
+  return fetcher<AccessGrantHistoryOKResponse>({
+    url: `/access/grants/history`,
+    method: "GET",
+    params,
+  });
+};
+
+export const getAccessGrantHistoryKey = (params: AccessGrantHistoryParams) =>
+  [`/access/grants/history`, ...(params ? [params] : [])] as const;
+
+export type AccessGrantHistoryQueryResult = NonNullable<
+  Awaited<ReturnType<typeof accessGrantHistory>>
+>;
+export type AccessGrantHistoryQueryError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+  | InternalServerErrorResponse;
+
+export const useAccessGrantHistory = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+    | InternalServerErrorResponse,
+>(
+  params: AccessGrantHistoryParams,
+  options?: {
+    swr?: SWRConfiguration<
+      Awaited<ReturnType<typeof accessGrantHistory>>,
+      TError
+    > & { swrKey?: Key; enabled?: boolean };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() => (isEnabled ? getAccessGrantHistoryKey(params) : null));
+  const swrFn = () => accessGrantHistory(params);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
     swrKey,

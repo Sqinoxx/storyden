@@ -1739,6 +1739,29 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "200": { $ref: "#/components/responses/AccessGrantListOK" }
 
+  /access/grants/history:
+    get:
+      operationId: AccessGrantHistory
+      description: |
+        List past access decisions for a member, newest first. Optionally
+        narrowed to a single pass.
+      tags: [access]
+      parameters:
+        - name: account_handle
+          in: query
+          required: true
+          schema: { $ref: "#/components/schemas/AccountHandle" }
+        - name: pass_id
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/Identifier" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "200": { $ref: "#/components/responses/AccessGrantHistoryOK" }
+
   #
   #                   888    888
   #                   888    888
@@ -7269,6 +7292,13 @@ components:
           schema:
             $ref: "#/components/schemas/AccessGrantListResult"
 
+    AccessGrantHistoryOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AccessGrantHistoryResult"
+
     RoleCreateOK:
       description: OK
       content:
@@ -10688,6 +10718,28 @@ components:
       required: [grants]
       properties:
         grants: { $ref: "#/components/schemas/AccessGrantList" }
+
+    AccessGrantHistoryEntry:
+      type: object
+      required: [id, created_at, pass_id, pass_name, status]
+      properties:
+        id: { $ref: "#/components/schemas/Identifier" }
+        created_at: { type: string, format: date-time }
+        pass_id: { $ref: "#/components/schemas/Identifier" }
+        pass_name: { type: string }
+        status: { $ref: "#/components/schemas/AccessGrantStatus" }
+        expires_at: { type: string, format: date-time }
+        note: { type: string }
+        reason: { type: string }
+        decided_by: { $ref: "#/components/schemas/ProfileReference" }
+
+    AccessGrantHistoryResult:
+      type: object
+      required: [entries]
+      properties:
+        entries:
+          type: array
+          items: { $ref: "#/components/schemas/AccessGrantHistoryEntry" }
 
     AccessGrantMutableProps:
       type: object

@@ -8,6 +8,8 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 import type {
+  AccessGrantHistoryOKResponse,
+  AccessGrantHistoryParams,
   AccessGrantListOKResponse,
   AccessGrantListParams,
   AccessGrantOKResponse,
@@ -283,6 +285,43 @@ export const accessGrantList = async (
 ): Promise<accessGrantListResponse> => {
   return fetcher<Promise<accessGrantListResponse>>(
     getAccessGrantListUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * List past access decisions for a member, newest first. Optionally
+narrowed to a single pass.
+
+ */
+export type accessGrantHistoryResponse = {
+  data: AccessGrantHistoryOKResponse;
+  status: number;
+};
+
+export const getAccessGrantHistoryUrl = (params: AccessGrantHistoryParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  return normalizedParams.size
+    ? `/access/grants/history?${normalizedParams.toString()}`
+    : `/access/grants/history`;
+};
+
+export const accessGrantHistory = async (
+  params: AccessGrantHistoryParams,
+  options?: RequestInit,
+): Promise<accessGrantHistoryResponse> => {
+  return fetcher<Promise<accessGrantHistoryResponse>>(
+    getAccessGrantHistoryUrl(params),
     {
       ...options,
       method: "GET",

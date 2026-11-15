@@ -12,6 +12,7 @@ import (
 
 	"github.com/Southclaws/storyden/app/resources/access"
 	"github.com/Southclaws/storyden/app/resources/access/access_repo"
+	"github.com/Southclaws/storyden/app/resources/audit"
 	"github.com/Southclaws/storyden/app/resources/post/category"
 	"github.com/Southclaws/storyden/app/services/access/access_manage"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
@@ -110,6 +111,23 @@ func (h *Access) AccessGrantList(ctx context.Context, request openapi.AccessGran
 	return openapi.AccessGrantList200JSONResponse{
 		AccessGrantListOKJSONResponse: openapi.AccessGrantListOKJSONResponse{
 			Grants: dt.Map(grants, serialiseAccessGrant),
+		},
+	}, nil
+}
+
+func (h *Access) AccessGrantHistory(ctx context.Context, request openapi.AccessGrantHistoryRequestObject) (openapi.AccessGrantHistoryResponseObject, error) {
+	passID := opt.Map(opt.NewPtr(request.Params.PassId), func(id openapi.Identifier) access.PassID {
+		return access.PassID(openapi.ParseID(id))
+	})
+
+	logs, err := h.manager.History(ctx, string(request.Params.AccountHandle), passID)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return openapi.AccessGrantHistory200JSONResponse{
+		AccessGrantHistoryOKJSONResponse: openapi.AccessGrantHistoryOKJSONResponse{
+			Entries: dt.Map(logs, serialiseAccessGrantHistoryEntry),
 		},
 	}, nil
 }
@@ -267,5 +285,33 @@ func serialiseContentAccess(in *access.Lock) *openapi.ContentAccess {
 	return &openapi.ContentAccess{
 		Locked: true,
 		Passes: dt.Map(in.Passes, serialiseAccessPassReference),
+	}
+}
+
+func serialiseAccessGrantHistoryEntry(in *audit.AuditLog) openapi.AccessGrantHistoryEntry {
+	str := func(key string) string {
+		v, _ := in.Metadata[key].(string)
+		return v
+	}
+	optStr := func(key string) *string {
+		v := str(key)
+		return opt.NewSafe(v, v != "").Ptr()
+	}
+
+	var expiresAt *time.Time
+	if t, err := time.Parse(time.RFC3339, str("expires_at")); err == nil {
+		expiresAt = &t
+	}
+
+	return openapi.AccessGrantHistoryEntry{
+		Id:        openapi.Identifier(in.ID.String()),
+		CreatedAt: in.CreatedAt,
+		PassId:    openapi.Identifier(str("pass_id")),
+		PassName:  str("pass_name"),
+		Status:    openapi.AccessGrantStatus(str("status")),
+		ExpiresAt: expiresAt,
+		Note:      optStr("note"),
+		Reason:    optStr("reason"),
+		DecidedBy: opt.Map(in.EnactedBy, serialiseProfileReferenceFromAccount).Ptr(),
 	}
 }

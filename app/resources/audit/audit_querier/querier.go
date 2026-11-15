@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"github.com/Southclaws/dt"
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
@@ -29,6 +30,7 @@ func New(db *ent.Client) *Querier {
 type Filter struct {
 	Types     opt.Optional[[]audit.EventType]
 	TimeRange opt.Optional[TimeRange]
+	Metadata  map[string]string
 }
 
 type TimeRange struct {
@@ -58,13 +60,19 @@ func (q *Querier) List(
 		)
 	})
 
+	for key, value := range filter.Metadata {
+		query.Where(func(s *sql.Selector) {
+			s.Where(sqljson.ValueEQ(ent_auditlog.FieldMetadata, value, sqljson.Path(key)))
+		})
+	}
+
 	total, err := query.Count(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.Internal))
 	}
 
 	results, err := query.
-		Order(ent_auditlog.ByCreatedAt(sql.OrderDesc())).
+		Order(ent_auditlog.ByCreatedAt(sql.OrderDesc()), ent_auditlog.ByID(sql.OrderDesc())).
 		Limit(page.Limit()).
 		Offset(page.Offset()).
 		All(ctx)

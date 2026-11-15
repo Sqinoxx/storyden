@@ -3,8 +3,10 @@ import * as assert from "uvu/assert";
 import { API_ADDRESS } from "@/config";
 
 import {
+  extractBodyAttachmentRefs,
   getAssetURL,
   getCleanFilename,
+  isAssetEmbeddedInBody,
   normalizeAssetPath,
   normalizeFilename,
   rebaseAssetURL,
@@ -75,6 +77,55 @@ test("getAssetURL rebases absolute asset paths", () => {
     `${API_ADDRESS}/api/assets/a.pdf`
   );
   assert.is(getAssetURL("/api/assets/a.pdf"), `${API_ADDRESS}/api/assets/a.pdf`);
+});
+
+
+test("extractBodyAttachmentRefs reads file attachment links without a DOM", () => {
+  const body =
+    '<p>Hi <a href="https://old.example/api/assets/d9n2uhh3fmss73bsumm0-ph2-altfragen-totale-pdf" data-filename="PH2 Altfragen Totale.pdf" data-type="file-attachment" target="_blank" download="PH2 Altfragen Totale.pdf">PH2 Altfragen Totale.pdf</a>' +
+    '<a href="/api/assets/abc" data-filename="BR&Uuml;CKEN &amp; Co.pdf">x</a>' +
+    '<span data-type="file-attachment" src="/api/assets/span-file">\n<b>Span&#39;s file.pdf</b></span>' +
+    '<span class="mention">ignored</span></p>';
+
+  assert.equal(extractBodyAttachmentRefs(body), [
+    {
+      href: "https://old.example/api/assets/d9n2uhh3fmss73bsumm0-ph2-altfragen-totale-pdf",
+      filename: "PH2 Altfragen Totale.pdf",
+    },
+    { href: "/api/assets/abc", filename: "BR&Uuml;CKEN & Co.pdf" },
+    { href: "/api/assets/span-file", filename: "Span's file.pdf" },
+  ]);
+  assert.equal(extractBodyAttachmentRefs(undefined), []);
+});
+
+test("isAssetEmbeddedInBody matches by path, id or filename", () => {
+  const refs = extractBodyAttachmentRefs(
+    '<a href="https://x/api/assets/d9n2uhh3fmss73bsumm0-ph2-altfragen-totale-pdf" data-filename="PH2 Altfragen Totale.pdf">PH2 Altfragen Totale.pdf</a>' +
+      '<a href="/api/assets/other" data-filename="Phantom II &#8211; Fragen.pdf">y</a>',
+  );
+
+  assert.ok(
+    isAssetEmbeddedInBody(
+      {
+        id: "d9n2uhh3fmss73bsumm0",
+        path: "assets/d9n2uhh3fmss73bsumm0-ph2-altfragen-totale-pdf",
+        filename: "d9n2uhh3fmss73bsumm0-ph2-altfragen-totale-pdf",
+      },
+      refs,
+    ),
+  );
+  assert.ok(
+    isAssetEmbeddedInBody(
+      { id: "zzz", path: "zzz", filename: "Phantom II – Fragen.pdf" },
+      refs,
+    ),
+  );
+  assert.not.ok(
+    isAssetEmbeddedInBody(
+      { id: "nope", path: "nope", filename: "Sonstige.pdf" },
+      refs,
+    ),
+  );
 });
 
 test.run();

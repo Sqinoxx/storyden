@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Download, Eye, Trash2 } from "lucide-react";
 
 import { Asset } from "@/api/openapi-schema";
 import {
   downloadAsset,
+  extractBodyAttachmentRefs,
   getAssetURL,
   getCleanFilename,
-  normalizeAssetPath,
-  normalizeFilename,
+  isAssetEmbeddedInBody,
 } from "@/utils/asset";
 import { styled } from "@/styled-system/jsx";
 import { AttachmentSummaryButton } from "./AttachmentSummary/AttachmentSummary";
@@ -230,55 +230,13 @@ export function FileAttachmentList({
   body?: string;
   onRemoveAsset?: (asset: Asset) => void;
 }) {
-  const visibleAssets = extractDocumentAssetsFromThread({ assets, body });
-
-  // When not editing, filter out assets that are ALREADY embedded as links in the body HTML,
-  // since ContentComposerRich renders embedded file attachment links inline.
-  // When editing (onRemoveAsset provided), show all visible document assets so the user can easily manage/delete them.
-  const unembeddedAssets = visibleAssets.filter((asset) => {
-    if (!body) return true;
-    const normP = normalizeAssetPath(asset.path ?? asset.id);
-    const normN = normalizeFilename(asset.filename);
-    const cleanN = getCleanFilename(asset.filename).toLowerCase();
-
-    try {
-      const parsed = new DOMParser().parseFromString(body, "text/html");
-      const elements = parsed.querySelectorAll(
-        "a, span[data-type='file-attachment'], div[data-type='file-attachment']"
-      );
-      
-      for (const el of elements) {
-        const href = el.getAttribute("href") || el.getAttribute("src") || "";
-        if (!href) continue;
-
-        const fnAttr = el.getAttribute("data-filename") || el.getAttribute("download") || "";
-        const innerText = el.textContent?.trim() || "";
-        const fn = fnAttr || innerText || href.split("/").pop() || "";
-
-        const elNormP = normalizeAssetPath(href);
-        const elNormN = normalizeFilename(fn);
-        const elCleanN = getCleanFilename(fn).toLowerCase();
-
-        const pathMatch =
-          normP &&
-          elNormP &&
-          (normP === elNormP ||
-            (asset.id && href.toLowerCase().includes(asset.id.toLowerCase())));
-        const nameMatch =
-          (normN && elNormN && normN === elNormN) ||
-          (cleanN && elCleanN && cleanN === elCleanN);
-
-        if (pathMatch || nameMatch) {
-          return false;
-        }
-      }
-    } catch {
-      // ignore DOMParser parsing issues
-    }
-    return true;
-  });
-
-  const listToRender = unembeddedAssets;
+  const listToRender = useMemo(() => {
+    const visibleAssets = extractDocumentAssetsFromThread({ assets, body });
+    const refs = extractBodyAttachmentRefs(body);
+    return visibleAssets.filter(
+      (asset) => !isAssetEmbeddedInBody(asset, refs),
+    );
+  }, [assets, body]);
 
   if (listToRender.length === 0) return null;
 

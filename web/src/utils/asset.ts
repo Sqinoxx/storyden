@@ -114,6 +114,106 @@ export function normalizeFilename(name?: string | null): string {
   return clean.replace(/[^a-z0-9]/g, "");
 }
 
+function decodeHTMLEntities(value: string): string {
+  return value.replace(
+    /&(#x[0-9a-f]+|#[0-9]+|amp|lt|gt|quot|apos|nbsp);/gi,
+    (entity, code: string) => {
+      const lower = code.toLowerCase();
+      if (lower.startsWith("#x")) {
+        return String.fromCodePoint(parseInt(lower.slice(2), 16));
+      }
+      if (lower.startsWith("#")) {
+        return String.fromCodePoint(parseInt(lower.slice(1), 10));
+      }
+      const named: Record<string, string> = {
+        amp: "&",
+        lt: "<",
+        gt: ">",
+        quot: '"',
+        apos: "'",
+        nbsp: " ",
+      };
+      return named[lower] ?? entity;
+    },
+  );
+}
+
+function readAttribute(attrs: string, name: string): string | undefined {
+  const match = new RegExp(
+    `\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+))`,
+    "i",
+  ).exec(` ${attrs}`);
+  if (!match) return undefined;
+  return decodeHTMLEntities(match[1] ?? match[2] ?? match[3] ?? "");
+}
+
+export type BodyAttachmentRef = { href: string; filename: string };
+
+/**
+ * Must not depend on DOMParser: it runs during server rendering too, and a
+ * server/client disagreement leaves orphaned, non-interactive markup behind.
+ */
+export function extractBodyAttachmentRefs(body?: string): BodyAttachmentRef[] {
+  if (!body) return [];
+
+  const refs: BodyAttachmentRef[] = [];
+  const tagRegex = /<(a|span|div)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
+  let match: RegExpExecArray | null;
+  while ((match = tagRegex.exec(body)) !== null) {
+    const tag = (match[1] ?? "").toLowerCase();
+    const attrs = match[2] ?? "";
+
+    if (
+      tag !== "a" &&
+      readAttribute(attrs, "data-type") !== "file-attachment"
+    ) {
+      continue;
+    }
+
+    const href = readAttribute(attrs, "href") || readAttribute(attrs, "src");
+    if (!href) continue;
+
+    const text = decodeHTMLEntities(
+      (match[3] ?? "").replace(/<[^>]+>/g, ""),
+    ).trim();
+    const filename =
+      readAttribute(attrs, "data-filename") ||
+      readAttribute(attrs, "download") ||
+      text ||
+      href.split("/").pop() ||
+      "";
+
+    refs.push({ href, filename });
+  }
+  return refs;
+}
+
+export function isAssetEmbeddedInBody(
+  asset: { id?: string; path?: string; filename?: string },
+  refs: BodyAttachmentRef[],
+): boolean {
+  const normP = normalizeAssetPath(asset.path ?? asset.id);
+  const normN = normalizeFilename(asset.filename);
+  const cleanN = getCleanFilename(asset.filename).toLowerCase();
+  const id = asset.id?.toLowerCase();
+
+  return refs.some(({ href, filename }) => {
+    const elNormP = normalizeAssetPath(href);
+    const elNormN = normalizeFilename(filename);
+    const elCleanN = getCleanFilename(filename).toLowerCase();
+
+    const pathMatch =
+      !!normP &&
+      !!elNormP &&
+      (normP === elNormP || (!!id && href.toLowerCase().includes(id)));
+    const nameMatch =
+      (!!normN && !!elNormN && normN === elNormN) ||
+      (!!cleanN && !!elCleanN && cleanN === elCleanN);
+
+    return pathMatch || nameMatch;
+  });
+}
+
 /**
  * Fallback used only while the admin-configurable upload limit (see
  * useMaxUploadSizeBytes in @/lib/settings/uploads) hasn't loaded yet, or if

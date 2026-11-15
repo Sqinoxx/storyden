@@ -88,6 +88,7 @@ type OperationPermissions interface {
 	AccessGrantSet() (bool, *rbac.Permission)
 	AccessGrantRemove() (bool, *rbac.Permission)
 	AccessGrantList() (bool, *rbac.Permission)
+	AccessGrantHistory() (bool, *rbac.Permission)
 	AuthProviderList() (bool, *rbac.Permission)
 	AuthPasswordSignup() (bool, *rbac.Permission)
 	AuthPasswordSignin() (bool, *rbac.Permission)
@@ -478,6 +479,8 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.AccessGrantRemove()
 	case "AccessGrantList":
 		return optable.AccessGrantList()
+	case "AccessGrantHistory":
+		return optable.AccessGrantHistory()
 	case "AuthProviderList":
 		return optable.AuthProviderList()
 	case "AuthPasswordSignup":

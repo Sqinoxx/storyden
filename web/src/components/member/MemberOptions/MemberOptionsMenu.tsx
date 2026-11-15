@@ -6,7 +6,10 @@ import { toast } from "sonner";
 import { useSession } from "@/auth";
 
 import { Permission, ProfileReference } from "@/api/openapi-schema";
-import { MemberAccessTrigger } from "@/components/access/manage/MemberAccessTrigger";
+import {
+  MemberAccessHistoryTrigger,
+  MemberAccessTrigger,
+} from "@/components/access/manage/MemberAccessTrigger";
 import { ReportMemberMenuItem } from "@/components/report/ReportMemberMenuItem";
 import * as Menu from "@/components/ui/menu";
 import { WEB_ADDRESS } from "@/config";
@@ -100,6 +103,14 @@ export function MemberOptionsMenu({
                     {t.access.manage.memberMenu}
                   </Menu.Item>
                 </MemberAccessTrigger>
+              )}
+
+              {canManageAccess && (
+                <MemberAccessHistoryTrigger profile={profile}>
+                  <Menu.Item value="access-history">
+                    {t.access.manage.memberHistory}
+                  </Menu.Item>
+                </MemberAccessHistoryTrigger>
               )}
 
               {canResetPassword && (

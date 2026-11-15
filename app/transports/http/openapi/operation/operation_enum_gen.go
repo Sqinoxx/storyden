@@ -97,6 +97,7 @@ var (
 	OperationIDAccessGrantSet                         = OperationID{`AccessGrantSet`}
 	OperationIDAccessGrantRemove                      = OperationID{`AccessGrantRemove`}
 	OperationIDAccessGrantList                        = OperationID{`AccessGrantList`}
+	OperationIDAccessGrantHistory                     = OperationID{`AccessGrantHistory`}
 	OperationIDAuthProviderList                       = OperationID{`AuthProviderList`}
 	OperationIDAuthPasswordSignup                     = OperationID{`AuthPasswordSignup`}
 	OperationIDAuthPasswordSignin                     = OperationID{`AuthPasswordSignin`}
@@ -522,6 +523,8 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAccessGrantRemove, nil
 	case string(`AccessGrantList`):
 		return OperationIDAccessGrantList, nil
+	case string(`AccessGrantHistory`):
+		return OperationIDAccessGrantHistory, nil
 	case string(`AuthProviderList`):
 		return OperationIDAuthProviderList, nil
 	case string(`AuthPasswordSignup`):

@@ -1,4 +1,5 @@
 import type {
+  AccessGrant,
   AccessGrantStatus,
   AccessPass,
   Category,
@@ -101,4 +102,58 @@ export function membershipAction(
     default:
       return pass.requestable ? "request" : "none";
   }
+}
+
+export function matchesGrantQuery(grant: AccessGrant, query: string): boolean {
+  const q = query.trim().toLowerCase().replace(/^@/, "");
+  if (!q) return true;
+
+  return [grant.account.name, grant.account.handle, grant.reference_code].some(
+    (v) => v.toLowerCase().includes(q),
+  );
+}
+
+export const EXPIRING_SOON_DAYS = 14;
+
+export type PassStats = {
+  active: number;
+  requested: number;
+  expiring: number;
+  expired: number;
+};
+
+export function passStats(
+  grants: AccessGrant[],
+  now: Date,
+): Map<string, PassStats> {
+  const soon = now.getTime() + EXPIRING_SOON_DAYS * 24 * 60 * 60 * 1000;
+  const out = new Map<string, PassStats>();
+
+  for (const g of grants) {
+    const s = out.get(g.pass.id) ?? {
+      active: 0,
+      requested: 0,
+      expiring: 0,
+      expired: 0,
+    };
+
+    switch (g.status) {
+      case "active":
+        s.active++;
+        if (g.expires_at && new Date(g.expires_at).getTime() <= soon) {
+          s.expiring++;
+        }
+        break;
+      case "requested":
+        s.requested++;
+        break;
+      case "expired":
+        s.expired++;
+        break;
+    }
+
+    out.set(g.pass.id, s);
+  }
+
+  return out;
 }

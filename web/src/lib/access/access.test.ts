@@ -1,13 +1,15 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 
-import type { AccessPass } from "@/api/openapi-schema";
+import type { AccessGrant, AccessPass } from "@/api/openapi-schema";
 
 import {
   categoryAccess,
   categoryAncestry,
   lockedCategoryIDs,
+  matchesGrantQuery,
   membershipAction,
+  passStats,
 } from "./access";
 
 const categories = [
@@ -134,6 +136,68 @@ test("membership actions", () => {
     ),
     "request",
   );
+});
+
+function grant(
+  passID: string,
+  status: AccessGrant["status"],
+  extra: Partial<AccessGrant> = {},
+): AccessGrant {
+  return {
+    id: `${passID}-${status}`,
+    pass: { id: passID, name: passID, price_label: "", colour: "#000" },
+    account: {
+      id: "acc",
+      handle: "baldur",
+      name: "Baldur Odinson",
+      joined: "2026-01-01T00:00:00Z",
+      roles: [],
+    },
+    status,
+    reference_code: "SD-7K3Q",
+    note: "",
+    createdAt: "2026-01-01T00:00:00Z",
+    updatedAt: "2026-01-01T00:00:00Z",
+    ...extra,
+  };
+}
+
+test("grant search matches name, handle and reference", () => {
+  const g = grant("z1", "requested");
+  assert.ok(matchesGrantQuery(g, ""));
+  assert.ok(matchesGrantQuery(g, "odin"));
+  assert.ok(matchesGrantQuery(g, "@BALD"));
+  assert.ok(matchesGrantQuery(g, "7k3q"));
+  assert.not.ok(matchesGrantQuery(g, "loki"));
+});
+
+test("pass stats count per pass and flag soon expiring grants", () => {
+  const now = new Date("2026-11-15T12:00:00Z");
+  const stats = passStats(
+    [
+      grant("z1", "active", { expires_at: "2026-11-20T00:00:00Z" }),
+      grant("z1", "active", { expires_at: "2027-03-31T00:00:00Z" }),
+      grant("z1", "active"),
+      grant("z1", "requested"),
+      grant("z1", "expired"),
+      grant("z1", "revoked"),
+      grant("z2", "requested"),
+    ],
+    now,
+  );
+
+  assert.equal(stats.get("z1"), {
+    active: 3,
+    requested: 1,
+    expiring: 1,
+    expired: 1,
+  });
+  assert.equal(stats.get("z2"), {
+    active: 0,
+    requested: 1,
+    expiring: 0,
+    expired: 0,
+  });
 });
 
 test.run();

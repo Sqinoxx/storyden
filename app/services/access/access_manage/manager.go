@@ -21,8 +21,10 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/account/notification"
 	"github.com/Southclaws/storyden/app/resources/audit"
+	"github.com/Southclaws/storyden/app/resources/audit/audit_querier"
 	"github.com/Southclaws/storyden/app/resources/audit/audit_writer"
 	"github.com/Southclaws/storyden/app/resources/datagraph"
+	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/rbac"
 	"github.com/Southclaws/storyden/app/services/authentication/session"
 	"github.com/Southclaws/storyden/app/services/notification/notify"
@@ -47,6 +49,7 @@ type Manager struct {
 	repo           *access_repo.Repository
 	accountQuerier *account_querier.Querier
 	auditWriter    *audit_writer.Writer
+	auditQuerier   *audit_querier.Querier
 	notifier       *notify.Notifier
 }
 
@@ -55,6 +58,7 @@ func New(
 	repo *access_repo.Repository,
 	accountQuerier *account_querier.Querier,
 	auditWriter *audit_writer.Writer,
+	auditQuerier *audit_querier.Querier,
 	notifier *notify.Notifier,
 ) *Manager {
 	return &Manager{
@@ -62,6 +66,7 @@ func New(
 		repo:           repo,
 		accountQuerier: accountQuerier,
 		auditWriter:    auditWriter,
+		auditQuerier:   auditQuerier,
 		notifier:       notifier,
 	}
 }
@@ -292,6 +297,32 @@ func (m *Manager) ListGrants(ctx context.Context, params ListParams) ([]*access.
 	}
 
 	return m.repo.ListGrants(ctx, filter, time.Now())
+}
+
+const historyLimit = 100
+
+func (m *Manager) History(ctx context.Context, handle string, passID opt.Optional[access.PassID]) ([]*audit.AuditLog, error) {
+	memberID, err := m.lookup(ctx, handle)
+	if err != nil {
+		return nil, err
+	}
+
+	meta := map[string]string{"account_id": memberID.String()}
+	passID.Call(func(id access.PassID) { meta["pass_id"] = id.String() })
+
+	result, err := m.auditQuerier.List(ctx, pagination.NewPageParams(1, historyLimit), audit_querier.Filter{
+		Types:    opt.New([]audit.EventType{audit.EventTypeAccessGrantUpdated}),
+		Metadata: meta,
+	})
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if len(result.Items) > historyLimit {
+		return result.Items[:historyLimit], nil
+	}
+
+	return result.Items, nil
 }
 
 func (m *Manager) lookup(ctx context.Context, handle string) (account.AccountID, error) {

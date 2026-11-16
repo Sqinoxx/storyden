@@ -124,6 +124,25 @@ describe("readDropURL", () => {
     ).toBe("https://cdn.example.com/Zahn.JPG");
   });
 
+  it("leaves a dragged text selection that mentions a file alone", () => {
+    expect(
+      readDropURL(
+        transfer({
+          "text/html": `<p>Siehe <a href="https://example.com/Skript.pdf">Skript</a> und <img src="https://example.com/a.png"> im Anhang.</p>`,
+          "text/plain": "Siehe Skript und im Anhang. https://example.com/Skript.pdf",
+        }),
+      ),
+    ).toBeUndefined();
+  });
+
+  it("recognises a drive download host", () => {
+    expect(
+      parseDriveDropURL(
+        `https://drive.usercontent.google.com/download?id=${GOOGLE_ID}&export=download`,
+      ),
+    ).toEqual({ fileID: GOOGLE_ID });
+  });
+
   it("scans unknown drag types for a file link", () => {
     expect(
       readDropURL(

@@ -33,6 +33,12 @@ const URL_PATTERN = /https?:\/\/[^\s"'<>]+/g;
 
 const DRIVE_ID = /^[A-Za-z0-9_-]{10,}$/;
 
+const GOOGLE_FILE_HOSTS = new Set([
+  "drive.google.com",
+  "docs.google.com",
+  "drive.usercontent.google.com",
+]);
+
 export type DriveFileRef = {
   folderID?: string;
   fileID: string;
@@ -80,7 +86,7 @@ export function parseDriveDropURL(
     return null;
   }
 
-  if (url.host === "drive.google.com" || url.host === "docs.google.com") {
+  if (GOOGLE_FILE_HOSTS.has(url.host)) {
     const queryID = url.searchParams.get("id");
     if (queryID && DRIVE_ID.test(queryID)) {
       return { fileID: queryID };
@@ -134,17 +140,8 @@ function safeGetData(dt: DataTransfer, type: string): string {
   }
 }
 
-function decodeEntities(raw: string): string {
-  return raw
-    .replace(/&amp;/g, "&")
-    .replace(/&#x2F;/gi, "/")
-    .replace(/&#47;/g, "/");
-}
-
 function urlsIn(text: string): string[] {
-  return (decodeEntities(text).match(URL_PATTERN) ?? []).map((u) =>
-    u.replace(/[),.;]+$/, ""),
-  );
+  return (text.match(URL_PATTERN) ?? []).map((u) => u.replace(/[),.;]+$/, ""));
 }
 
 function directURL(dt: DataTransfer): string | undefined {
@@ -160,6 +157,45 @@ function directURL(dt: DataTransfer): string | undefined {
 
   return text;
 }
+
+// Only a dragged link or image counts, never a text selection that merely
+// contains one, so dragging a paragraph into the editor still inserts it.
+function htmlLinks(html: string): string[] {
+  if (!html || typeof DOMParser === "undefined") return [];
+
+  const body = new DOMParser().parseFromString(html, "text/html").body;
+  const elements = Array.from(body.querySelectorAll("a[href], img[src]"));
+  if (elements.length === 0 || elements.length > 2) return [];
+
+  const linkedText = elements
+    .filter((el) => el.tagName === "A")
+    .map((el) => el.textContent ?? "")
+    .join("");
+  if ((body.textContent ?? "").trim() !== linkedText.trim()) return [];
+
+  return elements.map(
+    (el) => el.getAttribute("href") ?? el.getAttribute("src") ?? "",
+  );
+}
+
+function plainLinks(text: string): string[] {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length > 3) return [];
+
+  return lines.filter((line) => /^https?:\/\/\S+$/.test(line));
+}
+
+const STANDARD_DRAG_TYPES = new Set([
+  "downloadurl",
+  "text/uri-list",
+  "text/x-moz-url",
+  "text/html",
+  "text/plain",
+  "files",
+]);
 
 // Desktop browsers put a dragged file's link in different places depending on
 // the source: Google Drive uses Chrome's DownloadURL ("mime:name:url"), images
@@ -177,27 +213,13 @@ export function readDropURLs(dt: DataTransfer | null): string[] {
   urlsIn(safeGetData(dt, "DownloadURL")).forEach(add);
   add(directURL(dt));
   add(safeGetData(dt, "text/x-moz-url").split(/\r?\n/)[0]);
+  htmlLinks(safeGetData(dt, "text/html")).forEach(add);
+  plainLinks(safeGetData(dt, "text/plain")).forEach(add);
 
-  const html = safeGetData(dt, "text/html");
-  for (const match of html.matchAll(
-    /\b(?:href|src)\s*=\s*["']([^"']+)["']/gi,
-  )) {
-    add(decodeEntities(match[1] ?? ""));
-  }
-  urlsIn(html).forEach(add);
-
-  urlsIn(safeGetData(dt, "text/plain")).forEach(add);
-
-  const known = new Set([
-    "DownloadURL",
-    "text/uri-list",
-    "text/x-moz-url",
-    "text/html",
-    "text/plain",
-    "Files",
-  ]);
   for (const type of Array.from(dt.types ?? [])) {
-    if (!known.has(type)) urlsIn(safeGetData(dt, type)).forEach(add);
+    if (!STANDARD_DRAG_TYPES.has(type.toLowerCase())) {
+      urlsIn(safeGetData(dt, type)).forEach(add);
+    }
   }
 
   return candidates;
@@ -210,7 +232,15 @@ export function isFileLink(url: string | undefined): url is string {
 export function readDropURL(dt: DataTransfer | null): string | undefined {
   if (!dt) return undefined;
 
-  return readDropURLs(dt).find(isFileLink) ?? directURL(dt);
+  const fileLink = readDropURLs(dt).find(isFileLink);
+  if (fileLink) return fileLink;
+
+  const types = Array.from(dt.types ?? []);
+  if (types.length > 0 && !types.includes("Files")) {
+    console.info("Drop without a recognised file link, types:", types);
+  }
+
+  return directURL(dt);
 }
 
 export type ResolvedFileLink = { file: File } | { asset: Asset };
@@ -329,7 +359,7 @@ export function isImportableFileURL(raw: string | undefined): boolean {
     return false;
   }
 
-  if (url.host === "drive.google.com" || url.host === "docs.google.com") {
+  if (GOOGLE_FILE_HOSTS.has(url.host)) {
     return parseDriveDropURL(raw) !== null;
   }
 

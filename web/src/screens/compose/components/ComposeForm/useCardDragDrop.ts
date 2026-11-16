@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { handle } from "@/api/client";
 import { Asset } from "@/api/openapi-schema";
@@ -15,7 +16,6 @@ import {
   resolveFileLink,
 } from "@/components/drive/resolveDroppedDriveFile";
 import { useTranslation } from "@/lib/i18n";
-import { toast } from "sonner";
 import { useMaxUploadSizeBytes } from "@/lib/settings/uploads";
 
 // Drop target for the whole compose card (title, body and footer). Distinct

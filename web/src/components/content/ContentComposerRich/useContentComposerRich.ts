@@ -276,7 +276,7 @@ export function useContentComposer(props: ContentComposerProps) {
     // Compared against the stripped HTML, not the raw document: onChange emits
     // the document with in-flight upload placeholders removed, so a raw
     // comparison always differs while an upload is running and the resulting
-    // setContent deletes the placeholder â€” which the cleanup plugin reads as
+    // setContent deletes the placeholder — which the cleanup plugin reads as
     // the node being deleted and aborts the upload behind it.
     if (
       props.value !== undefined &&
@@ -311,7 +311,7 @@ export function useContentComposer(props: ContentComposerProps) {
   // Navigating away mid-upload otherwise leaves the XHRs running against a
   // composer that no longer exists, and leaks every placeholder's object URL for
   // the lifetime of the document. Uploads that already completed are left alone
-  // â€” their blob URL has been swapped for the asset URL and revoking is handled
+  // — their blob URL has been swapped for the asset URL and revoking is handled
   // at that point.
   useEffect(() => {
     const uploads = activeUploadsRef.current;
@@ -883,7 +883,7 @@ export function useContentComposer(props: ContentComposerProps) {
 
     // Incremented unconditionally so it stays paired with every dragleave,
     // including the ones fired by dragging existing content (e.g. an image)
-    // around within the editor â€” those carry text/html, not a file, but the
+    // around within the editor — those carry text/html, not a file, but the
     // browser still fires enter/leave for them. Gating the increment on
     // hasFile while the decrement below stays unconditional would drift the
     // counter negative, and the drop overlay would ultimately depend on this
@@ -965,7 +965,7 @@ export function useContentComposer(props: ContentComposerProps) {
     }
 
     // A non-file drop (repositioning content within the editor, dropping a
-    // link/text) legitimately has no files â€” only surface an error when the
+    // link/text) legitimately has no files — only surface an error when the
     // drag was actually carrying files but none survived to the drop event,
     // otherwise this would flag normal in-editor drag-and-drop as broken.
     const wasFileDrag = Array.from(e.dataTransfer.types).includes("Files");

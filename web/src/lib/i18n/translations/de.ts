@@ -826,6 +826,7 @@ export const de: Translations = {
     markAsRead: "Als gelesen markieren",
     markAsUnread: "Als ungelesen markieren",
     markAllAsRead: "Alle als gelesen markieren",
+    archiveAll: "Alle archivieren",
     archived: "Archiviert",
     events: {
       threadReply: "hat auf deinen Beitrag geantwortet",

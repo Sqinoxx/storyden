@@ -96,7 +96,7 @@ export function NotificationScreen(props: Props) {
             flexShrink="0"
             onClick={handlers.handleMarkAllAsRead}
           >
-            {t.notifications.markAllAsRead}
+            {t.notifications.archiveAll}
           </Button>
         )}
       </WStack>

@@ -19,6 +19,7 @@ import (
 	"github.com/Southclaws/storyden/internal/ent"
 	ent_node "github.com/Southclaws/storyden/internal/ent/node"
 	ent_post "github.com/Southclaws/storyden/internal/ent/post"
+	"github.com/Southclaws/storyden/internal/infrastructure/ai"
 )
 
 const (
@@ -62,6 +63,8 @@ func runOnBoot(ctx context.Context, lc fx.Lifecycle, idx *Indexer) {
 }
 
 func (idx *Indexer) loop(ctx context.Context) {
+	ctx = ai.LowPriorityContext(ctx)
+
 	if err := idx.ResetIfIndexEmpty(ctx); err != nil {
 		idx.logger.Error("failed to check semdex state", slog.String("error", err.Error()))
 	}

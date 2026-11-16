@@ -9,6 +9,8 @@ import (
 	"github.com/Southclaws/fault/fctx"
 
 	"github.com/Southclaws/storyden/app/resources/datagraph"
+	"github.com/Southclaws/storyden/app/services/summary_text"
+	"github.com/Southclaws/storyden/internal/infrastructure/ai"
 )
 
 var SummarisePrompt = template.Must(template.New("").Parse(`
@@ -33,13 +35,13 @@ Content:
 func (g *generator) Summarise(ctx context.Context, content datagraph.Content) (string, error) {
 	template := strings.Builder{}
 	err := SummarisePrompt.Execute(&template, map[string]any{
-		"Content": content.Plaintext(),
+		"Content": summary_text.Clip(content.Plaintext(), maxInputChars),
 	})
 	if err != nil {
 		return "", fault.Wrap(err, fctx.With(ctx))
 	}
 
-	result, err := g.prompter.Prompt(ctx, template.String())
+	result, err := g.prompter.Prompt(ctx, template.String(), ai.WithFastModel(), ai.WithMaxTokens(summaryMaxTokens), ai.WithTemperature(0.3))
 	if err != nil {
 		return "", fault.Wrap(err, fctx.With(ctx))
 	}

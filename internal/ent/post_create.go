@@ -205,6 +205,34 @@ func (_c *PostCreate) SetNillableVisibility(v *post.Visibility) *PostCreate {
 	return _c
 }
 
+// SetAiSummary sets the "ai_summary" field.
+func (_c *PostCreate) SetAiSummary(v string) *PostCreate {
+	_c.mutation.SetAiSummary(v)
+	return _c
+}
+
+// SetNillableAiSummary sets the "ai_summary" field if the given value is not nil.
+func (_c *PostCreate) SetNillableAiSummary(v *string) *PostCreate {
+	if v != nil {
+		_c.SetAiSummary(*v)
+	}
+	return _c
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (_c *PostCreate) SetAiSummaryHash(v string) *PostCreate {
+	_c.mutation.SetAiSummaryHash(v)
+	return _c
+}
+
+// SetNillableAiSummaryHash sets the "ai_summary_hash" field if the given value is not nil.
+func (_c *PostCreate) SetNillableAiSummaryHash(v *string) *PostCreate {
+	if v != nil {
+		_c.SetAiSummaryHash(*v)
+	}
+	return _c
+}
+
 // SetAccountPosts sets the "account_posts" field.
 func (_c *PostCreate) SetAccountPosts(v xid.ID) *PostCreate {
 	_c.mutation.SetAccountPosts(v)
@@ -656,6 +684,14 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Visibility(); ok {
 		_spec.SetField(post.FieldVisibility, field.TypeEnum, value)
 		_node.Visibility = value
+	}
+	if value, ok := _c.mutation.AiSummary(); ok {
+		_spec.SetField(post.FieldAiSummary, field.TypeString, value)
+		_node.AiSummary = &value
+	}
+	if value, ok := _c.mutation.AiSummaryHash(); ok {
+		_spec.SetField(post.FieldAiSummaryHash, field.TypeString, value)
+		_node.AiSummaryHash = &value
 	}
 	if nodes := _c.mutation.AuthorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1192,6 +1228,42 @@ func (u *PostUpsert) UpdateVisibility() *PostUpsert {
 	return u
 }
 
+// SetAiSummary sets the "ai_summary" field.
+func (u *PostUpsert) SetAiSummary(v string) *PostUpsert {
+	u.Set(post.FieldAiSummary, v)
+	return u
+}
+
+// UpdateAiSummary sets the "ai_summary" field to the value that was provided on create.
+func (u *PostUpsert) UpdateAiSummary() *PostUpsert {
+	u.SetExcluded(post.FieldAiSummary)
+	return u
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (u *PostUpsert) ClearAiSummary() *PostUpsert {
+	u.SetNull(post.FieldAiSummary)
+	return u
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (u *PostUpsert) SetAiSummaryHash(v string) *PostUpsert {
+	u.Set(post.FieldAiSummaryHash, v)
+	return u
+}
+
+// UpdateAiSummaryHash sets the "ai_summary_hash" field to the value that was provided on create.
+func (u *PostUpsert) UpdateAiSummaryHash() *PostUpsert {
+	u.SetExcluded(post.FieldAiSummaryHash)
+	return u
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (u *PostUpsert) ClearAiSummaryHash() *PostUpsert {
+	u.SetNull(post.FieldAiSummaryHash)
+	return u
+}
+
 // SetAccountPosts sets the "account_posts" field.
 func (u *PostUpsert) SetAccountPosts(v xid.ID) *PostUpsert {
 	u.Set(post.FieldAccountPosts, v)
@@ -1547,6 +1619,48 @@ func (u *PostUpsertOne) SetVisibility(v post.Visibility) *PostUpsertOne {
 func (u *PostUpsertOne) UpdateVisibility() *PostUpsertOne {
 	return u.Update(func(s *PostUpsert) {
 		s.UpdateVisibility()
+	})
+}
+
+// SetAiSummary sets the "ai_summary" field.
+func (u *PostUpsertOne) SetAiSummary(v string) *PostUpsertOne {
+	return u.Update(func(s *PostUpsert) {
+		s.SetAiSummary(v)
+	})
+}
+
+// UpdateAiSummary sets the "ai_summary" field to the value that was provided on create.
+func (u *PostUpsertOne) UpdateAiSummary() *PostUpsertOne {
+	return u.Update(func(s *PostUpsert) {
+		s.UpdateAiSummary()
+	})
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (u *PostUpsertOne) ClearAiSummary() *PostUpsertOne {
+	return u.Update(func(s *PostUpsert) {
+		s.ClearAiSummary()
+	})
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (u *PostUpsertOne) SetAiSummaryHash(v string) *PostUpsertOne {
+	return u.Update(func(s *PostUpsert) {
+		s.SetAiSummaryHash(v)
+	})
+}
+
+// UpdateAiSummaryHash sets the "ai_summary_hash" field to the value that was provided on create.
+func (u *PostUpsertOne) UpdateAiSummaryHash() *PostUpsertOne {
+	return u.Update(func(s *PostUpsert) {
+		s.UpdateAiSummaryHash()
+	})
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (u *PostUpsertOne) ClearAiSummaryHash() *PostUpsertOne {
+	return u.Update(func(s *PostUpsert) {
+		s.ClearAiSummaryHash()
 	})
 }
 
@@ -2080,6 +2194,48 @@ func (u *PostUpsertBulk) SetVisibility(v post.Visibility) *PostUpsertBulk {
 func (u *PostUpsertBulk) UpdateVisibility() *PostUpsertBulk {
 	return u.Update(func(s *PostUpsert) {
 		s.UpdateVisibility()
+	})
+}
+
+// SetAiSummary sets the "ai_summary" field.
+func (u *PostUpsertBulk) SetAiSummary(v string) *PostUpsertBulk {
+	return u.Update(func(s *PostUpsert) {
+		s.SetAiSummary(v)
+	})
+}
+
+// UpdateAiSummary sets the "ai_summary" field to the value that was provided on create.
+func (u *PostUpsertBulk) UpdateAiSummary() *PostUpsertBulk {
+	return u.Update(func(s *PostUpsert) {
+		s.UpdateAiSummary()
+	})
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (u *PostUpsertBulk) ClearAiSummary() *PostUpsertBulk {
+	return u.Update(func(s *PostUpsert) {
+		s.ClearAiSummary()
+	})
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (u *PostUpsertBulk) SetAiSummaryHash(v string) *PostUpsertBulk {
+	return u.Update(func(s *PostUpsert) {
+		s.SetAiSummaryHash(v)
+	})
+}
+
+// UpdateAiSummaryHash sets the "ai_summary_hash" field to the value that was provided on create.
+func (u *PostUpsertBulk) UpdateAiSummaryHash() *PostUpsertBulk {
+	return u.Update(func(s *PostUpsert) {
+		s.UpdateAiSummaryHash()
+	})
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (u *PostUpsertBulk) ClearAiSummaryHash() *PostUpsertBulk {
+	return u.Update(func(s *PostUpsert) {
+		s.ClearAiSummaryHash()
 	})
 }
 

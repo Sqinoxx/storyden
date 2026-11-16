@@ -1222,6 +1222,10 @@ func (m *Mapping) ThreadSummarise() (bool, *rbac.Permission) {
 	return false, &rbac.PermissionReadPublishedThreads
 }
 
+func (m *Mapping) ThreadSummaryStream() (bool, *rbac.Permission) {
+	return false, &rbac.PermissionReadPublishedThreads
+}
+
 func (m *Mapping) ThreadAttachmentSummaryGet() (bool, *rbac.Permission) {
 	return false, &rbac.PermissionReadPublishedThreads
 }

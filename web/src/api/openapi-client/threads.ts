@@ -32,6 +32,7 @@ import type {
   ThreadSuggestTagsBody,
   ThreadSuggestTagsOKResponse,
   ThreadSummariseOKResponse,
+  ThreadSummaryStreamOKResponse,
   ThreadUpdateBody,
   ThreadUpdateOKResponse,
   UnauthorisedResponse,
@@ -333,6 +334,68 @@ export const useThreadSummarise = <
   const swrFn = getThreadSummariseMutationFetcher(threadMark);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Summarise a long thread with the language model and stream the answer
+as server-sent events, in the same format as the attachment summary
+stream. The final `done` event additionally carries
+`includes_attachments`. The result is stored until the thread changes,
+later calls answer with the `done` event at once. Short threads end
+with an empty summary.
+
+ */
+export const threadSummaryStream = (threadMark: string) => {
+  return fetcher<ThreadSummaryStreamOKResponse>({
+    url: `/threads/${threadMark}/summary/stream`,
+    method: "GET",
+  });
+};
+
+export const getThreadSummaryStreamKey = (threadMark: string) =>
+  [`/threads/${threadMark}/summary/stream`] as const;
+
+export type ThreadSummaryStreamQueryResult = NonNullable<
+  Awaited<ReturnType<typeof threadSummaryStream>>
+>;
+export type ThreadSummaryStreamQueryError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | NotFoundResponse
+  | InternalServerErrorResponse;
+
+export const useThreadSummaryStream = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | NotFoundResponse
+    | InternalServerErrorResponse,
+>(
+  threadMark: string,
+  options?: {
+    swr?: SWRConfiguration<
+      Awaited<ReturnType<typeof threadSummaryStream>>,
+      TError
+    > & { swrKey?: Key; enabled?: boolean };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false && !!threadMark;
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() => (isEnabled ? getThreadSummaryStreamKey(threadMark) : null));
+  const swrFn = () => threadSummaryStream(threadMark);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
 
   return {
     swrKey,

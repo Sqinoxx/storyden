@@ -3659,6 +3659,26 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorised" }
         "200": { $ref: "#/components/responses/ThreadSummariseOK" }
 
+  /threads/{thread_mark}/summary/stream:
+    get:
+      operationId: ThreadSummaryStream
+      x-storyden: { rate-limit-cost: 10 }
+      description: |
+        Summarise a long thread with the language model and stream the answer
+        as server-sent events, in the same format as the attachment summary
+        stream. The final `done` event additionally carries
+        `includes_attachments`. The result is stored until the thread changes,
+        later calls answer with the `done` event at once. Short threads end
+        with an empty summary.
+      tags: [threads]
+      parameters: [$ref: "#/components/parameters/ThreadMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ThreadSummaryStreamOK" }
+
   /threads/{thread_mark}/attachments/{asset_id}/summary:
     get:
       operationId: ThreadAttachmentSummaryGet
@@ -7878,6 +7898,13 @@ components:
       content:
         application/json:
           schema: { $ref: "#/components/schemas/ThreadSummary" }
+
+    ThreadSummaryStreamOK:
+      description: Server-sent events stream of the thread summary.
+      content:
+        text/event-stream:
+          schema:
+            type: string
 
     ThreadAttachmentSummaryGetOK:
       description: Stored summary or a quick overview of the attachment.

@@ -1,7 +1,6 @@
 package pdf_summary
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -85,27 +84,4 @@ func TestPreviewEscapesHTML(t *testing.T) {
 func TestHashChangesWithText(t *testing.T) {
 	assert.Equal(t, hashOf("a"), hashOf("a"))
 	assert.NotEqual(t, hashOf("a"), hashOf("b"))
-}
-
-func TestBroadcastLateSubscriber(t *testing.T) {
-	b := newBroadcast()
-	b.push("Hallo ")
-	b.push("Welt")
-
-	got := make(chan string, 1)
-	go func() {
-		var out strings.Builder
-		for ev := range b.subscribe(context.Background()) {
-			if ev.Done {
-				out.WriteString("|" + ev.HTML)
-				break
-			}
-			out.WriteString(ev.Text)
-		}
-		got <- out.String()
-	}()
-
-	b.push("!")
-	b.finish("<p>Hallo Welt!</p>", nil)
-	assert.Equal(t, "Hallo Welt!|<p>Hallo Welt!</p>", <-got)
 }

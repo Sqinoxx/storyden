@@ -284,6 +284,46 @@ func (_u *PostUpdate) SetNillableVisibility(v *post.Visibility) *PostUpdate {
 	return _u
 }
 
+// SetAiSummary sets the "ai_summary" field.
+func (_u *PostUpdate) SetAiSummary(v string) *PostUpdate {
+	_u.mutation.SetAiSummary(v)
+	return _u
+}
+
+// SetNillableAiSummary sets the "ai_summary" field if the given value is not nil.
+func (_u *PostUpdate) SetNillableAiSummary(v *string) *PostUpdate {
+	if v != nil {
+		_u.SetAiSummary(*v)
+	}
+	return _u
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (_u *PostUpdate) ClearAiSummary() *PostUpdate {
+	_u.mutation.ClearAiSummary()
+	return _u
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (_u *PostUpdate) SetAiSummaryHash(v string) *PostUpdate {
+	_u.mutation.SetAiSummaryHash(v)
+	return _u
+}
+
+// SetNillableAiSummaryHash sets the "ai_summary_hash" field if the given value is not nil.
+func (_u *PostUpdate) SetNillableAiSummaryHash(v *string) *PostUpdate {
+	if v != nil {
+		_u.SetAiSummaryHash(*v)
+	}
+	return _u
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (_u *PostUpdate) ClearAiSummaryHash() *PostUpdate {
+	_u.mutation.ClearAiSummaryHash()
+	return _u
+}
+
 // SetAccountPosts sets the "account_posts" field.
 func (_u *PostUpdate) SetAccountPosts(v xid.ID) *PostUpdate {
 	_u.mutation.SetAccountPosts(v)
@@ -942,6 +982,18 @@ func (_u *PostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Visibility(); ok {
 		_spec.SetField(post.FieldVisibility, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.AiSummary(); ok {
+		_spec.SetField(post.FieldAiSummary, field.TypeString, value)
+	}
+	if _u.mutation.AiSummaryCleared() {
+		_spec.ClearField(post.FieldAiSummary, field.TypeString)
+	}
+	if value, ok := _u.mutation.AiSummaryHash(); ok {
+		_spec.SetField(post.FieldAiSummaryHash, field.TypeString, value)
+	}
+	if _u.mutation.AiSummaryHashCleared() {
+		_spec.ClearField(post.FieldAiSummaryHash, field.TypeString)
 	}
 	if _u.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1848,6 +1900,46 @@ func (_u *PostUpdateOne) SetNillableVisibility(v *post.Visibility) *PostUpdateOn
 	return _u
 }
 
+// SetAiSummary sets the "ai_summary" field.
+func (_u *PostUpdateOne) SetAiSummary(v string) *PostUpdateOne {
+	_u.mutation.SetAiSummary(v)
+	return _u
+}
+
+// SetNillableAiSummary sets the "ai_summary" field if the given value is not nil.
+func (_u *PostUpdateOne) SetNillableAiSummary(v *string) *PostUpdateOne {
+	if v != nil {
+		_u.SetAiSummary(*v)
+	}
+	return _u
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (_u *PostUpdateOne) ClearAiSummary() *PostUpdateOne {
+	_u.mutation.ClearAiSummary()
+	return _u
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (_u *PostUpdateOne) SetAiSummaryHash(v string) *PostUpdateOne {
+	_u.mutation.SetAiSummaryHash(v)
+	return _u
+}
+
+// SetNillableAiSummaryHash sets the "ai_summary_hash" field if the given value is not nil.
+func (_u *PostUpdateOne) SetNillableAiSummaryHash(v *string) *PostUpdateOne {
+	if v != nil {
+		_u.SetAiSummaryHash(*v)
+	}
+	return _u
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (_u *PostUpdateOne) ClearAiSummaryHash() *PostUpdateOne {
+	_u.mutation.ClearAiSummaryHash()
+	return _u
+}
+
 // SetAccountPosts sets the "account_posts" field.
 func (_u *PostUpdateOne) SetAccountPosts(v xid.ID) *PostUpdateOne {
 	_u.mutation.SetAccountPosts(v)
@@ -2536,6 +2628,18 @@ func (_u *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) {
 	}
 	if value, ok := _u.mutation.Visibility(); ok {
 		_spec.SetField(post.FieldVisibility, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.AiSummary(); ok {
+		_spec.SetField(post.FieldAiSummary, field.TypeString, value)
+	}
+	if _u.mutation.AiSummaryCleared() {
+		_spec.ClearField(post.FieldAiSummary, field.TypeString)
+	}
+	if value, ok := _u.mutation.AiSummaryHash(); ok {
+		_spec.SetField(post.FieldAiSummaryHash, field.TypeString, value)
+	}
+	if _u.mutation.AiSummaryHashCleared() {
+		_spec.ClearField(post.FieldAiSummaryHash, field.TypeString)
 	}
 	if _u.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{

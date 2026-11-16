@@ -65,3 +65,8 @@ func isLowPriority(ctx context.Context) bool {
 func ResolveOptions(opts ...Option) Options {
 	return applyOptions(opts)
 }
+
+// PromptCharBudget is how many characters of instructions and input fit a
+// 4096 token context together with a few hundred tokens of answer. German
+// text needs about one token per three characters.
+const PromptCharBudget = 9000

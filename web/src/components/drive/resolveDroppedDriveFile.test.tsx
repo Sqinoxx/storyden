@@ -86,9 +86,53 @@ describe("parseDriveDropURL", () => {
 describe("readDropURL", () => {
   function transfer(data: Record<string, string>) {
     return {
+      types: Object.keys(data),
       getData: (type: string) => data[type] ?? "",
     } as unknown as DataTransfer;
   }
+
+  it("reads a google drive desktop drag from DownloadURL", () => {
+    expect(
+      readDropURL(
+        transfer({
+          DownloadURL: `application/pdf:2010 WS.pdf:https://drive.google.com/uc?id=${GOOGLE_ID}&export=download`,
+          "text/plain": "2010 WS.pdf",
+        }),
+      ),
+    ).toBe(`https://drive.google.com/uc?id=${GOOGLE_ID}&export=download`);
+  });
+
+  it("prefers a file link over the page link", () => {
+    expect(
+      readDropURL(
+        transfer({
+          "text/uri-list": "https://drive.google.com/drive/my-drive",
+          "text/html": `<a href="https://drive.google.com/file/d/${GOOGLE_ID}/view?usp=drive_web&amp;x=1">2010 WS.pdf</a>`,
+        }),
+      ),
+    ).toBe(`https://drive.google.com/file/d/${GOOGLE_ID}/view?usp=drive_web&x=1`);
+  });
+
+  it("finds an image in dragged html", () => {
+    expect(
+      readDropURL(
+        transfer({
+          "text/uri-list": "https://example.com/gallery",
+          "text/html": `<img src="https://cdn.example.com/Zahn.JPG" alt="">`,
+        }),
+      ),
+    ).toBe("https://cdn.example.com/Zahn.JPG");
+  });
+
+  it("scans unknown drag types for a file link", () => {
+    expect(
+      readDropURL(
+        transfer({
+          "application/x-drive-item": `{"url":"https://drive.google.com/open?id=${GOOGLE_ID}"}`,
+        }),
+      ),
+    ).toBe(`https://drive.google.com/open?id=${GOOGLE_ID}`);
+  });
 
   it("prefers the first uri-list entry over comments", () => {
     expect(
@@ -232,6 +276,10 @@ describe("isImportableFileURL", () => {
     "https://example.com/files/Vorlesung%20Endo.PPTX",
     "https://example.com/Lernliste.xlsx?download=1",
     "https://example.com/protokoll.docx",
+    "https://example.com/photo.jpg",
+    "https://example.com/Befund.PNG",
+    "https://example.com/scan.webp",
+    "https://example.com/IMG_0001.heic",
     `https://drive.google.com/file/d/${GOOGLE_ID}/view`,
     `https://docs.google.com/presentation/d/${GOOGLE_ID}/edit`,
   ])("accepts %s", (url) => {
@@ -240,7 +288,7 @@ describe("isImportableFileURL", () => {
 
   it.each([
     ["an article", "https://www.zm-online.de/news/aktuelles"],
-    ["an image", "https://example.com/photo.jpg"],
+    ["an svg", "https://example.com/logo.svg"],
     [
       "the site's own drive",
       `https://unidentists.test/drive/${FOLDER}/${GOOGLE_ID}`,
@@ -271,6 +319,23 @@ describe("importFromURL", () => {
     assetImport.mockRejectedValue(new Error("400"));
 
     expect(await importFromURL("https://example.com/Leitlinie.pdf")).toBeNull();
+  });
+});
+
+describe("fetchDriveDocument images", () => {
+  it("accepts photos from the drive", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(response("jpg", { "content-type": "image/jpeg" })),
+    );
+
+    const file = await fetchDriveDocument({
+      folderID: FOLDER,
+      fileID: GOOGLE_ID,
+    });
+
+    expect(file?.type).toBe("image/jpeg");
+    expect(file?.name).toBe("dokument.jpg");
   });
 });
 

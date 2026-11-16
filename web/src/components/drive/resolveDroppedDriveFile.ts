@@ -15,11 +15,21 @@ const FALLBACK_EXTENSIONS: Record<string, string> = {
     "pptx",
   "application/vnd.ms-excel": "xls",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/gif": "gif",
+  "image/webp": "webp",
+  "image/heic": "heic",
+  "image/heif": "heif",
+  "image/avif": "avif",
 };
 
 export const UPLOADABLE_DOCUMENT_MIMES = Object.keys(FALLBACK_EXTENSIONS);
 
-const IMPORTABLE_EXTENSION = /\.(pdf|docx?|pptx?|xlsx?)$/i;
+const IMPORTABLE_EXTENSION =
+  /\.(pdf|docx?|pptx?|xlsx?|jpe?g|png|gif|webp|heic|heif|avif)$/i;
+
+const URL_PATTERN = /https?:\/\/[^\s"'<>]+/g;
 
 const DRIVE_ID = /^[A-Za-z0-9_-]{10,}$/;
 
@@ -116,21 +126,119 @@ export function parseDriveDropURL(
   return null;
 }
 
-export function readDropURL(dt: DataTransfer | null): string | undefined {
-  if (!dt) return undefined;
+function safeGetData(dt: DataTransfer, type: string): string {
+  try {
+    return dt.getData(type) ?? "";
+  } catch {
+    return "";
+  }
+}
 
-  const uriList = dt
-    .getData("text/uri-list")
+function decodeEntities(raw: string): string {
+  return raw
+    .replace(/&amp;/g, "&")
+    .replace(/&#x2F;/gi, "/")
+    .replace(/&#47;/g, "/");
+}
+
+function urlsIn(text: string): string[] {
+  return (decodeEntities(text).match(URL_PATTERN) ?? []).map((u) =>
+    u.replace(/[),.;]+$/, ""),
+  );
+}
+
+function directURL(dt: DataTransfer): string | undefined {
+  const uriList = safeGetData(dt, "text/uri-list")
     .split(/\r?\n/)
     .map((line) => line.trim())
     .find((line) => line !== "" && !line.startsWith("#"));
 
   if (uriList) return uriList;
 
-  const text = dt.getData("text/plain").trim();
+  const text = safeGetData(dt, "text/plain").trim();
   if (!text || /\s/.test(text)) return undefined;
 
   return text;
+}
+
+// Desktop browsers put a dragged file's link in different places depending on
+// the source: Google Drive uses Chrome's DownloadURL ("mime:name:url"), images
+// from other sites carry it in text/html, Firefox adds text/x-moz-url. A file
+// link anywhere in the drag wins over the plain page link.
+export function readDropURLs(dt: DataTransfer | null): string[] {
+  if (!dt) return [];
+
+  const candidates: string[] = [];
+  const add = (url: string | undefined) => {
+    const trimmed = url?.trim();
+    if (trimmed && !candidates.includes(trimmed)) candidates.push(trimmed);
+  };
+
+  urlsIn(safeGetData(dt, "DownloadURL")).forEach(add);
+  add(directURL(dt));
+  add(safeGetData(dt, "text/x-moz-url").split(/\r?\n/)[0]);
+
+  const html = safeGetData(dt, "text/html");
+  for (const match of html.matchAll(
+    /\b(?:href|src)\s*=\s*["']([^"']+)["']/gi,
+  )) {
+    add(decodeEntities(match[1] ?? ""));
+  }
+  urlsIn(html).forEach(add);
+
+  urlsIn(safeGetData(dt, "text/plain")).forEach(add);
+
+  const known = new Set([
+    "DownloadURL",
+    "text/uri-list",
+    "text/x-moz-url",
+    "text/html",
+    "text/plain",
+    "Files",
+  ]);
+  for (const type of Array.from(dt.types ?? [])) {
+    if (!known.has(type)) urlsIn(safeGetData(dt, type)).forEach(add);
+  }
+
+  return candidates;
+}
+
+export function isFileLink(url: string | undefined): url is string {
+  return parseDriveDropURL(url) !== null || isImportableFileURL(url);
+}
+
+export function readDropURL(dt: DataTransfer | null): string | undefined {
+  if (!dt) return undefined;
+
+  return readDropURLs(dt).find(isFileLink) ?? directURL(dt);
+}
+
+export type ResolvedFileLink = { file: File } | { asset: Asset };
+
+export async function resolveFileLink(
+  url: string,
+  onImportFailed?: () => void,
+): Promise<ResolvedFileLink | null> {
+  const ref = parseDriveDropURL(url);
+  if (ref) {
+    const file = await fetchDriveDocument(ref).catch(() => null);
+    if (file) {
+      return { file };
+    }
+    if (ref.folderID) {
+      return null;
+    }
+  }
+
+  if (isImportableFileURL(url)) {
+    const asset = await importFromURL(url);
+    if (asset) {
+      return { asset };
+    }
+    onImportFailed?.();
+  }
+
+  return null;
 }
 
 export function filenameFromContentDisposition(

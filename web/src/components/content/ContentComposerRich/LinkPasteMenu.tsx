@@ -9,7 +9,7 @@ import { css } from "@/styled-system/css";
 import { HStack, styled } from "@/styled-system/jsx";
 
 import { linkPasteMenuKey } from "./plugins/LinkPasteMenuPlugin";
-import { isFileLink } from "./useContentComposerRich";
+import { isFileLink } from "@/components/drive/resolveDroppedDriveFile";
 
 type Props = {
   editor: Editor;

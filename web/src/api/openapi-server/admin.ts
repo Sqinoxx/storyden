@@ -19,6 +19,8 @@ import type {
   AdminOCRAssetSkip200,
   AdminOCRReindex200,
   AdminOCRStats200,
+  AdminSemesterBackfillApplyBody,
+  AdminSemesterBackfillOKResponse,
   AdminServerMetricsParams,
   AdminSettingsGetOKResponse,
   AdminSettingsUpdateBody,
@@ -342,6 +344,112 @@ export const adminTagBackfillApply = async (
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
       body: JSON.stringify(adminTagBackfillApplyBody),
+    },
+  );
+};
+
+/**
+ * Progress of the background run that re-detects the semester of
+existing threads, with the corrections collected so far.
+
+ */
+export type adminSemesterBackfillStatusResponse = {
+  data: AdminSemesterBackfillOKResponse;
+  status: number;
+};
+
+export const getAdminSemesterBackfillStatusUrl = () => {
+  return `/admin/ai/semester-backfill`;
+};
+
+export const adminSemesterBackfillStatus = async (
+  options?: RequestInit,
+): Promise<adminSemesterBackfillStatusResponse> => {
+  return fetcher<Promise<adminSemesterBackfillStatusResponse>>(
+    getAdminSemesterBackfillStatusUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * Start re-detecting the semester of every published thread in the
+background, relative to when each thread was posted. Nothing is
+changed until corrections are applied.
+
+ */
+export type adminSemesterBackfillStartResponse = {
+  data: AdminSemesterBackfillOKResponse;
+  status: number;
+};
+
+export const getAdminSemesterBackfillStartUrl = () => {
+  return `/admin/ai/semester-backfill`;
+};
+
+export const adminSemesterBackfillStart = async (
+  options?: RequestInit,
+): Promise<adminSemesterBackfillStartResponse> => {
+  return fetcher<Promise<adminSemesterBackfillStartResponse>>(
+    getAdminSemesterBackfillStartUrl(),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+/**
+ * Stop the background run, keeping the corrections so far.
+ */
+export type adminSemesterBackfillCancelResponse = {
+  data: AdminSemesterBackfillOKResponse;
+  status: number;
+};
+
+export const getAdminSemesterBackfillCancelUrl = () => {
+  return `/admin/ai/semester-backfill`;
+};
+
+export const adminSemesterBackfillCancel = async (
+  options?: RequestInit,
+): Promise<adminSemesterBackfillCancelResponse> => {
+  return fetcher<Promise<adminSemesterBackfillCancelResponse>>(
+    getAdminSemesterBackfillCancelUrl(),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+/**
+ * Set the reviewed semesters on the threads. The threads' updated time
+is unchanged.
+
+ */
+export type adminSemesterBackfillApplyResponse = {
+  data: AdminSemesterBackfillOKResponse;
+  status: number;
+};
+
+export const getAdminSemesterBackfillApplyUrl = () => {
+  return `/admin/ai/semester-backfill/apply`;
+};
+
+export const adminSemesterBackfillApply = async (
+  adminSemesterBackfillApplyBody: AdminSemesterBackfillApplyBody,
+  options?: RequestInit,
+): Promise<adminSemesterBackfillApplyResponse> => {
+  return fetcher<Promise<adminSemesterBackfillApplyResponse>>(
+    getAdminSemesterBackfillApplyUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(adminSemesterBackfillApplyBody),
     },
   );
 };

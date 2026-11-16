@@ -11,6 +11,7 @@ import { useTranslation } from "@/lib/i18n";
 import { CardBox, HStack, WStack, styled } from "@/styled-system/jsx";
 import { lstack } from "@/styled-system/patterns";
 
+import { SemesterBackfill } from "./SemesterBackfill";
 import { TagBackfill } from "./TagBackfill";
 import { Form, Props, useAISettings } from "./useAISettings";
 
@@ -189,6 +190,8 @@ export function AISettingsForm(props: Props) {
       </CardBox>
 
       <TagBackfill configured={configured} />
+
+      <SemesterBackfill />
     </styled.form>
   );
 }

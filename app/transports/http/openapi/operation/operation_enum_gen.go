@@ -34,6 +34,10 @@ var (
 	OperationIDAdminTagBackfillStart                  = OperationID{`AdminTagBackfillStart`}
 	OperationIDAdminTagBackfillCancel                 = OperationID{`AdminTagBackfillCancel`}
 	OperationIDAdminTagBackfillApply                  = OperationID{`AdminTagBackfillApply`}
+	OperationIDAdminSemesterBackfillStatus            = OperationID{`AdminSemesterBackfillStatus`}
+	OperationIDAdminSemesterBackfillStart             = OperationID{`AdminSemesterBackfillStart`}
+	OperationIDAdminSemesterBackfillCancel            = OperationID{`AdminSemesterBackfillCancel`}
+	OperationIDAdminSemesterBackfillApply             = OperationID{`AdminSemesterBackfillApply`}
 	OperationIDAdminStatistics                        = OperationID{`AdminStatistics`}
 	OperationIDAdminServerMetrics                     = OperationID{`AdminServerMetrics`}
 	OperationIDAdminDriveFolderList                   = OperationID{`AdminDriveFolderList`}
@@ -397,6 +401,14 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDAdminTagBackfillCancel, nil
 	case string(`AdminTagBackfillApply`):
 		return OperationIDAdminTagBackfillApply, nil
+	case string(`AdminSemesterBackfillStatus`):
+		return OperationIDAdminSemesterBackfillStatus, nil
+	case string(`AdminSemesterBackfillStart`):
+		return OperationIDAdminSemesterBackfillStart, nil
+	case string(`AdminSemesterBackfillCancel`):
+		return OperationIDAdminSemesterBackfillCancel, nil
+	case string(`AdminSemesterBackfillApply`):
+		return OperationIDAdminSemesterBackfillApply, nil
 	case string(`AdminStatistics`):
 		return OperationIDAdminStatistics, nil
 	case string(`AdminServerMetrics`):

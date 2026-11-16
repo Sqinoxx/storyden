@@ -522,6 +522,57 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "200": { $ref: "#/components/responses/AdminTagBackfillOK" }
 
+  /admin/ai/semester-backfill:
+    get:
+      operationId: AdminSemesterBackfillStatus
+      description: |
+        Progress of the background run that re-detects the semester of
+        existing threads, with the corrections collected so far.
+      tags: [admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AdminSemesterBackfillOK" }
+    post:
+      operationId: AdminSemesterBackfillStart
+      x-storyden: { rate-limit-cost: 10 }
+      description: |
+        Start re-detecting the semester of every published thread in the
+        background, relative to when each thread was posted. Nothing is
+        changed until corrections are applied.
+      tags: [admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AdminSemesterBackfillOK" }
+    delete:
+      operationId: AdminSemesterBackfillCancel
+      description: Stop the background run, keeping the corrections so far.
+      tags: [admin]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AdminSemesterBackfillOK" }
+
+  /admin/ai/semester-backfill/apply:
+    post:
+      operationId: AdminSemesterBackfillApply
+      description: |
+        Set the reviewed semesters on the threads. The threads' updated time
+        is unchanged.
+      tags: [admin]
+      requestBody: { $ref: "#/components/requestBodies/AdminSemesterBackfillApply" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200": { $ref: "#/components/responses/AdminSemesterBackfillOK" }
+
   #
   #      888          d8b
   #      888          Y8P
@@ -6537,6 +6588,18 @@ components:
                 maxItems: 1000
                 items: { $ref: "#/components/schemas/TagBackfillApplyItem" }
 
+    AdminSemesterBackfillApply:
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [items]
+            properties:
+              items:
+                type: array
+                maxItems: 1000
+                items: { $ref: "#/components/schemas/SemesterBackfillApplyItem" }
+
     AdminDriveFolderCreate:
       content:
         application/json:
@@ -7891,6 +7954,12 @@ components:
         text/event-stream:
           schema:
             type: string
+
+    AdminSemesterBackfillOK:
+      description: State of the semester backfill run.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/SemesterBackfillStatus" }
 
     AdminTagBackfillOK:
       description: State of the tag backfill run.
@@ -13399,6 +13468,53 @@ components:
         preview:
           type: string
           description: HTML overview built without the language model.
+
+    SemesterBackfillStatus:
+      type: object
+      required: [running, checked, total, failed, applied, proposals]
+      properties:
+        running: { type: boolean }
+        checked: { type: integer }
+        total: { type: integer }
+        failed: { type: integer }
+        applied:
+          type: integer
+          description: Threads changed by the apply request that returned this.
+        started_at: { type: string, format: date-time }
+        finished_at: { type: string, format: date-time }
+        error: { type: string }
+        proposals:
+          type: array
+          items: { $ref: "#/components/schemas/SemesterBackfillProposal" }
+
+    SemesterBackfillProposal:
+      type: object
+      required: [thread_id, slug, title, created_at, current, current_explicit, suggested, source, evidence]
+      properties:
+        thread_id: { $ref: "#/components/schemas/Identifier" }
+        slug: { type: string }
+        title: { type: string }
+        created_at: { type: string, format: date-time }
+        current:
+          type: string
+          description: |
+            The thread's semester as shown today, such as "2025-WS". Taken
+            from the thread's metadata or else from when it was posted.
+        current_explicit:
+          type: boolean
+          description: Whether the current semester was chosen explicitly.
+        suggested: { type: string }
+        source: { type: string, enum: [pattern, model] }
+        evidence: { type: string }
+
+    SemesterBackfillApplyItem:
+      type: object
+      required: [thread_id, term]
+      properties:
+        thread_id: { $ref: "#/components/schemas/Identifier" }
+        term:
+          type: string
+          description: Academic term such as "2025-WS" or "2026-SS".
 
     TagBackfillStatus:
       type: object

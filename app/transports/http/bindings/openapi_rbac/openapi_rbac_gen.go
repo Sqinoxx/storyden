@@ -25,6 +25,10 @@ type OperationPermissions interface {
 	AdminTagBackfillStart() (bool, *rbac.Permission)
 	AdminTagBackfillCancel() (bool, *rbac.Permission)
 	AdminTagBackfillApply() (bool, *rbac.Permission)
+	AdminSemesterBackfillStatus() (bool, *rbac.Permission)
+	AdminSemesterBackfillStart() (bool, *rbac.Permission)
+	AdminSemesterBackfillCancel() (bool, *rbac.Permission)
+	AdminSemesterBackfillApply() (bool, *rbac.Permission)
 	AdminStatistics() (bool, *rbac.Permission)
 	AdminServerMetrics() (bool, *rbac.Permission)
 	AdminDriveFolderList() (bool, *rbac.Permission)
@@ -353,6 +357,14 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.AdminTagBackfillCancel()
 	case "AdminTagBackfillApply":
 		return optable.AdminTagBackfillApply()
+	case "AdminSemesterBackfillStatus":
+		return optable.AdminSemesterBackfillStatus()
+	case "AdminSemesterBackfillStart":
+		return optable.AdminSemesterBackfillStart()
+	case "AdminSemesterBackfillCancel":
+		return optable.AdminSemesterBackfillCancel()
+	case "AdminSemesterBackfillApply":
+		return optable.AdminSemesterBackfillApply()
 	case "AdminStatistics":
 		return optable.AdminStatistics()
 	case "AdminServerMetrics":

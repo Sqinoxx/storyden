@@ -56,6 +56,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/semdex/robot"
 	"github.com/Southclaws/storyden/app/services/semdex/semdex_indexer"
 	"github.com/Southclaws/storyden/app/services/semdex/semdexer"
+	"github.com/Southclaws/storyden/app/services/semester_backfill"
 	"github.com/Southclaws/storyden/app/services/semester_suggest"
 	"github.com/Southclaws/storyden/app/services/system/instance_info"
 	"github.com/Southclaws/storyden/app/services/system/server_metrics"
@@ -104,6 +105,7 @@ func Build() fx.Option {
 		semdexer.Build(),
 		semdex_indexer.Build(),
 		semester_suggest.Build(),
+		semester_backfill.Build(),
 		tag_suggest.Build(),
 		tag_backfill.Build(),
 		thread_summary.Build(),

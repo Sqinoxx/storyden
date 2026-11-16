@@ -3,6 +3,7 @@ package semdex_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/Southclaws/opt"
 	"github.com/google/uuid"
@@ -10,7 +11,9 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/Southclaws/storyden/app/resources/account/account_writer"
+	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/seed"
+	"github.com/Southclaws/storyden/app/services/search/searcher"
 	"github.com/Southclaws/storyden/app/services/semdex"
 	"github.com/Southclaws/storyden/app/services/semdex/semdex_indexer"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
@@ -101,6 +104,31 @@ func TestSemdexIndexerBackfillsAndRemoves(t *testing.T) {
 				_, err := idx.Sync(root)
 				require.NoError(t, err)
 				require.Equal(t, before, count())
+			})
+
+			t.Run("new_reply_reindexes_thread_with_its_text", func(t *testing.T) {
+				time.Sleep(2100 * time.Millisecond)
+
+				reply, err := cl.ReplyCreateWithResponse(root, published1, openapi.ReplyInitialProps{
+					Body: "<p>Onkel Otto orgelt tag täglich</p>",
+				}, session)
+				tests.Ok(t, err, reply)
+
+				n, err := idx.Sync(root)
+				require.NoError(t, err)
+				require.Equal(t, 1, n)
+				require.Equal(t, before, count())
+
+				chunks, err := sd.SearchChunks(root, "Onkel Otto orgelt", pagination.NewPageParams(1, 50), searcher.Options{})
+				require.NoError(t, err)
+				var content string
+				for _, c := range chunks {
+					if c.ID.String() == published1 {
+						content = c.Content
+					}
+				}
+				require.Contains(t, content, "Physikum Anatomie")
+				require.Contains(t, content, "Antworten:\n- Onkel Otto orgelt")
 			})
 
 			t.Run("unpublished_thread_is_removed", func(t *testing.T) {

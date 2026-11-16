@@ -1186,6 +1186,7 @@ export * from "./threadSuggestTagsBody";
 export * from "./threadSuggestTagsOKResponse";
 export * from "./threadSummariseOKResponse";
 export * from "./threadSummary";
+export * from "./threadSummaryStreamOKResponse";
 export * from "./threadTagSuggestion";
 export * from "./threadTagSuggestionRequest";
 export * from "./threadTitle";

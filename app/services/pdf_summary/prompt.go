@@ -30,9 +30,9 @@ Rules:
 `
 
 func quickPrompt(a *asset.Asset, sel selection) string {
-	return fmt.Sprintf("%sFile: %s\n\n%s", quickInstructions, summary_text.DisplayName(a.Name.String()), sel.text)
+	return fmt.Sprintf("File: %s\n\n%s", summary_text.DisplayName(a.Name.String()), sel.text)
 }
 
 func fullPrompt(a *asset.Asset, sel selection) string {
-	return fmt.Sprintf("%sFile: %s\n\n%s", fullInstructions, summary_text.DisplayName(a.Name.String()), sel.text)
+	return fmt.Sprintf("File: %s\n\n%s", summary_text.DisplayName(a.Name.String()), sel.text)
 }

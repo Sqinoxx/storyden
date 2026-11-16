@@ -37,6 +37,9 @@ func (Post) Fields() []ent.Field {
 			Comment("Arbitrary metadata used by clients to store domain specific information."),
 		field.Enum("visibility").Values(VisibilityTypes...).Default(VisibilityTypesDraft),
 
+		field.Text("ai_summary").Optional().Nillable(),
+		field.String("ai_summary_hash").Optional().Nillable(),
+
 		// Edges
 		field.String("account_posts").GoType(xid.ID{}),
 		field.String("category_id").GoType(xid.ID{}).Optional(),

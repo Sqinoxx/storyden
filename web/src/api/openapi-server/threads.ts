@@ -21,6 +21,7 @@ import type {
   ThreadSuggestTagsBody,
   ThreadSuggestTagsOKResponse,
   ThreadSummariseOKResponse,
+  ThreadSummaryStreamOKResponse,
   ThreadUpdateBody,
   ThreadUpdateOKResponse,
 } from "../openapi-schema";
@@ -179,6 +180,37 @@ export const threadSummarise = async (
     {
       ...options,
       method: "POST",
+    },
+  );
+};
+
+/**
+ * Summarise a long thread with the language model and stream the answer
+as server-sent events, in the same format as the attachment summary
+stream. The final `done` event additionally carries
+`includes_attachments`. The result is stored until the thread changes,
+later calls answer with the `done` event at once. Short threads end
+with an empty summary.
+
+ */
+export type threadSummaryStreamResponse = {
+  data: ThreadSummaryStreamOKResponse;
+  status: number;
+};
+
+export const getThreadSummaryStreamUrl = (threadMark: string) => {
+  return `/threads/${threadMark}/summary/stream`;
+};
+
+export const threadSummaryStream = async (
+  threadMark: string,
+  options?: RequestInit,
+): Promise<threadSummaryStreamResponse> => {
+  return fetcher<Promise<threadSummaryStreamResponse>>(
+    getThreadSummaryStreamUrl(threadMark),
+    {
+      ...options,
+      method: "GET",
     },
   );
 };

@@ -133,9 +133,12 @@ services:
 
   # Lokale KI (kostenlos, keine Daten verlassen den Server). Startet nur mit
   # "docker compose --profile ai up -d". 8 GB RAM ohne GPU: kleine Modelle,
-  # Speicher auf 5 GB begrenzt, damit Postgres und Storyden Luft behalten.
-  # qwen2.5:3b (~2,3 GB) und qwen2.5:1.5b (~1,1 GB) passen gemeinsam hinein,
-  # bge-m3 wird bei Bedarf nachgeladen (MAX_LOADED_MODELS=2).
+  # Speicher begrenzt, damit Postgres und Storyden Luft behalten.
+  # qwen2.5:3b (~2,3 GB), qwen2.5:1.5b (~1,1 GB) und bge-m3 (~1,2 GB) bleiben
+  # gemeinsam geladen (MAX_LOADED_MODELS=3). Mit nur 2 verdraengt jede
+  # Einbettung ein Chat-Modell und die naechste Antwort startet kalt (~8 s).
+  # Wird der RAM knapp: in .env OLLAMA_MAX_LOADED_MODELS=2 und
+  # OLLAMA_MEM_LIMIT=5g setzen.
   ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
@@ -145,11 +148,13 @@ services:
       - "11434"
     volumes:
       - ollama-data:/root/.ollama
-    mem_limit: 5g
+    mem_limit: ${OLLAMA_MEM_LIMIT:-5500m}
     environment:
       - OLLAMA_NUM_PARALLEL=1
-      - OLLAMA_MAX_LOADED_MODELS=2
+      - OLLAMA_MAX_LOADED_MODELS=${OLLAMA_MAX_LOADED_MODELS:-3}
       - OLLAMA_KEEP_ALIVE=30m
+      # Fest, damit lange Prompts nicht stillschweigend abgeschnitten werden.
+      - OLLAMA_CONTEXT_LENGTH=${OLLAMA_CONTEXT_LENGTH:-4096}
 
   caddy:
     image: caddy:2-alpine

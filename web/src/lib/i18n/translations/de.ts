@@ -116,6 +116,7 @@ export const de: Translations = {
     summaryDisclaimer: "Von KI erstellt, kann Fehler enthalten.",
     summaryWithAttachments: "Inkl. angehängter PDFs.",
     summaryEmpty: "Es gibt noch nichts zusammenzufassen.",
+    summaryFailed: "Die KI konnte den Thread gerade nicht zusammenfassen. Bitte gleich nochmal versuchen.",
     pdfSummarise: "PDF zusammenfassen",
     pdfSummaryTitle: "PDF-Zusammenfassung",
     pdfSummaryQuick: "Schnellüberblick",

@@ -12,6 +12,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/asset"
 	"github.com/Southclaws/storyden/app/resources/settings"
 	"github.com/Southclaws/storyden/app/services/pdf_summary"
+	"github.com/Southclaws/storyden/app/services/summary_stream"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 )
 
@@ -71,15 +72,50 @@ func (i *Threads) ThreadAttachmentSummaryStream(ctx context.Context, request ope
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	return attachmentSummaryStream{ctx: ctx, events: events}, nil
+	return summaryStream{ctx: ctx, events: events}, nil
 }
 
-type attachmentSummaryStream struct {
+func (i *Threads) ThreadSummaryStream(ctx context.Context, request openapi.ThreadSummaryStreamRequestObject) (openapi.ThreadSummaryStreamResponseObject, error) {
+	enabled, err := i.aiEnabled(ctx, (*settings.Settings).AIThreadSummaryEnabled)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	if !enabled {
+		return nil, fault.Wrap(errAIFeatureDisabled, fctx.With(ctx))
+	}
+
+	postID, err := i.thread_mark_svc.Lookup(ctx, string(request.ThreadMark))
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	events, includesAttachments, err := i.summariser.Stream(ctx, postID)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return summaryStream{
+		ctx:    ctx,
+		events: events,
+		done:   map[string]any{"includes_attachments": includesAttachments},
+	}, nil
+}
+
+type summaryStream struct {
 	ctx    context.Context
-	events func(yield func(pdf_summary.Event) bool)
+	events summary_stream.Stream
+	done   map[string]any
 }
 
-func (s attachmentSummaryStream) VisitThreadAttachmentSummaryStreamResponse(w http.ResponseWriter) error {
+func (s summaryStream) VisitThreadAttachmentSummaryStreamResponse(w http.ResponseWriter) error {
+	return s.write(w)
+}
+
+func (s summaryStream) VisitThreadSummaryStreamResponse(w http.ResponseWriter) error {
+	return s.write(w)
+}
+
+func (s summaryStream) write(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "text/event-stream; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
@@ -119,7 +155,11 @@ func (s attachmentSummaryStream) VisitThreadAttachmentSummaryStreamResponse(w ht
 			send("error", map[string]string{"message": "summary failed"})
 			return nil
 		case ev.Done:
-			send("done", map[string]string{"summary": ev.HTML})
+			payload := map[string]any{"summary": ev.HTML}
+			for k, v := range s.done {
+				payload[k] = v
+			}
+			send("done", payload)
 			return nil
 		default:
 			if !send("", map[string]string{"t": ev.Text}) {

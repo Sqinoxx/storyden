@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 
@@ -28,6 +30,7 @@ import (
 type recorder struct {
 	mu      sync.Mutex
 	prompts []string
+	systems []string
 }
 
 func (r *recorder) count() int {
@@ -46,7 +49,9 @@ func fakeModel(t *testing.T) (*httptest.Server, *recorder) {
 	rec := &recorder{}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
+			Stream   bool `json:"stream"`
 			Messages []struct {
+				Role    string `json:"role"`
 				Content string `json:"content"`
 			} `json:"messages"`
 		}
@@ -54,7 +59,22 @@ func fakeModel(t *testing.T) (*httptest.Server, *recorder) {
 
 		rec.mu.Lock()
 		rec.prompts = append(rec.prompts, body.Messages[len(body.Messages)-1].Content)
+		rec.systems = append(rec.systems, body.Messages[0].Role+": "+body.Messages[0].Content)
 		rec.mu.Unlock()
+
+		if body.Stream {
+			w.Header().Set("Content-Type", "text/event-stream")
+			for _, part := range []string{"```html\n<p><strong>Worum geht's</strong></p>", "<ul><li>Hirnnerven</li></ul>", "<script>alert(1)</script>\n```"} {
+				chunk, _ := json.Marshal(map[string]any{
+					"id": "x", "object": "chat.completion.chunk", "created": 1, "model": "m",
+					"choices": []map[string]any{{"index": 0, "delta": map[string]any{"content": part}}},
+				})
+				fmt.Fprintf(w, "data: %s\n\n", chunk)
+				w.(http.Flusher).Flush()
+			}
+			fmt.Fprint(w, "data: [DONE]\n\n")
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{
@@ -173,7 +193,13 @@ func TestThreadSummarise(t *testing.T) {
 				require.NotContains(t, res.Summary, "```")
 				require.True(t, res.IncludesAttachments)
 
+				rec.mu.Lock()
+				system := rec.systems[len(rec.systems)-1]
+				rec.mu.Unlock()
+				require.Contains(t, system, "system: Summarise this discussion thread")
+
 				prompt := rec.last()
+				require.NotContains(t, prompt, "Summarise this discussion thread")
 				require.Contains(t, prompt, "Kennt jemand eine Eselsbrücke")
 				require.Contains(t, prompt, "Antwort Nummer 5")
 				require.Contains(t, prompt, "[altklausur")
@@ -183,6 +209,51 @@ func TestThreadSummarise(t *testing.T) {
 			t.Run("unchanged_thread_is_cached", func(t *testing.T) {
 				before := rec.count()
 				summarise(t, long)
+				require.Equal(t, before, rec.count())
+			})
+
+			t.Run("stream_answers_stored_summary_at_once", func(t *testing.T) {
+				before := rec.count()
+				res, err := cl.ThreadSummaryStream(root, long, member)
+				require.NoError(t, err)
+				body, _ := io.ReadAll(res.Body)
+				res.Body.Close()
+				require.Contains(t, res.Header.Get("Content-Type"), "text/event-stream")
+				_, done, ok := strings.Cut(string(body), "event: done\n")
+				require.True(t, ok)
+				require.Contains(t, done, "Hirnnerven")
+				require.Contains(t, done, `"includes_attachments":true`)
+				require.NotContains(t, string(body), `data: {"t":`)
+				require.Equal(t, before, rec.count())
+			})
+
+			t.Run("stream_generates_and_stores", func(t *testing.T) {
+				fresh := createThread(t, 5, openapi.VisibilityPublished)
+				before := rec.count()
+				res, err := cl.ThreadSummaryStream(root, fresh, member)
+				require.NoError(t, err)
+				body, _ := io.ReadAll(res.Body)
+				res.Body.Close()
+				out := string(body)
+				require.Contains(t, out, `data: {"t":`)
+				_, done, ok := strings.Cut(out, "event: done\n")
+				require.True(t, ok)
+				require.Contains(t, done, "Hirnnerven")
+				require.NotContains(t, done, "script")
+				require.Contains(t, done, `"includes_attachments":false`)
+				require.Equal(t, before+1, rec.count())
+
+				summarise(t, fresh)
+				require.Equal(t, before+1, rec.count())
+			})
+
+			t.Run("stream_of_short_thread_is_empty", func(t *testing.T) {
+				before := rec.count()
+				res, err := cl.ThreadSummaryStream(root, createThread(t, 1, openapi.VisibilityPublished), member)
+				require.NoError(t, err)
+				body, _ := io.ReadAll(res.Body)
+				res.Body.Close()
+				require.Contains(t, string(body), `"summary":""`)
 				require.Equal(t, before, rec.count())
 			})
 

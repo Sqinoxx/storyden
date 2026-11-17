@@ -6,6 +6,7 @@ import (
 	"github.com/Southclaws/dt"
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
+	"github.com/Southclaws/fault/ftag"
 	"github.com/Southclaws/opt"
 	"github.com/rs/xid"
 
@@ -115,7 +116,7 @@ func (h *Invitations) InvitationDelete(ctx context.Context, request openapi.Invi
 
 	invid, err := xid.FromString(request.InvitationId)
 	if err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
 	}
 
 	inv, err := h.invQuerier.GetByID(ctx, invid)
@@ -144,7 +145,7 @@ func (h *Invitations) InvitationDelete(ctx context.Context, request openapi.Invi
 func (h *Invitations) InvitationGet(ctx context.Context, request openapi.InvitationGetRequestObject) (openapi.InvitationGetResponseObject, error) {
 	invid, err := xid.FromString(request.InvitationId)
 	if err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
+		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
 	}
 
 	inv, err := h.invQuerier.GetByID(ctx, invid)

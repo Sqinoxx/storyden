@@ -11,3 +11,6 @@ minimumReleaseAgeExclude:
   - dompurify@3.4.11
 patchedDependencies:
   '@zag-js/tabs@1.26.3': patches/@zag-js__tabs@1.26.3.patch
+overrides:
+  prosemirror-model: ^1.25.13
+  prosemirror-view: ^1.42.9

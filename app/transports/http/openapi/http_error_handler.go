@@ -50,8 +50,13 @@ func HTTPErrorHandler(logger *slog.Logger) func(err error, c echo.Context) {
 			)
 		}
 
-		meta := lo.MapValues(errctx, func(v, k string) any { return v })
-		problem := NewAPIError(c.Request().Context(), status, errtag, title, errmsg, meta)
+		meta := lo.MapValues(lo.OmitBy(errctx, func(k, v string) bool { return isInternalMetadataKey(k) }), func(v, k string) any { return v })
+		detail := errmsg
+		if status == http.StatusInternalServerError && maxBytesErr == nil {
+			detail = ""
+			meta = nil
+		}
+		problem := NewAPIError(c.Request().Context(), status, errtag, title, detail, meta)
 
 		if status == http.StatusInternalServerError {
 			logger.Error(errmsg,
@@ -68,6 +73,14 @@ func HTTPErrorHandler(logger *slog.Logger) func(err error, c echo.Context) {
 		//nolint:errcheck
 		c.Blob(status, ProblemJSONMediaType, mustMarshalProblem(problem))
 	}
+}
+
+func isInternalMetadataKey(k string) bool {
+	switch k {
+	case "location", "package", "client.address", "permissions":
+		return true
+	}
+	return strings.HasPrefix(k, "http.") || strings.HasPrefix(k, "url.")
 }
 
 func NewAPIError(ctx context.Context, status int, kind ftag.Kind, title string, detail string, metadata map[string]any) APIError {

@@ -4,6 +4,7 @@ const isStandalone = process.env.NEXT_BUILD_STANDALONE === "true";
 const nextConfig = {
   output: isStandalone ? "standalone" : undefined,
   reactStrictMode: true,
+  poweredByHeader: false,
   reactCompiler: true,
   images: {
     loader: "custom",

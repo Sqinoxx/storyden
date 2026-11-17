@@ -72,7 +72,7 @@ export function CategoryIndex({
           <CategoryCreateTrigger />
         </WStack>
 
-        <HStack>
+        <HStack flexWrap="wrap">
           {categories.map((c) => (
             <CategoryBadge key={c.id} category={c} />
           ))}

@@ -32,7 +32,8 @@ rsync -rt --chmod=D755,F644 -e "$SSH" \
   --delete --delete-excluded "${INCLUDES[@]}" --exclude='*' \
   "$BACKUP_DIR/" "$OFFSITE_HOST:db/"
 
-rsync -rt --chmod=D755,F644 -e "$SSH" --delete \
+# semdex ist der KI-Suchindex: fuer uns nicht lesbar, wird aus der Datenbank neu aufgebaut.
+rsync -rt --chmod=D755,F644 -e "$SSH" --delete --exclude='/semdex/' \
   ./data/ "$OFFSITE_HOST:uploads/"
 
 echo "$(date '+%F %T') Offsite-Kopie fertig: ${NEWEST[*]} + uploads -> $OFFSITE_HOST"

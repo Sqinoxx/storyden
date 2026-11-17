@@ -51,6 +51,10 @@ func TestAccountInvitations(t *testing.T) {
 
 			invitationID := invResponse.JSON200.Id
 
+			t.Run("malformed_invitation_id_is_a_bad_request", func(t *testing.T) {
+				tests.AssertRequest(cl.InvitationGetWithResponse(root, "abc"))(t, http.StatusBadRequest)
+			})
+
 			t.Run("list_invitations", func(t *testing.T) {
 				r := require.New(t)
 				a := assert.New(t)

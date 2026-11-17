@@ -2,8 +2,8 @@ import { ImageResponse } from "next/og";
 import { NextRequest, NextResponse } from "next/server";
 
 import { nodeGet } from "@/api/openapi-server/nodes";
+import { loadMetadataImage } from "@/lib/metadata/image-response";
 import { getSettings } from "@/lib/settings/settings-server";
-import { getAssetURL } from "@/utils/asset";
 
 const size = {
   width: 1200,
@@ -16,7 +16,11 @@ export async function GET(req: NextRequest) {
     return new NextResponse("No slug provided", { status: 400 });
   }
 
-  const { data } = await nodeGet(slug);
+  const node = await nodeGet(slug).catch(() => undefined);
+  if (!node) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+  const { data } = node;
 
   const { accent_colour } = await getSettings();
 
@@ -24,6 +28,13 @@ export async function GET(req: NextRequest) {
     data.primary_image?.parent ??
     data.link?.primary_image ??
     data.primary_image;
+
+  const loaded = image
+    ? await loadMetadataImage(
+        `/assets/${encodeURIComponent(image.filename)}`,
+      )
+    : undefined;
+  const imageData = loaded instanceof Response ? undefined : loaded;
 
   return new ImageResponse(
     (
@@ -39,10 +50,11 @@ export async function GET(req: NextRequest) {
           fontSize: 16,
         }}
       >
-        {image ? (
+        {imageData ? (
           // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
           <img
-            src={getAssetURL(image.path)}
+            // @ts-expect-error next/og accepts binary image sources
+            src={imageData}
             width="100%"
             height="100%"
             style={{

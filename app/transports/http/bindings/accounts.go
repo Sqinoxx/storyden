@@ -18,6 +18,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/account/account_querier"
 	"github.com/Southclaws/storyden/app/resources/account/moderation_note"
 	"github.com/Southclaws/storyden/app/resources/account/role"
+	"github.com/Southclaws/storyden/app/resources/account/role/role_querier"
 	"github.com/Southclaws/storyden/app/resources/account/role/role_assign"
 	"github.com/Southclaws/storyden/app/resources/account/warning"
 	"github.com/Southclaws/storyden/app/resources/cachecontrol"
@@ -57,6 +58,7 @@ type Accounts struct {
 	accountModerationNote *account_moderation_note.Manager
 	settingsRepo          *settings.SettingsRepository
 	roleAssign            *account_role_assign.Manager
+	roleQuery             *role_querier.Querier
 	warnings              *warning_manager.Manager
 	tokenProvider         *password_reset.TokenProvider
 	emailResetter         *password_reset.EmailResetter
@@ -78,6 +80,7 @@ func NewAccounts(
 	accountModerationNote *account_moderation_note.Manager,
 	settingsRepo *settings.SettingsRepository,
 	roleAssign *account_role_assign.Manager,
+	roleQuery *role_querier.Querier,
 	warnings *warning_manager.Manager,
 	tokenProvider *password_reset.TokenProvider,
 	emailResetter *password_reset.EmailResetter,
@@ -96,6 +99,7 @@ func NewAccounts(
 		accountModerationNote: accountModerationNote,
 		settingsRepo:          settingsRepo,
 		roleAssign:            roleAssign,
+		roleQuery:             roleQuery,
 		warnings:              warnings,
 		tokenProvider:         tokenProvider,
 		emailResetter:         emailResetter,
@@ -236,6 +240,10 @@ func (i *Accounts) AccountManageUpdate(ctx context.Context, request openapi.Acco
 	signature, err := i.deserialiseAccountSignature(ctx, request.Body.Signature)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := requireManageableAccount(ctx, i.accountQuery, account.AccountID(targetID)); err != nil {
+		return nil, err
 	}
 
 	acc, err := i.accountManage.Update(ctx, account.AccountID(targetID), account_update.Partial{
@@ -703,6 +711,10 @@ func (h *Accounts) AccountRemoveRole(ctx context.Context, request openapi.Accoun
 		return nil, fault.Wrap(ErrEveryoneRole, fctx.With(ctx))
 	}
 
+	if err := h.requireRoleChange(ctx, acc.ID, roleID); err != nil {
+		return nil, err
+	}
+
 	err = h.roleAssign.UpdateRoles(ctx, acc.ID, role_assign.Remove(roleID))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -743,6 +755,10 @@ func (h *Accounts) AccountAddRole(ctx context.Context, request openapi.AccountAd
 	}
 	if roleID == role.DefaultRoleMemberID {
 		return nil, fault.Wrap(ErrEveryoneRole, fctx.With(ctx))
+	}
+
+	if err := h.requireRoleChange(ctx, acc.ID, roleID); err != nil {
+		return nil, err
 	}
 
 	err = h.roleAssign.UpdateRoles(ctx, acc.ID, role_assign.Add(roleID))
@@ -885,6 +901,10 @@ func serialiseModerationNote(note *moderation_note.Note) openapi.ModerationNote 
 func (h *Accounts) AccountPasswordResetTokenGet(ctx context.Context, request openapi.AccountPasswordResetTokenGetRequestObject) (openapi.AccountPasswordResetTokenGetResponseObject, error) {
 	accountID := account.AccountID(openapi.ParseID(request.AccountId))
 
+	if err := requireManageableAccount(ctx, h.accountQuery, accountID); err != nil {
+		return nil, err
+	}
+
 	token, err := h.accountManage.GetPasswordResetToken(ctx, accountID, h.tokenProvider)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -906,6 +926,10 @@ func (h *Accounts) AccountEmailPasswordReset(ctx context.Context, request openap
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if err := requireManageableAccount(ctx, h.accountQuery, accountID); err != nil {
+		return nil, err
+	}
+
 	if err := h.accountManage.SendPasswordResetEmail(ctx, accountID, emailAddressID, *lt, h.emailResetter); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -925,4 +949,17 @@ func (h *Accounts) AccountDelete(ctx context.Context, request openapi.AccountDel
 	}
 
 	return openapi.AccountDelete204Response{}, nil
+}
+
+func (h *Accounts) requireRoleChange(ctx context.Context, targetID account.AccountID, roleID role.RoleID) error {
+	r, err := h.roleQuery.Get(ctx, roleID)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	if err := requireGrantable(ctx, r.Permissions.List()); err != nil {
+		return err
+	}
+
+	return requireManageableAccount(ctx, h.accountQuery, targetID)
 }

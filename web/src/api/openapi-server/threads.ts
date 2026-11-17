@@ -16,6 +16,7 @@ import type {
   ThreadGetResponse,
   ThreadListOKResponse,
   ThreadListParams,
+  ThreadSimilarOKResponse,
   ThreadSuggestSemesterBody,
   ThreadSuggestSemesterOKResponse,
   ThreadSuggestTagsBody,
@@ -152,6 +153,60 @@ export const threadSuggestTags = async (
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
       body: JSON.stringify(threadSuggestTagsBody),
+    },
+  );
+};
+
+/**
+ * List published threads close in meaning to a thread being composed,
+so members can join an existing discussion instead of starting a
+duplicate. Empty when no semantic index is configured.
+
+ */
+export type threadSimilarResponse = {
+  data: ThreadSimilarOKResponse;
+  status: number;
+};
+
+export const getThreadSimilarUrl = () => {
+  return `/threads/similar`;
+};
+
+export const threadSimilar = async (
+  threadSuggestTagsBody: ThreadSuggestTagsBody,
+  options?: RequestInit,
+): Promise<threadSimilarResponse> => {
+  return fetcher<Promise<threadSimilarResponse>>(getThreadSimilarUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(threadSuggestTagsBody),
+  });
+};
+
+/**
+ * List published threads close in meaning to this thread. Empty when no
+semantic index is configured or the thread is not indexed yet.
+
+ */
+export type threadRelatedResponse = {
+  data: ThreadSimilarOKResponse;
+  status: number;
+};
+
+export const getThreadRelatedUrl = (threadMark: string) => {
+  return `/threads/${threadMark}/related`;
+};
+
+export const threadRelated = async (
+  threadMark: string,
+  options?: RequestInit,
+): Promise<threadRelatedResponse> => {
+  return fetcher<Promise<threadRelatedResponse>>(
+    getThreadRelatedUrl(threadMark),
+    {
+      ...options,
+      method: "GET",
     },
   );
 };

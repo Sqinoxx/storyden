@@ -38,6 +38,9 @@ const (
 
 	fullBudget    = 6000
 	fullMaxTokens = 300
+	fullAttempts  = 2
+
+	temperature = 0.2
 )
 
 type Status string
@@ -197,7 +200,7 @@ func (s *Service) join(ctx context.Context, a *asset.Asset, text string) (*summa
 
 	gctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), liveTimeout)
 	sel := selectText(text, quickBudget)
-	it, err := s.prompter.PromptStream(gctx, quickPrompt(a, sel), ai.WithSystem(quickInstructions), ai.WithFastModel(), ai.WithMaxTokens(quickMaxTokens))
+	it, err := s.prompter.PromptStream(gctx, quickPrompt(a, sel), ai.WithSystem(quickInstructions), ai.WithFastModel(), ai.WithMaxTokens(quickMaxTokens), ai.WithTemperature(temperature))
 	if err == nil && it == nil {
 		err = fault.Wrap(errNoText, fctx.With(ctx))
 	}
@@ -232,8 +235,10 @@ func (s *Service) join(ctx context.Context, a *asset.Asset, text string) (*summa
 			return
 		}
 
-		if err := s.assetW.SetSummary(gctx, id, html, hashOf(text), ent_asset.AiSummaryQualityQuick); err != nil {
-			s.logger.Error("failed to store pdf summary", slog.String("asset", a.ID.String()), slog.String("error", err.Error()))
+		if summary_text.Valid(html, sel.text) {
+			if err := s.assetW.SetSummary(gctx, id, html, hashOf(text), ent_asset.AiSummaryQualityQuick); err != nil {
+				s.logger.Error("failed to store pdf summary", slog.String("asset", a.ID.String()), slog.String("error", err.Error()))
+			}
 		}
 		b.Finish(html, nil)
 	}()
@@ -251,17 +256,22 @@ func (s *Service) summariseFull(ctx context.Context, a *asset.Asset) error {
 	}
 
 	sel := selectText(text, fullBudget)
-	res, err := s.prompter.Prompt(ctx, fullPrompt(a, sel), ai.WithSystem(fullInstructions), ai.WithLowPriority(), ai.WithMaxTokens(fullMaxTokens))
-	if err != nil {
-		return err
-	}
-	if res == nil {
-		return s.assetW.SetSummaryStatus(ctx, xid.ID(a.ID), ent_asset.AiSummaryStatusSkipped)
-	}
 
-	html, err := summary_text.SanitiseHTML(res.Answer)
-	if err != nil || html == "" {
-		return s.assetW.SetSummaryStatus(ctx, xid.ID(a.ID), ent_asset.AiSummaryStatusFailed)
+	// Small models occasionally answer in prose or in English; one more
+	// attempt is cheaper than keeping a poor summary until the text changes.
+	for range fullAttempts {
+		res, err := s.prompter.Prompt(ctx, fullPrompt(a, sel), ai.WithSystem(fullInstructions), ai.WithLowPriority(), ai.WithMaxTokens(fullMaxTokens), ai.WithTemperature(temperature))
+		if err != nil {
+			return err
+		}
+		if res == nil {
+			return s.assetW.SetSummaryStatus(ctx, xid.ID(a.ID), ent_asset.AiSummaryStatusSkipped)
+		}
+
+		html, err := summary_text.SanitiseHTML(res.Answer)
+		if err == nil && summary_text.Valid(html, sel.text) {
+			return s.assetW.SetSummary(ctx, xid.ID(a.ID), html, hashOf(text), ent_asset.AiSummaryQualityFull)
+		}
 	}
-	return s.assetW.SetSummary(ctx, xid.ID(a.ID), html, hashOf(text), ent_asset.AiSummaryQualityFull)
+	return s.assetW.SetSummaryStatus(ctx, xid.ID(a.ID), ent_asset.AiSummaryStatusFailed)
 }

@@ -201,7 +201,7 @@ func (s *Summariser) join(ctx context.Context, j *job) (*summary_stream.Broadcas
 			b.Finish("", err)
 			return
 		}
-		if html != "" {
+		if summary_text.Valid(html, j.in.text) {
 			err := s.db.Post.UpdateOneID(j.id).SetAiSummary(html).SetAiSummaryHash(j.hash).Exec(gctx)
 			if err != nil {
 				s.logger.Error("failed to store thread summary", slog.String("thread", j.id.String()), slog.String("error", err.Error()))

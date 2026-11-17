@@ -63,6 +63,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/tag/tag_create"
 	"github.com/Southclaws/storyden/app/services/tag/tag_backfill"
 	"github.com/Southclaws/storyden/app/services/tag/tag_suggest"
+	"github.com/Southclaws/storyden/app/services/thread_similar"
 	"github.com/Southclaws/storyden/app/services/thread"
 	"github.com/Southclaws/storyden/app/services/thread_mark"
 	"github.com/Southclaws/storyden/app/services/thread_summary"
@@ -105,6 +106,7 @@ func Build() fx.Option {
 		semdex_indexer.Build(),
 		semester_suggest.Build(),
 		tag_suggest.Build(),
+		thread_similar.Build(),
 		tag_backfill.Build(),
 		thread_summary.Build(),
 		pdf_summary.Build(),

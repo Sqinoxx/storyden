@@ -738,6 +738,14 @@ func (m *Mapping) ThreadSuggestSemester() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionCreatePost
 }
 
+func (m *Mapping) ThreadSimilar() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionCreatePost
+}
+
+func (m *Mapping) ThreadRelated() (bool, *rbac.Permission) {
+	return false, &rbac.PermissionReadPublishedThreads
+}
+
 func (m *Mapping) ThreadSuggestTags() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionCreatePost
 }

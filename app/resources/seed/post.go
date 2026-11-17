@@ -264,7 +264,7 @@ func threads(tr *thread_writer.Writer, pr *reply_writer.Writer, rr *reaction_rep
 		for i, a := range t.Assets {
 			id := fmt.Sprintf("%s-asset-%d", t.ID, i)
 
-			a, err := ar.Add(ctx, xid.ID(t.Author.ID), asset.NewFilename(id), a.Size, a.MIME)
+			a, err := ar.Add(ctx, xid.ID(t.Author.ID), asset.NewFilename(id), a.Size, a.MIME, "")
 			if err != nil {
 				panic(err)
 			}

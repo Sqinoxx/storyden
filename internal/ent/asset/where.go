@@ -81,6 +81,11 @@ func MimeType(v string) predicate.Asset {
 	return predicate.Asset(sql.FieldEQ(FieldMimeType, v))
 }
 
+// ContentHash applies equality check predicate on the "content_hash" field. It's identical to ContentHashEQ.
+func ContentHash(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldContentHash, v))
+}
+
 // OcrText applies equality check predicate on the "ocr_text" field. It's identical to OcrTextEQ.
 func OcrText(v string) predicate.Asset {
 	return predicate.Asset(sql.FieldEQ(FieldOcrText, v))
@@ -374,6 +379,81 @@ func MetadataIsNil() predicate.Asset {
 // MetadataNotNil applies the NotNil predicate on the "metadata" field.
 func MetadataNotNil() predicate.Asset {
 	return predicate.Asset(sql.FieldNotNull(FieldMetadata))
+}
+
+// ContentHashEQ applies the EQ predicate on the "content_hash" field.
+func ContentHashEQ(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEQ(FieldContentHash, v))
+}
+
+// ContentHashNEQ applies the NEQ predicate on the "content_hash" field.
+func ContentHashNEQ(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldNEQ(FieldContentHash, v))
+}
+
+// ContentHashIn applies the In predicate on the "content_hash" field.
+func ContentHashIn(vs ...string) predicate.Asset {
+	return predicate.Asset(sql.FieldIn(FieldContentHash, vs...))
+}
+
+// ContentHashNotIn applies the NotIn predicate on the "content_hash" field.
+func ContentHashNotIn(vs ...string) predicate.Asset {
+	return predicate.Asset(sql.FieldNotIn(FieldContentHash, vs...))
+}
+
+// ContentHashGT applies the GT predicate on the "content_hash" field.
+func ContentHashGT(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldGT(FieldContentHash, v))
+}
+
+// ContentHashGTE applies the GTE predicate on the "content_hash" field.
+func ContentHashGTE(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldGTE(FieldContentHash, v))
+}
+
+// ContentHashLT applies the LT predicate on the "content_hash" field.
+func ContentHashLT(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldLT(FieldContentHash, v))
+}
+
+// ContentHashLTE applies the LTE predicate on the "content_hash" field.
+func ContentHashLTE(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldLTE(FieldContentHash, v))
+}
+
+// ContentHashContains applies the Contains predicate on the "content_hash" field.
+func ContentHashContains(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldContains(FieldContentHash, v))
+}
+
+// ContentHashHasPrefix applies the HasPrefix predicate on the "content_hash" field.
+func ContentHashHasPrefix(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldHasPrefix(FieldContentHash, v))
+}
+
+// ContentHashHasSuffix applies the HasSuffix predicate on the "content_hash" field.
+func ContentHashHasSuffix(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldHasSuffix(FieldContentHash, v))
+}
+
+// ContentHashIsNil applies the IsNil predicate on the "content_hash" field.
+func ContentHashIsNil() predicate.Asset {
+	return predicate.Asset(sql.FieldIsNull(FieldContentHash))
+}
+
+// ContentHashNotNil applies the NotNil predicate on the "content_hash" field.
+func ContentHashNotNil() predicate.Asset {
+	return predicate.Asset(sql.FieldNotNull(FieldContentHash))
+}
+
+// ContentHashEqualFold applies the EqualFold predicate on the "content_hash" field.
+func ContentHashEqualFold(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldEqualFold(FieldContentHash, v))
+}
+
+// ContentHashContainsFold applies the ContainsFold predicate on the "content_hash" field.
+func ContentHashContainsFold(v string) predicate.Asset {
+	return predicate.Asset(sql.FieldContainsFold(FieldContentHash, v))
 }
 
 // OcrTextEQ applies the EQ predicate on the "ocr_text" field.

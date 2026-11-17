@@ -960,6 +960,10 @@ export const de: Translations = {
     readError: "Beim Lesen der Datei ist ein unerwarteter Fehler aufgetreten.",
     linkImportFailed: "Die Datei hinter dem Link konnte nicht übernommen werden, der Link wurde eingefügt.",
     linkFileFailed: "Die Datei hinter dem Link konnte nicht übernommen werden. Ist sie öffentlich freigegeben?",
+    duplicateTitle: "„{name}“ wurde schon einmal hochgeladen",
+    duplicateIn: "Bereits vorhanden in: {locations}",
+    duplicateUnlisted: "Diese Datei gibt es bereits im Forum.",
+    duplicateOpen: "Ansehen",
   },
   errors: {
     backToHome: "Zurück zur Startseite",

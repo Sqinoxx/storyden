@@ -28,6 +28,8 @@ const (
 	FieldMimeType = "mime_type"
 	// FieldMetadata holds the string denoting the metadata field in the database.
 	FieldMetadata = "metadata"
+	// FieldContentHash holds the string denoting the content_hash field in the database.
+	FieldContentHash = "content_hash"
 	// FieldOcrText holds the string denoting the ocr_text field in the database.
 	FieldOcrText = "ocr_text"
 	// FieldOcrStatus holds the string denoting the ocr_status field in the database.
@@ -128,6 +130,7 @@ var Columns = []string{
 	FieldSize,
 	FieldMimeType,
 	FieldMetadata,
+	FieldContentHash,
 	FieldOcrText,
 	FieldOcrStatus,
 	FieldOcrError,
@@ -290,6 +293,11 @@ func BySize(opts ...sql.OrderTermOption) OrderOption {
 // ByMimeType orders the results by the mime_type field.
 func ByMimeType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMimeType, opts...).ToFunc()
+}
+
+// ByContentHash orders the results by the content_hash field.
+func ByContentHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContentHash, opts...).ToFunc()
 }
 
 // ByOcrText orders the results by the ocr_text field.

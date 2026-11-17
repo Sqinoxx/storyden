@@ -8959,6 +8959,7 @@ type AssetMutation struct {
 	addsize            *int
 	mime_type          *string
 	metadata           *map[string]interface{}
+	content_hash       *string
 	ocr_text           *string
 	ocr_status         *asset.OcrStatus
 	ocr_error          *string
@@ -9349,6 +9350,55 @@ func (m *AssetMutation) MetadataCleared() bool {
 func (m *AssetMutation) ResetMetadata() {
 	m.metadata = nil
 	delete(m.clearedFields, asset.FieldMetadata)
+}
+
+// SetContentHash sets the "content_hash" field.
+func (m *AssetMutation) SetContentHash(s string) {
+	m.content_hash = &s
+}
+
+// ContentHash returns the value of the "content_hash" field in the mutation.
+func (m *AssetMutation) ContentHash() (r string, exists bool) {
+	v := m.content_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContentHash returns the old "content_hash" field's value of the Asset entity.
+// If the Asset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AssetMutation) OldContentHash(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContentHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContentHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContentHash: %w", err)
+	}
+	return oldValue.ContentHash, nil
+}
+
+// ClearContentHash clears the value of the "content_hash" field.
+func (m *AssetMutation) ClearContentHash() {
+	m.content_hash = nil
+	m.clearedFields[asset.FieldContentHash] = struct{}{}
+}
+
+// ContentHashCleared returns if the "content_hash" field was cleared in this mutation.
+func (m *AssetMutation) ContentHashCleared() bool {
+	_, ok := m.clearedFields[asset.FieldContentHash]
+	return ok
+}
+
+// ResetContentHash resets all changes to the "content_hash" field.
+func (m *AssetMutation) ResetContentHash() {
+	m.content_hash = nil
+	delete(m.clearedFields, asset.FieldContentHash)
 }
 
 // SetOcrText sets the "ocr_text" field.
@@ -10294,7 +10344,7 @@ func (m *AssetMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AssetMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, asset.FieldCreatedAt)
 	}
@@ -10312,6 +10362,9 @@ func (m *AssetMutation) Fields() []string {
 	}
 	if m.metadata != nil {
 		fields = append(fields, asset.FieldMetadata)
+	}
+	if m.content_hash != nil {
+		fields = append(fields, asset.FieldContentHash)
 	}
 	if m.ocr_text != nil {
 		fields = append(fields, asset.FieldOcrText)
@@ -10363,6 +10416,8 @@ func (m *AssetMutation) Field(name string) (ent.Value, bool) {
 		return m.MimeType()
 	case asset.FieldMetadata:
 		return m.Metadata()
+	case asset.FieldContentHash:
+		return m.ContentHash()
 	case asset.FieldOcrText:
 		return m.OcrText()
 	case asset.FieldOcrStatus:
@@ -10404,6 +10459,8 @@ func (m *AssetMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldMimeType(ctx)
 	case asset.FieldMetadata:
 		return m.OldMetadata(ctx)
+	case asset.FieldContentHash:
+		return m.OldContentHash(ctx)
 	case asset.FieldOcrText:
 		return m.OldOcrText(ctx)
 	case asset.FieldOcrStatus:
@@ -10474,6 +10531,13 @@ func (m *AssetMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMetadata(v)
+		return nil
+	case asset.FieldContentHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContentHash(v)
 		return nil
 	case asset.FieldOcrText:
 		v, ok := value.(string)
@@ -10593,6 +10657,9 @@ func (m *AssetMutation) ClearedFields() []string {
 	if m.FieldCleared(asset.FieldMetadata) {
 		fields = append(fields, asset.FieldMetadata)
 	}
+	if m.FieldCleared(asset.FieldContentHash) {
+		fields = append(fields, asset.FieldContentHash)
+	}
 	if m.FieldCleared(asset.FieldOcrText) {
 		fields = append(fields, asset.FieldOcrText)
 	}
@@ -10630,6 +10697,9 @@ func (m *AssetMutation) ClearField(name string) error {
 	switch name {
 	case asset.FieldMetadata:
 		m.ClearMetadata()
+		return nil
+	case asset.FieldContentHash:
+		m.ClearContentHash()
 		return nil
 	case asset.FieldOcrText:
 		m.ClearOcrText()
@@ -10677,6 +10747,9 @@ func (m *AssetMutation) ResetField(name string) error {
 		return nil
 	case asset.FieldMetadata:
 		m.ResetMetadata()
+		return nil
+	case asset.FieldContentHash:
+		m.ResetContentHash()
 		return nil
 	case asset.FieldOcrText:
 		m.ResetOcrText()

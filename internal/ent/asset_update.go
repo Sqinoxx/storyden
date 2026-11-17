@@ -104,6 +104,26 @@ func (_u *AssetUpdate) ClearMetadata() *AssetUpdate {
 	return _u
 }
 
+// SetContentHash sets the "content_hash" field.
+func (_u *AssetUpdate) SetContentHash(v string) *AssetUpdate {
+	_u.mutation.SetContentHash(v)
+	return _u
+}
+
+// SetNillableContentHash sets the "content_hash" field if the given value is not nil.
+func (_u *AssetUpdate) SetNillableContentHash(v *string) *AssetUpdate {
+	if v != nil {
+		_u.SetContentHash(*v)
+	}
+	return _u
+}
+
+// ClearContentHash clears the value of the "content_hash" field.
+func (_u *AssetUpdate) ClearContentHash() *AssetUpdate {
+	_u.mutation.ClearContentHash()
+	return _u
+}
+
 // SetOcrText sets the "ocr_text" field.
 func (_u *AssetUpdate) SetOcrText(v string) *AssetUpdate {
 	_u.mutation.SetOcrText(v)
@@ -683,6 +703,12 @@ func (_u *AssetUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.MetadataCleared() {
 		_spec.ClearField(asset.FieldMetadata, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.ContentHash(); ok {
+		_spec.SetField(asset.FieldContentHash, field.TypeString, value)
+	}
+	if _u.mutation.ContentHashCleared() {
+		_spec.ClearField(asset.FieldContentHash, field.TypeString)
+	}
 	if value, ok := _u.mutation.OcrText(); ok {
 		_spec.SetField(asset.FieldOcrText, field.TypeString, value)
 	}
@@ -1184,6 +1210,26 @@ func (_u *AssetUpdateOne) SetMetadata(v map[string]interface{}) *AssetUpdateOne 
 // ClearMetadata clears the value of the "metadata" field.
 func (_u *AssetUpdateOne) ClearMetadata() *AssetUpdateOne {
 	_u.mutation.ClearMetadata()
+	return _u
+}
+
+// SetContentHash sets the "content_hash" field.
+func (_u *AssetUpdateOne) SetContentHash(v string) *AssetUpdateOne {
+	_u.mutation.SetContentHash(v)
+	return _u
+}
+
+// SetNillableContentHash sets the "content_hash" field if the given value is not nil.
+func (_u *AssetUpdateOne) SetNillableContentHash(v *string) *AssetUpdateOne {
+	if v != nil {
+		_u.SetContentHash(*v)
+	}
+	return _u
+}
+
+// ClearContentHash clears the value of the "content_hash" field.
+func (_u *AssetUpdateOne) ClearContentHash() *AssetUpdateOne {
+	_u.mutation.ClearContentHash()
 	return _u
 }
 
@@ -1795,6 +1841,12 @@ func (_u *AssetUpdateOne) sqlSave(ctx context.Context) (_node *Asset, err error)
 	}
 	if _u.mutation.MetadataCleared() {
 		_spec.ClearField(asset.FieldMetadata, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.ContentHash(); ok {
+		_spec.SetField(asset.FieldContentHash, field.TypeString, value)
+	}
+	if _u.mutation.ContentHashCleared() {
+		_spec.ClearField(asset.FieldContentHash, field.TypeString)
 	}
 	if value, ok := _u.mutation.OcrText(); ok {
 		_spec.SetField(asset.FieldOcrText, field.TypeString, value)

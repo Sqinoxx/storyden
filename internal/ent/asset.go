@@ -32,6 +32,8 @@ type Asset struct {
 	MimeType string `json:"mime_type,omitempty"`
 	// Metadata holds the value of the "metadata" field.
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	// ContentHash holds the value of the "content_hash" field.
+	ContentHash *string `json:"content_hash,omitempty"`
 	// OcrText holds the value of the "ocr_text" field.
 	OcrText *string `json:"ocr_text,omitempty"`
 	// OcrStatus holds the value of the "ocr_status" field.
@@ -179,7 +181,7 @@ func (*Asset) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case asset.FieldSize:
 			values[i] = new(sql.NullInt64)
-		case asset.FieldFilename, asset.FieldMimeType, asset.FieldOcrText, asset.FieldOcrStatus, asset.FieldOcrError, asset.FieldAiSummary, asset.FieldAiSummaryHash, asset.FieldAiSummaryQuality, asset.FieldAiSummaryStatus:
+		case asset.FieldFilename, asset.FieldMimeType, asset.FieldContentHash, asset.FieldOcrText, asset.FieldOcrStatus, asset.FieldOcrError, asset.FieldAiSummary, asset.FieldAiSummaryHash, asset.FieldAiSummaryQuality, asset.FieldAiSummaryStatus:
 			values[i] = new(sql.NullString)
 		case asset.FieldCreatedAt, asset.FieldUpdatedAt, asset.FieldOcrProcessedAt:
 			values[i] = new(sql.NullTime)
@@ -243,6 +245,13 @@ func (_m *Asset) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &_m.Metadata); err != nil {
 					return fmt.Errorf("unmarshal field metadata: %w", err)
 				}
+			}
+		case asset.FieldContentHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field content_hash", values[i])
+			} else if value.Valid {
+				_m.ContentHash = new(string)
+				*_m.ContentHash = value.String
 			}
 		case asset.FieldOcrText:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -409,6 +418,11 @@ func (_m *Asset) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("metadata=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Metadata))
+	builder.WriteString(", ")
+	if v := _m.ContentHash; v != nil {
+		builder.WriteString("content_hash=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	if v := _m.OcrText; v != nil {
 		builder.WriteString("ocr_text=")

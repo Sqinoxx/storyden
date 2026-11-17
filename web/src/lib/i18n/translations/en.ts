@@ -957,6 +957,10 @@ export const en = {
     readError: "An unexpected error occurred while reading the file.",
     linkImportFailed: "The file behind the link could not be imported, so the link was inserted instead.",
     linkFileFailed: "The file behind the link could not be imported. Is it shared publicly?",
+    duplicateTitle: '"{name}" has been uploaded before',
+    duplicateIn: "Already in: {locations}",
+    duplicateUnlisted: "This file already exists on the forum.",
+    duplicateOpen: "View",
   },
   errors: {
     backToHome: "Go back to the home page",

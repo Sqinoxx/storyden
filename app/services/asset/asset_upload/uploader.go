@@ -2,6 +2,8 @@ package asset_upload
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"io"
 	"log/slog"
 
@@ -11,6 +13,7 @@ import (
 	"github.com/rs/xid"
 
 	"github.com/Southclaws/storyden/app/resources/asset"
+	"github.com/Southclaws/storyden/app/resources/asset/asset_querier"
 	"github.com/Southclaws/storyden/app/resources/asset/asset_writer"
 	"github.com/Southclaws/storyden/app/resources/library/node_writer"
 	"github.com/Southclaws/storyden/app/resources/message"
@@ -25,6 +28,7 @@ type Uploader struct {
 	logger     *slog.Logger
 	nodewriter *node_writer.Writer
 	assets     *asset_writer.Writer
+	querier    *asset_querier.Querier
 	objects    object.Storer
 	bus        *pubsub.Bus
 }
@@ -34,6 +38,7 @@ func New(
 
 	nodewriter *node_writer.Writer,
 	assets *asset_writer.Writer,
+	querier *asset_querier.Querier,
 	objects object.Storer,
 	bus *pubsub.Bus,
 ) *Uploader {
@@ -41,6 +46,7 @@ func New(
 		logger:     logger,
 		nodewriter: nodewriter,
 		assets:     assets,
+		querier:    querier,
 		objects:    objects,
 		bus:        bus,
 	}
@@ -65,7 +71,8 @@ func (s *Uploader) Upload(ctx context.Context, or io.Reader, size int64, name as
 	// it is a bound rather than a fact. Cap the stream at it and record what was
 	// actually stored, otherwise the DB size and the object disagree whenever a
 	// client lies or the connection drops mid-body.
-	counter := &countingReader{r: io.LimitReader(r, size)}
+	hasher := sha256.New()
+	counter := &countingReader{r: io.TeeReader(io.LimitReader(r, size), hasher)}
 
 	// The object is written before the row exists so that a failed write leaves
 	// nothing behind. A row without an object is permanently broken (AssetGet
@@ -78,12 +85,13 @@ func (s *Uploader) Upload(ctx context.Context, or io.Reader, size int64, name as
 	}
 
 	written := counter.n
+	hash := hex.EncodeToString(hasher.Sum(nil))
 
 	a, err := func() (asset *asset.Asset, err error) {
 		if pid, ok := opts.ParentID.Get(); ok {
-			return s.assets.AddVersion(ctx, xid.ID(accountID), name, int(written), *mt, pid)
+			return s.assets.AddVersion(ctx, xid.ID(accountID), name, int(written), *mt, hash, pid)
 		} else {
-			return s.assets.Add(ctx, xid.ID(accountID), name, int(written), *mt)
+			return s.assets.Add(ctx, xid.ID(accountID), name, int(written), *mt, hash)
 		}
 	}()
 	if err != nil {
@@ -99,6 +107,15 @@ func (s *Uploader) Upload(ctx context.Context, or io.Reader, size int64, name as
 	if s.bus != nil && ocr.IsSupportedMIME(mt.String()) {
 		if err := s.bus.SendCommand(ctx, &message.CommandProcessAssetOCR{ID: xid.ID(a.ID)}); err != nil {
 			s.logger.Warn("failed to dispatch OCR processing command for asset", slog.String("id", a.ID.String()), slog.String("error", err.Error()))
+		}
+	}
+
+	if !opts.ParentID.Ok() {
+		dup, err := s.querier.FindDuplicates(ctx, hash, a.ID)
+		if err != nil {
+			s.logger.Warn("failed to look up duplicate uploads", slog.String("id", a.ID.String()), slog.String("error", err.Error()))
+		} else if dup != nil {
+			a.DuplicateOf = opt.New(*dup)
 		}
 	}
 

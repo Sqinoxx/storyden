@@ -2,10 +2,13 @@ import { assetUpload } from "@/api/openapi-client/assets";
 
 import { getAssetUploadMutationKey } from "@/api/openapi-client/assets";
 import { APIError, Asset, AssetUploadParams } from "@/api/openapi-schema";
+import { useDuplicateNotice } from "@/components/asset/useDuplicateNotice";
 import { API_ADDRESS } from "@/config";
 import { deriveError } from "@/utils/error";
 
 export function useImageUpload() {
+  const notifyDuplicate = useDuplicateNotice();
+
   async function upload(f: File, params?: AssetUploadParams) {
     if (!isSupportedAsset(f.type)) {
       throw new Error(`Unsupported asset format ${f.type}`);
@@ -17,6 +20,7 @@ export function useImageUpload() {
     };
 
     const asset = await assetUpload(f, mergedParams);
+    notifyDuplicate(asset, f.name);
 
     return { ...asset, filename: f.name };
   }
@@ -61,6 +65,7 @@ export function useImageUpload() {
           try {
             // TODO: Validate this properly, remove "as".
             const asset = JSON.parse(xhr.responseText) as Asset;
+            notifyDuplicate(asset, f.name);
             resolve({ ...asset, filename: f.name });
           } catch (error) {
             reject(new Error("Failed to parse upload response"));

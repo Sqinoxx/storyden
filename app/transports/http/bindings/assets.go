@@ -312,6 +312,18 @@ func serialiseAsset(a asset.Asset) openapi.Asset {
 		MimeType: a.MIME.String(),
 		Width:    float32(a.Metadata.GetWidth()),
 		Height:   float32(a.Metadata.GetHeight()),
+		DuplicateOf: opt.Map(a.DuplicateOf, func(d asset.DuplicateInfo) openapi.AssetDuplicateInfo {
+			return openapi.AssetDuplicateInfo{
+				Count: d.Count,
+				Locations: dt.Map(d.Locations, func(l asset.DuplicateLocation) openapi.AssetDuplicateLocation {
+					return openapi.AssetDuplicateLocation{
+						Kind:  openapi.AssetDuplicateLocationKind(l.Kind),
+						Slug:  l.Slug,
+						Title: l.Title,
+					}
+				}),
+			}
+		}).Ptr(),
 	}
 }
 

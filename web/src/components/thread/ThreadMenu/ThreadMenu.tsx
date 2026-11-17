@@ -3,8 +3,6 @@
 import { Portal } from "@ark-ui/react";
 import { format } from "date-fns/format";
 
-import { MoreAction } from "@/components/site/Action/More";
-
 import { DatagraphItemKind } from "@/api/openapi-schema";
 import { CategoryMoveMenu } from "@/components/category/CategoryMoveMenu/CategoryMoveMenu";
 import { MemberBadge } from "@/components/member/MemberBadge/MemberBadge";
@@ -13,16 +11,18 @@ import {
   truncateBody,
 } from "@/components/report/ReportPostMenuItem";
 import { CancelAction } from "@/components/site/Action/Cancel";
+import { MoreAction } from "@/components/site/Action/More";
+import { SemesterChangeMenu } from "@/components/thread/SemesterChangeMenu/SemesterChangeMenu";
 import { DeleteIcon } from "@/components/ui/icons/Delete";
 import { EditIcon } from "@/components/ui/icons/Edit";
 import { LinkIcon } from "@/components/ui/icons/Link";
 import { PinIcon, PinOffIcon } from "@/components/ui/icons/Pin";
 import { ShareIcon } from "@/components/ui/icons/Share";
 import * as Menu from "@/components/ui/menu";
+import { useTranslation } from "@/lib/i18n";
 import { HStack, styled } from "@/styled-system/jsx";
 import { menuItemColorPalette } from "@/styled-system/patterns";
 
-import { useTranslation } from "@/lib/i18n";
 import { Props, useThreadMenu } from "./useThreadMenu";
 
 export function ThreadMenu(props: Props) {
@@ -33,6 +33,7 @@ export function ThreadMenu(props: Props) {
     isDeletingEnabled,
     isConfirmingDelete,
     canPinThread,
+    canChangeSemester,
     isThreadPinned,
     handlers,
   } = useThreadMenu(props);
@@ -60,7 +61,9 @@ export function ThreadMenu(props: Props) {
                 flexDir="column"
                 userSelect="none"
               >
-                <styled.span>{t.thread.postBy.replace("{name}", thread.author.name)}</styled.span>
+                <styled.span>
+                  {t.thread.postBy.replace("{name}", thread.author.name)}
+                </styled.span>
 
                 <MemberBadge
                   profile={thread.author}
@@ -123,6 +126,8 @@ export function ThreadMenu(props: Props) {
               )}
 
               {isMovingEnabled && <CategoryMoveMenu thread={thread} />}
+
+              {canChangeSemester && <SemesterChangeMenu thread={thread} />}
 
               {isDeletingEnabled &&
                 (isConfirmingDelete ? (

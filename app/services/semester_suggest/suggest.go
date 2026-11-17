@@ -68,12 +68,14 @@ func New(logger *slog.Logger, prompter ai.Prompter) *Suggester {
 }
 
 func (s *Suggester) Suggest(ctx context.Context, in Input) (*Suggestion, error) {
+	return s.SuggestAt(ctx, in, s.now())
+}
+
+func (s *Suggester) SuggestAt(ctx context.Context, in Input, now time.Time) (*Suggestion, error) {
 	text := in.text()
 	if strings.TrimSpace(text) == "" {
 		return nil, nil
 	}
-
-	now := s.now()
 
 	switch found := detect(text, now); len(found) {
 	case 1:

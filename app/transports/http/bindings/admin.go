@@ -3,6 +3,7 @@ package bindings
 import (
 	"context"
 	"fmt"
+	"github.com/Southclaws/storyden/app/services/semester_backfill"
 	"github.com/Southclaws/storyden/app/services/tag/tag_backfill"
 	"github.com/Southclaws/storyden/app/services/tag/tag_suggest"
 	"net/http"
@@ -82,6 +83,7 @@ type Admin struct {
 	bus               *pubsub.Bus
 	tagSuggester      *tag_suggest.Suggester
 	tagBackfill       *tag_backfill.Backfill
+	semesterBackfill  *semester_backfill.Backfill
 	serverMetrics     *server_metrics.Service
 }
 
@@ -108,6 +110,7 @@ func NewAdmin(
 	router *echo.Echo,
 	tagSuggester *tag_suggest.Suggester,
 	tagBackfill *tag_backfill.Backfill,
+	semesterBackfill *semester_backfill.Backfill,
 	serverMetrics *server_metrics.Service,
 ) Admin {
 	a := Admin{
@@ -132,6 +135,7 @@ func NewAdmin(
 		bus:               bus,
 		tagSuggester:      tagSuggester,
 		tagBackfill:       tagBackfill,
+		semesterBackfill:  semesterBackfill,
 		serverMetrics:     serverMetrics,
 	}
 

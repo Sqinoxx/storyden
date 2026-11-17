@@ -3,12 +3,12 @@
 import { usePathname, useRouter } from "next/navigation";
 import { parseAsBoolean, useQueryState } from "nuqs";
 
-import { Permission, ThreadReference } from "@/api/openapi-schema";
-
 import { handle } from "@/api/client";
+import { Permission, ThreadReference } from "@/api/openapi-schema";
 import { useSession } from "@/auth";
 import { useConfirmation } from "@/components/site/useConfirmation";
 import { useFeedMutations } from "@/lib/feed/mutation";
+import { useTranslation } from "@/lib/i18n";
 import { useReportContext } from "@/lib/report/useReportContext";
 import { canDeletePost, canEditPost } from "@/lib/thread/permissions";
 import { withUndo } from "@/lib/thread/undo";
@@ -17,7 +17,6 @@ import { hasPermission } from "@/utils/permissions";
 import { useCopyToClipboard } from "@/utils/useCopyToClipboard";
 
 import { getPermalinkForThread } from "../utils";
-import { useTranslation } from "@/lib/i18n";
 
 export type Props = {
   thread: ThreadReference;
@@ -56,6 +55,9 @@ export function useThreadMenu({
   const isDeletingEnabled =
     canDeletePost(thread, account) && thread.deletedAt === undefined;
   const canPinThread = hasPermission(account, Permission.PIN_POSTS);
+  const canChangeSemester =
+    hasPermission(account, Permission.MANAGE_POSTS, Permission.ADMINISTRATOR) &&
+    thread.deletedAt === undefined;
   const isThreadPinned = (thread.pinned ?? 0) > 0;
 
   const permalink = getPermalinkForThread(thread.slug);
@@ -129,6 +131,7 @@ export function useThreadMenu({
     isDeletingEnabled,
     isConfirmingDelete,
     canPinThread,
+    canChangeSemester,
     isThreadPinned,
     handlers: {
       handleCopyLink,

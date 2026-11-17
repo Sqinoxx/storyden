@@ -148,6 +148,27 @@ func (w *Writer) UpdateOCRProcessing(ctx context.Context, id xid.ID) (*asset.Ass
 		UpdateOneID(id).
 		SetOcrStatus(ent_asset.OcrStatusProcessing).
 		SetOcrProcessedAt(time.Now()).
+		ClearOcrError().
+		Save(ctx)
+	if err != nil {
+		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+	return asset.Map(r), nil
+}
+
+// InterruptedOCRReason marks an asset whose previous extraction never
+// finished, so a second interruption can be told apart from the first.
+const InterruptedOCRReason = "previous text extraction was interrupted"
+
+// UpdateOCRResumed marks an asset as processing again after an attempt that
+// died mid-extraction, typically because the extraction took the process
+// down with it.
+func (w *Writer) UpdateOCRResumed(ctx context.Context, id xid.ID) (*asset.Asset, error) {
+	r, err := w.db.Asset.
+		UpdateOneID(id).
+		SetOcrStatus(ent_asset.OcrStatusProcessing).
+		SetOcrProcessedAt(time.Now()).
+		SetOcrError(InterruptedOCRReason).
 		Save(ctx)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))

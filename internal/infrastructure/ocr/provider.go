@@ -26,8 +26,8 @@ func New(cfg config.Config, logger *slog.Logger) Client {
 		return NewMockClient()
 
 	case "textlayer":
-		// Pure-Go PDF text layer extraction only, no OCR binaries involved.
-		return NewLayeredClient(logger, nil, nil, cfg)
+		// PDF text layers only, no image OCR or rasterisation.
+		return NewLayeredClient(logger, nil, nil, NewPopplerTextExtractor(""), cfg)
 
 	case "openai_vision":
 		var imageOCR Client
@@ -38,13 +38,13 @@ func New(cfg config.Config, logger *slog.Logger) Client {
 			imageOCR = NewTesseractClient(cfg.TesseractBinaryPath, cfg.OCRLanguages, logger)
 		}
 		raster := NewPopplerRasterizer(cfg.PDFToPPMBinaryPath)
-		return NewLayeredClient(logger, imageOCR, raster, cfg)
+		return NewLayeredClient(logger, imageOCR, raster, NewPopplerTextExtractor(""), cfg)
 
 	case "tesseract":
 		fallthrough
 	default:
 		imageOCR := NewTesseractClient(cfg.TesseractBinaryPath, cfg.OCRLanguages, logger)
 		raster := NewPopplerRasterizer(cfg.PDFToPPMBinaryPath)
-		return NewLayeredClient(logger, imageOCR, raster, cfg)
+		return NewLayeredClient(logger, imageOCR, raster, NewPopplerTextExtractor(""), cfg)
 	}
 }

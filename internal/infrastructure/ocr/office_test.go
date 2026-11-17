@@ -87,7 +87,7 @@ func makeODT(t *testing.T, content string) []byte {
 
 func extract(t *testing.T, data []byte, mime string) (Result, error) {
 	t.Helper()
-	c := NewLayeredClient(slog.Default(), nil, nil, config.Config{})
+	c := NewLayeredClient(slog.Default(), nil, nil, nil, config.Config{})
 	return c.ExtractText(context.Background(), data, mime)
 }
 

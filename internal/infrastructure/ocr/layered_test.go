@@ -30,7 +30,7 @@ func (unavailableRasterizer) Rasterize(ctx context.Context, pdfPath, outDir stri
 
 func TestLayeredClient_PDFWithTextLayerSkipsImageOCR(t *testing.T) {
 	img := &recordingImageClient{}
-	c := NewLayeredClient(slog.Default(), img, unavailableRasterizer{}, config.Config{OCRPDFRasterizeEnabled: true})
+	c := NewLayeredClient(slog.Default(), img, unavailableRasterizer{}, nil, config.Config{OCRPDFRasterizeEnabled: true})
 
 	data := makeTextPDF(t, "Spanisch fuer Mediziner im vierten Semester ist Pflicht")
 
@@ -42,7 +42,7 @@ func TestLayeredClient_PDFWithTextLayerSkipsImageOCR(t *testing.T) {
 }
 
 func TestLayeredClient_PDFWithoutTextLayerAndNoRasterizerFails(t *testing.T) {
-	c := NewLayeredClient(slog.Default(), nil, unavailableRasterizer{}, config.Config{OCRPDFRasterizeEnabled: true})
+	c := NewLayeredClient(slog.Default(), nil, unavailableRasterizer{}, nil, config.Config{OCRPDFRasterizeEnabled: true})
 
 	data := makeEmptyPDF(t)
 
@@ -52,7 +52,7 @@ func TestLayeredClient_PDFWithoutTextLayerAndNoRasterizerFails(t *testing.T) {
 }
 
 func TestLayeredClient_UnsupportedMIME(t *testing.T) {
-	c := NewLayeredClient(slog.Default(), nil, nil, config.Config{})
+	c := NewLayeredClient(slog.Default(), nil, nil, nil, config.Config{})
 
 	_, err := c.ExtractText(context.Background(), []byte("data"), "application/zip")
 	require.Error(t, err)
@@ -61,7 +61,7 @@ func TestLayeredClient_UnsupportedMIME(t *testing.T) {
 
 func TestLayeredClient_ImageRoutesDirectlyToImageOCR(t *testing.T) {
 	img := &recordingImageClient{}
-	c := NewLayeredClient(slog.Default(), img, nil, config.Config{})
+	c := NewLayeredClient(slog.Default(), img, nil, nil, config.Config{})
 
 	result, err := c.ExtractText(context.Background(), []byte("fakeimage"), "image/png")
 	require.NoError(t, err)

@@ -63,3 +63,66 @@ func TestHTTPErrorHandlerWritesProblemDetails(t *testing.T) {
 		t.Fatal("expected trace_id")
 	}
 }
+
+func problemFor(t *testing.T, err error) APIError {
+	t.Helper()
+
+	e := echo.New()
+	rec := httptest.NewRecorder()
+	c := e.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), rec)
+
+	HTTPErrorHandler(slog.New(slog.NewTextHandler(io.Discard, nil)))(err, c)
+
+	var problem APIError
+	if err := json.Unmarshal(rec.Body.Bytes(), &problem); err != nil {
+		t.Fatalf("failed to unmarshal problem details: %v", err)
+	}
+
+	return problem
+}
+
+func TestHTTPErrorHandlerHidesInternalMetadata(t *testing.T) {
+	ctx := fctx.WithMeta(context.Background(),
+		"location", "/app/services/thing.go:42",
+		"package", "thing",
+		"client.address", "203.0.113.7",
+		"http.request.method", "GET",
+		"url.query", "a=b",
+		"asset_id", "abc",
+	)
+
+	problem := problemFor(t, fault.New("nope", fctx.With(ctx), ftag.With(ftag.NotFound)))
+
+	if problem.Metadata == nil {
+		t.Fatal("expected public metadata to remain")
+	}
+
+	meta := *problem.Metadata
+	if meta["asset_id"] != "abc" {
+		t.Fatalf("expected asset_id to remain, got %#v", meta)
+	}
+
+	for _, k := range []string{"location", "package", "client.address", "http.request.method", "url.query"} {
+		if _, ok := meta[k]; ok {
+			t.Fatalf("internal key %q leaked: %#v", k, meta)
+		}
+	}
+}
+
+func TestHTTPErrorHandlerHidesInternalErrorDetail(t *testing.T) {
+	ctx := fctx.WithMeta(context.Background(), "query", "select secret")
+
+	problem := problemFor(t, fault.New("pq: relation does not exist", fctx.With(ctx)))
+
+	if problem.Detail != nil {
+		t.Fatalf("expected no detail on internal errors, got %q", *problem.Detail)
+	}
+
+	if problem.Metadata != nil {
+		t.Fatalf("expected no metadata on internal errors, got %#v", *problem.Metadata)
+	}
+
+	if problem.TraceId == "" {
+		t.Fatal("expected trace_id")
+	}
+}

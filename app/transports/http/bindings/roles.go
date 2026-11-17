@@ -43,6 +43,10 @@ func (h *Roles) RoleCreate(ctx context.Context, request openapi.RoleCreateReques
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
+	if err := requireGrantable(ctx, perms); err != nil {
+		return nil, err
+	}
+
 	opts := []role_writer.Mutation{}
 	if request.Body.Meta != nil {
 		opts = append(opts, role_writer.WithMeta(map[string]any(*request.Body.Meta)))
@@ -90,6 +94,10 @@ func (h *Roles) RoleGet(ctx context.Context, request openapi.RoleGetRequestObjec
 func (h *Roles) RoleUpdate(ctx context.Context, request openapi.RoleUpdateRequestObject) (openapi.RoleUpdateResponseObject, error) {
 	id := role.RoleID(openapi.ParseID(request.RoleId))
 
+	if err := h.requireRoleEditable(ctx, id); err != nil {
+		return nil, err
+	}
+
 	opts := []role_writer.Mutation{}
 
 	if request.Body.Name != nil {
@@ -104,6 +112,10 @@ func (h *Roles) RoleUpdate(ctx context.Context, request openapi.RoleUpdateReques
 		perms, err := deserialisePermissionList(*request.Body.Permissions)
 		if err != nil {
 			return nil, fault.Wrap(err, fctx.With(ctx))
+		}
+
+		if err := requireGrantable(ctx, perms); err != nil {
+			return nil, err
 		}
 
 		opts = append(opts, role_writer.WithPermissions(perms))
@@ -152,6 +164,10 @@ func (h *Roles) RoleUpdateOrder(ctx context.Context, request openapi.RoleUpdateO
 }
 
 func (h *Roles) RoleDelete(ctx context.Context, request openapi.RoleDeleteRequestObject) (openapi.RoleDeleteResponseObject, error) {
+	if err := h.requireRoleEditable(ctx, role.RoleID(openapi.ParseID(request.RoleId))); err != nil {
+		return nil, err
+	}
+
 	err := h.roleWriter.Delete(ctx, role.RoleID(openapi.ParseID(request.RoleId)))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -252,4 +268,13 @@ func deserialisePermissionList(in openapi.PermissionList) (rbac.PermissionList, 
 	}
 
 	return ps, nil
+}
+
+func (h *Roles) requireRoleEditable(ctx context.Context, id role.RoleID) error {
+	r, err := h.roleQuerier.Get(ctx, id)
+	if err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+
+	return requireGrantable(ctx, r.Permissions.List())
 }

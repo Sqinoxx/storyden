@@ -78,6 +78,10 @@ func (h *Accounts) AccountManageUpdateEmail(ctx context.Context, request openapi
 
 	verified := request.Body.Verified != nil && *request.Body.Verified
 
+	if err := requireManageableAccount(ctx, h.accountQuery, account.AccountID(accountID)); err != nil {
+		return nil, err
+	}
+
 	ae, err := h.accountEmail.UpdateAddress(ctx, account.AccountID(accountID), emailAddressID, *emailAddress, verified)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
@@ -101,6 +105,10 @@ func (h *Accounts) AccountManageUpdateEmailVerifiedStatus(ctx context.Context, r
 	emailAddressID, err := xid.FromString(request.EmailAddressId)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), ftag.With(ftag.InvalidArgument))
+	}
+
+	if err := requireManageableAccount(ctx, h.accountQuery, account.AccountID(accountID)); err != nil {
+		return nil, err
 	}
 
 	ae, err := h.accountEmail.SetVerifiedStatus(ctx, account.AccountID(accountID), emailAddressID, request.Body.Verified)

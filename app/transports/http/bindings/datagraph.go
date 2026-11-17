@@ -24,6 +24,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/post/thread"
 	"github.com/Southclaws/storyden/app/resources/profile"
 	"github.com/Southclaws/storyden/app/resources/tag/tag_ref"
+	"github.com/Southclaws/storyden/app/services/search"
 	"github.com/Southclaws/storyden/app/services/search/asset_match"
 	"github.com/Southclaws/storyden/app/services/search/searcher"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
@@ -91,9 +92,25 @@ func (d Datagraph) DatagraphSearch(ctx context.Context, request openapi.Datagrap
 
 	q := opt.NewPtr(request.Params.Q).Or("")
 
-	r, err := d.searcher.Search(ctx, q, pp, opts)
+	sctx, semantic := search.WithSemanticMatches(ctx)
+	r, err := d.searcher.Search(sctx, q, pp, opts)
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
+	}
+
+	var semanticIDs *[]openapi.Identifier
+	if ids := semantic.IDs(); len(ids) > 0 {
+		visible := map[xid.ID]bool{}
+		for _, item := range r.Items {
+			visible[item.GetID()] = true
+		}
+		list := []openapi.Identifier{}
+		for _, id := range ids {
+			if visible[id] {
+				list = append(list, openapi.Identifier(id.String()))
+			}
+		}
+		semanticIDs = &list
 	}
 
 	// A failure to annotate matches must never break search itself.
@@ -110,8 +127,9 @@ func (d Datagraph) DatagraphSearch(ctx context.Context, request openapi.Datagrap
 	return openapi.DatagraphSearch200JSONResponse{
 		DatagraphSearchOKJSONResponse: openapi.DatagraphSearchOKJSONResponse{
 			CurrentPage: r.CurrentPage,
-			Items:       items,
-			NextPage:    r.NextPage.Ptr(),
+			Items:           items,
+			SemanticMatches: semanticIDs,
+			NextPage:        r.NextPage.Ptr(),
 			PageSize:    r.Size,
 			Results:     r.Results,
 			TotalPages:  r.TotalPages,

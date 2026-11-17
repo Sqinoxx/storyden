@@ -3642,6 +3642,37 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "200": { $ref: "#/components/responses/ThreadSuggestTagsOK" }
 
+  /threads/similar:
+    post:
+      operationId: ThreadSimilar
+      x-storyden: { rate-limit-cost: 2 }
+      description: |
+        List published threads close in meaning to a thread being composed,
+        so members can join an existing discussion instead of starting a
+        duplicate. Empty when no semantic index is configured.
+      tags: [threads]
+      requestBody: { $ref: "#/components/requestBodies/ThreadSuggestTags" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200": { $ref: "#/components/responses/ThreadSimilarOK" }
+
+  /threads/{thread_mark}/related:
+    get:
+      operationId: ThreadRelated
+      x-storyden: { rate-limit-cost: 1 }
+      description: |
+        List published threads close in meaning to this thread. Empty when no
+        semantic index is configured or the thread is not indexed yet.
+      tags: [threads]
+      parameters: [$ref: "#/components/parameters/ThreadMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ThreadSimilarOK" }
+
   /threads/{thread_mark}/summary:
     post:
       operationId: ThreadSummarise
@@ -3658,6 +3689,26 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "401": { $ref: "#/components/responses/Unauthorised" }
         "200": { $ref: "#/components/responses/ThreadSummariseOK" }
+
+  /threads/{thread_mark}/summary/stream:
+    get:
+      operationId: ThreadSummaryStream
+      x-storyden: { rate-limit-cost: 10 }
+      description: |
+        Summarise a long thread with the language model and stream the answer
+        as server-sent events, in the same format as the attachment summary
+        stream. The final `done` event additionally carries
+        `includes_attachments`. The result is stored until the thread changes,
+        later calls answer with the `done` event at once. Short threads end
+        with an empty summary.
+      tags: [threads]
+      parameters: [$ref: "#/components/parameters/ThreadMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ThreadSummaryStreamOK" }
 
   /threads/{thread_mark}/attachments/{asset_id}/summary:
     get:
@@ -7867,6 +7918,12 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/ThreadSemesterSuggestion" }
 
+    ThreadSimilarOK:
+      description: Threads close in meaning, most similar first.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ThreadSimilarList" }
+
     ThreadSuggestTagsOK:
       description: Suggested existing tags, possibly empty.
       content:
@@ -7878,6 +7935,13 @@ components:
       content:
         application/json:
           schema: { $ref: "#/components/schemas/ThreadSummary" }
+
+    ThreadSummaryStreamOK:
+      description: Server-sent events stream of the thread summary.
+      content:
+        text/event-stream:
+          schema:
+            type: string
 
     ThreadAttachmentSummaryGetOK:
       description: Stored summary or a quick overview of the attachment.
@@ -8716,8 +8780,14 @@ components:
           semester_suggestion,
           library_assist,
           pdf_summary,
+          similar_threads,
         ]
       properties:
+        similar_threads:
+          type: boolean
+          description: |
+            A semantic index is configured, so search also finds threads by
+            meaning and similar threads are listed.
         thread_summary: { type: boolean }
         pdf_summary: { type: boolean }
         tag_suggestion: { type: boolean }
@@ -13349,6 +13419,12 @@ components:
           type: string
           description: The passage the suggestion is based on.
 
+    ThreadSimilarList:
+      type: object
+      required: [items]
+      properties:
+        items: { $ref: "#/components/schemas/DatagraphItemList" }
+
     ThreadTagSuggestionRequest:
       type: object
       properties:
@@ -14526,6 +14602,13 @@ components:
           required: [items]
           properties:
             items: { $ref: "#/components/schemas/DatagraphItemList" }
+            semantic_matches:
+              type: array
+              description: |
+                IDs of results found only because their meaning matches the
+                query, not its words. Only set when a semantic index is
+                configured.
+              items: { $ref: "#/components/schemas/Identifier" }
 
     DatagraphMatchResult:
       type: object

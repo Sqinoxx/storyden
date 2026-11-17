@@ -473,9 +473,13 @@ tar xzf backups/assets-2026-08-16-0330.tar.gz
 
 Tag-, Titel- und Zusammenfassungs-Vorschlaege sowie die semantische Suche
 laufen ueber ein lokales Ollama. Es entstehen keine Kosten, und keine Daten
-verlassen den Server. Der Ollama-Container ist auf 5 GB RAM begrenzt.
+verlassen den Server. Der Ollama-Container ist auf 5,5 GB RAM begrenzt und
+haelt alle drei Modelle geladen, damit keine Antwort kalt starten muss. Nach
+dem Start mit `docker stats --no-stream` pruefen, dass `ollama` unter dem
+Limit bleibt; sonst in `.env` `OLLAMA_MAX_LOADED_MODELS=2` und
+`OLLAMA_MEM_LIMIT=5g` setzen.
 
-1. Vorher pruefen, ob genug RAM frei ist (ca. 4-5 GB):
+1. Vorher pruefen, ob genug RAM frei ist (ca. 5-5,5 GB):
    ```bash
    free -h
    docker stats --no-stream
@@ -500,8 +504,9 @@ verlassen den Server. Der Ollama-Container ist auf 5 GB RAM begrenzt.
    **KI**. Dort gibt es Schalter für
    - "Lange Threads zusammenfassen" (standardmaessig aus): Button
      "Zusammenfassen" ab 5 Antworten. Text aus angehaengten PDFs (per OCR
-     extrahiert) fliesst mit ein. Ergebnisse werden im Speicher
-     zwischengespeichert, bis eine neue Antwort kommt.
+     extrahiert) fliesst mit ein. Die Antwort erscheint laufend beim
+     Schreiben und wird in der Datenbank gespeichert, bis sich der Thread
+     aendert.
    - "PDFs zusammenfassen" (standardmaessig aus): Button an jeder PDF im
      Thread, unabhaengig von der Zahl der Antworten. Ablauf:
      - Ist schon eine Zusammenfassung gespeichert, erscheint sie sofort.

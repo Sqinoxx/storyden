@@ -1,30 +1,64 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { handle } from "@/api/client";
-import { threadSummarise } from "@/api/openapi-client/threads";
 import { ThreadSummary } from "@/api/openapi-schema";
+import { API_ADDRESS } from "@/config";
 
 export const MIN_REPLIES_FOR_SUMMARY = 5;
 
+export type ThreadSummaryState =
+  | { kind: "idle" }
+  | { kind: "streaming"; text: string }
+  | { kind: "done"; summary: ThreadSummary }
+  | { kind: "failed" };
+
 export function useThreadSummary(slug: string) {
-  const [summary, setSummary] = useState<ThreadSummary | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState<ThreadSummaryState>({ kind: "idle" });
+  const source = useRef<EventSource | null>(null);
 
-  const summarise = async () => {
-    setLoading(true);
-    await handle(
-      async () => {
-        setSummary(await threadSummarise(slug));
-      },
-      {
-        cleanup: async () => {
-          setLoading(false);
-        },
-      },
-    );
-  };
+  const stop = useCallback(() => {
+    source.current?.close();
+    source.current = null;
+  }, []);
 
-  const close = () => setSummary(null);
+  useEffect(() => stop, [stop]);
 
-  return { summary, loading, summarise, close };
+  const summarise = useCallback(() => {
+    stop();
+    setState({ kind: "streaming", text: "" });
+
+    const url = `${API_ADDRESS}/api/threads/${encodeURIComponent(slug)}/summary/stream`;
+    const es = new EventSource(url, { withCredentials: true });
+    source.current = es;
+
+    es.onmessage = (e) => {
+      try {
+        const { t } = JSON.parse(e.data) as { t: string };
+        setState((s) =>
+          s.kind === "streaming" ? { ...s, text: s.text + t } : s,
+        );
+      } catch {}
+    };
+
+    es.addEventListener("done", (e) => {
+      stop();
+      try {
+        const summary = JSON.parse((e as MessageEvent).data) as ThreadSummary;
+        setState({ kind: "done", summary });
+      } catch {
+        setState({ kind: "failed" });
+      }
+    });
+
+    es.addEventListener("error", () => {
+      stop();
+      setState((s) => (s.kind === "done" ? s : { kind: "failed" }));
+    });
+  }, [slug, stop]);
+
+  const close = useCallback(() => {
+    stop();
+    setState({ kind: "idle" });
+  }, [stop]);
+
+  return { state, summarise, close };
 }

@@ -343,3 +343,50 @@ func TestPDFSummaryBackground(t *testing.T) {
 		require.GreaterOrEqual(t, *stats.JSON200.PdfSummariesTotal, *stats.JSON200.PdfSummariesDone)
 	})
 }
+
+func TestPDFSummaryBackgroundRetriesPoorAnswer(t *testing.T) {
+	t.Parallel()
+
+	var mu sync.Mutex
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		calls++
+		n := calls
+		mu.Unlock()
+
+		answer := "<p>Dies ist nur Fließtext ohne Liste.</p>"
+		if n > 1 {
+			answer = "<p>Skript Parodontologie.</p><ul><li>Klassifikation</li></ul>"
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"id": "x", "object": "chat.completion", "created": 1, "model": "big",
+			"choices": []map[string]any{{
+				"index": 0, "finish_reason": "stop",
+				"message": map[string]any{"role": "assistant", "content": answer},
+			}},
+		})
+	}))
+	t.Cleanup(srv.Close)
+
+	setup(t, modelConfig(srv), func(e env, bus *pubsub.Bus) {
+		e.enable(t, openapi.AIServiceSettings{PdfSummary: opt.New(true).Ptr()})
+
+		pdf := e.upload(t, "skript-paro.pdf", examText)
+		slug := e.thread(t, openapi.VisibilityPublished, pdf)
+
+		id, _ := xid.FromString(pdf)
+		bus.Publish(e.root, &message.EventAssetOCRCompleted{AssetID: id})
+
+		require.Eventually(t, func() bool {
+			res := e.get(t, slug, pdf)
+			return res.Status == openapi.AttachmentSummaryStatusReady && res.Summary != nil && strings.Contains(*res.Summary, "Klassifikation")
+		}, 20*time.Second, 100*time.Millisecond)
+
+		mu.Lock()
+		defer mu.Unlock()
+		require.Equal(t, 2, calls)
+	})
+}

@@ -192,6 +192,7 @@ func serialiseAIFeatures(info *instance_info.Info) *openapi.AIFeatureFlags {
 		SemesterSuggestion: info.Settings.AISemesterSuggestionEnabled(),
 		LibraryAssist:      genAI && info.Settings.AILibraryAssistEnabled(),
 		PdfSummary:         genAI && info.Settings.AIPDFSummaryEnabled(),
+		SimilarThreads:     slices.Contains(info.Capabilities, instance_info.CapabilitySemdex),
 	}
 }
 

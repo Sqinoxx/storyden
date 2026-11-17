@@ -8,7 +8,13 @@ The Storyden API does not adhere to semantic versioning but instead applies a ro
  * OpenAPI spec version: v1.26.13-post
  */
 import type { DatagraphItemList } from "./datagraphItemList";
+import type { Identifier } from "./identifier";
 
 export type DatagraphSearchResultAllOf = {
   items: DatagraphItemList;
+  /** IDs of results found only because their meaning matches the
+query, not its words. Only set when a semantic index is
+configured.
+ */
+  semantic_matches?: Identifier[];
 };

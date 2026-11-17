@@ -40,9 +40,9 @@ const (
 
 	searchCandidates       = 20
 	nearestThreads         = 5
-	minNeighbourSimilarity = 0.65
+	minNeighbourSimilarity = 0.55
 	minVotes               = 2
-	minVoteShare           = 0.6
+	minVoteShare           = 0.7
 )
 
 type Suggester struct {
@@ -97,19 +97,29 @@ func (s *Suggester) SuggestExcluding(ctx context.Context, title, body string, ex
 	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
 	defer cancel()
 
+	var learned []string
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var err error
+		learned, err = s.fromSimilarThreads(ctx, title+"\n\n"+body, exclude)
+		if err != nil {
+			s.logger.Warn("tag suggestion from similar threads failed", slog.String("error", err.Error()))
+		}
+	}()
+
 	fromMeanings, err := s.fromMeanings(ctx, title, body)
+	wg.Wait()
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
-	}
-
-	learned, err := s.fromSimilarThreads(ctx, title+"\n\n"+body, exclude)
-	if err != nil {
-		s.logger.Warn("tag suggestion from similar threads failed", slog.String("error", err.Error()))
 	}
 
 	return merge(maxTags, fromMeanings, learned), nil
 }
 
+// The embedding-nearest tags are found first: when none is close enough the
+// model is not asked at all, otherwise it only chooses among those few.
 func (s *Suggester) fromMeanings(ctx context.Context, title, body string) ([]string, error) {
 	meanings, err := s.meanings(ctx)
 	if err != nil {
@@ -119,29 +129,29 @@ func (s *Suggester) fromMeanings(ctx context.Context, title, body string) ([]str
 		return nil, nil
 	}
 
-	picked, err := s.pick(ctx, title, body, meanings)
-	if err != nil {
-		s.logger.Warn("tag suggestion model call failed", slog.String("error", err.Error()))
-		return nil, nil
-	}
-	if len(picked) == 0 {
-		return nil, nil
-	}
-
-	near, err := s.nearest(ctx, title+"\n"+body, meanings)
+	near, err := s.nearest(ctx, title+"\n\n"+body, meanings)
 	if err != nil {
 		s.logger.Warn("tag suggestion embedding failed", slog.String("error", err.Error()))
 		return nil, nil
 	}
 
-	var out []string
-	for _, t := range picked {
-		if near[t] {
-			out = append(out, t)
+	var candidates []meaning
+	for _, m := range meanings {
+		if near[m.tag] {
+			candidates = append(candidates, m)
 		}
 	}
+	if len(candidates) == 0 {
+		return nil, nil
+	}
 
-	return out, nil
+	picked, err := s.pick(ctx, title, body, candidates)
+	if err != nil {
+		s.logger.Warn("tag suggestion model call failed", slog.String("error", err.Error()))
+		return nil, nil
+	}
+
+	return picked, nil
 }
 
 func (s *Suggester) fromSimilarThreads(ctx context.Context, text string, exclude xid.ID) ([]string, error) {
@@ -193,6 +203,10 @@ type Neighbour struct {
 // Vote suggests the tags carried by at least minVotes of the tagged neighbours
 // that together hold at least minVoteShare of their similarity weight.
 func Vote(neighbours []Neighbour) []string {
+	return VoteWith(neighbours, minVotes, minVoteShare)
+}
+
+func VoteWith(neighbours []Neighbour, minVotes int, minVoteShare float64) []string {
 	type tally struct {
 		name  string
 		score float64

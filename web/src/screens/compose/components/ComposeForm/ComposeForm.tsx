@@ -7,6 +7,7 @@ import { CategoryTreeSelect } from "@/components/category/CategoryTreeSelect/Cat
 import { ContentDragOverlay } from "@/components/content/ContentDragOverlay";
 import { blockSubmitWhileUploading } from "@/components/content/blockSubmitWhileUploading";
 import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelect";
+import { DraftSimilarThreads } from "@/components/thread/SimilarThreads/DraftSimilarThreads";
 import { SemesterSuggestionHint } from "@/components/thread/SemesterSelect/SemesterSuggestionHint";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { DEFAULT_NEW_THREAD_TAGS } from "@/components/thread/useAutoTagDetection";
@@ -182,6 +183,8 @@ export function ComposeForm(props: Props) {
                 onUploadingChange={handlers.handleUploadingChange}
               />
             </Box>
+
+            {!props.editing && <DraftSimilarThreads />}
 
             {/* Footer row inside Box 2: Attachments & Bottom-Right "Datei anhängen" button */}
             <WStack

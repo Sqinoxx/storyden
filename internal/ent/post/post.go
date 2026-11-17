@@ -46,6 +46,10 @@ const (
 	FieldMetadata = "metadata"
 	// FieldVisibility holds the string denoting the visibility field in the database.
 	FieldVisibility = "visibility"
+	// FieldAiSummary holds the string denoting the ai_summary field in the database.
+	FieldAiSummary = "ai_summary"
+	// FieldAiSummaryHash holds the string denoting the ai_summary_hash field in the database.
+	FieldAiSummaryHash = "ai_summary_hash"
 	// FieldAccountPosts holds the string denoting the account_posts field in the database.
 	FieldAccountPosts = "account_posts"
 	// FieldCategoryID holds the string denoting the category_id field in the database.
@@ -198,6 +202,8 @@ var Columns = []string{
 	FieldShort,
 	FieldMetadata,
 	FieldVisibility,
+	FieldAiSummary,
+	FieldAiSummaryHash,
 	FieldAccountPosts,
 	FieldCategoryID,
 	FieldLinkID,
@@ -343,6 +349,16 @@ func ByShort(opts ...sql.OrderTermOption) OrderOption {
 // ByVisibility orders the results by the visibility field.
 func ByVisibility(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVisibility, opts...).ToFunc()
+}
+
+// ByAiSummary orders the results by the ai_summary field.
+func ByAiSummary(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAiSummary, opts...).ToFunc()
+}
+
+// ByAiSummaryHash orders the results by the ai_summary_hash field.
+func ByAiSummaryHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAiSummaryHash, opts...).ToFunc()
 }
 
 // ByAccountPosts orders the results by the account_posts field.

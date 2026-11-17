@@ -161,6 +161,38 @@ describe("ContentComposerRich drive link drops", () => {
     expect(editor.querySelector(`a[href="${url}"]`)).toBeNull();
   });
 
+  it("imports a dropped image link and embeds it as an image", async () => {
+    const url = "https://cdn.example.com/Befund.png";
+    assetImport.mockResolvedValue({
+      id: "image",
+      filename: "Befund.png",
+      path: "/api/assets/imported-befund-png",
+      mime_type: "image/png",
+      width: 2,
+      height: 2,
+    });
+
+    const { editor } = await renderEditor();
+
+    fireEvent.drop(editor, {
+      dataTransfer: {
+        items: [{ kind: "string", type: "text/html" }],
+        types: ["text/html"],
+        files: [],
+        getData: (type: string) =>
+          type === "text/html" ? `<img src="${url}" alt="">` : "",
+      },
+    });
+
+    await waitFor(() => {
+      expect(
+        editor.querySelector(`img[src$="/api/assets/imported-befund-png"]`),
+      ).not.toBeNull();
+    });
+
+    expect(assetImport).toHaveBeenCalledWith({ url });
+  });
+
   it("falls back to the link when the import is refused", async () => {
     const url = "https://example.com/private/Skript.pdf";
     assetImport.mockRejectedValue(new Error("400"));

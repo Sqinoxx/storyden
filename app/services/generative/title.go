@@ -10,6 +10,8 @@ import (
 	"github.com/Southclaws/fault/fctx"
 
 	"github.com/Southclaws/storyden/app/resources/datagraph"
+	"github.com/Southclaws/storyden/app/services/summary_text"
+	"github.com/Southclaws/storyden/internal/infrastructure/ai"
 )
 
 var TitlePrompt = template.Must(template.New("").Parse(`
@@ -23,13 +25,13 @@ Content:
 func (g *generator) SuggestTitle(ctx context.Context, content datagraph.Content) ([]string, error) {
 	template := strings.Builder{}
 	err := TitlePrompt.Execute(&template, map[string]any{
-		"Content": content.Plaintext(),
+		"Content": summary_text.Clip(content.Plaintext(), maxInputChars),
 	})
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	result, err := g.prompter.Prompt(ctx, template.String())
+	result, err := g.prompter.Prompt(ctx, template.String(), ai.WithFastModel(), ai.WithMaxTokens(titleMaxTokens), ai.WithTemperature(0.5))
 	if err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}

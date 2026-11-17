@@ -15,13 +15,29 @@ const FALLBACK_EXTENSIONS: Record<string, string> = {
     "pptx",
   "application/vnd.ms-excel": "xls",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/gif": "gif",
+  "image/webp": "webp",
+  "image/heic": "heic",
+  "image/heif": "heif",
+  "image/avif": "avif",
 };
 
 export const UPLOADABLE_DOCUMENT_MIMES = Object.keys(FALLBACK_EXTENSIONS);
 
-const IMPORTABLE_EXTENSION = /\.(pdf|docx?|pptx?|xlsx?)$/i;
+const IMPORTABLE_EXTENSION =
+  /\.(pdf|docx?|pptx?|xlsx?|jpe?g|png|gif|webp|heic|heif|avif)$/i;
+
+const URL_PATTERN = /https?:\/\/[^\s"'<>]+/g;
 
 const DRIVE_ID = /^[A-Za-z0-9_-]{10,}$/;
+
+const GOOGLE_FILE_HOSTS = new Set([
+  "drive.google.com",
+  "docs.google.com",
+  "drive.usercontent.google.com",
+]);
 
 export type DriveFileRef = {
   folderID?: string;
@@ -70,7 +86,7 @@ export function parseDriveDropURL(
     return null;
   }
 
-  if (url.host === "drive.google.com" || url.host === "docs.google.com") {
+  if (GOOGLE_FILE_HOSTS.has(url.host)) {
     const queryID = url.searchParams.get("id");
     if (queryID && DRIVE_ID.test(queryID)) {
       return { fileID: queryID };
@@ -116,21 +132,143 @@ export function parseDriveDropURL(
   return null;
 }
 
-export function readDropURL(dt: DataTransfer | null): string | undefined {
-  if (!dt) return undefined;
+function safeGetData(dt: DataTransfer, type: string): string {
+  try {
+    return dt.getData(type) ?? "";
+  } catch {
+    return "";
+  }
+}
 
-  const uriList = dt
-    .getData("text/uri-list")
+function urlsIn(text: string): string[] {
+  return (text.match(URL_PATTERN) ?? []).map((u) => u.replace(/[),.;]+$/, ""));
+}
+
+function directURL(dt: DataTransfer): string | undefined {
+  const uriList = safeGetData(dt, "text/uri-list")
     .split(/\r?\n/)
     .map((line) => line.trim())
     .find((line) => line !== "" && !line.startsWith("#"));
 
   if (uriList) return uriList;
 
-  const text = dt.getData("text/plain").trim();
+  const text = safeGetData(dt, "text/plain").trim();
   if (!text || /\s/.test(text)) return undefined;
 
   return text;
+}
+
+// Only a dragged link or image counts, never a text selection that merely
+// contains one, so dragging a paragraph into the editor still inserts it.
+function htmlLinks(html: string): string[] {
+  if (!html || typeof DOMParser === "undefined") return [];
+
+  const body = new DOMParser().parseFromString(html, "text/html").body;
+  const elements = Array.from(body.querySelectorAll("a[href], img[src]"));
+  if (elements.length === 0 || elements.length > 2) return [];
+
+  const linkedText = elements
+    .filter((el) => el.tagName === "A")
+    .map((el) => el.textContent ?? "")
+    .join("");
+  if ((body.textContent ?? "").trim() !== linkedText.trim()) return [];
+
+  return elements.map(
+    (el) => el.getAttribute("href") ?? el.getAttribute("src") ?? "",
+  );
+}
+
+function plainLinks(text: string): string[] {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length > 3) return [];
+
+  return lines.filter((line) => /^https?:\/\/\S+$/.test(line));
+}
+
+const STANDARD_DRAG_TYPES = new Set([
+  "downloadurl",
+  "text/uri-list",
+  "text/x-moz-url",
+  "text/html",
+  "text/plain",
+  "files",
+]);
+
+// Desktop browsers put a dragged file's link in different places depending on
+// the source: Google Drive uses Chrome's DownloadURL ("mime:name:url"), images
+// from other sites carry it in text/html, Firefox adds text/x-moz-url. A file
+// link anywhere in the drag wins over the plain page link.
+export function readDropURLs(dt: DataTransfer | null): string[] {
+  if (!dt) return [];
+
+  const candidates: string[] = [];
+  const add = (url: string | undefined) => {
+    const trimmed = url?.trim();
+    if (trimmed && !candidates.includes(trimmed)) candidates.push(trimmed);
+  };
+
+  urlsIn(safeGetData(dt, "DownloadURL")).forEach(add);
+  add(directURL(dt));
+  add(safeGetData(dt, "text/x-moz-url").split(/\r?\n/)[0]);
+  htmlLinks(safeGetData(dt, "text/html")).forEach(add);
+  plainLinks(safeGetData(dt, "text/plain")).forEach(add);
+
+  for (const type of Array.from(dt.types ?? [])) {
+    if (!STANDARD_DRAG_TYPES.has(type.toLowerCase())) {
+      urlsIn(safeGetData(dt, type)).forEach(add);
+    }
+  }
+
+  return candidates;
+}
+
+export function isFileLink(url: string | undefined): url is string {
+  return parseDriveDropURL(url) !== null || isImportableFileURL(url);
+}
+
+export function readDropURL(dt: DataTransfer | null): string | undefined {
+  if (!dt) return undefined;
+
+  const fileLink = readDropURLs(dt).find(isFileLink);
+  if (fileLink) return fileLink;
+
+  const types = Array.from(dt.types ?? []);
+  if (types.length > 0 && !types.includes("Files")) {
+    console.info("Drop without a recognised file link, types:", types);
+  }
+
+  return directURL(dt);
+}
+
+export type ResolvedFileLink = { file: File } | { asset: Asset };
+
+export async function resolveFileLink(
+  url: string,
+  onImportFailed?: () => void,
+): Promise<ResolvedFileLink | null> {
+  const ref = parseDriveDropURL(url);
+  if (ref) {
+    const file = await fetchDriveDocument(ref).catch(() => null);
+    if (file) {
+      return { file };
+    }
+    if (ref.folderID) {
+      return null;
+    }
+  }
+
+  if (isImportableFileURL(url)) {
+    const asset = await importFromURL(url);
+    if (asset) {
+      return { asset };
+    }
+    onImportFailed?.();
+  }
+
+  return null;
 }
 
 export function filenameFromContentDisposition(
@@ -221,7 +359,7 @@ export function isImportableFileURL(raw: string | undefined): boolean {
     return false;
   }
 
-  if (url.host === "drive.google.com" || url.host === "docs.google.com") {
+  if (GOOGLE_FILE_HOSTS.has(url.host)) {
     return parseDriveDropURL(raw) !== null;
   }
 

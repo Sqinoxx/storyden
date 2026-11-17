@@ -39,6 +39,9 @@ type Queue struct {
 	highWaiting int
 	lastHigh    time.Time
 	wake        chan struct{}
+
+	embeds    *embedCache
+	embedSlot chan struct{}
 }
 
 func NewQueue(inner Prompter) *Queue {
@@ -48,6 +51,8 @@ func NewQueue(inner Prompter) *Queue {
 		maxHighWaiting: defaultMaxHighWaiting,
 		now:            time.Now,
 		wake:           make(chan struct{}),
+		embeds:         newEmbedCache(embedCacheSize),
+		embedSlot:      make(chan struct{}, 1),
 	}
 }
 
@@ -187,5 +192,9 @@ func (q *Queue) PromptStream(ctx context.Context, input string, opts ...Option) 
 }
 
 func (q *Queue) EmbeddingFunc() func(ctx context.Context, text string) ([]float32, error) {
-	return q.inner.EmbeddingFunc()
+	inner := q.inner.EmbeddingFunc()
+	if inner == nil {
+		return nil
+	}
+	return q.embedder(inner)
 }

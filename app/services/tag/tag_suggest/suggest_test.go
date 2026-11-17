@@ -66,14 +66,24 @@ func TestVote(t *testing.T) {
 	})
 
 	t.Run("at_most_three_ordered_by_score", func(t *testing.T) {
-		got := Vote([]Neighbour{
+		got := VoteWith([]Neighbour{
 			n(0.9, "a", "b", "c", "d"),
 			n(0.8, "a", "b", "c", "d"),
 			n(0.7, "b", "c", "d"),
 			n(0.6, "c", "d"),
 			n(0.5, "d"),
-		})
+		}, 2, 0.4)
 		assert.Equal(t, []string{"d", "c", "b"}, got)
+	})
+
+	t.Run("calibrated_share_drops_weak_majority", func(t *testing.T) {
+		got := Vote([]Neighbour{
+			n(0.9, "endo", "kons"),
+			n(0.8, "endo", "kons"),
+			n(0.7, "endo"),
+			n(0.6, "endo"),
+		})
+		assert.Equal(t, []string{"endo"}, got)
 	})
 
 	t.Run("nothing_tagged", func(t *testing.T) {

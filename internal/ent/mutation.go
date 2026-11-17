@@ -44367,6 +44367,8 @@ type PostMutation struct {
 	short                *string
 	metadata             *map[string]interface{}
 	visibility           *post.Visibility
+	ai_summary           *string
+	ai_summary_hash      *string
 	clearedFields        map[string]struct{}
 	author               *xid.ID
 	clearedauthor        bool
@@ -45182,6 +45184,104 @@ func (m *PostMutation) OldVisibility(ctx context.Context) (v post.Visibility, er
 // ResetVisibility resets all changes to the "visibility" field.
 func (m *PostMutation) ResetVisibility() {
 	m.visibility = nil
+}
+
+// SetAiSummary sets the "ai_summary" field.
+func (m *PostMutation) SetAiSummary(s string) {
+	m.ai_summary = &s
+}
+
+// AiSummary returns the value of the "ai_summary" field in the mutation.
+func (m *PostMutation) AiSummary() (r string, exists bool) {
+	v := m.ai_summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAiSummary returns the old "ai_summary" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldAiSummary(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAiSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAiSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAiSummary: %w", err)
+	}
+	return oldValue.AiSummary, nil
+}
+
+// ClearAiSummary clears the value of the "ai_summary" field.
+func (m *PostMutation) ClearAiSummary() {
+	m.ai_summary = nil
+	m.clearedFields[post.FieldAiSummary] = struct{}{}
+}
+
+// AiSummaryCleared returns if the "ai_summary" field was cleared in this mutation.
+func (m *PostMutation) AiSummaryCleared() bool {
+	_, ok := m.clearedFields[post.FieldAiSummary]
+	return ok
+}
+
+// ResetAiSummary resets all changes to the "ai_summary" field.
+func (m *PostMutation) ResetAiSummary() {
+	m.ai_summary = nil
+	delete(m.clearedFields, post.FieldAiSummary)
+}
+
+// SetAiSummaryHash sets the "ai_summary_hash" field.
+func (m *PostMutation) SetAiSummaryHash(s string) {
+	m.ai_summary_hash = &s
+}
+
+// AiSummaryHash returns the value of the "ai_summary_hash" field in the mutation.
+func (m *PostMutation) AiSummaryHash() (r string, exists bool) {
+	v := m.ai_summary_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAiSummaryHash returns the old "ai_summary_hash" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldAiSummaryHash(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAiSummaryHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAiSummaryHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAiSummaryHash: %w", err)
+	}
+	return oldValue.AiSummaryHash, nil
+}
+
+// ClearAiSummaryHash clears the value of the "ai_summary_hash" field.
+func (m *PostMutation) ClearAiSummaryHash() {
+	m.ai_summary_hash = nil
+	m.clearedFields[post.FieldAiSummaryHash] = struct{}{}
+}
+
+// AiSummaryHashCleared returns if the "ai_summary_hash" field was cleared in this mutation.
+func (m *PostMutation) AiSummaryHashCleared() bool {
+	_, ok := m.clearedFields[post.FieldAiSummaryHash]
+	return ok
+}
+
+// ResetAiSummaryHash resets all changes to the "ai_summary_hash" field.
+func (m *PostMutation) ResetAiSummaryHash() {
+	m.ai_summary_hash = nil
+	delete(m.clearedFields, post.FieldAiSummaryHash)
 }
 
 // SetAccountPosts sets the "account_posts" field.
@@ -46120,7 +46220,7 @@ func (m *PostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 20)
 	if m.created_at != nil {
 		fields = append(fields, post.FieldCreatedAt)
 	}
@@ -46165,6 +46265,12 @@ func (m *PostMutation) Fields() []string {
 	}
 	if m.visibility != nil {
 		fields = append(fields, post.FieldVisibility)
+	}
+	if m.ai_summary != nil {
+		fields = append(fields, post.FieldAiSummary)
+	}
+	if m.ai_summary_hash != nil {
+		fields = append(fields, post.FieldAiSummaryHash)
 	}
 	if m.author != nil {
 		fields = append(fields, post.FieldAccountPosts)
@@ -46213,6 +46319,10 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 		return m.Metadata()
 	case post.FieldVisibility:
 		return m.Visibility()
+	case post.FieldAiSummary:
+		return m.AiSummary()
+	case post.FieldAiSummaryHash:
+		return m.AiSummaryHash()
 	case post.FieldAccountPosts:
 		return m.AccountPosts()
 	case post.FieldCategoryID:
@@ -46258,6 +46368,10 @@ func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldMetadata(ctx)
 	case post.FieldVisibility:
 		return m.OldVisibility(ctx)
+	case post.FieldAiSummary:
+		return m.OldAiSummary(ctx)
+	case post.FieldAiSummaryHash:
+		return m.OldAiSummaryHash(ctx)
 	case post.FieldAccountPosts:
 		return m.OldAccountPosts(ctx)
 	case post.FieldCategoryID:
@@ -46378,6 +46492,20 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetVisibility(v)
 		return nil
+	case post.FieldAiSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAiSummary(v)
+		return nil
+	case post.FieldAiSummaryHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAiSummaryHash(v)
+		return nil
 	case post.FieldAccountPosts:
 		v, ok := value.(xid.ID)
 		if !ok {
@@ -46468,6 +46596,12 @@ func (m *PostMutation) ClearedFields() []string {
 	if m.FieldCleared(post.FieldMetadata) {
 		fields = append(fields, post.FieldMetadata)
 	}
+	if m.FieldCleared(post.FieldAiSummary) {
+		fields = append(fields, post.FieldAiSummary)
+	}
+	if m.FieldCleared(post.FieldAiSummaryHash) {
+		fields = append(fields, post.FieldAiSummaryHash)
+	}
 	if m.FieldCleared(post.FieldCategoryID) {
 		fields = append(fields, post.FieldCategoryID)
 	}
@@ -46511,6 +46645,12 @@ func (m *PostMutation) ClearField(name string) error {
 		return nil
 	case post.FieldMetadata:
 		m.ClearMetadata()
+		return nil
+	case post.FieldAiSummary:
+		m.ClearAiSummary()
+		return nil
+	case post.FieldAiSummaryHash:
+		m.ClearAiSummaryHash()
 		return nil
 	case post.FieldCategoryID:
 		m.ClearCategoryID()
@@ -46570,6 +46710,12 @@ func (m *PostMutation) ResetField(name string) error {
 		return nil
 	case post.FieldVisibility:
 		m.ResetVisibility()
+		return nil
+	case post.FieldAiSummary:
+		m.ResetAiSummary()
+		return nil
+	case post.FieldAiSummaryHash:
+		m.ResetAiSummaryHash()
 		return nil
 	case post.FieldAccountPosts:
 		m.ResetAccountPosts()

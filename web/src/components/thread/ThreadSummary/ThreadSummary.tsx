@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { CloseIcon } from "@/components/ui/icons/Close";
 import { IntelligenceIcon } from "@/components/ui/icons/Intelligence";
+import { plainText } from "@/components/post/AttachmentSummary/useAttachmentSummary";
 import { useTranslation } from "@/lib/i18n";
 import { useAIFeature } from "@/lib/settings/ai-features";
 import { css } from "@/styled-system/css";
@@ -27,11 +28,12 @@ const summaryContent = css({
 export function ThreadSummary({ slug, replyCount }: Props) {
   const t = useTranslation();
   const enabled = useAIFeature("thread_summary");
-  const { summary, loading, summarise, close } = useThreadSummary(slug);
+  const { state, summarise, close } = useThreadSummary(slug);
+  const loading = state.kind === "streaming" && !state.text;
 
   if (!enabled || replyCount < MIN_REPLIES_FOR_SUMMARY) return null;
 
-  if (!summary) {
+  if (state.kind === "idle" || loading) {
     return (
       <HStack w="full" justify="end">
         <Button
@@ -74,19 +76,41 @@ export function ThreadSummary({ slug, replyCount }: Props) {
         </IconButton>
       </WStack>
 
-      {summary.summary ? (
-        <div
-          className={summaryContent}
-          dangerouslySetInnerHTML={{ __html: summary.summary }}
-        />
-      ) : (
-        <styled.p fontSize="sm">{t.thread.summaryEmpty}</styled.p>
+      {state.kind === "streaming" && (
+        <styled.p
+          fontSize="sm"
+          whiteSpace="pre-line"
+          data-testid="thread-summary-live"
+        >
+          {plainText(state.text)}
+        </styled.p>
       )}
 
-      <styled.p fontSize="xs" color="fg.subtle">
-        {t.thread.summaryDisclaimer}
-        {summary.includes_attachments && ` ${t.thread.summaryWithAttachments}`}
-      </styled.p>
+      {state.kind === "failed" && (
+        <styled.p fontSize="sm" color="fg.destructive">
+          {t.thread.summaryFailed}
+        </styled.p>
+      )}
+
+      {state.kind === "done" &&
+        (state.summary.summary ? (
+          <div
+            className={summaryContent}
+            data-testid="thread-summary"
+            dangerouslySetInnerHTML={{ __html: state.summary.summary }}
+          />
+        ) : (
+          <styled.p fontSize="sm">{t.thread.summaryEmpty}</styled.p>
+        ))}
+
+      {state.kind !== "failed" && (
+        <styled.p fontSize="xs" color="fg.subtle">
+          {t.thread.summaryDisclaimer}
+          {state.kind === "done" &&
+            state.summary.includes_attachments &&
+            ` ${t.thread.summaryWithAttachments}`}
+        </styled.p>
+      )}
     </LStack>
   );
 }

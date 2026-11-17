@@ -3,6 +3,8 @@ package asset_test
 import (
 	"bytes"
 	"context"
+	"image"
+	"image/png"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -28,6 +30,9 @@ var importPDF = []byte("%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 
 func importSource(t *testing.T) *httptest.Server {
 	t.Helper()
 
+	var importPNG bytes.Buffer
+	require.NoError(t, png.Encode(&importPNG, image.NewRGBA(image.Rect(0, 0, 2, 2))))
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/Leitlinie%20Karies.pdf", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/pdf")
@@ -37,6 +42,10 @@ func importSource(t *testing.T) *httptest.Server {
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.Header().Set("Content-Disposition", `attachment; filename="Aspirin - Fachinformation.pdf"`)
 		w.Write(importPDF)
+	})
+	mux.HandleFunc("/Röntgenbild.png", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		w.Write(importPNG.Bytes())
 	})
 	mux.HandleFunc("/page", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -97,6 +106,13 @@ func TestAssetImport(t *testing.T) {
 					resp, err := cl.AssetImportWithResponse(root, openapi.AssetImportJSONRequestBody{Url: srv.URL + "/download"}, session)
 					tests.Ok(t, err, resp)
 					require.Equal(t, "Aspirin - Fachinformation.pdf", resp.JSON200.Filename)
+				})
+
+				t.Run("imports an image link", func(t *testing.T) {
+					resp, err := cl.AssetImportWithResponse(root, openapi.AssetImportJSONRequestBody{Url: srv.URL + "/R%C3%B6ntgenbild.png"}, session)
+					tests.Ok(t, err, resp)
+					require.Equal(t, "Röntgenbild.png", resp.JSON200.Filename)
+					require.Equal(t, "image/png", resp.JSON200.MimeType)
 				})
 
 				for _, c := range []struct {

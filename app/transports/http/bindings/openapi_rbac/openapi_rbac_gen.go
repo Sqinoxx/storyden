@@ -198,7 +198,10 @@ type OperationPermissions interface {
 	ThreadList() (bool, *rbac.Permission)
 	ThreadSuggestSemester() (bool, *rbac.Permission)
 	ThreadSuggestTags() (bool, *rbac.Permission)
+	ThreadSimilar() (bool, *rbac.Permission)
+	ThreadRelated() (bool, *rbac.Permission)
 	ThreadSummarise() (bool, *rbac.Permission)
+	ThreadSummaryStream() (bool, *rbac.Permission)
 	ThreadAttachmentSummaryGet() (bool, *rbac.Permission)
 	ThreadAttachmentSummaryStream() (bool, *rbac.Permission)
 	ThreadGet() (bool, *rbac.Permission)
@@ -699,8 +702,14 @@ func GetOperationPermission(optable OperationPermissions, op string) (bool, *rba
 		return optable.ThreadSuggestSemester()
 	case "ThreadSuggestTags":
 		return optable.ThreadSuggestTags()
+	case "ThreadSimilar":
+		return optable.ThreadSimilar()
+	case "ThreadRelated":
+		return optable.ThreadRelated()
 	case "ThreadSummarise":
 		return optable.ThreadSummarise()
+	case "ThreadSummaryStream":
+		return optable.ThreadSummaryStream()
 	case "ThreadAttachmentSummaryGet":
 		return optable.ThreadAttachmentSummaryGet()
 	case "ThreadAttachmentSummaryStream":

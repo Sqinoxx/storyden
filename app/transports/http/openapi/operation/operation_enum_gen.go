@@ -207,7 +207,10 @@ var (
 	OperationIDThreadList                             = OperationID{`ThreadList`}
 	OperationIDThreadSuggestSemester                  = OperationID{`ThreadSuggestSemester`}
 	OperationIDThreadSuggestTags                      = OperationID{`ThreadSuggestTags`}
+	OperationIDThreadSimilar                          = OperationID{`ThreadSimilar`}
+	OperationIDThreadRelated                          = OperationID{`ThreadRelated`}
 	OperationIDThreadSummarise                        = OperationID{`ThreadSummarise`}
+	OperationIDThreadSummaryStream                    = OperationID{`ThreadSummaryStream`}
 	OperationIDThreadAttachmentSummaryGet             = OperationID{`ThreadAttachmentSummaryGet`}
 	OperationIDThreadAttachmentSummaryStream          = OperationID{`ThreadAttachmentSummaryStream`}
 	OperationIDThreadGet                              = OperationID{`ThreadGet`}
@@ -743,8 +746,14 @@ func NewOperationID(__iNpUt__ string) (OperationID, error) {
 		return OperationIDThreadSuggestSemester, nil
 	case string(`ThreadSuggestTags`):
 		return OperationIDThreadSuggestTags, nil
+	case string(`ThreadSimilar`):
+		return OperationIDThreadSimilar, nil
+	case string(`ThreadRelated`):
+		return OperationIDThreadRelated, nil
 	case string(`ThreadSummarise`):
 		return OperationIDThreadSummarise, nil
+	case string(`ThreadSummaryStream`):
+		return OperationIDThreadSummaryStream, nil
 	case string(`ThreadAttachmentSummaryGet`):
 		return OperationIDThreadAttachmentSummaryGet, nil
 	case string(`ThreadAttachmentSummaryStream`):

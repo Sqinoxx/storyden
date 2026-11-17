@@ -10,6 +10,12 @@ import (
 	"github.com/Southclaws/storyden/internal/infrastructure/ai"
 )
 
+const (
+	maxInputChars    = 3000
+	titleMaxTokens   = 120
+	summaryMaxTokens = 450
+)
+
 type Titler interface {
 	SuggestTitle(ctx context.Context, content datagraph.Content) ([]string, error)
 }

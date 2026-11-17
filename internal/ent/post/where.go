@@ -121,6 +121,16 @@ func Short(v string) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldShort, v))
 }
 
+// AiSummary applies equality check predicate on the "ai_summary" field. It's identical to AiSummaryEQ.
+func AiSummary(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldAiSummary, v))
+}
+
+// AiSummaryHash applies equality check predicate on the "ai_summary_hash" field. It's identical to AiSummaryHashEQ.
+func AiSummaryHash(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldAiSummaryHash, v))
+}
+
 // AccountPosts applies equality check predicate on the "account_posts" field. It's identical to AccountPostsEQ.
 func AccountPosts(v xid.ID) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldAccountPosts, v))
@@ -914,6 +924,156 @@ func VisibilityIn(vs ...Visibility) predicate.Post {
 // VisibilityNotIn applies the NotIn predicate on the "visibility" field.
 func VisibilityNotIn(vs ...Visibility) predicate.Post {
 	return predicate.Post(sql.FieldNotIn(FieldVisibility, vs...))
+}
+
+// AiSummaryEQ applies the EQ predicate on the "ai_summary" field.
+func AiSummaryEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldAiSummary, v))
+}
+
+// AiSummaryNEQ applies the NEQ predicate on the "ai_summary" field.
+func AiSummaryNEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldAiSummary, v))
+}
+
+// AiSummaryIn applies the In predicate on the "ai_summary" field.
+func AiSummaryIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldAiSummary, vs...))
+}
+
+// AiSummaryNotIn applies the NotIn predicate on the "ai_summary" field.
+func AiSummaryNotIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldAiSummary, vs...))
+}
+
+// AiSummaryGT applies the GT predicate on the "ai_summary" field.
+func AiSummaryGT(v string) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldAiSummary, v))
+}
+
+// AiSummaryGTE applies the GTE predicate on the "ai_summary" field.
+func AiSummaryGTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldAiSummary, v))
+}
+
+// AiSummaryLT applies the LT predicate on the "ai_summary" field.
+func AiSummaryLT(v string) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldAiSummary, v))
+}
+
+// AiSummaryLTE applies the LTE predicate on the "ai_summary" field.
+func AiSummaryLTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldAiSummary, v))
+}
+
+// AiSummaryContains applies the Contains predicate on the "ai_summary" field.
+func AiSummaryContains(v string) predicate.Post {
+	return predicate.Post(sql.FieldContains(FieldAiSummary, v))
+}
+
+// AiSummaryHasPrefix applies the HasPrefix predicate on the "ai_summary" field.
+func AiSummaryHasPrefix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasPrefix(FieldAiSummary, v))
+}
+
+// AiSummaryHasSuffix applies the HasSuffix predicate on the "ai_summary" field.
+func AiSummaryHasSuffix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasSuffix(FieldAiSummary, v))
+}
+
+// AiSummaryIsNil applies the IsNil predicate on the "ai_summary" field.
+func AiSummaryIsNil() predicate.Post {
+	return predicate.Post(sql.FieldIsNull(FieldAiSummary))
+}
+
+// AiSummaryNotNil applies the NotNil predicate on the "ai_summary" field.
+func AiSummaryNotNil() predicate.Post {
+	return predicate.Post(sql.FieldNotNull(FieldAiSummary))
+}
+
+// AiSummaryEqualFold applies the EqualFold predicate on the "ai_summary" field.
+func AiSummaryEqualFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldEqualFold(FieldAiSummary, v))
+}
+
+// AiSummaryContainsFold applies the ContainsFold predicate on the "ai_summary" field.
+func AiSummaryContainsFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldContainsFold(FieldAiSummary, v))
+}
+
+// AiSummaryHashEQ applies the EQ predicate on the "ai_summary_hash" field.
+func AiSummaryHashEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashNEQ applies the NEQ predicate on the "ai_summary_hash" field.
+func AiSummaryHashNEQ(v string) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashIn applies the In predicate on the "ai_summary_hash" field.
+func AiSummaryHashIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldAiSummaryHash, vs...))
+}
+
+// AiSummaryHashNotIn applies the NotIn predicate on the "ai_summary_hash" field.
+func AiSummaryHashNotIn(vs ...string) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldAiSummaryHash, vs...))
+}
+
+// AiSummaryHashGT applies the GT predicate on the "ai_summary_hash" field.
+func AiSummaryHashGT(v string) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashGTE applies the GTE predicate on the "ai_summary_hash" field.
+func AiSummaryHashGTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashLT applies the LT predicate on the "ai_summary_hash" field.
+func AiSummaryHashLT(v string) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashLTE applies the LTE predicate on the "ai_summary_hash" field.
+func AiSummaryHashLTE(v string) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashContains applies the Contains predicate on the "ai_summary_hash" field.
+func AiSummaryHashContains(v string) predicate.Post {
+	return predicate.Post(sql.FieldContains(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashHasPrefix applies the HasPrefix predicate on the "ai_summary_hash" field.
+func AiSummaryHashHasPrefix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasPrefix(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashHasSuffix applies the HasSuffix predicate on the "ai_summary_hash" field.
+func AiSummaryHashHasSuffix(v string) predicate.Post {
+	return predicate.Post(sql.FieldHasSuffix(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashIsNil applies the IsNil predicate on the "ai_summary_hash" field.
+func AiSummaryHashIsNil() predicate.Post {
+	return predicate.Post(sql.FieldIsNull(FieldAiSummaryHash))
+}
+
+// AiSummaryHashNotNil applies the NotNil predicate on the "ai_summary_hash" field.
+func AiSummaryHashNotNil() predicate.Post {
+	return predicate.Post(sql.FieldNotNull(FieldAiSummaryHash))
+}
+
+// AiSummaryHashEqualFold applies the EqualFold predicate on the "ai_summary_hash" field.
+func AiSummaryHashEqualFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldEqualFold(FieldAiSummaryHash, v))
+}
+
+// AiSummaryHashContainsFold applies the ContainsFold predicate on the "ai_summary_hash" field.
+func AiSummaryHashContainsFold(v string) predicate.Post {
+	return predicate.Post(sql.FieldContainsFold(FieldAiSummaryHash, v))
 }
 
 // AccountPostsEQ applies the EQ predicate on the "account_posts" field.

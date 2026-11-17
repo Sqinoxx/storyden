@@ -7,7 +7,6 @@ import (
 	"errors"
 	"log/slog"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/Southclaws/fault"
@@ -21,6 +20,7 @@ import (
 	"github.com/Southclaws/storyden/app/resources/asset/asset_writer"
 	"github.com/Southclaws/storyden/app/resources/pagination"
 	"github.com/Southclaws/storyden/app/resources/post"
+	"github.com/Southclaws/storyden/app/services/summary_stream"
 	"github.com/Southclaws/storyden/app/services/summary_text"
 	thread_service "github.com/Southclaws/storyden/app/services/thread"
 	"github.com/Southclaws/storyden/internal/config"
@@ -38,6 +38,9 @@ const (
 
 	fullBudget    = 6000
 	fullMaxTokens = 300
+	fullAttempts  = 2
+
+	temperature = 0.2
 )
 
 type Status string
@@ -55,12 +58,7 @@ type Result struct {
 	Preview string
 }
 
-type Event struct {
-	Text string
-	HTML string
-	Done bool
-	Err  error
-}
+type Event = summary_stream.Event
 
 var (
 	errNotFound  = fault.New("attachment not found in thread", ftag.With(ftag.NotFound))
@@ -76,9 +74,7 @@ type Service struct {
 	assetQ   *asset_querier.Querier
 	assetW   *asset_writer.Writer
 	now      func() time.Time
-
-	mu   sync.Mutex
-	live map[xid.ID]*broadcast
+	live     *summary_stream.Group[xid.ID]
 }
 
 func Build() fx.Option {
@@ -97,7 +93,7 @@ func New(logger *slog.Logger, cfg config.Config, prompter ai.Prompter, threads t
 		assetQ:   assetQ,
 		assetW:   assetW,
 		now:      time.Now,
-		live:     map[xid.ID]*broadcast{},
+		live:     summary_stream.NewGroup[xid.ID](),
 	}
 }
 
@@ -184,45 +180,33 @@ func (s *Service) Stream(ctx context.Context, threadID post.ID, assetID asset.As
 	}
 
 	if sum, ok := stored(a, text); ok {
-		return func(yield func(Event) bool) {
-			yield(Event{Done: true, HTML: sum.HTML})
-		}, nil
+		return summary_stream.Ready(sum.HTML), nil
 	}
 
 	b, err := s.join(ctx, a, text)
 	if err != nil {
 		return nil, err
 	}
-	return b.subscribe(ctx), nil
+	return b.Subscribe(ctx), nil
 }
 
-func (s *Service) join(ctx context.Context, a *asset.Asset, text string) (*broadcast, error) {
+func (s *Service) join(ctx context.Context, a *asset.Asset, text string) (*summary_stream.Broadcast, error) {
 	id := xid.ID(a.ID)
 
-	s.mu.Lock()
-	if b, ok := s.live[id]; ok {
-		s.mu.Unlock()
+	b, started, done := s.live.Join(id)
+	if !started {
 		return b, nil
-	}
-	b := newBroadcast()
-	s.live[id] = b
-	s.mu.Unlock()
-
-	done := func() {
-		s.mu.Lock()
-		delete(s.live, id)
-		s.mu.Unlock()
 	}
 
 	gctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), liveTimeout)
 	sel := selectText(text, quickBudget)
-	it, err := s.prompter.PromptStream(gctx, quickPrompt(a, sel), ai.WithFastModel(), ai.WithMaxTokens(quickMaxTokens))
+	it, err := s.prompter.PromptStream(gctx, quickPrompt(a, sel), ai.WithSystem(quickInstructions), ai.WithFastModel(), ai.WithMaxTokens(quickMaxTokens), ai.WithTemperature(temperature))
 	if err == nil && it == nil {
 		err = fault.Wrap(errNoText, fctx.With(ctx))
 	}
 	if err != nil {
 		cancel()
-		b.finish("", err)
+		b.Finish("", err)
 		done()
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
@@ -234,11 +218,11 @@ func (s *Service) join(ctx context.Context, a *asset.Asset, text string) (*broad
 		var answer strings.Builder
 		for chunk, err := range it {
 			if err != nil {
-				b.finish("", err)
+				b.Finish("", err)
 				return
 			}
 			answer.WriteString(chunk)
-			b.push(chunk)
+			b.Push(chunk)
 		}
 
 		html, err := summary_text.SanitiseHTML(answer.String())
@@ -247,14 +231,16 @@ func (s *Service) join(ctx context.Context, a *asset.Asset, text string) (*broad
 		}
 		if err != nil {
 			s.logger.Warn("live pdf summary failed", slog.String("asset", a.ID.String()), slog.String("error", err.Error()))
-			b.finish("", err)
+			b.Finish("", err)
 			return
 		}
 
-		if err := s.assetW.SetSummary(gctx, id, html, hashOf(text), ent_asset.AiSummaryQualityQuick); err != nil {
-			s.logger.Error("failed to store pdf summary", slog.String("asset", a.ID.String()), slog.String("error", err.Error()))
+		if summary_text.Valid(html, sel.text) {
+			if err := s.assetW.SetSummary(gctx, id, html, hashOf(text), ent_asset.AiSummaryQualityQuick); err != nil {
+				s.logger.Error("failed to store pdf summary", slog.String("asset", a.ID.String()), slog.String("error", err.Error()))
+			}
 		}
-		b.finish(html, nil)
+		b.Finish(html, nil)
 	}()
 
 	return b, nil
@@ -270,17 +256,22 @@ func (s *Service) summariseFull(ctx context.Context, a *asset.Asset) error {
 	}
 
 	sel := selectText(text, fullBudget)
-	res, err := s.prompter.Prompt(ctx, fullPrompt(a, sel), ai.WithLowPriority(), ai.WithMaxTokens(fullMaxTokens))
-	if err != nil {
-		return err
-	}
-	if res == nil {
-		return s.assetW.SetSummaryStatus(ctx, xid.ID(a.ID), ent_asset.AiSummaryStatusSkipped)
-	}
 
-	html, err := summary_text.SanitiseHTML(res.Answer)
-	if err != nil || html == "" {
-		return s.assetW.SetSummaryStatus(ctx, xid.ID(a.ID), ent_asset.AiSummaryStatusFailed)
+	// Small models occasionally answer in prose or in English; one more
+	// attempt is cheaper than keeping a poor summary until the text changes.
+	for range fullAttempts {
+		res, err := s.prompter.Prompt(ctx, fullPrompt(a, sel), ai.WithSystem(fullInstructions), ai.WithLowPriority(), ai.WithMaxTokens(fullMaxTokens), ai.WithTemperature(temperature))
+		if err != nil {
+			return err
+		}
+		if res == nil {
+			return s.assetW.SetSummaryStatus(ctx, xid.ID(a.ID), ent_asset.AiSummaryStatusSkipped)
+		}
+
+		html, err := summary_text.SanitiseHTML(res.Answer)
+		if err == nil && summary_text.Valid(html, sel.text) {
+			return s.assetW.SetSummary(ctx, xid.ID(a.ID), html, hashOf(text), ent_asset.AiSummaryQualityFull)
+		}
 	}
-	return s.assetW.SetSummary(ctx, xid.ID(a.ID), html, hashOf(text), ent_asset.AiSummaryQualityFull)
+	return s.assetW.SetSummaryStatus(ctx, xid.ID(a.ID), ent_asset.AiSummaryStatusFailed)
 }

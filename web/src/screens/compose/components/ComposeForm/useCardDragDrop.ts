@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { handle } from "@/api/client";
 import { Asset } from "@/api/openapi-schema";
@@ -9,6 +10,11 @@ import {
   isSupportedAsset,
   useImageUpload,
 } from "@/components/content/useImageUpload";
+import {
+  isFileLink,
+  readDropURL,
+  resolveFileLink,
+} from "@/components/drive/resolveDroppedDriveFile";
 import { useTranslation } from "@/lib/i18n";
 import { useMaxUploadSizeBytes } from "@/lib/settings/uploads";
 
@@ -97,13 +103,33 @@ export function useCardDragDrop(
       isSupportedAsset(file.type),
     );
 
-    if (files.length === 0) {
+    if (files.length > 0) {
+      onUploadingChange(true);
+      try {
+        await uploadAll(files);
+      } finally {
+        onUploadingChange(false);
+      }
+      return;
+    }
+
+    const url = readDropURL(e.dataTransfer);
+    if (!isFileLink(url)) {
       return;
     }
 
     onUploadingChange(true);
     try {
-      await uploadAll(files);
+      const resolved = await resolveFileLink(url).catch(() => null);
+      if (!resolved) {
+        toast.info(t.upload.linkFileFailed);
+        return;
+      }
+      if ("file" in resolved) {
+        await uploadAll([resolved.file]);
+      } else {
+        await handle(() => onAttach(resolved.asset));
+      }
     } finally {
       onUploadingChange(false);
     }

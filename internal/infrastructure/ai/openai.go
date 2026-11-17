@@ -62,11 +62,18 @@ func newOpenAI(cfg config.Config) (*OpenAI, error) {
 
 func (o *OpenAI) params(input string, opts []Option) openai.ChatCompletionNewParams {
 	opt := applyOptions(opts)
+	messages := []openai.ChatCompletionMessageParamUnion{}
+	if opt.System != "" {
+		messages = append(messages, openai.SystemMessage(opt.System))
+	}
+	messages = append(messages, openai.UserMessage(input))
+
 	p := openai.ChatCompletionNewParams{
-		Model: o.model,
-		Messages: []openai.ChatCompletionMessageParamUnion{
-			openai.UserMessage(input),
-		},
+		Model:    o.model,
+		Messages: messages,
+	}
+	if opt.Temperature != nil {
+		p.Temperature = openai.Float(*opt.Temperature)
 	}
 	if opt.Fast {
 		p.Model = o.fast

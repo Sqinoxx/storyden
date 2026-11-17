@@ -52,6 +52,10 @@ type Post struct {
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 	// Visibility holds the value of the "visibility" field.
 	Visibility post.Visibility `json:"visibility,omitempty"`
+	// AiSummary holds the value of the "ai_summary" field.
+	AiSummary *string `json:"ai_summary,omitempty"`
+	// AiSummaryHash holds the value of the "ai_summary_hash" field.
+	AiSummaryHash *string `json:"ai_summary_hash,omitempty"`
 	// AccountPosts holds the value of the "account_posts" field.
 	AccountPosts xid.ID `json:"account_posts,omitempty"`
 	// CategoryID holds the value of the "category_id" field.
@@ -268,7 +272,7 @@ func (*Post) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case post.FieldPinnedRank:
 			values[i] = new(sql.NullInt64)
-		case post.FieldTitle, post.FieldSlug, post.FieldBody, post.FieldShort, post.FieldVisibility:
+		case post.FieldTitle, post.FieldSlug, post.FieldBody, post.FieldShort, post.FieldVisibility, post.FieldAiSummary, post.FieldAiSummaryHash:
 			values[i] = new(sql.NullString)
 		case post.FieldCreatedAt, post.FieldUpdatedAt, post.FieldDeletedAt, post.FieldIndexedAt, post.FieldSemdexIndexedAt, post.FieldLastReplyAt:
 			values[i] = new(sql.NullTime)
@@ -391,6 +395,20 @@ func (_m *Post) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field visibility", values[i])
 			} else if value.Valid {
 				_m.Visibility = post.Visibility(value.String)
+			}
+		case post.FieldAiSummary:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ai_summary", values[i])
+			} else if value.Valid {
+				_m.AiSummary = new(string)
+				*_m.AiSummary = value.String
+			}
+		case post.FieldAiSummaryHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ai_summary_hash", values[i])
+			} else if value.Valid {
+				_m.AiSummaryHash = new(string)
+				*_m.AiSummaryHash = value.String
 			}
 		case post.FieldAccountPosts:
 			if value, ok := values[i].(*xid.ID); !ok {
@@ -580,6 +598,16 @@ func (_m *Post) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("visibility=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Visibility))
+	builder.WriteString(", ")
+	if v := _m.AiSummary; v != nil {
+		builder.WriteString("ai_summary=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.AiSummaryHash; v != nil {
+		builder.WriteString("ai_summary_hash=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("account_posts=")
 	builder.WriteString(fmt.Sprintf("%v", _m.AccountPosts))

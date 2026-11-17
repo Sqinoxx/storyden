@@ -25,6 +25,7 @@ import { SemesterSelect } from "@/components/thread/SemesterSelect/SemesterSelec
 import { Signature } from "@/components/thread/Signature";
 import { ThreadDeletedAlert } from "@/components/thread/ThreadDeletedAlert";
 import { ThreadMenu } from "@/components/thread/ThreadMenu/ThreadMenu";
+import { RelatedThreads } from "@/components/thread/SimilarThreads/RelatedThreads";
 import { ThreadSummary } from "@/components/thread/ThreadSummary/ThreadSummary";
 import { TagListField } from "@/components/thread/ThreadTagList";
 import { FormErrorText } from "@/components/ui/FormErrorText";
@@ -286,6 +287,8 @@ export function ThreadScreen(props: Props) {
               currentPage={data.thread.replies.current_page}
               initialSignatureConfig={signatureConfig}
             />
+
+            <RelatedThreads slug={thread.slug} />
 
             {data.thread.replies.total_pages > 1 && (
               <PaginationControls

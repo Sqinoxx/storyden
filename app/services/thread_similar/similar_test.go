@@ -22,8 +22,8 @@ func TestPick(t *testing.T) {
 		ref(b, datagraph.KindReply, 0.85),
 		ref(c, datagraph.KindThread, 0.8),
 		ref(d, datagraph.KindThread, 0.69),
-	}, self, 5)
+	}, self, MinRelatedSimilarity, 5)
 
 	assert.Equal(t, []*datagraph.Ref{ref(a, datagraph.KindThread, 0.9), ref(c, datagraph.KindThread, 0.8)}, got)
-	assert.Len(t, Pick(got, xid.NilID(), 1), 1)
+	assert.Len(t, Pick(got, xid.NilID(), 0, 1), 1)
 }

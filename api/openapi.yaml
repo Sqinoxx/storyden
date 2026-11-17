@@ -14553,6 +14553,13 @@ components:
           required: [items]
           properties:
             items: { $ref: "#/components/schemas/DatagraphItemList" }
+            semantic_matches:
+              type: array
+              description: |
+                IDs of results found only because their meaning matches the
+                query, not its words. Only set when a semantic index is
+                configured.
+              items: { $ref: "#/components/schemas/Identifier" }
 
     DatagraphMatchResult:
       type: object

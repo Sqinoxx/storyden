@@ -233,6 +233,8 @@ export const de: Translations = {
     moveIntoCategory: "In Kategorie verschieben",
   },
   search: {
+    semanticMatch: "Inhaltlich passend",
+    semanticMatchHint: "Gefunden, weil das Thema passt, auch ohne dass dein Suchbegriff darin vorkommt.",
     kindThreads: "Threads",
     kindThreadsDescription: "Diskussionsthreads in die Suche einbeziehen.",
     kindReplies: "Antworten",

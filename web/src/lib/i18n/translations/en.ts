@@ -231,6 +231,8 @@ export const en = {
     moveIntoCategory: "Move into category",
   },
   search: {
+    semanticMatch: "Related topic",
+    semanticMatchHint: "Found because the topic matches, even though your search words do not appear in it.",
     kindThreads: "Threads",
     kindThreadsDescription: "Include discussion threads in the search.",
     kindReplies: "Replies",

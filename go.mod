@@ -80,7 +80,7 @@ require (
 	github.com/invopop/jsonschema v0.14.0
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/jmoiron/sqlx v1.4.0
-	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
+	github.com/ledongthuc/pdf v0.0.0-20261020125853-5e46805f718e
 	github.com/mazznoer/colorgrad v0.10.0
 	github.com/mazznoer/csscolorparser v0.1.6
 	github.com/microcosm-cc/bluemonday v1.0.27

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,7 +19,11 @@ func makeTextPDF(t *testing.T, text string) []byte {
 	t.Helper()
 
 	escaped := strings.NewReplacer(`\`, `\\`, `(`, `\(`, `)`, `\)`).Replace(text)
-	streamBody := fmt.Sprintf("BT /F1 24 Tf 72 712 Td (%s) Tj ET\n", escaped)
+	return makeContentPDF(t, fmt.Sprintf("BT /F1 24 Tf 72 712 Td (%s) Tj ET\n", escaped))
+}
+
+func makeContentPDF(t *testing.T, streamBody string) []byte {
+	t.Helper()
 
 	objects := []string{
 		"<< /Type /Catalog /Pages 2 0 R >>",
@@ -70,6 +75,22 @@ func TestExtractPDFTextLayer_CorruptDoesNotPanic(t *testing.T) {
 	assert.NotPanics(t, func() {
 		_, _, _ = extractPDFTextLayer(garbage)
 	})
+}
+
+func TestExtractPDFTextLayer_UnterminatedArrayTerminates(t *testing.T) {
+	data := makeContentPDF(t, "BT /F1 24 Tf 72 712 Td [(Spanisch) -250 (Semester)\n")
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		_, _, _ = extractPDFTextLayer(data)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("text layer extraction did not terminate on an unterminated array")
+	}
 }
 
 func TestExtractPDFTextLayer_EmptyHasNoUsableText(t *testing.T) {

@@ -1,11 +1,12 @@
 "use client";
 
-import { Download, Eye, File, Folder } from "lucide-react";
+import { Download, Eye, Folder } from "lucide-react";
 import Link from "next/link";
 import { DragEvent, useState } from "react";
 
 import { DriveEntry } from "@/api/openapi-schema";
 import { FilePreviewModal } from "@/components/post/FilePreviewModal";
+import { FileTypeIcon } from "@/components/ui/FileTypeIcon/FileTypeIcon";
 import { IconButton } from "@/components/ui/icon-button";
 import * as Table from "@/components/ui/table";
 import { useTranslation } from "@/lib/i18n";
@@ -73,7 +74,11 @@ export function DriveContentsTable({ folderID, entries }: Props) {
                     {entry.is_folder ? (
                       <Folder size={16} />
                     ) : (
-                      <File size={16} />
+                      <FileTypeIcon
+                        mimeType={entry.mime_type}
+                        filename={entry.name}
+                        size={22}
+                      />
                     )}
 
                     {entry.is_folder ? (

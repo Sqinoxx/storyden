@@ -1,7 +1,7 @@
-import { FileText } from "lucide-react";
 import { Fragment } from "react";
 
 import { DatagraphAssetMatch } from "@/api/openapi-schema";
+import { FileTypeIcon } from "@/components/ui/FileTypeIcon/FileTypeIcon";
 import { useTranslation } from "@/lib/i18n";
 import { HStack, LStack, styled } from "@/styled-system/jsx";
 import { getCleanFilename } from "@/utils/asset";
@@ -43,7 +43,11 @@ function AssetMatchRow({
   return (
     <LStack gap="1" w="full" minWidth="0">
       <HStack gap="1" color="fg.muted" fontSize="xs">
-        <FileText size={14} />
+        <FileTypeIcon
+          mimeType={match.asset.mime_type}
+          filename={match.asset.filename}
+          size={18}
+        />
         <styled.span fontWeight="medium">{t.ocr.matchInAttachment}</styled.span>
         <styled.span color="fg.subtle">·</styled.span>
         <styled.span

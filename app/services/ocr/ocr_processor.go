@@ -223,6 +223,13 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 		return nil
 	}
 
+	resumed := a.OCRStatus == string(ent_asset.OcrStatusProcessing)
+	if resumed && a.OCRError.OrZero() == asset_writer.InterruptedOCRReason {
+		p.logger.Warn("text extraction was interrupted twice, skipping asset so it cannot crash the server again", slog.String("id", id.String()))
+		_, err := p.assetWriter.UpdateOCRSkipped(ctx, id, abandonedAfterInterruptionsReason)
+		return err
+	}
+
 	procCtx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
 	p.setCurrent(id, cancel)
@@ -283,7 +290,11 @@ func (p *Processor) ProcessAsset(ctx context.Context, id xid.ID) error {
 	}
 
 	p.logger.Info("starting text extraction for asset", slog.String("id", id.String()), slog.String("filename", a.Name.String()))
-	_, _ = p.assetWriter.UpdateOCRProcessing(ctx, id)
+	if resumed {
+		_, _ = p.assetWriter.UpdateOCRResumed(ctx, id)
+	} else {
+		_, _ = p.assetWriter.UpdateOCRProcessing(ctx, id)
+	}
 
 	timeout := p.timeout(ctx)
 	result, err := p.extractText(procCtx, data, mimeStr, timeout)
@@ -353,7 +364,10 @@ func (p *Processor) setCurrent(id xid.ID, cancel context.CancelCauseFunc) {
 	p.cancelCurrent = cancel
 }
 
-const skippedByAdminReason = "skipped by administrator"
+const (
+	skippedByAdminReason              = "skipped by administrator"
+	abandonedAfterInterruptionsReason = "text extraction was interrupted twice (the server crashed or restarted during extraction)"
+)
 
 // SkipAsset stops text extraction for an asset: a running extraction is
 // cancelled and anything not yet completed is marked skipped so it isn't

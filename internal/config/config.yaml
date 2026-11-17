@@ -727,7 +727,7 @@
       default: "tesseract"
       description: |-
         The OCR engine provider used for images and for rasterised (scanned) PDF pages.
-        - `tesseract` for local Tesseract OCR CLI binary, layered with pure-Go PDF text-layer extraction (no external binary required for digital PDFs).
+        - `tesseract` for local Tesseract OCR CLI binary, layered with PDF text-layer extraction (poppler's `pdftotext` in a separate, memory-capped process when installed, otherwise a pure-Go reader, so no external binary is required for digital PDFs).
         - `textlayer` disables the Tesseract/rasterisation fallback entirely and only extracts embedded PDF text layers. Useful when no OCR binaries are installed.
         - `openai_vision` for OpenAI Vision API image text extraction, layered the same way as `tesseract`.
         - `mock` for testing or development without external dependencies.

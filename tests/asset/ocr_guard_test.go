@@ -234,3 +234,70 @@ func TestOCR_SkipsEmptyFile(t *testing.T) {
 		}))
 	}))
 }
+
+// TestOCR_InterruptedExtractionIsNotRetriedForever covers a file whose
+// extraction takes the whole process down (e.g. a PDF exhausting memory).
+// Its status stays "processing", the backfill reclaims it after the stuck
+// timeout and the server crashed again every 15 minutes. One retry is fine,
+// since a deploy can interrupt a healthy extraction, but a second
+// interruption must skip the asset.
+func TestOCR_InterruptedExtractionIsNotRetriedForever(t *testing.T) {
+	cfg := &config.Config{
+		OCREnabled:         true,
+		OCRProvider:        "mock",
+		OCRBackfillEnabled: false,
+	}
+
+	integration.Test(t, cfg, e2e.Setup(), fx.Invoke(func(
+		root context.Context,
+		lc fx.Lifecycle,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
+		aq *asset_querier.Querier,
+		writer *asset_writer.Writer,
+		proc *ocr.Processor,
+	) {
+		lc.Append(fx.StartHook(func() {
+			r := require.New(t)
+
+			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			adminSession := sh.WithSession(adminCtx)
+
+			png := []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}
+			a := uploadTestAsset(t, root, cl, adminSession, "image/png", png)
+
+			assetID, err := xid.FromString(a.Id)
+			r.NoError(err)
+
+			r.Eventually(func() bool {
+				got, err := aq.GetByID(root, assetID)
+				return err == nil && got.OCRStatus == "completed"
+			}, 5*time.Second, 20*time.Millisecond, "expected upload extraction to finish")
+
+			_, err = writer.UpdateOCRProcessing(root, assetID)
+			r.NoError(err)
+
+			r.NoError(proc.ProcessAsset(root, assetID))
+
+			retried, err := aq.GetByID(root, assetID)
+			r.NoError(err)
+			r.Equal("completed", retried.OCRStatus, "a single interruption must be retried")
+			r.False(retried.OCRError.Ok())
+
+			_, err = writer.UpdateOCRResumed(root, assetID)
+			r.NoError(err)
+
+			r.NoError(proc.ProcessAsset(root, assetID))
+
+			abandoned, err := aq.GetByID(root, assetID)
+			r.NoError(err)
+			r.Equal("skipped", abandoned.OCRStatus)
+			r.Contains(abandoned.OCRError.OrZero(), "interrupted twice")
+
+			pending, err := aq.GetPendingOCR(root, 1000, -time.Second)
+			r.NoError(err)
+			r.NotContains(pending, assetID)
+		}))
+	}))
+}

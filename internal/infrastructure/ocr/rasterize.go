@@ -59,7 +59,7 @@ func (p *PopplerRasterizer) Rasterize(ctx context.Context, pdfPath, outDir strin
 		outputPrefix,
 	}
 
-	cmd := exec.CommandContext(ctx, p.binaryPath, args...)
+	cmd := memoryLimitedCommand(ctx, popplerMemoryLimitKB, p.binaryPath, args...)
 	if err := cmd.Run(); err != nil {
 		return nil, fault.Wrap(err, fctx.With(ctx), fmsg.With("pdftoppm execution failed"))
 	}

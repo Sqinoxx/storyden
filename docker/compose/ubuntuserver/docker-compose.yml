@@ -52,6 +52,11 @@ services:
     pull_policy: never
     restart: unless-stopped
     logging: *default-logging
+    # Obergrenze, damit ein Ausreisser (z.B. eine kaputte PDF) nur diesen
+    # Container neu startet, statt den Server in den globalen OOM zu treiben,
+    # bei dem der Kernel auch Postgres oder Ollama erwischen kann.
+    # Normalbetrieb: ~350 MB (API + Next.js), der Rest ist Datei-Cache.
+    mem_limit: ${STORYDEN_MEM_LIMIT:-2g}
     expose:
       - "8000"
     volumes:

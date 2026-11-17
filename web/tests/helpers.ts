@@ -254,6 +254,21 @@ export async function dropURL(page: Page, target: Locator, url: string) {
   await target.dispatchEvent("drop", { dataTransfer, ...coords });
 }
 
+export async function pasteText(target: Locator, text: string) {
+  await target.focus();
+  await target.evaluate((el, value) => {
+    const dt = new DataTransfer();
+    dt.setData("text/plain", value);
+    el.dispatchEvent(
+      new ClipboardEvent("paste", {
+        clipboardData: dt,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  }, text);
+}
+
 export async function postReply(page: Page, body: string) {
   const form = page.locator("form").filter({ hasText: "Reply to" });
   const editor = form.locator(".ProseMirror[contenteditable='true']");

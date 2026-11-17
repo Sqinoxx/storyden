@@ -37,6 +37,7 @@ export function ContentComposerRich(props: ContentComposerProps) {
     isDragging,
     isDragError,
     getDragOverlayMessage,
+    pastedFileLink,
     handlers,
     format,
   } = useContentComposer({
@@ -155,6 +156,9 @@ export function ContentComposerRich(props: ContentComposerProps) {
       {editor && (
         <LinkPasteMenu
           editor={editor}
+          pastedFileLink={pastedFileLink}
+          onReplaceFileLink={handlers.replacePastedFileLink}
+          onDismissFileLink={handlers.dismissPastedFileLink}
           onUploadAsFile={
             props.disabled ? undefined : handlers.handleUploadLinkAsFile
           }

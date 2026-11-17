@@ -1,137 +1,147 @@
-import { BubbleMenu, Editor } from "@tiptap/react";
-import { PaperclipIcon } from "lucide-react";
+import { Editor } from "@tiptap/react";
+import { PaperclipIcon, XIcon } from "lucide-react";
+import { useEffect } from "react";
 
+import { isFileLink } from "@/components/drive/resolveDroppedDriveFile";
+import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/ui/icon-button";
 import { CardIcon } from "@/components/ui/icons/Card";
 import { LinkIcon } from "@/components/ui/icons/Link";
 import { useTranslation } from "@/lib/i18n";
-import { css } from "@/styled-system/css";
 import { HStack, styled } from "@/styled-system/jsx";
 
 import { linkPasteMenuKey } from "./plugins/LinkPasteMenuPlugin";
-import { isFileLink } from "@/components/drive/resolveDroppedDriveFile";
+import { PastedFileLink } from "./useContentComposerRich";
+
+const SETTLED_VISIBLE_MS = 15000;
 
 type Props = {
   editor: Editor;
+  pastedFileLink: PastedFileLink | null;
+  onReplaceFileLink: (kind: "link" | "preview") => void;
+  onDismissFileLink: () => void;
   onUploadAsFile?: (url: string, range: { from: number; to: number }) => void;
 };
 
-export function LinkPasteMenu({ editor, onUploadAsFile }: Props) {
+export function LinkPasteMenu({
+  editor,
+  pastedFileLink,
+  onReplaceFileLink,
+  onDismissFileLink,
+  onUploadAsFile,
+}: Props) {
   const t = useTranslation();
-  const pastedURL = linkPasteMenuKey.getState(editor.state)?.url ?? undefined;
-  const canUploadAsFile = !!onUploadAsFile && isFileLink(pastedURL);
+
+  const settled = pastedFileLink && pastedFileLink.status !== "loading";
+  useEffect(() => {
+    if (!settled) return;
+    const timer = setTimeout(onDismissFileLink, SETTLED_VISIBLE_MS);
+    return () => clearTimeout(timer);
+  }, [settled, pastedFileLink?.id, onDismissFileLink]);
+
+  if (pastedFileLink) {
+    const canReplace = pastedFileLink.status !== "attached";
+
+    return (
+      <Bar label={t.link.pastedFileLink}>
+        <HStack gap="1.5" flexGrow="1" flexShrink="0" color="fg.default">
+          {pastedFileLink.status === "loading" ? (
+            <Spinner size="sm" />
+          ) : (
+            <PaperclipIcon width="14" height="14" />
+          )}
+          <styled.span fontWeight="medium" whiteSpace="nowrap">
+            {pastedFileLink.status === "loading"
+              ? t.link.fileLoading
+              : pastedFileLink.status === "attached"
+                ? t.link.fileAttached
+                : t.link.fileInserted}
+          </styled.span>
+        </HStack>
+
+        {canReplace && (
+          <HStack gap="1" flexWrap="wrap">
+            <styled.span color="fg.muted">{t.link.instead}</styled.span>
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              onClick={() => onReplaceFileLink("link")}
+            >
+              <LinkIcon /> {t.link.asLink}
+            </Button>
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              onClick={() => onReplaceFileLink("preview")}
+            >
+              <CardIcon /> {t.link.preview}
+            </Button>
+          </HStack>
+        )}
+
+        <DismissButton label={t.link.dismiss} onClick={onDismissFileLink} />
+      </Bar>
+    );
+  }
+
+  const menuState = linkPasteMenuKey.getState(editor.state);
+  if (!menuState?.isVisible || !menuState.url || !menuState.range) {
+    return null;
+  }
+
+  const { url, range } = menuState;
+  const canUploadAsFile = !!onUploadAsFile && isFileLink(url);
+
   const dismissMenu = () => {
-    const tr = editor.state.tr.setMeta(linkPasteMenuKey, {
-      isVisible: false,
-      url: null,
-      position: 0,
-      range: null,
-    });
-    editor.view.dispatch(tr);
+    editor.view.dispatch(
+      editor.state.tr.setMeta(linkPasteMenuKey, {
+        isVisible: false,
+        url: null,
+        position: 0,
+        range: null,
+      }),
+    );
   };
 
   const handleLinkChoice = () => {
-    const menuState = linkPasteMenuKey.getState(editor.state);
-    if (!menuState?.range || !menuState?.url) return;
-
     editor
       .chain()
       .focus()
-      .setTextSelection(menuState.range)
-      .setLink({ href: menuState.url })
+      .setTextSelection(range)
+      .setLink({ href: url })
+      .setTextSelection(range.to)
       .run();
 
     dismissMenu();
   };
 
   const handleCardChoice = () => {
-    const menuState = linkPasteMenuKey.getState(editor.state);
-    if (!menuState?.range || !menuState?.url) return;
-
     editor
       .chain()
       .focus()
-      .deleteRange(menuState.range)
-      .setLinkPreview({ href: menuState.url })
+      .deleteRange(range)
+      .setLinkPreview({ href: url })
       .run();
 
     dismissMenu();
   };
 
   const handleFileChoice = () => {
-    const menuState = linkPasteMenuKey.getState(editor.state);
-    if (!menuState?.range || !menuState?.url) return;
-
-    const { url, range } = menuState;
     dismissMenu();
     onUploadAsFile?.(url, range);
   };
 
   return (
-    <BubbleMenu
-      editor={editor}
-      shouldShow={() => {
-        const menuState = linkPasteMenuKey.getState(editor.state);
-        return menuState?.isVisible ?? false;
-      }}
-      tippyOptions={{
-        placement: "bottom-start",
-        maxWidth: "100%",
-        onHide: () => {
-          dismissMenu();
-        },
-        popperOptions: {
-          modifiers: [
-            {
-              name: "offset",
-              options: {
-                offset: [0, 4],
-              },
-            },
-            {
-              name: "flip",
-              options: {
-                fallbackPlacements: ["top-start"],
-                boundary: editor.view.dom,
-                padding: 8,
-              },
-            },
-            {
-              name: "preventOverflow",
-              options: {
-                boundary: editor.view.dom,
-                altAxis: true,
-                padding: {
-                  top: 0,
-                  right: 0,
-                  bottom: -40,
-                  left: 0,
-                },
-                rootBoundary: "viewport",
-                tether: false,
-              },
-            },
-          ],
-        },
-      }}
-      className={css({
-        zIndex: "popover",
-        borderRadius: "md",
-        backgroundColor: "bg.subtle/80",
-        backdropBlur: "frosted",
-        backdropFilter: "auto",
-        boxShadow: "md",
-        padding: "1",
-      })}
-    >
-      <styled.p color="fg.muted" fontSize="sm">
-        {t.link.showLinkAs}
-      </styled.p>
-      <HStack gap="1">
+    <Bar label={t.link.showLinkAs}>
+      <styled.span color="fg.muted">{t.link.showLinkAs}</styled.span>
+      <HStack gap="1" flexWrap="wrap">
         <Button
           type="button"
           size="xs"
-          variant="subtle"
+          variant="outline"
           onClick={handleLinkChoice}
         >
           <LinkIcon /> {t.link.text}
@@ -139,7 +149,7 @@ export function LinkPasteMenu({ editor, onUploadAsFile }: Props) {
         <Button
           type="button"
           size="xs"
-          variant="subtle"
+          variant="outline"
           onClick={handleCardChoice}
         >
           <CardIcon /> {t.link.preview}
@@ -148,13 +158,66 @@ export function LinkPasteMenu({ editor, onUploadAsFile }: Props) {
           <Button
             type="button"
             size="xs"
-            variant="subtle"
+            variant="outline"
             onClick={handleFileChoice}
           >
             <PaperclipIcon /> {t.link.file}
           </Button>
         )}
       </HStack>
-    </BubbleMenu>
+      <DismissButton label={t.link.dismiss} onClick={dismissMenu} />
+    </Bar>
+  );
+}
+
+function Bar({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <HStack
+      role="group"
+      aria-label={label}
+      data-link-paste-bar
+      position="sticky"
+      bottom="0"
+      zIndex="docked"
+      w="full"
+      minW="0"
+      flexWrap="wrap"
+      gap="2"
+      px="2"
+      py="1.5"
+      borderRadius="md"
+      borderWidth="thin"
+      borderColor="border.subtle"
+      bg="bg.muted"
+      boxShadow="xs"
+      fontSize="xs"
+      // Clicking a choice must not blur the editor first: on touch devices the
+      // keyboard closing reflows the page and the tap lands somewhere else.
+      onMouseDown={(e) => e.preventDefault()}
+    >
+      {children}
+    </HStack>
+  );
+}
+
+function DismissButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <IconButton
+      type="button"
+      size="xs"
+      variant="ghost"
+      ml="auto"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+    >
+      <XIcon />
+    </IconButton>
   );
 }

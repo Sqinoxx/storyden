@@ -1226,6 +1226,22 @@ func (m *Mapping) AdminTagBackfillApply() (bool, *rbac.Permission) {
 	return true, &rbac.PermissionAdministrator
 }
 
+func (m *Mapping) AdminSemesterBackfillStatus() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
+func (m *Mapping) AdminSemesterBackfillStart() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
+func (m *Mapping) AdminSemesterBackfillCancel() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
+func (m *Mapping) AdminSemesterBackfillApply() (bool, *rbac.Permission) {
+	return true, &rbac.PermissionAdministrator
+}
+
 func (m *Mapping) ThreadSummarise() (bool, *rbac.Permission) {
 	return false, &rbac.PermissionReadPublishedThreads
 }

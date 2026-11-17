@@ -176,8 +176,7 @@ export function TagBackfill(props: { configured: boolean }) {
                 <HStack gap="3" flexWrap="wrap" fontSize="sm">
                   {p.current.length > 0 && (
                     <styled.span color="fg.muted">
-                      {t.aiSettings.tagBackfillCurrent}{" "}
-                      {p.current.join(", ")}
+                      {t.aiSettings.tagBackfillCurrent} {p.current.join(", ")}
                     </styled.span>
                   )}
                   {p.add.map((tag) => (

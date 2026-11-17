@@ -25,6 +25,8 @@ import type {
   AdminOCRAssetSkip200,
   AdminOCRReindex200,
   AdminOCRStats200,
+  AdminSemesterBackfillApplyBody,
+  AdminSemesterBackfillOKResponse,
   AdminServerMetricsParams,
   AdminSettingsGetOKResponse,
   AdminSettingsUpdateBody,
@@ -650,6 +652,240 @@ export const useAdminTagBackfillApply = <
 
   const swrKey = swrOptions?.swrKey ?? getAdminTagBackfillApplyMutationKey();
   const swrFn = getAdminTagBackfillApplyMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Progress of the background run that re-detects the semester of
+existing threads, with the corrections collected so far.
+
+ */
+export const adminSemesterBackfillStatus = () => {
+  return fetcher<AdminSemesterBackfillOKResponse>({
+    url: `/admin/ai/semester-backfill`,
+    method: "GET",
+  });
+};
+
+export const getAdminSemesterBackfillStatusKey = () =>
+  [`/admin/ai/semester-backfill`] as const;
+
+export type AdminSemesterBackfillStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminSemesterBackfillStatus>>
+>;
+export type AdminSemesterBackfillStatusQueryError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useAdminSemesterBackfillStatus = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRConfiguration<
+    Awaited<ReturnType<typeof adminSemesterBackfillStatus>>,
+    TError
+  > & { swrKey?: Key; enabled?: boolean };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() => (isEnabled ? getAdminSemesterBackfillStatusKey() : null));
+  const swrFn = () => adminSemesterBackfillStatus();
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Start re-detecting the semester of every published thread in the
+background, relative to when each thread was posted. Nothing is
+changed until corrections are applied.
+
+ */
+export const adminSemesterBackfillStart = () => {
+  return fetcher<AdminSemesterBackfillOKResponse>({
+    url: `/admin/ai/semester-backfill`,
+    method: "POST",
+  });
+};
+
+export const getAdminSemesterBackfillStartMutationFetcher = () => {
+  return (
+    _: Key,
+    __: { arg: Arguments },
+  ): Promise<AdminSemesterBackfillOKResponse> => {
+    return adminSemesterBackfillStart();
+  };
+};
+export const getAdminSemesterBackfillStartMutationKey = () =>
+  [`/admin/ai/semester-backfill`] as const;
+
+export type AdminSemesterBackfillStartMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminSemesterBackfillStart>>
+>;
+export type AdminSemesterBackfillStartMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useAdminSemesterBackfillStart = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof adminSemesterBackfillStart>>,
+    TError,
+    Key,
+    Arguments,
+    Awaited<ReturnType<typeof adminSemesterBackfillStart>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey =
+    swrOptions?.swrKey ?? getAdminSemesterBackfillStartMutationKey();
+  const swrFn = getAdminSemesterBackfillStartMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Stop the background run, keeping the corrections so far.
+ */
+export const adminSemesterBackfillCancel = () => {
+  return fetcher<AdminSemesterBackfillOKResponse>({
+    url: `/admin/ai/semester-backfill`,
+    method: "DELETE",
+  });
+};
+
+export const getAdminSemesterBackfillCancelMutationFetcher = () => {
+  return (
+    _: Key,
+    __: { arg: Arguments },
+  ): Promise<AdminSemesterBackfillOKResponse> => {
+    return adminSemesterBackfillCancel();
+  };
+};
+export const getAdminSemesterBackfillCancelMutationKey = () =>
+  [`/admin/ai/semester-backfill`] as const;
+
+export type AdminSemesterBackfillCancelMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminSemesterBackfillCancel>>
+>;
+export type AdminSemesterBackfillCancelMutationError =
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useAdminSemesterBackfillCancel = <
+  TError =
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof adminSemesterBackfillCancel>>,
+    TError,
+    Key,
+    Arguments,
+    Awaited<ReturnType<typeof adminSemesterBackfillCancel>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey =
+    swrOptions?.swrKey ?? getAdminSemesterBackfillCancelMutationKey();
+  const swrFn = getAdminSemesterBackfillCancelMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * Set the reviewed semesters on the threads. The threads' updated time
+is unchanged.
+
+ */
+export const adminSemesterBackfillApply = (
+  adminSemesterBackfillApplyBody: AdminSemesterBackfillApplyBody,
+) => {
+  return fetcher<AdminSemesterBackfillOKResponse>({
+    url: `/admin/ai/semester-backfill/apply`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: adminSemesterBackfillApplyBody,
+  });
+};
+
+export const getAdminSemesterBackfillApplyMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: AdminSemesterBackfillApplyBody },
+  ): Promise<AdminSemesterBackfillOKResponse> => {
+    return adminSemesterBackfillApply(arg);
+  };
+};
+export const getAdminSemesterBackfillApplyMutationKey = () =>
+  [`/admin/ai/semester-backfill/apply`] as const;
+
+export type AdminSemesterBackfillApplyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminSemesterBackfillApply>>
+>;
+export type AdminSemesterBackfillApplyMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | ForbiddenResponse
+  | InternalServerErrorResponse;
+
+export const useAdminSemesterBackfillApply = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | ForbiddenResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof adminSemesterBackfillApply>>,
+    TError,
+    Key,
+    AdminSemesterBackfillApplyBody,
+    Awaited<ReturnType<typeof adminSemesterBackfillApply>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey =
+    swrOptions?.swrKey ?? getAdminSemesterBackfillApplyMutationKey();
+  const swrFn = getAdminSemesterBackfillApplyMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

@@ -208,3 +208,31 @@ func TestSuggest(t *testing.T) {
 		assert.Nil(t, got)
 	})
 }
+
+func TestSuggestAt(t *testing.T) {
+	ctx := context.Background()
+	posted := time.Date(2019, time.May, 3, 12, 0, 0, 0, time.UTC)
+
+	t.Run("old_explicit_term_in_range_of_posting_time", func(t *testing.T) {
+		p, _ := newFakeModel(t, confirmation{"exam", 100})
+		s := New(slog.Default(), p)
+
+		got, err := s.SuggestAt(ctx, Input{Title: "Altklausur SS 2005"}, time.Date(2010, time.May, 1, 0, 0, 0, 0, time.UTC))
+		require.NoError(t, err)
+		require.NotNil(t, got)
+		assert.Equal(t, ss(2005), got.Term)
+
+		got, err = s.SuggestAt(ctx, Input{Title: "Altklausur SS 2005"}, now)
+		require.NoError(t, err)
+		assert.Nil(t, got)
+	})
+
+	t.Run("relative_reference_resolves_against_posting_time", func(t *testing.T) {
+		p, calls := newFakeModel(t, confirmation{"exam", 95})
+		got, err := New(slog.Default(), p).SuggestAt(ctx, Input{Body: "Die Klausur im letzten Wintersemester war hart"}, posted)
+		require.NoError(t, err)
+		require.NotNil(t, got)
+		assert.Equal(t, ws(2018), got.Term)
+		assert.Equal(t, 1, *calls)
+	})
+}

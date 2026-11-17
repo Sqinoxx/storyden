@@ -1180,6 +1180,8 @@ export * from "./threadRepliesSortQueryParameter";
 export * from "./threadSemesterSuggestion";
 export * from "./threadSemesterSuggestionRequest";
 export * from "./threadSemesterSuggestionSource";
+export * from "./threadSimilarList";
+export * from "./threadSimilarOKResponse";
 export * from "./threadSuggestSemesterBody";
 export * from "./threadSuggestSemesterOKResponse";
 export * from "./threadSuggestTagsBody";

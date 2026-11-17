@@ -3642,6 +3642,37 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "200": { $ref: "#/components/responses/ThreadSuggestTagsOK" }
 
+  /threads/similar:
+    post:
+      operationId: ThreadSimilar
+      x-storyden: { rate-limit-cost: 2 }
+      description: |
+        List published threads close in meaning to a thread being composed,
+        so members can join an existing discussion instead of starting a
+        duplicate. Empty when no semantic index is configured.
+      tags: [threads]
+      requestBody: { $ref: "#/components/requestBodies/ThreadSuggestTags" }
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "200": { $ref: "#/components/responses/ThreadSimilarOK" }
+
+  /threads/{thread_mark}/related:
+    get:
+      operationId: ThreadRelated
+      x-storyden: { rate-limit-cost: 1 }
+      description: |
+        List published threads close in meaning to this thread. Empty when no
+        semantic index is configured or the thread is not indexed yet.
+      tags: [threads]
+      parameters: [$ref: "#/components/parameters/ThreadMarkParam"]
+      responses:
+        default: { $ref: "#/components/responses/InternalServerError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorised" }
+        "200": { $ref: "#/components/responses/ThreadSimilarOK" }
+
   /threads/{thread_mark}/summary:
     post:
       operationId: ThreadSummarise
@@ -7887,6 +7918,12 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/ThreadSemesterSuggestion" }
 
+    ThreadSimilarOK:
+      description: Threads close in meaning, most similar first.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ThreadSimilarList" }
+
     ThreadSuggestTagsOK:
       description: Suggested existing tags, possibly empty.
       content:
@@ -8743,8 +8780,14 @@ components:
           semester_suggestion,
           library_assist,
           pdf_summary,
+          similar_threads,
         ]
       properties:
+        similar_threads:
+          type: boolean
+          description: |
+            A semantic index is configured, so search also finds threads by
+            meaning and similar threads are listed.
         thread_summary: { type: boolean }
         pdf_summary: { type: boolean }
         tag_suggestion: { type: boolean }
@@ -13375,6 +13418,12 @@ components:
         evidence:
           type: string
           description: The passage the suggestion is based on.
+
+    ThreadSimilarList:
+      type: object
+      required: [items]
+      properties:
+        items: { $ref: "#/components/schemas/DatagraphItemList" }
 
     ThreadTagSuggestionRequest:
       type: object

@@ -19,6 +19,10 @@ export interface AIFeatureFlags {
   library_assist: boolean;
   pdf_summary: boolean;
   semester_suggestion: boolean;
+  /** A semantic index is configured, so search also finds threads by
+meaning and similar threads are listed.
+ */
+  similar_threads: boolean;
   tag_suggestion: boolean;
   thread_summary: boolean;
 }

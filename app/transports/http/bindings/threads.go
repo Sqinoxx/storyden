@@ -31,6 +31,7 @@ import (
 	"github.com/Southclaws/storyden/app/services/pdf_summary"
 	thread_service "github.com/Southclaws/storyden/app/services/thread"
 	"github.com/Southclaws/storyden/app/services/thread_mark"
+	"github.com/Southclaws/storyden/app/services/thread_similar"
 	"github.com/Southclaws/storyden/app/services/thread_summary"
 	"github.com/Southclaws/storyden/app/transports/http/openapi"
 	ent_post "github.com/Southclaws/storyden/internal/ent/post"
@@ -48,6 +49,7 @@ type Threads struct {
 	tagSuggester    *tag_suggest.Suggester
 	summariser      *thread_summary.Summariser
 	pdfSummary      *pdf_summary.Service
+	similar         *thread_similar.Finder
 }
 
 func NewThreads(
@@ -62,8 +64,9 @@ func NewThreads(
 	tagSuggester *tag_suggest.Suggester,
 	summariser *thread_summary.Summariser,
 	pdfSummary *pdf_summary.Service,
+	similar *thread_similar.Finder,
 ) Threads {
-	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings, access, semesters, tagSuggester, summariser, pdfSummary}
+	return Threads{thread_cache, thread_svc, thread_mark_svc, accountQuery, profileQuery, settings, access, semesters, tagSuggester, summariser, pdfSummary, similar}
 }
 
 var errAIFeatureDisabled = fault.New("this AI feature is disabled", ftag.With(ftag.PermissionDenied))

@@ -27,6 +27,7 @@ import type {
   ThreadGetResponse,
   ThreadListOKResponse,
   ThreadListParams,
+  ThreadSimilarOKResponse,
   ThreadSuggestSemesterBody,
   ThreadSuggestSemesterOKResponse,
   ThreadSuggestTagsBody,
@@ -270,6 +271,121 @@ export const useThreadSuggestTags = <
   const swrFn = getThreadSuggestTagsMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * List published threads close in meaning to a thread being composed,
+so members can join an existing discussion instead of starting a
+duplicate. Empty when no semantic index is configured.
+
+ */
+export const threadSimilar = (threadSuggestTagsBody: ThreadSuggestTagsBody) => {
+  return fetcher<ThreadSimilarOKResponse>({
+    url: `/threads/similar`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: threadSuggestTagsBody,
+  });
+};
+
+export const getThreadSimilarMutationFetcher = () => {
+  return (
+    _: Key,
+    { arg }: { arg: ThreadSuggestTagsBody },
+  ): Promise<ThreadSimilarOKResponse> => {
+    return threadSimilar(arg);
+  };
+};
+export const getThreadSimilarMutationKey = () => [`/threads/similar`] as const;
+
+export type ThreadSimilarMutationResult = NonNullable<
+  Awaited<ReturnType<typeof threadSimilar>>
+>;
+export type ThreadSimilarMutationError =
+  | BadRequestResponse
+  | UnauthorisedResponse
+  | InternalServerErrorResponse;
+
+export const useThreadSimilar = <
+  TError =
+    | BadRequestResponse
+    | UnauthorisedResponse
+    | InternalServerErrorResponse,
+>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof threadSimilar>>,
+    TError,
+    Key,
+    ThreadSuggestTagsBody,
+    Awaited<ReturnType<typeof threadSimilar>>
+  > & { swrKey?: string };
+}) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getThreadSimilarMutationKey();
+  const swrFn = getThreadSimilarMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+/**
+ * List published threads close in meaning to this thread. Empty when no
+semantic index is configured or the thread is not indexed yet.
+
+ */
+export const threadRelated = (threadMark: string) => {
+  return fetcher<ThreadSimilarOKResponse>({
+    url: `/threads/${threadMark}/related`,
+    method: "GET",
+  });
+};
+
+export const getThreadRelatedKey = (threadMark: string) =>
+  [`/threads/${threadMark}/related`] as const;
+
+export type ThreadRelatedQueryResult = NonNullable<
+  Awaited<ReturnType<typeof threadRelated>>
+>;
+export type ThreadRelatedQueryError =
+  | UnauthorisedResponse
+  | NotFoundResponse
+  | InternalServerErrorResponse;
+
+export const useThreadRelated = <
+  TError =
+    | UnauthorisedResponse
+    | NotFoundResponse
+    | InternalServerErrorResponse,
+>(
+  threadMark: string,
+  options?: {
+    swr?: SWRConfiguration<
+      Awaited<ReturnType<typeof threadRelated>>,
+      TError
+    > & { swrKey?: Key; enabled?: boolean };
+  },
+) => {
+  const { swr: swrOptions } = options ?? {};
+
+  const isEnabled = swrOptions?.enabled !== false && !!threadMark;
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() => (isEnabled ? getThreadRelatedKey(threadMark) : null));
+  const swrFn = () => threadRelated(threadMark);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions,
+  );
 
   return {
     swrKey,

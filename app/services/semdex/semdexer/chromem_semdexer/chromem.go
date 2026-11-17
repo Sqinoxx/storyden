@@ -69,10 +69,6 @@ func (c *chromemRefIndex) Index(ctx context.Context, object datagraph.Item) (int
 }
 
 func embeddingText(object datagraph.Item) string {
-	if d, ok := object.(semdex.EmbeddingTexter); ok {
-		return d.EmbeddingText()
-	}
-
 	body := object.GetContent().Plaintext()
 	name := strings.TrimSpace(object.GetName())
 	if name == "" {

@@ -40,9 +40,9 @@ const (
 
 	searchCandidates       = 20
 	nearestThreads         = 5
-	minNeighbourSimilarity = 0.65
+	minNeighbourSimilarity = 0.55
 	minVotes               = 2
-	minVoteShare           = 0.6
+	minVoteShare           = 0.7
 )
 
 type Suggester struct {
@@ -203,6 +203,10 @@ type Neighbour struct {
 // Vote suggests the tags carried by at least minVotes of the tagged neighbours
 // that together hold at least minVoteShare of their similarity weight.
 func Vote(neighbours []Neighbour) []string {
+	return VoteWith(neighbours, minVotes, minVoteShare)
+}
+
+func VoteWith(neighbours []Neighbour, minVotes int, minVoteShare float64) []string {
 	type tally struct {
 		name  string
 		score float64

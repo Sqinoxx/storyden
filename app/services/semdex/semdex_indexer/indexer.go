@@ -8,7 +8,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/Southclaws/fault"
 	"github.com/Southclaws/fault/fctx"
-	"github.com/Southclaws/opt"
 	"github.com/rs/xid"
 	"go.uber.org/fx"
 
@@ -25,7 +24,6 @@ import (
 
 const (
 	chunkSize    = 20
-	maxReplyRows = 2000
 	pollInterval = time.Minute
 )
 
@@ -153,47 +151,13 @@ func (idx *Indexer) Sync(ctx context.Context) (int, error) {
 	return total, nil
 }
 
-func stale(indexedAt string, changedAt ...string) func(*sql.Selector) {
+func stale(indexedAt, updatedAt string) func(*sql.Selector) {
 	return func(s *sql.Selector) {
-		conds := []*sql.Predicate{sql.IsNull(indexedAt)}
-		for _, c := range changedAt {
-			conds = append(conds, sql.GT(c, sql.Raw(indexedAt)))
-		}
-		s.Where(sql.Or(conds...))
+		s.Where(sql.Or(
+			sql.IsNull(indexedAt),
+			sql.GT(updatedAt, sql.Raw(indexedAt)),
+		))
 	}
-}
-
-func (idx *Indexer) replies(ctx context.Context, threads []*ent.Post) (map[xid.ID][]string, error) {
-	if len(threads) == 0 {
-		return nil, nil
-	}
-
-	ids := make([]xid.ID, len(threads))
-	for i, t := range threads {
-		ids[i] = t.ID
-	}
-
-	rows, err := idx.db.Post.Query().
-		Where(
-			ent_post.RootPostIDIn(ids...),
-			ent_post.DeletedAtIsNil(),
-			ent_post.VisibilityEQ(ent_post.VisibilityPublished),
-		).
-		Order(ent_post.ByCreatedAt()).
-		Limit(maxReplyRows).
-		Select(ent_post.FieldRootPostID, ent_post.FieldShort).
-		All(ctx)
-	if err != nil {
-		return nil, fault.Wrap(err, fctx.With(ctx))
-	}
-
-	out := map[xid.ID][]string{}
-	for _, r := range rows {
-		if r.RootPostID != nil {
-			out[*r.RootPostID] = append(out[*r.RootPostID], r.Short)
-		}
-	}
-	return out, nil
 }
 
 func (idx *Indexer) indexThreads(ctx context.Context) (int, error) {
@@ -203,7 +167,7 @@ func (idx *Indexer) indexThreads(ctx context.Context) (int, error) {
 				ent_post.RootPostIDIsNil(),
 				ent_post.DeletedAtIsNil(),
 				ent_post.VisibilityEQ(ent_post.VisibilityPublished),
-				stale(ent_post.FieldSemdexIndexedAt, ent_post.FieldUpdatedAt, ent_post.FieldLastReplyAt),
+				stale(ent_post.FieldSemdexIndexedAt, ent_post.FieldUpdatedAt),
 			).
 			WithTags().
 			WithAssets().
@@ -212,11 +176,6 @@ func (idx *Indexer) indexThreads(ctx context.Context) (int, error) {
 			All(ctx)
 		if err != nil {
 			return nil, nil, fault.Wrap(err, fctx.With(ctx))
-		}
-
-		replies, err := idx.replies(ctx, rows)
-		if err != nil {
-			return nil, nil, err
 		}
 
 		var items []datagraph.Item
@@ -228,24 +187,7 @@ func (idx *Indexer) indexThreads(ctx context.Context) (int, error) {
 				skipped = append(skipped, r.ID)
 				continue
 			}
-
-			tags := make([]string, 0, len(r.Edges.Tags))
-			for _, t := range r.Edges.Tags {
-				tags = append(tags, t.Name)
-			}
-			attachments := make([]attachment, 0, len(r.Edges.Assets))
-			for _, a := range r.Edges.Assets {
-				attachments = append(attachments, attachment{
-					name:    a.Filename,
-					summary: opt.NewPtr(a.AiSummary).OrZero(),
-					text:    opt.NewPtr(a.OcrText).OrZero(),
-				})
-			}
-
-			items = append(items, &semdex.Document{
-				Item: item,
-				Text: threadText(r.Title, item.GetContent().Plaintext(), tags, replies[r.ID], attachments),
-			})
+			items = append(items, item)
 		}
 		return items, skipped, nil
 	}, idx.markPosts)

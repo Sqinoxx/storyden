@@ -37,6 +37,14 @@ git fetch origin main; git status -sb
 - Find what is new since the last release: `ssh ... "tail -3 ~/storyden/release-history.log"`
   (written in step 5; if missing, use `docker images storyden-server` dates) and
   `git log --oneline <last-commit>..HEAD -- web/src`.
+- **Check the running prod for a crash loop before releasing**:
+  `docker inspect storyden-storyden-1 --format '{{.RestartCount}} {{.State.StartedAt}}'` and
+  `journalctl -k --since -3h | grep -i "killed process"`. On 2026-11-17 the API was OOM-killed
+  every ~15 min for 9 hours unnoticed: a truncated PDF made `ledongthuc/pdf` loop forever in
+  OCR text extraction, and the backfill retried the asset stuck in `processing` after each
+  restart. The log line right before each `storyden http server starting` names the culprit.
+  Stop the loop first by setting that asset's `ocr_status` to `skipped` (ask the user: prod
+  DB write), then fix the code.
 - **Review new frontend code for the 2026-11-11 regression pattern**: any `<Menu.Root>`,
   `<Popover.Root>`, `<Dialog.Root>` etc. with `<Portal>` that is rendered once per list
   item (sidebar categories, thread cards, members) MUST have `lazyMount`, otherwise every

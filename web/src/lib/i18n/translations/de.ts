@@ -956,6 +956,7 @@ export const de: Translations = {
     tooMany: "Zu viele Dateien.",
     readError: "Beim Lesen der Datei ist ein unerwarteter Fehler aufgetreten.",
     linkImportFailed: "Die Datei hinter dem Link konnte nicht übernommen werden, der Link wurde eingefügt.",
+    linkFileFailed: "Die Datei hinter dem Link konnte nicht übernommen werden. Ist sie öffentlich freigegeben?",
   },
   errors: {
     backToHome: "Zurück zur Startseite",

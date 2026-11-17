@@ -15,11 +15,9 @@ import { Asset } from "@/api/openapi-schema";
 
 import { handle } from "@/api/client";
 import {
-  fetchDriveDocument,
-  importFromURL,
-  isImportableFileURL,
-  parseDriveDropURL,
+  isFileLink,
   readDropURL,
+  resolveFileLink as resolveDroppedFileLink,
 } from "@/components/drive/resolveDroppedDriveFile";
 import { css } from "@/styled-system/css";
 import { getAssetURL } from "@/utils/asset";
@@ -59,10 +57,6 @@ function stripPendingUploads(html: string): string {
 }
 
 export type Block = "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
-
-export function isFileLink(url: string | undefined): url is string {
-  return parseDriveDropURL(url) !== null || isImportableFileURL(url);
-}
 
 export function useContentComposer(props: ContentComposerProps) {
   const t = useTranslation();
@@ -715,29 +709,10 @@ export function useContentComposer(props: ContentComposerProps) {
     return assets;
   }
 
-  async function resolveFileLink(
-    url: string,
-  ): Promise<{ file: File } | { asset: Asset } | null> {
-    const ref = parseDriveDropURL(url);
-    if (ref) {
-      const file = await fetchDriveDocument(ref).catch(() => null);
-      if (file) {
-        return { file };
-      }
-      if (ref.folderID) {
-        return null;
-      }
-    }
-
-    if (isImportableFileURL(url)) {
-      const asset = await importFromURL(url);
-      if (asset) {
-        return { asset };
-      }
-      toast.info(t.upload.linkImportFailed);
-    }
-
-    return null;
+  function resolveFileLink(url: string) {
+    return resolveDroppedFileLink(url, () =>
+      toast.info(t.upload.linkImportFailed),
+    );
   }
 
   async function handleFileLink(
@@ -791,8 +766,19 @@ export function useContentComposer(props: ContentComposerProps) {
     pos: number,
   ) {
     const fileAttachmentNode = view.state.schema.nodes["fileAttachment"];
+    const imageNode = view.state.schema.nodes["image"];
 
-    if (propsRef.current.inlineAttachments && fileAttachmentNode) {
+    if (asset.mime_type.startsWith("image/") && imageNode) {
+      view.dispatch(
+        view.state.tr.insert(
+          pos,
+          imageNode.create({
+            src: getAssetURL(asset.path),
+            alt: asset.filename,
+          }),
+        ),
+      );
+    } else if (propsRef.current.inlineAttachments && fileAttachmentNode) {
       view.dispatch(
         view.state.tr.insert(
           pos,

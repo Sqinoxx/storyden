@@ -40,13 +40,20 @@ var allowedMIMEs = map[string]string{
 	"application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
 	"application/vnd.ms-excel":                                                  "xls",
 	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":         "xlsx",
+	"image/jpeg": "jpg",
+	"image/png":  "png",
+	"image/gif":  "gif",
+	"image/webp": "webp",
+	"image/heic": "heic",
+	"image/heif": "heif",
+	"image/avif": "avif",
 }
 
 var (
 	errNotAFile = fmsg.WithDesc("not a file",
 		"Unter diesem Link liegt keine Datei, sondern eine Webseite. Ist der Link öffentlich freigegeben?")
 	errUnsupported = fmsg.WithDesc("unsupported type",
-		"Nur PDF-, Word-, PowerPoint- und Excel-Dateien können über einen Link hochgeladen werden.")
+		"Nur Bilder sowie PDF-, Word-, PowerPoint- und Excel-Dateien können über einen Link hochgeladen werden.")
 	errTooLarge = fmsg.WithDesc("too large",
 		"Die Datei ist größer als das Upload-Limit.")
 	errUnreachable = fmsg.WithDesc("unreachable",

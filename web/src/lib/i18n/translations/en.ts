@@ -953,6 +953,7 @@ export const en = {
     tooMany: "Too many files.",
     readError: "An unexpected error occurred while reading the file.",
     linkImportFailed: "The file behind the link could not be imported, so the link was inserted instead.",
+    linkFileFailed: "The file behind the link could not be imported. Is it shared publicly?",
   },
   errors: {
     backToHome: "Go back to the home page",

@@ -4,11 +4,23 @@ import { FocusClasses } from "@tiptap/extension-focus";
 import { Link } from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { generateHTML, generateJSON } from "@tiptap/html";
-import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
+import {
+  Plugin,
+  PluginKey,
+  TextSelection,
+  Transaction,
+} from "@tiptap/pm/state";
 import { EditorView } from "@tiptap/pm/view";
 import { Extension, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { ChangeEvent, useEffect, useId, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 import { Asset } from "@/api/openapi-schema";
@@ -59,6 +71,20 @@ function stripPendingUploads(html: string): string {
 
 export type Block = "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
+type FileLinkJob = {
+  cancelled: boolean;
+  pos: number;
+  uploadIds: Set<string>;
+  urls: Set<string>;
+  outside: boolean;
+};
+
+export type PastedFileLink = {
+  id: number;
+  url: string;
+  status: "loading" | "inserted" | "attached";
+};
+
 export function useContentComposer(props: ContentComposerProps) {
   const t = useTranslation();
   const { uploadWithProgress } = useImageUpload();
@@ -77,6 +103,14 @@ export function useContentComposer(props: ContentComposerProps) {
   const [dragFileCount, setDragFileCount] = useState(0);
   const dragCounterRef = useRef(0);
   const uploadCounterRef = useRef(0);
+  const [pastedFileLink, setPastedFileLink] = useState<PastedFileLink | null>(
+    null,
+  );
+  const fileLinkJobsRef = useRef(new Map<number, FileLinkJob>());
+  const fileLinkJobCounterRef = useRef(0);
+  const onPasteLinkRef = useRef<
+    (url: string, range: { from: number; to: number }) => boolean
+  >(() => false);
   const activeUploadsRef = useRef<
     Map<
       string,
@@ -182,7 +216,9 @@ export function useContentComposer(props: ContentComposerProps) {
     StarterKit,
     FocusClasses,
     LinkPreview,
-    LinkPasteMenuPlugin,
+    LinkPasteMenuPlugin.configure({
+      onPasteLink: (url, range) => onPasteLinkRef.current(url, range),
+    }),
     Link.configure({
       // Disable navigation when clicking links in the editor if it's active.
       openOnClick: props.disabled ? true : false,
@@ -266,6 +302,8 @@ export function useContentComposer(props: ContentComposerProps) {
     prevResetKeyRef.current = props.resetKey;
 
     if (resetKeyChanged) {
+      fileLinkJobsRef.current.clear();
+      setPastedFileLink(null);
       queueMicrotask(() => {
         if (editor && !editor.isDestroyed) {
           editor.commands.setContent(props.value ?? props.initialValue ?? "<p></p>");
@@ -303,6 +341,23 @@ export function useContentComposer(props: ContentComposerProps) {
 
     editor.setEditable(!props.disabled, false);
   }, [editor, props.disabled]);
+
+  useEffect(() => {
+    if (!editor) {
+      return;
+    }
+
+    const mapJobs = ({ transaction }: { transaction: Transaction }) => {
+      fileLinkJobsRef.current.forEach((job) => {
+        job.pos = transaction.mapping.map(job.pos);
+      });
+    };
+
+    editor.on("transaction", mapJobs);
+    return () => {
+      editor.off("transaction", mapJobs);
+    };
+  }, [editor]);
 
   const isUploading = uploadingCount > 0;
   useEffect(() => {
@@ -523,7 +578,11 @@ export function useContentComposer(props: ContentComposerProps) {
     activeUploadsRef.current.delete(uploadId);
   }
 
-  async function handleFiles(view: EditorView, files: File[]) {
+  async function handleFiles(
+    view: EditorView,
+    files: File[],
+    job?: FileLinkJob,
+  ) {
     if (!view) {
       throw new Error("Unable to access text editor state.");
     }
@@ -563,6 +622,7 @@ export function useContentComposer(props: ContentComposerProps) {
 
       if (isAttachment && !propsRef.current.inlineAttachments) {
         // Non-image files (PDFs, docs, ZIPs) are attached at the bottom only, not inserted into the editor content.
+        if (job) job.outside = true;
         const abortController = new AbortController();
         setUploadingCount((prev) => prev + 1);
 
@@ -622,6 +682,7 @@ export function useContentComposer(props: ContentComposerProps) {
           };
 
       const placeholderNode = nodeType.create(attrs);
+      job?.uploadIds.add(uploadId);
 
       const insertTransaction = view.state.tr.insert(
         insertPos,
@@ -658,6 +719,7 @@ export function useContentComposer(props: ContentComposerProps) {
           });
 
           if (nodePos !== null) {
+            job?.urls.add(getAssetURL(asset.path));
             const newAttrs = isAttachment
               ? {
                   href: getAssetURL(asset.path),
@@ -720,7 +782,8 @@ export function useContentComposer(props: ContentComposerProps) {
     view: EditorView,
     url: string,
     dropPos: number,
-  ) {
+    job?: FileLinkJob,
+  ): Promise<"file" | "link" | "cancelled"> {
     setUploadingCount((prev) => prev + 1);
 
     let resolved: Awaited<ReturnType<typeof resolveFileLink>> = null;
@@ -732,11 +795,11 @@ export function useContentComposer(props: ContentComposerProps) {
       setUploadingCount((prev) => prev - 1);
     }
 
-    if (view.isDestroyed) {
-      return;
+    if (view.isDestroyed || job?.cancelled) {
+      return "cancelled";
     }
 
-    const pos = Math.min(dropPos, view.state.doc.content.size);
+    const pos = Math.min(job ? job.pos : dropPos, view.state.doc.content.size);
 
     if (resolved && "file" in resolved) {
       view.dispatch(
@@ -744,13 +807,13 @@ export function useContentComposer(props: ContentComposerProps) {
           TextSelection.near(view.state.doc.resolve(pos)),
         ),
       );
-      await handleFiles(view, [resolved.file]);
-      return;
+      await handleFiles(view, [resolved.file], job);
+      return "file";
     }
 
     if (resolved && "asset" in resolved) {
-      insertUploadedAttachment(view, resolved.asset, pos);
-      return;
+      insertUploadedAttachment(view, resolved.asset, pos, job);
+      return "file";
     }
 
     const linkMark = view.state.schema.marks["link"];
@@ -759,39 +822,143 @@ export function useContentComposer(props: ContentComposerProps) {
       linkMark ? [linkMark.create({ href: url })] : [],
     );
     view.dispatch(view.state.tr.insert(pos, text));
+    return "link";
   }
 
   function insertUploadedAttachment(
     view: EditorView,
     asset: Asset,
     pos: number,
+    job?: FileLinkJob,
   ) {
     const fileAttachmentNode = view.state.schema.nodes["fileAttachment"];
     const imageNode = view.state.schema.nodes["image"];
+    const url = getAssetURL(asset.path);
 
     if (asset.mime_type.startsWith("image/") && imageNode) {
       view.dispatch(
         view.state.tr.insert(
           pos,
           imageNode.create({
-            src: getAssetURL(asset.path),
+            src: url,
             alt: asset.filename,
           }),
         ),
       );
+      job?.urls.add(url);
     } else if (propsRef.current.inlineAttachments && fileAttachmentNode) {
       view.dispatch(
         view.state.tr.insert(
           pos,
           fileAttachmentNode.create({
-            href: getAssetURL(asset.path),
+            href: url,
             fileName: asset.filename,
           }),
         ),
       );
+      job?.urls.add(url);
+    } else if (job) {
+      job.outside = true;
     }
 
     propsRef.current.onAssetUpload?.(asset);
+  }
+
+  onPasteLinkRef.current = (url, range) => {
+    if (propsRef.current.disabled || !editor || !isFileLink(url)) {
+      return false;
+    }
+
+    const view = editor.view;
+    view.dispatch(view.state.tr.delete(range.from, range.to));
+
+    fileLinkJobCounterRef.current += 1;
+    const id = fileLinkJobCounterRef.current;
+    const job: FileLinkJob = {
+      cancelled: false,
+      pos: range.from,
+      uploadIds: new Set(),
+      urls: new Set(),
+      outside: false,
+    };
+    fileLinkJobsRef.current.clear();
+    fileLinkJobsRef.current.set(id, job);
+    setPastedFileLink({ id, url, status: "loading" });
+
+    void handleFileLink(view, url, range.from, job).then((result) => {
+      if (result === "cancelled") {
+        return;
+      }
+
+      setPastedFileLink((current) => {
+        if (current?.id !== id) return current;
+        if (result === "link") return null;
+        return { ...current, status: job.outside ? "attached" : "inserted" };
+      });
+    });
+
+    return true;
+  };
+
+  const dismissPastedFileLink = useCallback(() => setPastedFileLink(null), []);
+
+  function replacePastedFileLink(kind: "link" | "preview") {
+    const choice = pastedFileLink;
+    const job = choice ? fileLinkJobsRef.current.get(choice.id) : undefined;
+    if (choice) fileLinkJobsRef.current.delete(choice.id);
+    setPastedFileLink(null);
+
+    if (!editor || !choice || !job) {
+      return;
+    }
+
+    job.cancelled = true;
+
+    const found: { pos: number; size: number }[] = [];
+    editor.state.doc.descendants((node, pos) => {
+      if (node.type.name !== "image" && node.type.name !== "fileAttachment") {
+        return true;
+      }
+
+      const uploadId = node.attrs["data-upload-id"];
+      const target = node.attrs["src"] ?? node.attrs["href"];
+      if (
+        (uploadId && job.uploadIds.has(uploadId)) ||
+        (target && job.urls.has(target))
+      ) {
+        found.push({ pos, size: node.nodeSize });
+      }
+      return true;
+    });
+
+    const tr = editor.state.tr;
+    [...found].reverse().forEach(({ pos, size }) => tr.delete(pos, pos + size));
+    editor.view.dispatch(tr);
+
+    const pos = Math.min(
+      found[0]?.pos ?? job.pos,
+      editor.state.doc.content.size,
+    );
+
+    if (kind === "link") {
+      editor
+        .chain()
+        .focus()
+        .insertContentAt(pos, {
+          type: "text",
+          text: choice.url,
+          marks: [{ type: "link", attrs: { href: choice.url } }],
+        })
+        .run();
+      return;
+    }
+
+    editor
+      .chain()
+      .focus()
+      .setTextSelection(pos)
+      .setLinkPreview({ href: choice.url })
+      .run();
   }
 
   function handleUploadLinkAsFile(url: string, range: { from: number; to: number }) {
@@ -1004,9 +1171,12 @@ export function useContentComposer(props: ContentComposerProps) {
     isDragging,
     isDragError,
     getDragOverlayMessage,
+    pastedFileLink,
     handlers: {
       handleFileUpload,
       handleUploadLinkAsFile,
+      replacePastedFileLink,
+      dismissPastedFileLink,
       handleDragOver,
       handleDragEnter,
       handleDragLeave,

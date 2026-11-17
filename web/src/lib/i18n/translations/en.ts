@@ -274,6 +274,13 @@ export const en = {
     text: "Text",
     preview: "Preview",
     file: "File",
+    asLink: "Link",
+    instead: "Instead:",
+    dismiss: "Close",
+    pastedFileLink: "Pasted file link",
+    fileLoading: "Fetching the file …",
+    fileInserted: "Inserted as file",
+    fileAttached: "Added as attachment",
   },
   common: {
     showErrorDetails: "Show error details",

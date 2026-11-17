@@ -13,10 +13,21 @@ export const linkPasteMenuKey = new PluginKey<LinkPasteMenuState>(
   "linkPasteMenu",
 );
 
-export const LinkPasteMenuPlugin = Extension.create({
+export type LinkPasteMenuOptions = {
+  // Returning true takes over the pasted link; the menu is not shown.
+  onPasteLink?: (url: string, range: { from: number; to: number }) => boolean;
+};
+
+export const LinkPasteMenuPlugin = Extension.create<LinkPasteMenuOptions>({
   name: "linkPasteMenu",
 
+  addOptions() {
+    return { onPasteLink: undefined };
+  },
+
   addProseMirrorPlugins() {
+    const options = this.options;
+
     return [
       new Plugin<LinkPasteMenuState>({
         key: linkPasteMenuKey,
@@ -92,6 +103,24 @@ export const LinkPasteMenuPlugin = Extension.create({
             const tr = state.tr.insertText(pastedText, insertPos);
 
             const newPos = insertPos + pastedText.length;
+            const range = { from: insertPos, to: newPos };
+
+            if (options.onPasteLink) {
+              view.dispatch(tr);
+              if (options.onPasteLink(url, range)) {
+                return true;
+              }
+
+              view.dispatch(
+                view.state.tr.setMeta(linkPasteMenuKey, {
+                  isVisible: true,
+                  url,
+                  position: newPos,
+                  range,
+                }),
+              );
+              return true;
+            }
 
             tr.setMeta(linkPasteMenuKey, {
               isVisible: true,
@@ -113,6 +142,14 @@ export const LinkPasteMenuPlugin = Extension.create({
 function getSinglePastedUrl(text: string): string | null {
   if (/\s/.test(text)) {
     return null;
+  }
+
+  if (/^https?:\/\//i.test(text)) {
+    try {
+      return new URL(text).toString();
+    } catch {
+      return null;
+    }
   }
 
   return normalizeLink(text) ?? null;

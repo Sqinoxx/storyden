@@ -276,6 +276,13 @@ export const de: Translations = {
     text: "Text",
     preview: "Vorschau",
     file: "Datei",
+    asLink: "Link",
+    instead: "Stattdessen:",
+    dismiss: "Schließen",
+    pastedFileLink: "Eingefügter Datei-Link",
+    fileLoading: "Datei wird übernommen …",
+    fileInserted: "Als Datei eingefügt",
+    fileAttached: "Als Anhang hinzugefügt",
   },
   common: {
     showErrorDetails: "Fehlerdetails anzeigen",

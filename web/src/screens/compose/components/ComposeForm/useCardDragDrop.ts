@@ -10,6 +10,7 @@ import {
   isSupportedAsset,
   useImageUpload,
 } from "@/components/content/useImageUpload";
+import { classifyDrag } from "@/components/content/useExternalDrag";
 import {
   isFileLink,
   readDropURL,
@@ -42,6 +43,9 @@ export function useCardDragDrop(
     if (isDragError) {
       return dragErrorMessage;
     }
+    if (dragFileCount === 0) {
+      return t.upload.dropLink;
+    }
     return dragFileCount === 1
       ? t.upload.dropOneFile
       : t.upload.dropFiles.replace("{count}", String(dragFileCount));
@@ -58,6 +62,12 @@ export function useCardDragDrop(
     const hasFile = items.some((item) => item.kind === "file");
 
     if (!hasFile) {
+      if (classifyDrag(e.dataTransfer) === "link") {
+        setIsDragging(true);
+        setIsDragError(false);
+        setDragErrorMessage("");
+        setDragFileCount(0);
+      }
       return;
     }
 

@@ -947,6 +947,8 @@ export const en = {
   upload: {
     dropNotRecognised: "Drop not recognised, please try again",
     dropOneFile: "Drop 1 file to upload",
+    dropHere: "Drop here",
+    dropLink: "Drop here to upload",
     dropFiles: "Drop {count} files to upload",
     unsupportedType: "File type not supported",
     tooLarge: "File is larger than the {size}MB upload limit. Please upload large files to Google Drive and share the link.",

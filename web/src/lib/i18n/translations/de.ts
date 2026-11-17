@@ -950,6 +950,8 @@ export const de: Translations = {
   upload: {
     dropNotRecognised: "Ablegen nicht erkannt, bitte versuche es erneut",
     dropOneFile: "1 Datei zum Hochladen ablegen",
+    dropHere: "Hier ablegen",
+    dropLink: "Zum Hochladen hier ablegen",
     dropFiles: "{count} Dateien zum Hochladen ablegen",
     unsupportedType: "Dateityp wird nicht unterstützt",
     tooLarge: "Die Datei überschreitet das Upload-Limit von {size} MB. Bitte lade große Dateien auf Google Drive hoch und teile den Link.",

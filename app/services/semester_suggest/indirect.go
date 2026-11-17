@@ -11,7 +11,8 @@ import (
 
 var (
 	relativePattern = regexp.MustCompile(`(?i)(?:^|[^\p{L}])((letzte[nmrs]?|vergangene[nmrs]?|vorige[nmrs]?|diese[nmrs]?|aktuelle[nmrs]?|laufende[nmrs]?|kommende[nmrs]?|nächste[nmrs]?|naechste[nmrs]?)\s+(wintersemester|sommersemester|semester|wise|sose))(?:[^\p{L}]|$)`)
-	datePattern     = regexp.MustCompile(`(?:^|\D)((\d{1,2})\.(\d{1,2})\.((?:19|20)?\d{2}))(?:\D|$)`)
+	datePattern     = regexp.MustCompile(`(?:^|\D)((\d{1,2})[._-](\d{1,2})[._-]((?:19|20)?\d{2}))(?:\D|$)`)
+	isoDatePattern  = regexp.MustCompile(`(?:^|\D)(((?:19|20)\d{2})[._-]?(\d{2})[._-]?(\d{2}))(?:\D|$)`)
 	monthPattern    = regexp.MustCompile(`(?i)(?:^|[^\p{L}])((januar|jänner|februar|märz|maerz|april|mai|juni|juli|august|september|oktober|november|dezember)\s+((?:19|20)\d{2}))(?:\D|$)`)
 	seasonPattern   = regexp.MustCompile(`(?i)(?:^|[^\p{L}])((sommer|winter)\s+((?:19|20)\d{2})(?:\s*/\s*((?:19|20)?\d{2}))?)(?:\D|$)`)
 )
@@ -39,6 +40,17 @@ func detectIndirect(text string, now time.Time) []match {
 		found = append(found, match{term: t, evidence: strings.TrimSpace(evidence)})
 	}
 
+	addDate := func(y, mo, d int, evidence string) {
+		if mo < 1 || mo > 12 || d < 1 || d > 31 {
+			return
+		}
+		date := time.Date(y, time.Month(mo), d, 0, 0, 0, 0, time.UTC)
+		if date.After(now) {
+			return
+		}
+		add(semester.TermFor(date), evidence)
+	}
+
 	for _, m := range relativePattern.FindAllStringSubmatch(text, -1) {
 		if t, ok := relativeTerm(current, strings.ToLower(m[2]), strings.ToLower(m[3])); ok {
 			add(t, m[1])
@@ -48,15 +60,16 @@ func detectIndirect(text string, now time.Time) []match {
 	for _, m := range datePattern.FindAllStringSubmatch(text, -1) {
 		d, _ := strconv.Atoi(m[2])
 		mo, _ := strconv.Atoi(m[3])
-		y, ok := year(m[4])
-		if !ok || mo < 1 || mo > 12 || d < 1 || d > 31 {
-			continue
+		if y, ok := year(m[4]); ok {
+			addDate(y, mo, d, m[1])
 		}
-		date := time.Date(y, time.Month(mo), d, 0, 0, 0, 0, time.UTC)
-		if date.After(now) {
-			continue
-		}
-		add(semester.TermFor(date), m[1])
+	}
+
+	for _, m := range isoDatePattern.FindAllStringSubmatch(text, -1) {
+		y, _ := strconv.Atoi(m[2])
+		mo, _ := strconv.Atoi(m[3])
+		d, _ := strconv.Atoi(m[4])
+		addDate(y, mo, d, m[1])
 	}
 
 	for _, m := range monthPattern.FindAllStringSubmatch(text, -1) {

@@ -23,9 +23,12 @@ import (
 )
 
 const (
-	// Two forum threads embedded with bge-m3 rarely fall below 0.4, at 0.7
-	// most of a thread's nearest neighbours are about the same subject.
-	MinSimilarity = 0.7
+	// Measured with bge-m3 on the production threads: two threads about the
+	// same exam or subject reach 0.7, while a draft (a short question) reaches
+	// about 0.65 with clearly matching threads and stays below about 0.58
+	// with unrelated ones.
+	MinRelatedSimilarity = 0.7
+	MinDraftSimilarity   = 0.65
 
 	MaxRelated    = 5
 	MaxForDraft   = 3
@@ -67,7 +70,7 @@ func (f *Finder) Related(ctx context.Context, threadID post.ID) (datagraph.ItemL
 		return nil, nil
 	}
 
-	return f.hydrate(ctx, Pick(refs, self, MaxRelated))
+	return f.hydrate(ctx, Pick(refs, self, MinRelatedSimilarity, MaxRelated))
 }
 
 // ForDraft lists threads similar to a post being written, using the same text
@@ -90,17 +93,17 @@ func (f *Finder) ForDraft(ctx context.Context, title, body string) (datagraph.It
 		return nil, fault.Wrap(err, fctx.With(ctx))
 	}
 
-	return f.hydrate(ctx, Pick(res.Items, xid.NilID(), MaxForDraft))
+	return f.hydrate(ctx, Pick(res.Items, xid.NilID(), MinDraftSimilarity, MaxForDraft))
 }
 
-// Pick keeps the most similar threads above MinSimilarity.
-func Pick(refs []*datagraph.Ref, exclude xid.ID, limit int) []*datagraph.Ref {
+// Pick keeps the most similar threads from minSimilarity.
+func Pick(refs []*datagraph.Ref, exclude xid.ID, minSimilarity float64, limit int) []*datagraph.Ref {
 	var out []*datagraph.Ref
 	for _, r := range refs {
 		if len(out) == limit {
 			break
 		}
-		if r.ID == exclude || r.Kind != datagraph.KindThread || r.Relevance < MinSimilarity {
+		if r.ID == exclude || r.Kind != datagraph.KindThread || r.Relevance < minSimilarity {
 			continue
 		}
 		out = append(out, r)

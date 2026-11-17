@@ -141,3 +141,39 @@ func leaveOneOut(threads []*calThread, minSim, share float64) calResult {
 	}
 	return r
 }
+
+// TestCalibrateQueries prints the nearest threads for free-text queries given
+// in STORYDEN_CALIBRATE_QUERIES (separated by "|"), to judge thresholds for
+// search and similar-thread hints by eye.
+func TestCalibrateQueries(t *testing.T) {
+	dsn, url, queries := os.Getenv("STORYDEN_CALIBRATE_DSN"), os.Getenv("STORYDEN_CALIBRATE_OPENAI_URL"), os.Getenv("STORYDEN_CALIBRATE_QUERIES")
+	if dsn == "" || url == "" || queries == "" {
+		t.Skip("calibration data not configured")
+	}
+	model := os.Getenv("STORYDEN_CALIBRATE_MODEL")
+	if model == "" {
+		model = "bge-m3"
+	}
+
+	ctx := context.Background()
+	db, err := sql.Open("pgx", dsn)
+	require.NoError(t, err)
+	defer db.Close()
+
+	threads := loadThreads(t, ctx, db)
+	embed := chromem.NewEmbeddingFuncOpenAICompat(url, "ollama", model, nil)
+	for _, th := range threads {
+		th.doc, err = embed(ctx, th.title+"\n\n"+th.body)
+		require.NoError(t, err)
+	}
+
+	for _, q := range strings.Split(queries, "|") {
+		v, err := embed(ctx, q)
+		require.NoError(t, err)
+		sort.Slice(threads, func(i, j int) bool { return cosine(v, threads[i].doc) > cosine(v, threads[j].doc) })
+		t.Logf("%q", q)
+		for _, th := range threads[:6] {
+			t.Logf("  %.3f %s", cosine(v, th.doc), th.title)
+		}
+	}
+}

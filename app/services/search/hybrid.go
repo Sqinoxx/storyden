@@ -19,16 +19,17 @@ import (
 )
 
 const (
-	semanticTimeout    = 1500 * time.Millisecond
+	semanticTimeout     = 1500 * time.Millisecond
+	semanticLoadTimeout = 30 * time.Second
 	semanticCandidates = 20
 	semanticMaxResults = 8
 	minQueryRunes      = 3
 	rrfK               = 60.0
 )
 
-// bge-m3 rates almost any two forum posts above 0.4. From 0.6 a thread's
-// title still finds 4.5 of its 5 nearest threads on average (checked on 211
-// production threads), anything weaker is mostly noise.
+// bge-m3 rates almost any query and forum thread above 0.4. On the
+// production threads free-text queries reach 0.65 for clearly matching
+// threads while unrelated ones stay below about 0.58.
 const MinSemanticSimilarity = 0.6
 
 // hybridSearcher adds threads that match the meaning of the query to the
@@ -63,28 +64,25 @@ func (h *hybridSearcher) Search(ctx context.Context, q string, p pagination.Para
 		return h.next.Search(ctx, q, p, opts)
 	}
 
-	var (
-		wg       sync.WaitGroup
-		semantic datagraph.ItemList
-	)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		sctx, cancel := context.WithTimeout(ctx, semanticTimeout)
-		defer cancel()
-
-		items, err := h.semantic(sctx, q)
-		if err != nil {
-			h.logger.Warn("semantic search failed, using keyword results only", slog.String("error", err.Error()))
-			return
-		}
-		semantic = items
-	}()
+	refs := h.nearest(ctx, q)
 
 	keyword, err := h.next.Search(ctx, q, p, opts)
-	wg.Wait()
 	if err != nil {
 		return nil, err
+	}
+
+	var semantic datagraph.ItemList
+	select {
+	case r := <-refs:
+		if len(r) > 0 {
+			semantic, err = h.hydrator.Hydrate(ctx, r...)
+			if err != nil {
+				h.logger.Warn("semantic search failed, using keyword results only", slog.String("error", err.Error()))
+				semantic = nil
+			}
+		}
+	case <-time.After(semanticTimeout):
+	case <-ctx.Done():
 	}
 	if len(semantic) == 0 {
 		return keyword, nil
@@ -101,23 +99,35 @@ func (h *hybridSearcher) Search(ctx context.Context, q string, p pagination.Para
 	return &out, nil
 }
 
-func (h *hybridSearcher) semantic(ctx context.Context, q string) (datagraph.ItemList, error) {
-	res, err := h.semdex.SearchRefs(ctx, q, pagination.NewPageParams(1, semanticCandidates), searcher.Options{})
-	if err != nil {
-		return nil, err
-	}
+// nearest looks up the threads closest to the query. The lookup outlives the
+// request: after a pause the embedding model has to be loaded first, which
+// takes longer than a member should wait, and cancelling it would make every
+// following search start the load again. Finishing it warms the model and
+// caches the query's embedding.
+func (h *hybridSearcher) nearest(ctx context.Context, q string) <-chan []*datagraph.Ref {
+	out := make(chan []*datagraph.Ref, 1)
 
-	var refs []*datagraph.Ref
-	for _, r := range res.Items {
-		if r.Kind == datagraph.KindThread && r.Relevance >= MinSemanticSimilarity && len(refs) < semanticMaxResults {
-			refs = append(refs, r)
+	go func() {
+		lctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), semanticLoadTimeout)
+		defer cancel()
+
+		res, err := h.semdex.SearchRefs(lctx, q, pagination.NewPageParams(1, semanticCandidates), searcher.Options{})
+		if err != nil {
+			h.logger.Warn("semantic search failed, using keyword results only", slog.String("error", err.Error()))
+			out <- nil
+			return
 		}
-	}
-	if len(refs) == 0 {
-		return nil, nil
-	}
 
-	return h.hydrator.Hydrate(ctx, refs...)
+		var refs []*datagraph.Ref
+		for _, r := range res.Items {
+			if r.Kind == datagraph.KindThread && r.Relevance >= MinSemanticSimilarity && len(refs) < semanticMaxResults {
+				refs = append(refs, r)
+			}
+		}
+		out <- refs
+	}()
+
+	return out
 }
 
 // Fuse merges keyword and semantic results and returns the IDs only the

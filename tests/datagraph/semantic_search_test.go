@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/Southclaws/opt"
 	"github.com/google/uuid"
@@ -26,6 +28,10 @@ import (
 // Rubber dam threads and the colloquial word for it share an embedding axis
 // but no words, so only the semantic index can connect them.
 func meaningModel(t *testing.T) *httptest.Server {
+	return meaningModelWithDelay(t, func() time.Duration { return 0 })
+}
+
+func meaningModelWithDelay(t *testing.T, delay func() time.Duration) *httptest.Server {
 	axis := func(text string) []float32 {
 		lower := strings.ToLower(text)
 		switch {
@@ -39,6 +45,12 @@ func meaningModel(t *testing.T) *httptest.Server {
 	}
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasSuffix(r.URL.Path, "/embeddings") {
+			http.NotFound(w, r)
+			return
+		}
+		time.Sleep(delay())
+
 		var body map[string]any
 		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
 		w.Header().Set("Content-Type", "application/json")
@@ -128,6 +140,80 @@ func TestSemanticSearch(t *testing.T) {
 				res := search(t, "Spanngummi", "2")
 				require.Nil(t, res.SemanticMatches)
 			})
+		}))
+	}))
+}
+
+func TestSemanticSearchColdModel(t *testing.T) {
+	t.Parallel()
+
+	var mu sync.Mutex
+	slow := false
+	srv := meaningModelWithDelay(t, func() time.Duration {
+		mu.Lock()
+		defer mu.Unlock()
+		if slow {
+			slow = false
+			return 2500 * time.Millisecond
+		}
+		return 0
+	})
+
+	integration.Test(t, &config.Config{
+		LanguageModelProvider:       "openai",
+		OpenAIBaseURL:               srv.URL + "/v1",
+		LanguageModelChatModel:      "m",
+		LanguageModelEmbeddingModel: "e",
+		SemdexProvider:              "chromem",
+		SemdexLocalPath:             t.TempDir(),
+	}, e2e.Setup(), fx.Invoke(func(
+		root context.Context,
+		lc fx.Lifecycle,
+		cl *openapi.ClientWithResponses,
+		sh *e2e.SessionHelper,
+		aw *account_writer.Writer,
+		idx *semdex_indexer.Indexer,
+	) {
+		lc.Append(fx.StartHook(func() {
+			adminCtx, _ := e2e.WithAccount(root, aw, seed.Account_001_Odin)
+			memberCtx, _ := e2e.WithAccount(root, aw, seed.Account_003_Baldur)
+			member := sh.WithSession(memberCtx)
+
+			cat, err := cl.CategoryCreateWithResponse(root, openapi.CategoryInitialProps{Name: uuid.NewString(), Colour: "#000"}, sh.WithSession(adminCtx))
+			tests.Ok(t, err, cat)
+			th, err := cl.ThreadCreateWithResponse(root, openapi.ThreadInitialProps{
+				Title:      "Kofferdam anlegen " + uuid.NewString()[:6],
+				Body:       opt.New("<p>Kofferdam, wer hat Tipps?</p>").Ptr(),
+				Category:   opt.New(cat.JSON200.Id).Ptr(),
+				Visibility: opt.New(openapi.VisibilityPublished).Ptr(),
+			}, member)
+			tests.Ok(t, err, th)
+
+			_, err = idx.Sync(root)
+			require.NoError(t, err)
+
+			mu.Lock()
+			slow = true
+			mu.Unlock()
+
+			search := func() (*openapi.DatagraphSearchResult, time.Duration) {
+				start := time.Now()
+				res, err := cl.DatagraphSearchWithResponse(root, &openapi.DatagraphSearchParams{
+					Q:    opt.New("Spanngummi").Ptr(),
+					Kind: &openapi.DatagraphKindQuery{openapi.DatagraphItemKindThread},
+				}, member)
+				tests.Ok(t, err, res)
+				return res.JSON200, time.Since(start)
+			}
+
+			first, took := search()
+			require.Nil(t, first.SemanticMatches)
+			require.Less(t, took, 2500*time.Millisecond)
+
+			require.Eventually(t, func() bool {
+				res, _ := search()
+				return res.SemanticMatches != nil && len(*res.SemanticMatches) == 1
+			}, 10*time.Second, 200*time.Millisecond)
 		}))
 	}))
 }

@@ -21,6 +21,7 @@ import { styled } from "@/styled-system/jsx";
 import { downloadAsset, getCleanFilename, rebaseAssetURL } from "@/utils/asset";
 import { AttachmentSummaryButton } from "@/components/post/AttachmentSummary/AttachmentSummary";
 import { FilePreviewModal, isPreviewableAsset } from "@/components/post/FilePreviewModal";
+import { FileTypeIcon } from "@/components/ui/FileTypeIcon/FileTypeIcon";
 import { useTranslation } from "@/lib/i18n";
 
 export interface FileAttachmentOptions {
@@ -138,9 +139,7 @@ function Component(props: NodeViewProps) {
               <ProgressCircle value={progressPercent} size="sm" />
             </styled.span>
           ) : (
-            <styled.span display="flex" alignItems="center" flexShrink="0" fontSize="sm">
-              📄
-            </styled.span>
+            <FileTypeIcon filename={fileName} size={26} />
           )}
 
           <styled.span fontSize="sm" fontWeight="medium" truncate maxWidth="xs" minWidth="0">

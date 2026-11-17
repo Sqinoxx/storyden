@@ -2,6 +2,7 @@
 
 import { Download } from "lucide-react";
 import { Asset } from "@/api/openapi-schema";
+import { FileTypeIcon } from "@/components/ui/FileTypeIcon/FileTypeIcon";
 import { downloadAsset, getAssetURL, getCleanFilename } from "@/utils/asset";
 import { HStack, styled } from "@/styled-system/jsx";
 
@@ -49,9 +50,7 @@ export function Attachments({ assets }: { assets: Asset[] }) {
             overflow="hidden"
             _hover={{ bgColor: "bg.muted" }}
           >
-            <styled.span flexShrink="0" fontSize="sm">
-              📄
-            </styled.span>
+            <FileTypeIcon mimeType={a.mime_type} filename={a.filename} size={26} />
             <styled.span
               overflow="hidden"
               textOverflow="ellipsis"

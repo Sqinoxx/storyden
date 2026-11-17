@@ -11,6 +11,7 @@ import {
   getCleanFilename,
   isAssetEmbeddedInBody,
 } from "@/utils/asset";
+import { FileTypeIcon } from "@/components/ui/FileTypeIcon/FileTypeIcon";
 import { styled } from "@/styled-system/jsx";
 import { AttachmentSummaryButton } from "./AttachmentSummary/AttachmentSummary";
 import { FilePreviewModal, isPreviewableAsset } from "./FilePreviewModal";
@@ -110,9 +111,11 @@ export function FileAttachmentBadge({
             }}
           />
         ) : (
-          <styled.span display="flex" alignItems="center" flexShrink="0" fontSize="sm">
-            📄
-          </styled.span>
+          <FileTypeIcon
+            mimeType={asset.mime_type}
+            filename={asset.filename}
+            size={26}
+          />
         )}
 
         {/* Filename */}

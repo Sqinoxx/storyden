@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"regexp"
 	"strings"
 	"time"
 
@@ -43,9 +44,15 @@ type Input struct {
 	Filenames []string
 }
 
+// Stored asset filenames start with a random xid which can contain things
+// like "ss25" and would then read as a term.
+var assetIDPrefix = regexp.MustCompile(`^[0-9a-v]{20}-`)
+
 func (i Input) text() string {
 	parts := []string{i.Title, i.Body}
-	parts = append(parts, i.Filenames...)
+	for _, f := range i.Filenames {
+		parts = append(parts, assetIDPrefix.ReplaceAllString(f, ""))
+	}
 	text := strings.Join(parts, "\n")
 	if len(text) > maxInputChars {
 		text = text[:maxInputChars]

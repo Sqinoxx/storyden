@@ -41,7 +41,38 @@ func TestDetect(t *testing.T) {
 		{"Altklausuren WS 22/23 und WS 22/23 nochmal", []semester.Term{ws(2022)}},
 		{"WS 22/23 und SS 23", []semester.Term{ws(2022), ss(2023)}},
 
+		{"Ws24", []semester.Term{ws(2024)}},
+		{"Prothetik_Ws24_14.02.2025.pdf", []semester.Term{ws(2024)}},
+		{"prothetik-ws24-14-02-2025-pdf", []semester.Term{ws(2024)}},
+		{"WS 24 2025", []semester.Term{ws(2024)}},
+		{"ws-24-25-pdf", []semester.Term{ws(2024)}},
+		{"WS24_25", []semester.Term{ws(2024)}},
+		{"WS 24 / 25", []semester.Term{ws(2024)}},
+		{"WS 2024-25", []semester.Term{ws(2024)}},
+		{"WS'24", []semester.Term{ws(2024)}},
+		{"SS ’23", []semester.Term{ss(2023)}},
+		{"AnatomieWS24.pdf", []semester.Term{ws(2024)}},
+		{"KlausurSoSe25", []semester.Term{ss(2025)}},
+		{"altklausurwintersemester2024", []semester.Term{ws(2024)}},
+		{"Wintersem. 24/25", []semester.Term{ws(2024)}},
+		{"Winter-Semester 23/24", []semester.Term{ws(2023)}},
+		{"Sommersem 2023", []semester.Term{ss(2023)}},
+		{"Wi-Se 23/24", []semester.Term{ws(2023)}},
+		{"SoSe_24", []semester.Term{ss(2024)}},
+		{"Winter 24/25", []semester.Term{ws(2024)}},
+		{"winter-24-25-pdf", []semester.Term{ws(2024)}},
+		{"Altklausur 24/25 WS", []semester.Term{ws(2024)}},
+		{"2023 SS Testat", []semester.Term{ss(2023)}},
+		{"kons-2024-ss-pdf", []semester.Term{ss(2024)}},
+		{"SS-Klausur 2024", nil},
+		{"Physikum WS2324", []semester.Term{ws(2023)}},
+
 		{"WS 22/24", nil},
+		{"news24", nil},
+		{"Boss22", nil},
+		{"Winter 24", nil},
+		{"14.02.24 WS", nil},
+		{"Seite 24 und so se", nil},
 		{"Boss 22 Prothetik", nil},
 		{"Class 2023", nil},
 		{"Ich hatte 2023 Physikum", nil},
@@ -79,6 +110,10 @@ func TestDetectIndirect(t *testing.T) {
 		{"Klausur vom 14.02.2024", []semester.Term{ws(2023)}},
 		{"Klausur vom 14.2.24", []semester.Term{ws(2023)}},
 		{"Testat am 03.05.2025", []semester.Term{ss(2025)}},
+		{"klausur-14-02-2024-pdf", []semester.Term{ws(2023)}},
+		{"Scan_2025-05-03.pdf", []semester.Term{ss(2025)}},
+		{"scan-20240214-pdf", []semester.Term{ws(2023)}},
+		{"Scan 2024-13-40", nil},
 		{"Kons Klausur Februar 2025", []semester.Term{ws(2024)}},
 		{"Testat im Sommer 2023", []semester.Term{ss(2023)}},
 		{"Winter 2023/24", []semester.Term{ws(2023)}},
@@ -148,6 +183,15 @@ func TestSuggest(t *testing.T) {
 		assert.Equal(t, SourcePattern, got.Source)
 		assert.Equal(t, "WS22-23", got.Evidence)
 		assert.Zero(t, *calls)
+	})
+
+	t.Run("asset_id_prefix_is_ignored", func(t *testing.T) {
+		p, _ := newFakeModel(t, confirmation{"exam", 100})
+		got, err := suggester(p).Suggest(ctx, Input{Filenames: []string{"cs25ss25ab0123456789-anatomie-ws24-pdf"}})
+		require.NoError(t, err)
+		require.NotNil(t, got)
+		assert.Equal(t, ws(2024), got.Term)
+		assert.Equal(t, "ws24", got.Evidence)
 	})
 
 	t.Run("conflicting_patterns_give_nothing", func(t *testing.T) {

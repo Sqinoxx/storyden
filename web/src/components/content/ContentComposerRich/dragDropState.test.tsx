@@ -40,8 +40,13 @@ describe("ContentComposerRich drag overlay state", () => {
     fireEvent.dragEnter(root, { dataTransfer: dataTransfer("file", "image/png") });
     expect(screen.getByRole("status")).not.toBeNull();
 
-    // ...and hide it again if the user drags back out without dropping.
+    // ...and fall back to the page-wide hint if the user drags back out
+    // without dropping.
     fireEvent.dragLeave(root);
-    expect(screen.queryByRole("status")).toBeNull();
+    expect(
+      container.querySelector('[role="status"]:not([data-drop-hint])'),
+    ).toBeNull();
+
+    fireEvent.drop(window);
   });
 });

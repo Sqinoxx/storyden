@@ -8,6 +8,7 @@ import { LStack } from "@/styled-system/jsx";
 
 import { ComposerTools } from "../ComposerTools";
 import { ContentDragOverlay } from "../ContentDragOverlay";
+import { useExternalDrag } from "../useExternalDrag";
 import { ContentComposerProps } from "../composer-props";
 
 import "./styles.css";
@@ -27,6 +28,7 @@ declare module "@tiptap/core" {
 
 export function ContentComposerRich(props: ContentComposerProps) {
   const t = useTranslation();
+  const externalDrag = useExternalDrag();
   const {
     editor,
     initialValueHTML,
@@ -158,11 +160,20 @@ export function ContentComposerRich(props: ContentComposerProps) {
           }
         />
       )}
-      {isDragging && (
+      {isDragging ? (
         <ContentDragOverlay
           isError={isDragError}
           message={getDragOverlayMessage()}
         />
+      ) : (
+        externalDrag &&
+        !props.disabled && (
+          <ContentDragOverlay
+            hint
+            isError={false}
+            message={t.upload.dropHere}
+          />
+        )
       )}
     </LStack>
   );

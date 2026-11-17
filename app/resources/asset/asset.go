@@ -29,6 +29,26 @@ type Asset struct {
 	OCRProcessedAt opt.Optional[time.Time]
 	Summary        opt.Optional[Summary]
 	SummaryStatus  string
+	ContentHash    opt.Optional[string]
+	DuplicateOf    opt.Optional[DuplicateInfo]
+}
+
+type DuplicateInfo struct {
+	Count     int
+	Locations []DuplicateLocation
+}
+
+type DuplicateLocationKind string
+
+const (
+	DuplicateLocationThread DuplicateLocationKind = "thread"
+	DuplicateLocationNode   DuplicateLocationKind = "node"
+)
+
+type DuplicateLocation struct {
+	Kind  DuplicateLocationKind
+	Slug  string
+	Title string
 }
 
 type Summary struct {
@@ -84,6 +104,7 @@ func Map(a *ent.Asset) *Asset {
 		OCRProcessedAt: ocrProcessedAt,
 		Summary:        summary,
 		SummaryStatus:  string(a.AiSummaryStatus),
+		ContentHash:    opt.NewPtr(a.ContentHash),
 	}
 }
 

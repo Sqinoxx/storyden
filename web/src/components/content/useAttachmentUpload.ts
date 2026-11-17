@@ -5,6 +5,7 @@ import { useState } from "react";
 import { handle } from "@/api/client";
 import { assetUpload } from "@/api/openapi-client/assets";
 import { Asset } from "@/api/openapi-schema";
+import { useDuplicateNotice } from "@/components/asset/useDuplicateNotice";
 import { useMaxUploadSizeBytes } from "@/lib/settings/uploads";
 import { buildAttachmentMarkup } from "@/utils/asset";
 
@@ -28,6 +29,7 @@ export type UploadedAttachment = {
 export function useAttachmentUpload() {
   const [isUploading, setUploading] = useState(false);
   const maxUploadSizeBytes = useMaxUploadSizeBytes();
+  const notifyDuplicate = useDuplicateNotice();
 
   async function upload(files: File[]): Promise<UploadedAttachment[]> {
     if (files.length === 0) {
@@ -52,6 +54,7 @@ export function useAttachmentUpload() {
           }
 
           const asset = await assetUpload(file, { filename: file.name });
+          notifyDuplicate(asset, file.name);
 
           uploaded.push({
             asset: { ...asset, filename: file.name },

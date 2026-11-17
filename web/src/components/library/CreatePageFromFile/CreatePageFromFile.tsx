@@ -7,6 +7,7 @@ import { useState } from "react";
 import { handle } from "@/api/client";
 import { assetUpload } from "@/api/openapi-client/assets";
 import { nodeAddAsset, nodeCreate } from "@/api/openapi-client/nodes";
+import { useDuplicateNotice } from "@/components/asset/useDuplicateNotice";
 import { ButtonProps } from "@/components/ui/button";
 import * as FileUpload from "@/components/ui/file-upload";
 import { IconButton } from "@/components/ui/icon-button";
@@ -33,6 +34,7 @@ export function CreatePageFromFileAction({
 }: CreatePageFromFileProps) {
   const { revalidate } = useLibraryMutation();
   const t = useTranslation();
+  const notifyDuplicate = useDuplicateNotice();
   const [isUploading, setIsUploading] = useState(false);
 
   async function handleFileAccept({ files }: FileUploadFileAcceptDetails) {
@@ -46,6 +48,7 @@ export function CreatePageFromFileAction({
         const uploadedAsset = await assetUpload(file, {
           filename: file.name,
         });
+        notifyDuplicate(uploadedAsset, file.name);
 
         const createdNode = await nodeCreate({
           name: file.name,

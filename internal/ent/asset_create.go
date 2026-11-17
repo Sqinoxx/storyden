@@ -83,6 +83,20 @@ func (_c *AssetCreate) SetMetadata(v map[string]interface{}) *AssetCreate {
 	return _c
 }
 
+// SetContentHash sets the "content_hash" field.
+func (_c *AssetCreate) SetContentHash(v string) *AssetCreate {
+	_c.mutation.SetContentHash(v)
+	return _c
+}
+
+// SetNillableContentHash sets the "content_hash" field if the given value is not nil.
+func (_c *AssetCreate) SetNillableContentHash(v *string) *AssetCreate {
+	if v != nil {
+		_c.SetContentHash(*v)
+	}
+	return _c
+}
+
 // SetOcrText sets the "ocr_text" field.
 func (_c *AssetCreate) SetOcrText(v string) *AssetCreate {
 	_c.mutation.SetOcrText(v)
@@ -530,6 +544,10 @@ func (_c *AssetCreate) createSpec() (*Asset, *sqlgraph.CreateSpec) {
 		_spec.SetField(asset.FieldMetadata, field.TypeJSON, value)
 		_node.Metadata = value
 	}
+	if value, ok := _c.mutation.ContentHash(); ok {
+		_spec.SetField(asset.FieldContentHash, field.TypeString, value)
+		_node.ContentHash = &value
+	}
 	if value, ok := _c.mutation.OcrText(); ok {
 		_spec.SetField(asset.FieldOcrText, field.TypeString, value)
 		_node.OcrText = &value
@@ -832,6 +850,24 @@ func (u *AssetUpsert) ClearMetadata() *AssetUpsert {
 	return u
 }
 
+// SetContentHash sets the "content_hash" field.
+func (u *AssetUpsert) SetContentHash(v string) *AssetUpsert {
+	u.Set(asset.FieldContentHash, v)
+	return u
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AssetUpsert) UpdateContentHash() *AssetUpsert {
+	u.SetExcluded(asset.FieldContentHash)
+	return u
+}
+
+// ClearContentHash clears the value of the "content_hash" field.
+func (u *AssetUpsert) ClearContentHash() *AssetUpsert {
+	u.SetNull(asset.FieldContentHash)
+	return u
+}
+
 // SetOcrText sets the "ocr_text" field.
 func (u *AssetUpsert) SetOcrText(v string) *AssetUpsert {
 	u.Set(asset.FieldOcrText, v)
@@ -1126,6 +1162,27 @@ func (u *AssetUpsertOne) UpdateMetadata() *AssetUpsertOne {
 func (u *AssetUpsertOne) ClearMetadata() *AssetUpsertOne {
 	return u.Update(func(s *AssetUpsert) {
 		s.ClearMetadata()
+	})
+}
+
+// SetContentHash sets the "content_hash" field.
+func (u *AssetUpsertOne) SetContentHash(v string) *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetContentHash(v)
+	})
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AssetUpsertOne) UpdateContentHash() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateContentHash()
+	})
+}
+
+// ClearContentHash clears the value of the "content_hash" field.
+func (u *AssetUpsertOne) ClearContentHash() *AssetUpsertOne {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearContentHash()
 	})
 }
 
@@ -1617,6 +1674,27 @@ func (u *AssetUpsertBulk) UpdateMetadata() *AssetUpsertBulk {
 func (u *AssetUpsertBulk) ClearMetadata() *AssetUpsertBulk {
 	return u.Update(func(s *AssetUpsert) {
 		s.ClearMetadata()
+	})
+}
+
+// SetContentHash sets the "content_hash" field.
+func (u *AssetUpsertBulk) SetContentHash(v string) *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.SetContentHash(v)
+	})
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AssetUpsertBulk) UpdateContentHash() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.UpdateContentHash()
+	})
+}
+
+// ClearContentHash clears the value of the "content_hash" field.
+func (u *AssetUpsertBulk) ClearContentHash() *AssetUpsertBulk {
+	return u.Update(func(s *AssetUpsert) {
+		s.ClearContentHash()
 	})
 }
 

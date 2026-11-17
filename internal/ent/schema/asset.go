@@ -29,6 +29,8 @@ func (Asset) Fields() []ent.Field {
 
 		field.JSON("metadata", map[string]any{}).Optional(),
 
+		field.String("content_hash").Optional().Nillable(),
+
 		field.Text("ocr_text").Optional().Nillable(),
 		field.Enum("ocr_status").Values("pending", "processing", "completed", "failed", "skipped").Default("pending"),
 		field.String("ocr_error").Optional().Nillable(),
@@ -50,6 +52,7 @@ func (Asset) Indexes() []ent.Index {
 		index.Fields("filename"),
 		index.Fields("ocr_status"),
 		index.Fields("ai_summary_status"),
+		index.Fields("content_hash"),
 	}
 }
 

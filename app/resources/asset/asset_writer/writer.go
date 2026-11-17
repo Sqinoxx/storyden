@@ -28,6 +28,7 @@ func (w *Writer) Add(ctx context.Context,
 	filename asset.Filename,
 	size int,
 	mt mime.Type,
+	contentHash string,
 ) (*asset.Asset, error) {
 	r, err := w.db.Asset.
 		Create().
@@ -35,6 +36,7 @@ func (w *Writer) Add(ctx context.Context,
 		SetFilename(filename.String()).
 		SetSize(size).
 		SetMimeType(mt.String()).
+		SetContentHash(contentHash).
 		SetAccountID(xid.ID(accountID)).
 		Save(ctx)
 	if err != nil {
@@ -49,6 +51,7 @@ func (w *Writer) AddVersion(ctx context.Context,
 	filename asset.Filename,
 	size int,
 	mt mime.Type,
+	contentHash string,
 	parent asset.AssetID,
 ) (*asset.Asset, error) {
 	r, err := w.db.Asset.
@@ -58,6 +61,7 @@ func (w *Writer) AddVersion(ctx context.Context,
 		SetFilename(filename.String()).
 		SetSize(size).
 		SetMimeType(mt.String()).
+		SetContentHash(contentHash).
 		SetAccountID(xid.ID(accountID)).
 		Save(ctx)
 	if err != nil {
@@ -75,6 +79,13 @@ func (w *Writer) AddVersion(ctx context.Context,
 	r.Edges.Parent = p
 
 	return asset.Map(r), nil
+}
+
+func (w *Writer) SetContentHash(ctx context.Context, id xid.ID, hash string) error {
+	if err := w.db.Asset.UpdateOneID(id).SetContentHash(hash).Exec(ctx); err != nil {
+		return fault.Wrap(err, fctx.With(ctx))
+	}
+	return nil
 }
 
 func (w *Writer) Remove(ctx context.Context, accountID xid.ID, id asset.Filename) error {

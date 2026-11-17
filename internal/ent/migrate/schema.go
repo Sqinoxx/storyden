@@ -192,6 +192,7 @@ var (
 		{Name: "size", Type: field.TypeInt, Default: "0"},
 		{Name: "mime_type", Type: field.TypeString, Default: "application/octet-stream"},
 		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "content_hash", Type: field.TypeString, Nullable: true},
 		{Name: "ocr_text", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "ocr_status", Type: field.TypeEnum, Enums: []string{"pending", "processing", "completed", "failed", "skipped"}, Default: "pending"},
 		{Name: "ocr_error", Type: field.TypeString, Nullable: true},
@@ -211,13 +212,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "assets_accounts_assets",
-				Columns:    []*schema.Column{AssetsColumns[15]},
+				Columns:    []*schema.Column{AssetsColumns[16]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "assets_assets_assets",
-				Columns:    []*schema.Column{AssetsColumns[16]},
+				Columns:    []*schema.Column{AssetsColumns[17]},
 				RefColumns: []*schema.Column{AssetsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -231,12 +232,17 @@ var (
 			{
 				Name:    "asset_ocr_status",
 				Unique:  false,
-				Columns: []*schema.Column{AssetsColumns[8]},
+				Columns: []*schema.Column{AssetsColumns[9]},
 			},
 			{
 				Name:    "asset_ai_summary_status",
 				Unique:  false,
-				Columns: []*schema.Column{AssetsColumns[14]},
+				Columns: []*schema.Column{AssetsColumns[15]},
+			},
+			{
+				Name:    "asset_content_hash",
+				Unique:  false,
+				Columns: []*schema.Column{AssetsColumns[7]},
 			},
 		},
 	}

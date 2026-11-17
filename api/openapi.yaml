@@ -13915,6 +13915,33 @@ components:
           type: number
         # NOTE: Presence is dictated by the callee, not the API (currently.)
         parent: { $ref: "#/components/schemas/Asset" }
+        duplicate_of: { $ref: "#/components/schemas/AssetDuplicateInfo" }
+
+    AssetDuplicateInfo:
+      description: |
+        Only present on upload responses when a file with byte-identical
+        content had already been uploaded. Locations only lists published
+        threads and library pages so nothing private is revealed.
+      type: object
+      required: [count, locations]
+      properties:
+        count:
+          type: integer
+        locations:
+          type: array
+          items: { $ref: "#/components/schemas/AssetDuplicateLocation" }
+
+    AssetDuplicateLocation:
+      type: object
+      required: [kind, slug, title]
+      properties:
+        kind:
+          type: string
+          enum: [thread, node]
+        slug:
+          type: string
+        title:
+          type: string
 
     AssetSourceURL:
       description:
